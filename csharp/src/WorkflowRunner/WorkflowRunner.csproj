@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <AssemblyName>Train.Solver.WorkflowRunner</AssemblyName>
+    <RootNamespace>Train.Solver.WorkflowRunner</RootNamespace>
+    <UserSecretsId>2bff82cd-31a7-435f-8f54-6613ced2329c</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="TransactionProcessor\Solana\SolanaBuilders\**" />
+    <Content Remove="TransactionProcessor\Solana\SolanaBuilders\**" />
+    <EmbeddedResource Remove="TransactionProcessor\Solana\SolanaBuilders\**" />
+    <None Remove="TransactionProcessor\Solana\SolanaBuilders\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_WebToolingArtifacts Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+</Project>

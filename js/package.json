@@ -1,0 +1,38 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "main": "dist/src/TemporalWorker/worker.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/TemporalWorker/Worker.js",
+    "dev": "ts-node src/TemporalWorker/worker.ts",
+    "test": "jest --verbose"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@azure/app-configuration": "^1.8.0",
+    "@azure/identity": "^4.6.0",
+    "@azure/keyvault-secrets": "^4.9.0",
+    "@temporalio/worker": "^1.11.7",
+    "@types/pino": "^7.0.4",
+    "build": "^0.1.4",
+    "dotenv": "^16.4.7",
+    "ethers": "5.7.0",
+    "pino": "^9.6.0",
+    "pino-datadog": "^2.0.2",
+    "pino-multi-stream": "^6.0.0",
+    "starknet": "^6.23.1",
+    "web3-provider-engine": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.3",
+    "@types/node": "^22.13.1",
+    "jest": "^28.1.1",
+    "ts-jest": "^28.0.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

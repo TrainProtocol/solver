@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "Layerswap": "Server=dev-ls-psqlserver.postgres.database.azure.com;Database=layerswap_atomic;Port=5432;User Id=dbadmin;Password=root41best4U%%;Ssl Mode=Require;Trust Server Certificate=true;"
+  }
+}
