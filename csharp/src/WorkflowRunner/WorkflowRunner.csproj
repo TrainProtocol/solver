@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <AssemblyName>Train.Solver.WorkflowRunner</AssemblyName>
+    <RootNamespace>Train.Solver.WorkflowRunner</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+</Project>
