@@ -1,4 +1,4 @@
-name: Build and Publish JS Workflow runner
+name: JS Workflow runner
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Build and Publish CSharp Workflow runner
+name: CSharp Workflow runner
 
 on:
   push:
