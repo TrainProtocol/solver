@@ -5,12 +5,12 @@ on:
     branches: [ main, dev ]
     paths:
       - 'js/**'
-      - '.github/workflows/js-build.yml'
+      - '.github/workflows/workflow-runner-js.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'js/**'
-      - '.github/workflows/js-build.yml'
+      - '.github/workflows/workflow-runner-js.yml'
   release:
     types: [published, created]
 

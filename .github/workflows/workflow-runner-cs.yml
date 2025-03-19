@@ -5,12 +5,12 @@ on:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflowrunner-build.yml'
+      - '.github/workflows/workflow-runner-cs.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflowrunner-build.yml'
+      - '.github/workflows/workflow-runner-cs.yml'
   release:
     types: [published, created]
 
