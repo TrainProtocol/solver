@@ -17,8 +17,7 @@ on:
 env:
   DOCKER_IMAGE: trainprotocol/train-solver-wf-runner-cs
   DOTNET_VERSION: 8
-  VERSION: ${{ github.event.release.tag_name || github.sha }}
-
+  
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -29,6 +28,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Format version
+        id: format_version
+        run: |
+          commitHash=${GITHUB_SHA:0:7}
+          ts=$(date +%s)
+          version=$commitHash-$ts
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -48,7 +55,7 @@ jobs:
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
+            ${{ env.DOCKER_IMAGE }}:${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
-            ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max 
