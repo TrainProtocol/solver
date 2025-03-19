@@ -15,7 +15,7 @@ on:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: your-dockerhub-username/train-solver-wf-runner-js
+  DOCKER_IMAGE: trainprotocol/train-solver-wf-runner-js
   VERSION: ${{ github.event.release.tag_name || github.sha }}
 
 jobs:

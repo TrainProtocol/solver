@@ -15,7 +15,7 @@ on:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: your-dockerhub-username/train-solver-wf-runner-cs
+  DOCKER_IMAGE: trainprotocol/train-solver-wf-runner-cs
   DOTNET_VERSION: 8.0
   VERSION: ${{ github.event.release.tag_name || github.sha }}
 

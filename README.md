@@ -4,7 +4,7 @@ Train.Solver is a **cross-chain liquidity provider application** that facilitate
 
 ---
 
-## 🔍 How It Works
+## 🔍 How It Works 
 
 Train.Solver continuously monitors events across all configured blockchains and waits for a **user funds lock event**. Once detected, the following steps occur:
 
