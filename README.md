@@ -2,6 +2,10 @@
 
 Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
 
+![Docker Image Version For Workflow Runner CS](https://img.shields.io/docker/v/trainprotocoltrain-solver-wf-runner-cs/dev)
+![Docker Image Version For Workflow Runner JS](https://img.shields.io/docker/v/trainprotocol/train-solver-wf-runner-js/dev)
+![Docker Image Version for API](https://img.shields.io/docker/v/trainprotocol/train-solver-api/dev)
+
 ---
 
 ## 🔍 How It Works 
