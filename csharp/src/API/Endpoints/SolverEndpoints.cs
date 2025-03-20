@@ -18,6 +18,9 @@ public static class SolverEndpoints
 
     public static RouteGroupBuilder MapEndpoints(this RouteGroupBuilder group)
     {
+        group.MapGet("/health", () => Results.Ok())
+            .Produces(StatusCodes.Status200OK);
+
         group.MapGet("/networks", GetNetworksAsync)
             .Produces<ApiResponse<List<NetworkWithTokensModel>>>();
 
