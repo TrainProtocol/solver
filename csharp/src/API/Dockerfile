@@ -9,6 +9,8 @@ WORKDIR /build
 COPY csharp/src/API/ csharp/src/API/
 COPY csharp/src/Core/ csharp/src/Core/
 COPY csharp/src/Data/ csharp/src/Data/
+COPY csharp/nuget.config /
+COPY csharp/Directory.Build.props /
 
 FROM build AS publish
 RUN dotnet publish "csharp/src/API/API.csproj" -c Release -o /app/publish
