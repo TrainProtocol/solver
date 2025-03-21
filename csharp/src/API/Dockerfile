@@ -8,8 +8,6 @@ FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}.0 AS build
 WORKDIR /build
 COPY csharp/src/API/ csharp/src/API/
 COPY csharp/src/Core/ csharp/src/Core/
-COPY csharp/src/Data/ csharp/src/Data/
-COPY csharp/src/Data.Migrations/ csharp/src/Data.Migrations/
 COPY csharp/nuget.config /
 COPY csharp/Directory.Build.props /
 

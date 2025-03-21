@@ -16,8 +16,8 @@ using RedLockNet;
 using Serilog;
 using StackExchange.Redis;
 using Train.Solver.Core.Exceptions;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using static Train.Solver.Core.Helpers.ResilientNodeHelper;
 using static Train.Solver.Core.Blockchains.EVM.Helpers.EVMResilientNodeHelper;
 using Train.Solver.Core.Helpers;
@@ -27,10 +27,9 @@ using Train.Solver.Core.Blockchains.EVM.Helpers;
 using Train.Solver.Core.Blockchains.EVM.Models;
 using Train.Solver.Core.Services.Secret;
 using Train.Solver.Core.Activities;
-using Train.Solver.Core.Blockchains.EVM.Activities;
 using Nethereum.RPC.Eth.Mappers;
 
-namespace Train.Solver.Core.Blockchains.EVM.Services;
+namespace Train.Solver.Core.Blockchains.EVM.Activities;
 
 public abstract class EVMBlockchainActivitiesBase(
     SolverDbContext dbContext,
@@ -709,8 +708,8 @@ public abstract class EVMBlockchainActivitiesBase(
         return SignTransaction(account, transactionInput);
     }
 
-    private Models.SignedTransaction SignTransaction(
-       Nethereum.Web3.Accounts.Account account,
+    private SignedTransaction SignTransaction(
+       Account account,
        TransactionInput transaction)
     {
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));

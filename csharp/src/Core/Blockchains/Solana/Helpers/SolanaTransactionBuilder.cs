@@ -12,8 +12,8 @@ using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 using Train.Solver.Core.Blockchains.Solana.Programs;
 using Train.Solver.Core.Blockchains.Solana.Programs.Models;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Blockchains.Solana.Helpers;
 

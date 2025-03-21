@@ -2,12 +2,12 @@
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Core.Blockchains.Starknet.Activities;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Workflows;
-using Train.Solver.Data.Entities;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Core.Blockchains.Starknet.Workflows;

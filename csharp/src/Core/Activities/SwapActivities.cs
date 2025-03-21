@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Temporalio.Activities;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Services;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 using TransactionModel = Train.Solver.Core.Models.TransactionModel;
 
 namespace Train.Solver.Core.Activities;

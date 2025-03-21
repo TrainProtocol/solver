@@ -12,11 +12,11 @@ using StackExchange.Redis;
 using Temporalio.Activities;
 using Train.Solver.Core.Blockchains.EVM.FunctionMessages;
 using Train.Solver.Core.Blockchains.EVM.Models;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Services.Secret;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 using static Train.Solver.Core.Blockchains.EVM.Helpers.EVMResilientNodeHelper;
 using static Train.Solver.Core.Helpers.ResilientNodeHelper;
 

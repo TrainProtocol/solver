@@ -5,17 +5,15 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9D441E87-E87F-4A21-92F0-45AEBA1397D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "src\Data\Data.csproj", "{B8128AE9-0EC8-4559-A9D4-0F343567D857}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{C53B90A7-0975-4331-B776-2247F9964EEF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Migrations", "src\Data.Migrations\Data.Migrations.csproj", "{205A2C60-B4C5-4BCE-A1D2-40E928A20020}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkflowRunner", "src\WorkflowRunner\WorkflowRunner.csproj", "{7C2F514F-736D-4F0E-8764-E32967973817}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E67A8BE0-0795-4F3B-A9BB-BD37C9CBD916}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\protos\blockchain.proto = ..\protos\blockchain.proto
+		..\tools\protogen.ps1 = ..\tools\protogen.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "src\API\API.csproj", "{3E020761-9DEE-4422-9333-15B90B90D6E0}"
@@ -26,18 +24,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B8128AE9-0EC8-4559-A9D4-0F343567D857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B8128AE9-0EC8-4559-A9D4-0F343567D857}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B8128AE9-0EC8-4559-A9D4-0F343567D857}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B8128AE9-0EC8-4559-A9D4-0F343567D857}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C53B90A7-0975-4331-B776-2247F9964EEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C53B90A7-0975-4331-B776-2247F9964EEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C53B90A7-0975-4331-B776-2247F9964EEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C53B90A7-0975-4331-B776-2247F9964EEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{205A2C60-B4C5-4BCE-A1D2-40E928A20020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{205A2C60-B4C5-4BCE-A1D2-40E928A20020}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{205A2C60-B4C5-4BCE-A1D2-40E928A20020}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{205A2C60-B4C5-4BCE-A1D2-40E928A20020}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C2F514F-736D-4F0E-8764-E32967973817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7C2F514F-736D-4F0E-8764-E32967973817}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C2F514F-736D-4F0E-8764-E32967973817}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,9 +41,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B8128AE9-0EC8-4559-A9D4-0F343567D857} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{C53B90A7-0975-4331-B776-2247F9964EEF} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
-		{205A2C60-B4C5-4BCE-A1D2-40E928A20020} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{7C2F514F-736D-4F0E-8764-E32967973817} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{3E020761-9DEE-4422-9333-15B90B90D6E0} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 	EndGlobalSection

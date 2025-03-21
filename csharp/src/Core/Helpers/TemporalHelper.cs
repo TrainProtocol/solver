@@ -3,7 +3,7 @@ using Temporalio.Workflows;
 using Train.Solver.Core.Blockchains.EVM.Workflows;
 using Train.Solver.Core.Blockchains.Solana.Workflows;
 using Train.Solver.Core.Blockchains.Starknet.Workflows;
-using Train.Solver.Data.Entities;
+using Train.Solver.Core.Entities;
 
 namespace Train.Solver.Core.Helpers;
 

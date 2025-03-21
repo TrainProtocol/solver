@@ -1,5 +1,5 @@
-﻿using Train.Solver.Core.Models;
-using Train.Solver.Data.Entities;
+﻿using Train.Solver.Core.Entities;
+using Train.Solver.Core.Models;
 
 namespace Train.Solver.Core.Activities;
 

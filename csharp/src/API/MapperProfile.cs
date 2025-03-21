@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Flurl;
 using Train.Solver.API.Models;
-using Train.Solver.Data.Entities;
+using Train.Solver.Core.Entities;
 
 namespace Train.Solver.API;
 

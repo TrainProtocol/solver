@@ -13,9 +13,9 @@ using Temporalio.Client;
 using Temporalio.Exceptions;
 using Temporalio.Extensions.Hosting;
 using Temporalio.Workflows;
+using Train.Solver.Core.Data;
 using Train.Solver.Core.Services;
 using Train.Solver.Core.Workflows;
-using Train.Solver.Data;
 
 namespace Train.Solver.Core.DependencyInjection;
 

@@ -4,11 +4,11 @@ using Temporalio.Activities;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
 using Temporalio.Exceptions;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Workflows;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Activities;
 

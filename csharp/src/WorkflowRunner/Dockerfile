@@ -8,7 +8,6 @@ FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}.0 AS build
 WORKDIR /build
 COPY csharp/src/WorkflowRunner/ csharp/src/WorkflowRunner/
 COPY csharp/src/Core/ csharp/src/Core/
-COPY csharp/src/Data/ csharp/src/Data/
 COPY csharp/nuget.config /
 COPY csharp/Directory.Build.props /
 

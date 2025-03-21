@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Temporalio.Activities;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Activities;
 

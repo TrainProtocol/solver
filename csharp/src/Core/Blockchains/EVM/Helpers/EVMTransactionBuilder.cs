@@ -6,9 +6,9 @@ using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Train.Solver.Core.Blockchains.EVM.FunctionMessages;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Blockchains.EVM.Helpers;
 

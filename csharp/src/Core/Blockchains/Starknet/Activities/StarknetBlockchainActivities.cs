@@ -13,12 +13,12 @@ using Train.Solver.Core.Activities;
 using Train.Solver.Core.Blockchains.Starknet.Extensions;
 using Train.Solver.Core.Blockchains.Starknet.Helpers;
 using Train.Solver.Core.Blockchains.Starknet.Models;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Blockchains.Starknet.Activities;
 

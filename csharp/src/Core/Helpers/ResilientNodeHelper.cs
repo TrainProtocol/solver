@@ -1,4 +1,4 @@
-using Train.Solver.Data.Entities;
+using Train.Solver.Core.Entities;
 
 namespace Train.Solver.Core.Helpers;
 

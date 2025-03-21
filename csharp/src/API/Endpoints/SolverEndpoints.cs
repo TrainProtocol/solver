@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Temporalio.Client;
 using Train.Solver.API.Models;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Services;
 using Train.Solver.Core.Workflows;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.API.Endpoints;
 

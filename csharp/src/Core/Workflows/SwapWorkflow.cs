@@ -2,10 +2,10 @@
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Core.Activities;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
-using Train.Solver.Data.Entities;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Core.Workflows;

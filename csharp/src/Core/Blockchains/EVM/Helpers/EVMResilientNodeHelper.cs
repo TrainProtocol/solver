@@ -7,8 +7,8 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Train.Solver.Core.Blockchains.EVM.Models;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
-using Train.Solver.Data.Entities;
 using static Train.Solver.Core.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Core.Blockchains.EVM.Helpers;

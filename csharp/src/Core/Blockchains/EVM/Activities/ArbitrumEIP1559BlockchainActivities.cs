@@ -4,10 +4,10 @@ using RedLockNet;
 using StackExchange.Redis;
 using Temporalio.Activities;
 using Train.Solver.Core.Blockchains.EVM.Models;
+using Train.Solver.Core.Data;
+using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Services.Secret;
-using Train.Solver.Data;
-using Train.Solver.Data.Entities;
 using Transaction = Nethereum.RPC.Eth.DTOs.Transaction;
 
 namespace Train.Solver.Core.Blockchains.EVM.Activities;

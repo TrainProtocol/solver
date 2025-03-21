@@ -1,6 +1,6 @@
 ﻿using Flurl;
 using Flurl.Http;
-using Train.Solver.Data;
+using Train.Solver.Core.Data;
 
 namespace Train.Solver.Core.Services.TokenPrice.Coingecko;
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Temporalio.Activities;
+using Train.Solver.Core.Data;
 using Train.Solver.Core.Services.TokenPrice;
-using Train.Solver.Data;
 
 namespace Train.Solver.Core.Activities;
 
