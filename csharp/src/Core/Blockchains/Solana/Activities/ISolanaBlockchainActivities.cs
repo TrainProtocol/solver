@@ -1,6 +1,5 @@
 ﻿using Train.Solver.Core.Activities;
 using Train.Solver.Core.Models;
-using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Blockchains.Solana.Activities;
 

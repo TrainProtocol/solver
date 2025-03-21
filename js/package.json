@@ -18,13 +18,16 @@
     "@azure/keyvault-secrets": "^4.9.0",
     "@temporalio/worker": "^1.11.7",
     "@types/pino": "^7.0.4",
+    "awilix": "^12.0.5",
     "build": "^0.1.4",
     "dotenv": "^16.4.7",
     "ethers": "5.7.0",
+    "pg": "^8.14.1",
     "pino": "^9.6.0",
     "pino-datadog": "^2.0.2",
     "pino-multi-stream": "^6.0.0",
     "starknet": "^6.23.1",
+    "typeorm": "^0.3.21",
     "web3-provider-engine": "^17.0.1"
   },
   "devDependencies": {

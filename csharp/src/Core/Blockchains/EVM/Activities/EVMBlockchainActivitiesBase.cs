@@ -68,7 +68,14 @@ public abstract class EVMBlockchainActivitiesBase(
            .Where(x => x.Name.ToUpper() == networkName)
            .SingleAsync();
 
-        return await GetTransactionAsync(network, transactionId);
+        var transaction = await GetTransactionAsync(network, transactionId);
+
+        if (transaction == null)
+        {
+            throw new TransactionNotComfirmedException("Transaction not found");
+        }
+
+        return transaction;
     }
 
     public virtual async Task<TransactionModel> GetBatchTransactionAsync(string networkName, string[] transactionIds)
@@ -112,7 +119,7 @@ public abstract class EVMBlockchainActivitiesBase(
 
         if (transaction is null)
         {
-            throw new Exception($"Transaction not found on {network.Name}");
+            return null;
         }
 
         if (transaction.BlockNumber is null)
@@ -534,18 +541,26 @@ public abstract class EVMBlockchainActivitiesBase(
         return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
     }
 
-    protected override async Task<string> GetNextNonceAsync(
+    public override async Task<string> GetNextNonceAsync(string networkName, string address)
+    {
+        var network = await dbContext.Networks
+          .Include(x => x.Nodes)
+          .SingleAsync(x => x.Name == networkName);
+
+        var sourceAddress = FormatAddress(address);
+
+        return await GetNextNonceAsync(network.Nodes, sourceAddress);
+    }    
+
+    protected override async Task<string> GetPersistedNonceAsync(
         string networkName,
-        string address,
-        string referenceId)
+        string address)
     {
         var network = await dbContext.Networks
             .Include(x => x.Nodes)
             .SingleAsync(x => x.Name == networkName);
 
         var sourceAddress = FormatAddress(address);
-
-        var nodes = network.Nodes;
 
         await using var distributedLock = await distributedLockFactory.CreateLockAsync(
             resource: RedisHelper.BuildLockKey(networkName, sourceAddress),
@@ -567,10 +582,9 @@ public abstract class EVMBlockchainActivitiesBase(
             curentNonce = BigInteger.Parse(currentNonceRedis!);
         }
 
-        var nonce = await GetDataFromNodesAsync(nodes,
-            async url =>
-                await new Web3(url).Eth.Transactions.GetTransactionCount
-                    .SendRequestAsync(sourceAddress, BlockParameter.CreatePending()));
+        var nodes = network.Nodes;
+
+        var nonce = BigInteger.Parse(await GetNextNonceAsync(nodes, sourceAddress));
 
         if (nonce <= curentNonce)
         {
@@ -588,25 +602,7 @@ public abstract class EVMBlockchainActivitiesBase(
 
         return nonce.ToString();
     }
-
-    // Todo
-    private static TypedData<Domain> GetAddLockMessageTypedDefinition(
-        long chainId, string verifyingContract)
-    {
-        return new TypedData<Domain>
-        {
-            Domain = new Domain
-            {
-                Name = "Train",
-                Version = "1",
-                ChainId = chainId,
-                VerifyingContract = verifyingContract
-            },
-            Types = MemberDescriptionFactory.GetTypesMemberDescription(typeof(Domain), typeof(AddLockMessage)),
-            PrimaryType = "addLockMsg",
-        };
-    }
-
+    
     public virtual async Task<string> PublishRawTransactionAsync(
         string networkName,
         string fromAddress,
@@ -783,4 +779,33 @@ public abstract class EVMBlockchainActivitiesBase(
             };
         }
     }
+
+    private static async Task<string> GetNextNonceAsync(List<Node> nodes, string address)
+    {
+        var nonce = await GetDataFromNodesAsync(nodes,
+            async url =>
+                await new Web3(url).Eth.Transactions.GetTransactionCount
+                    .SendRequestAsync(address, BlockParameter.CreatePending()));
+
+        return nonce.ToString();
+    }
+
+    // Todo
+    private static TypedData<Domain> GetAddLockMessageTypedDefinition(
+        long chainId, string verifyingContract)
+    {
+        return new TypedData<Domain>
+        {
+            Domain = new Domain
+            {
+                Name = "Train",
+                Version = "1",
+                ChainId = chainId,
+                VerifyingContract = verifyingContract
+            },
+            Types = MemberDescriptionFactory.GetTypesMemberDescription(typeof(Domain), typeof(AddLockMessage)),
+            PrimaryType = "addLockMsg",
+        };
+    }
+
 }

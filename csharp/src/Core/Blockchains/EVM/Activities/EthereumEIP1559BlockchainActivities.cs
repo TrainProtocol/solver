@@ -119,6 +119,12 @@ public class EthereumEIP1559BlockchainActivities(
 
     #region Inherited Overrides
 
+    [Activity(name: $"{nameof(NetworkGroup.EVMEthereumEip1559)}{nameof(GetNextNonceAsync)}")]
+    public override Task<string> GetNextNonceAsync(string networkName, string address)
+    {
+        return base.GetNextNonceAsync(networkName, address);
+    }
+
     [Activity(name: $"{nameof(NetworkGroup.EVMEthereumEip1559)}{nameof(GetBatchTransactionAsync)}")]
     public override Task<TransactionModel> GetBatchTransactionAsync(string networkName, string[] transactionIds)
     {
@@ -202,10 +208,10 @@ public class EthereumEIP1559BlockchainActivities(
         return base.ValidateAddress(address);
     }
 
-    [Activity(name: $"{nameof(NetworkGroup.EVMEthereumEip1559)}{nameof(GetNonceAsync)}")]
-    public override Task<string> GetNonceAsync(string networkName, string address, string referenceId)
+    [Activity(name: $"{nameof(NetworkGroup.EVMEthereumEip1559)}{nameof(GetReservedNonceAsync)}")]
+    public override Task<string> GetReservedNonceAsync(string networkName, string address, string referenceId)
     {
-        return base.GetNonceAsync(networkName, address, referenceId);
+        return base.GetReservedNonceAsync(networkName, address, referenceId);
     }
 
     #endregion

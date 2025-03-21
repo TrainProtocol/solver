@@ -26,7 +26,7 @@ public class StarknetBlockchainActivities(
     SolverDbContext dbContext,
     IHttpClientFactory httpClientFactory,
     IDatabase cache,
-    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase(dbContext)
+    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase(dbContext), IStarknetBlockchainActivities
 {
     public static NetworkGroup NetworkGroup => NetworkGroup.Starknet;
     private static readonly BigInteger BigIntTwo = new BigInteger(2);
@@ -39,16 +39,9 @@ public class StarknetBlockchainActivities(
         throw new TaskQueueMismatchException();
     }
 
-    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetNonceAsync)}")]
-    public override Task<string> GetNonceAsync(string networkName, string address, string referenceId)
-    {
-        return base.GetNonceAsync(networkName, address, referenceId);
-    }
-
-    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(EnsureSufficientBalanceAsync)}")]
     public override Task EnsureSufficientBalanceAsync(string networkName, string address, string asset, decimal amount)
     {
-        return base.EnsureSufficientBalanceAsync(networkName, address, asset, amount);
+        throw new TaskQueueMismatchException();
     }
 
     [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetSpenderAddressAsync)}")]
@@ -93,7 +86,7 @@ public class StarknetBlockchainActivities(
             throw new ArgumentException($"Nodes are not configured for {network.Name} network", nameof(nodes));
         }
 
-        var requestJson = BuildRequestPayload(address, token);
+        var requestJson = BuildRequestPayload(token, address);
 
         var result = await ResilientNodeHelper
             .GetDataFromNodesAsync(nodes,
@@ -107,25 +100,13 @@ public class StarknetBlockchainActivities(
         };
     }
 
-  
-    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetTransactionAsync)}")]
-    public override async Task<TransactionModel> GetTransactionAsync(string networkName,
+    private async Task<TransactionModel> GetTransactionAsync(
+        Network network,
         string transactionId)
     {
-        var network = await dbContext.Networks
-            .Include(x => x.Tokens)
-            .Include(x => x.Nodes)
-            .Include(x => x.ManagedAccounts)
-            .Include(x => x.DeployedContracts)
-            .SingleAsync(x => x.Name.ToUpper() == networkName.ToUpper());
-
-
-        var node = network.Nodes.Single(x => x.Type == NodeType.DepositTracking);
+        var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
 
         var rpcClient = new StarknetRpcClient(new Uri(node.Url));
-
-        var managedAccountAddress =
-            FormatAddress(network.ManagedAccounts.Single(x => x.Type == AccountType.LP).Address);
 
         TransactionModel? transactionModel = null;
 
@@ -139,7 +120,7 @@ public class StarknetBlockchainActivities(
 
         if (statusResult == TransactionStatus.Failed)
         {
-            throw new TransactionFailedException($"Transaction receipt in {networkName} indicates failure");
+            throw new TransactionFailedException($"Transaction receipt in {network.Name} indicates failure");
         }
 
         var transactionReceiptResponse = await rpcClient
@@ -148,6 +129,11 @@ public class StarknetBlockchainActivities(
                     id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     method: StarknetConstants.RpcMethods.GetReceipt,
                     transactionId!));
+
+        if (transactionReceiptResponse is null)
+        {
+            return null;
+        }
 
         var feeInWei = new HexBigInteger(transactionReceiptResponse.ActualFee.Amount).Value;
         var feeDecimals = 18;
@@ -160,7 +146,7 @@ public class StarknetBlockchainActivities(
             FeeAsset = "ETH",
             FeeAmount = Web3.Convert.FromWei(feeInWei, feeDecimals),
             Timestamp = DateTimeOffset.UtcNow,
-            NetworkName = networkName,
+            NetworkName = network.Name,
         };
 
         if (transactionReceiptResponse.BlockNumber is not null)
@@ -249,71 +235,12 @@ public class StarknetBlockchainActivities(
                         BlockNumber = lastBlock
                     }));
 
-        return new ()
+        return new()
         {
             BlockNumber = (ulong)lastBlock,
             BlockHash = getBlockResponse.BlockHash
         };
     }
-
-    protected override async Task<string> GetNextNonceAsync(string networkName, string address, string referenceId)
-    {
-        var network = await dbContext.Networks
-            .Include(x => x.Nodes)
-            .SingleAsync(x => x.Name == networkName);
-        
-        var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
-
-        var web3Client = new StarknetRpcClient(new Uri(node.Url));
-
-        var formattedAddress = FormatAddress(address);
-
-        await using var distributedLock = await distributedLockFactory.CreateLockAsync(
-            resource: RedisHelper.BuildLockKey(networkName, formattedAddress),
-            retryTime: TimeSpan.FromSeconds(1),
-            waitTime: TimeSpan.FromSeconds(20),
-            expiryTime: TimeSpan.FromSeconds(25));
-
-        if (!distributedLock.IsAcquired)
-        {
-            throw new SynchronizationLockException("Failed to acquire the lock");
-        }
-
-        var currentNonce = new BigInteger(-1);
-
-        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(networkName, formattedAddress));
-
-        if (currentNonceRedis != RedisValue.Null)
-        {
-            currentNonce = BigInteger.Parse(currentNonceRedis);
-        }
-
-        var nonceHex = await web3Client
-            .SendRequestAsync<string>(
-                new RpcRequest(
-                    id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    method: StarknetConstants.RpcMethods.GetNonce,
-                    new[] { "pending", formattedAddress }));
-
-        var nonce = new HexBigInteger(nonceHex).Value;
-
-        if (nonce <= currentNonce)
-        {
-            currentNonce++;
-            nonce = currentNonce;
-        }
-        else
-        {
-            currentNonce = nonce;
-        }
-
-        await cache.StringSetAsync(RedisHelper.BuildNonceKey(networkName, formattedAddress),
-            currentNonce.ToString(),
-            expiry: TimeSpan.FromDays(7));
-
-        return currentNonce.ToString();
-    }
-
     public override Task<bool> ValidateAddLockSignatureAsync(string networkName, AddLockSignatureRequest request)
     {
         throw new TaskQueueMismatchException();
@@ -334,7 +261,7 @@ public class StarknetBlockchainActivities(
         return result;
     }
 
-    private static string BuildRequestPayload(string address, Token token)
+    private static string BuildRequestPayload(Token token, string address)
     {
         var requestPayload = new
         {
@@ -367,7 +294,6 @@ public class StarknetBlockchainActivities(
         var balance = starknetBalanceResponse.Result[0].Value;
         return balance;
     }
-
 
     private async Task<HTLCBlockEvent> TrackBlockEventsAsync(
         string networkName,
@@ -498,5 +424,145 @@ public class StarknetBlockchainActivities(
 
         throw new ArgumentOutOfRangeException(nameof(TransactionStatus),
             $"Transaction status is not supported. Finality status: {finalityStatus}, Execution status: {executionStatus}");
+    }
+
+    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetReservedNonceAsync)}")]
+    public override Task<string> GetReservedNonceAsync(string networkName, string address, string referenceId)
+    {
+        return base.GetReservedNonceAsync(networkName, address, referenceId);
+    }
+
+    public Task<string> SimulateTransactionAsync(string fromAddress, string networkName, string? nonce, string? callData, Fee? fee)
+    {
+        throw new TaskQueueMismatchException();
+    }
+
+    public Task<decimal> GetSpenderAllowanceAsync(string networkName, string ownerAddress, string spenderAddress, string asset)
+    {
+        throw new TaskQueueMismatchException();
+    }
+
+    public Task<string> PublishTransactionAsync(string fromAddress, string networkName, string? nonce, string? callData, Fee? fee)
+    {
+        throw new TaskQueueMismatchException();
+    }
+
+    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetBatchTransactionAsync)}")]
+    public async Task<TransactionModel> GetBatchTransactionAsync(string networkName, string[] transactionIds)
+    {
+        var network = await dbContext.Networks
+            .Include(x => x.Nodes)
+            .Where(x => x.Name.ToUpper() == networkName)
+            .SingleAsync();
+
+        TransactionModel? transaction = null;
+
+        foreach (var transactionId in transactionIds)
+        {
+            transaction = await GetTransactionAsync(network, transactionId);
+        }
+
+        if (transaction == null)
+        {
+            throw new TransactionNotComfirmedException("Transaction not confirmed");
+        }
+
+        return transaction;
+    }
+
+    public override async Task<TransactionModel> GetTransactionAsync(string networkName, string transactionId)
+    {
+        var network = await dbContext.Networks
+            .Include(x => x.Nodes)
+            .Where(x => x.Name.ToUpper() == networkName)
+            .SingleAsync();
+
+        var transaction = await GetTransactionAsync(network, transactionId);
+
+        if (transaction == null)
+        {
+            throw new TransactionNotComfirmedException("Transaction not confirmed");
+        }
+
+        return transaction;
+    }
+
+    [Activity(name: $"{nameof(NetworkGroup.Starknet)}{nameof(GetNextNonceAsync)}")]
+    public override async Task<string> GetNextNonceAsync(string networkName, string address)
+    {
+        var network = await dbContext.Networks
+           .Include(x => x.Nodes)
+           .SingleAsync(x => x.Name == networkName);
+
+        var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
+
+        var web3Client = new StarknetRpcClient(new Uri(node.Url));
+
+        var formattedAddress = FormatAddress(address);
+
+        return await GetNextNonceAsync(web3Client, formattedAddress);
+    }
+
+    protected override async Task<string> GetPersistedNonceAsync(string networkName, string address)
+    {
+        var network = await dbContext.Networks
+            .Include(x => x.Nodes)
+            .SingleAsync(x => x.Name == networkName);
+
+        var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
+
+        var web3Client = new StarknetRpcClient(new Uri(node.Url));
+
+        var formattedAddress = FormatAddress(address);
+
+        await using var distributedLock = await distributedLockFactory.CreateLockAsync(
+            resource: RedisHelper.BuildLockKey(networkName, formattedAddress),
+            retryTime: TimeSpan.FromSeconds(1),
+            waitTime: TimeSpan.FromSeconds(20),
+            expiryTime: TimeSpan.FromSeconds(25));
+
+        if (!distributedLock.IsAcquired)
+        {
+            throw new SynchronizationLockException("Failed to acquire the lock");
+        }
+
+        var currentNonce = new BigInteger(-1);
+
+        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(networkName, formattedAddress));
+
+        if (currentNonceRedis != RedisValue.Null)
+        {
+            currentNonce = BigInteger.Parse(currentNonceRedis);
+        }
+
+        var nonce = BigInteger.Parse(await GetNextNonceAsync(web3Client, formattedAddress));
+
+        if (nonce <= currentNonce)
+        {
+            currentNonce++;
+            nonce = currentNonce;
+        }
+        else
+        {
+            currentNonce = nonce;
+        }
+
+        await cache.StringSetAsync(RedisHelper.BuildNonceKey(networkName, formattedAddress),
+            currentNonce.ToString(),
+            expiry: TimeSpan.FromDays(7));
+
+        return currentNonce.ToString();
+    }
+
+    private async Task<string> GetNextNonceAsync(StarknetRpcClient client, string address)
+    {
+        var nonceHex = await client
+            .SendRequestAsync<string>(
+                new RpcRequest(
+                    id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    method: StarknetConstants.RpcMethods.GetNonce,
+                    new[] { "pending", address }));
+
+        return new HexBigInteger(nonceHex).Value.ToString();
     }
 }

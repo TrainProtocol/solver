@@ -1,6 +1,5 @@
 ﻿using Temporalio.Exceptions;
 using Temporalio.Workflows;
-using Train.Solver.Core.Activities;
 using Train.Solver.Core.Blockchains.Solana.Activities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
@@ -36,7 +35,7 @@ public class SolanaTransactionProcessor : TransactionProcessorBase
     protected override async Task<TransactionModel> ExecuteTransactionAsync(TransactionContext context)
     {
         var preparedTransaction = await ExecuteActivityAsync<PrepareTransactionResponse>(
-            $"{context.NetworkGroup}{nameof(IBlockchainActivities.BuildTransactionAsync)}",
+            $"{context.NetworkGroup}{nameof(ISolanaBlockchainActivities.BuildTransactionAsync)}",
             [
                 context.NetworkName,
                 context.Type,
@@ -93,7 +92,7 @@ public class SolanaTransactionProcessor : TransactionProcessorBase
         }
 
         var lastValidBLockHash = await ExecuteActivityAsync<string>(
-            $"{context.NetworkGroup}{nameof(ISolanaBlockchainActivities.GetNonceAsync)}",
+            $"{context.NetworkGroup}{nameof(ISolanaBlockchainActivities.GetReservedNonceAsync)}",
              [
                 context.NetworkName,
                 context.FromAddress,

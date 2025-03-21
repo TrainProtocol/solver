@@ -25,7 +25,9 @@ public interface IBlockchainActivities
 
     Task<HTLCBlockEvent> GetEventsAsync(string networkName, ulong fromBlock, ulong toBlock);
 
-    Task<string> GetNonceAsync(string networkName, string address, string referenceId);
+    Task<string> GetReservedNonceAsync(string networkName, string address, string referenceId);
+
+    Task<string> GetNextNonceAsync(string networkName, string address);
 
     Task<PrepareTransactionResponse> BuildTransactionAsync(string networkName, TransactionType transactionType, string args);
 

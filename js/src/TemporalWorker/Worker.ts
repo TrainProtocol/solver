@@ -1,12 +1,21 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
 import * as dotenv from 'dotenv';
-import * as activities from '../Activities';
+import 'reflect-metadata';
+import { SolverContext } from '../Data/SolverContext';
+import { StarknetActivities } from '../Activities/StarknetActivities/StarknetActivities';
+import { extractActivities } from './ActivityParser';
 
-async function run() {  
+async function run() {
   dotenv.config();
 
-  try
-  {
+  try {
+
+    const dbCtx = new SolverContext(process.env.TrainSolver__DatabaseConnectionString);
+
+    const starknetActivities = new StarknetActivities(dbCtx);
+    
+    const activities = extractActivities(starknetActivities);
+
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
     });
@@ -14,14 +23,13 @@ async function run() {
     const worker = await Worker.create({
       namespace: 'atomic',
       taskQueue: 'atomicJs',
-      activities,
+      activities: activities,
       connection,
     });
 
     await worker.run();
   }
-  catch (e)
-  {
+  catch (e) {
     console.error(`Error starting worker: ${e.message}`);
     return;
   }

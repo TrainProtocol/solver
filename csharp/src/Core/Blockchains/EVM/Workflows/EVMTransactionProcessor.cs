@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Core.Activities;
@@ -49,22 +50,23 @@ public class EVMTransactionProcessor : TransactionProcessorBase
         if (string.IsNullOrEmpty(context.Nonce))
         {
             context.Nonce = await ExecuteActivityAsync<string>(
-                $"{context.NetworkGroup}{nameof(IBlockchainActivities.GetNonceAsync)}",
+                $"{context.NetworkGroup}{nameof(IBlockchainActivities.GetReservedNonceAsync)}",
                 [context.NetworkName, context.FromAddress!, context.UniquenessToken],
                 TemporalHelper.DefaultActivityOptions(Constants.CSharpTaskQueue));
         }
 
         var rawTransaction = await ExecuteActivityAsync<SignedTransaction>(
             $"{context.NetworkGroup}{nameof(IEVMBlockchainActivities.ComposeSignedRawTransactionAsync)}",
-          [
+            [
               context.NetworkName,
-              context.FromAddress,
-              preparedTransaction.ToAddress,
-              context.Nonce,
-              preparedTransaction.AmountInWei,
-              preparedTransaction.Data,
-              context.Fee],
-          TemporalHelper.DefaultActivityOptions(Constants.CSharpTaskQueue));
+                context.FromAddress,
+                preparedTransaction.ToAddress,
+                context.Nonce,
+                preparedTransaction.AmountInWei,
+                preparedTransaction.Data,
+                context.Fee
+            ],
+            TemporalHelper.DefaultActivityOptions(Constants.CSharpTaskQueue));
 
         // Initiate blockchain transfer
         try
@@ -74,19 +76,20 @@ public class EVMTransactionProcessor : TransactionProcessorBase
                 [
                     context.NetworkName,
                     context.FromAddress,
-                    rawTransaction],
-                    new()
+                    rawTransaction
+                ],
+                new()
+                {
+                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                    StartToCloseTimeout = TimeSpan.FromHours(1),
+                    RetryPolicy = new()
                     {
-                        ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                        StartToCloseTimeout = TimeSpan.FromHours(1),
-                        RetryPolicy = new()
+                        NonRetryableErrorTypes = new[]
                         {
-                            NonRetryableErrorTypes = new[]
-                            {
-                                typeof(TransactionUnderpricedException).Name
-                            }
+                            typeof(TransactionUnderpricedException).Name
                         }
-                    });
+                    }
+                });
 
             context.PublishedTransactionIds.Add(txId);
         }
@@ -129,14 +132,14 @@ public class EVMTransactionProcessor : TransactionProcessorBase
             var fee = await ExecuteActivityAsync<Fee>(
                 $"{context.NetworkGroup}{nameof(IEVMBlockchainActivities.EstimateFeeAsync)}",
                 [context.NetworkName,
-                new EstimateFeeRequest
-                {
-                    FromAddress = context.FromAddress!,
-                    ToAddress = preparedTransaction.ToAddress!,
-                    Asset = preparedTransaction.Asset!,
-                    Amount = preparedTransaction.Amount,
-                    CallData = preparedTransaction.Data,
-                }],
+                    new EstimateFeeRequest
+                    {
+                        FromAddress = context.FromAddress!,
+                        ToAddress = preparedTransaction.ToAddress!,
+                        Asset = preparedTransaction.Asset!,
+                        Amount = preparedTransaction.Amount,
+                        CallData = preparedTransaction.Data,
+                    }],
                 new()
                 {
                     ScheduleToCloseTimeout = TimeSpan.FromDays(2),
@@ -163,7 +166,7 @@ public class EVMTransactionProcessor : TransactionProcessorBase
                 await ExecuteActivityAsync(
                     $"{context.NetworkGroup}{nameof(IBlockchainActivities.EnsureSufficientBalanceAsync)}",
                     [
-                        context.NetworkName, 
+                        context.NetworkName,
                         context.FromAddress!,
                         fee.Asset!,
                         preparedTransaction.CallDataAmount + fee.Amount],
@@ -184,40 +187,41 @@ public class EVMTransactionProcessor : TransactionProcessorBase
                 await ExecuteActivityAsync(
                     $"{context.NetworkGroup}{nameof(IBlockchainActivities.EnsureSufficientBalanceAsync)}",
                     [
-                     context.NetworkName,
-                     context.FromAddress!,
-                     fee.Asset,
-                     fee.Amount],
-                  new()
-                  {
-                      ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                      StartToCloseTimeout = TimeSpan.FromHours(1),
-                      RetryPolicy = new()
-                      {
-                          InitialInterval = TimeSpan.FromMinutes(10),
-                          BackoffCoefficient = 1f,
-                      },
-                  });
+                        context.NetworkName,
+                        context.FromAddress!,
+                        fee.Asset,
+                        fee.Amount
+                    ],
+                    new()
+                    {
+                        ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                        StartToCloseTimeout = TimeSpan.FromHours(1),
+                        RetryPolicy = new()
+                        {
+                            InitialInterval = TimeSpan.FromMinutes(10),
+                            BackoffCoefficient = 1f,
+                        },
+                    });
 
                 // Transfeable asset ensure balance
                 await ExecuteActivityAsync(
                     $"{context.NetworkGroup}{nameof(IBlockchainActivities.EnsureSufficientBalanceAsync)}",
-
-                 [
-                     context.NetworkName,
-                     context.FromAddress!,
-                     preparedTransaction.CallDataAsset,
-                     preparedTransaction.CallDataAmount],
-                  new()
-                  {
-                      ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                      StartToCloseTimeout = TimeSpan.FromHours(1),
-                      RetryPolicy = new()
-                      {
-                          InitialInterval = TimeSpan.FromMinutes(10),
-                          BackoffCoefficient = 1f,
-                      },
-                  });
+                    [
+                        context.NetworkName,
+                        context.FromAddress!,
+                        preparedTransaction.CallDataAsset,
+                        preparedTransaction.CallDataAmount
+                     ],
+                    new()
+                    {
+                        ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                        StartToCloseTimeout = TimeSpan.FromHours(1),
+                        RetryPolicy = new()
+                        {
+                            InitialInterval = TimeSpan.FromMinutes(10),
+                            BackoffCoefficient = 1f,
+                        },
+                    });
             }
 
             return fee;
@@ -229,22 +233,30 @@ public class EVMTransactionProcessor : TransactionProcessorBase
             {
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
-                    await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((x) => x.RunAsync(new TransactionContext()
+                    var prepareArgs = JsonSerializer.Serialize(
+                            new TransferPrepareRequest
+                            {
+                                Amount = 0,
+                                Asset = context.Fee!.Asset,
+                                ToAddress = context.FromAddress,
+                            });
+
+                    await ExecuteChildWorkflowAsync(nameof(EVMTransactionProcessor), [new TransactionContext()
                     {
                         UniquenessToken = context.UniquenessToken,
                         NetworkName = context.NetworkName,
-                        NetworkGroup = context.NetworkGroup,
                         Nonce = context.Nonce,
                         FromAddress = context.FromAddress,
-                        PrepareArgs = new TransferPrepareRequest
+                        NetworkGroup = context.NetworkGroup,
+                        PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
                         {
                             Amount = 0,
                             Asset = context.Fee!.Asset,
                             ToAddress = context.FromAddress,
-                        }.ToArgs(),
+                        }),
                         Type = TransactionType.Transfer,
                         SwapId = context.SwapId,
-                    }));
+                    }], new() { Id = TransactionProcessorBase.BuildId(context.NetworkName, TransactionType.Transfer) });
                 }
 
                 throw;
@@ -277,7 +289,12 @@ public class EVMTransactionProcessor : TransactionProcessorBase
     private async Task CheckAllowanceAsync(
         TransactionContext context)
     {
-        var lockRequest = context.PrepareArgs.FromArgs<HTLCLockTransactionPrepareRequest>();
+        var lockRequest = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
+
+        if (lockRequest is null)
+        {
+            throw new Exception($"Occured exception during deserializing {context.PrepareArgs}");
+        }
 
         // Get spender address
         var spenderAddress = await ExecuteActivityAsync<string>(
@@ -289,7 +306,7 @@ public class EVMTransactionProcessor : TransactionProcessorBase
         var allowance = await ExecuteActivityAsync<decimal>(
             $"{context.NetworkGroup}{nameof(IEVMBlockchainActivities.GetSpenderAllowanceAsync)}",
             [
-                lockRequest.SourceNetwork,                
+                lockRequest.SourceNetwork,
                 context.FromAddress,
                 spenderAddress,
                 lockRequest.SourceAsset],
@@ -301,12 +318,12 @@ public class EVMTransactionProcessor : TransactionProcessorBase
 
             await ExecuteChildWorkflowAsync(nameof(EVMTransactionProcessor), [new TransactionContext()
             {
-                PrepareArgs = new ApprovePrepareRequest
+                PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
                     SpenderAddress = spenderAddress,
                     Amount = 1000000000m,
                     Asset = lockRequest.SourceAsset,
-                }.ToArgs(),
+                }),
                 Type = TransactionType.Approve,
                 UniquenessToken = Guid.NewGuid().ToString(),
                 FromAddress = context.FromAddress,

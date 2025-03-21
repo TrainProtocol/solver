@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using MessagePack;
 using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace Train.Solver.Core.Extensions;
@@ -64,11 +63,4 @@ public static class StringExtensions
 
     public static string EnsureEvenLengthHex(this string hex)
        => hex.Length % 2 != 0 ? $"0{hex}" : hex;
-
-
-
-    public static T FromArgs<T>(this string jsonArray) =>
-      MessagePackSerializer.Deserialize<T>(MessagePackSerializer.ConvertFromJson(jsonArray));
-
-    public static string ToArgs<T>(this T obj) => MessagePackSerializer.SerializeToJson(obj);
 }

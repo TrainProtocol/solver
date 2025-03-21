@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using Serilog.Extensions.Logging;
-using Train.Solver.Core.Blockchains.EVM.Activities;
 using Train.Solver.Core.DependencyInjection;
 using Train.Solver.Core.Services.Secret.AzureKeyVault;
 using Train.Solver.Core.Services.TokenPrice.Coingecko;

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Text.Json;
 using Nethereum.Contracts;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -15,7 +16,12 @@ public static class EVMTransactionBuilder
 {
     public static PrepareTransactionResponse BuildApproveTransaction(Network network, string args)
     {
-        var request = args.FromArgs<ApprovePrepareRequest>();
+        var request = JsonSerializer.Deserialize<ApprovePrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var currency = network.Tokens.Single(x => x.Asset == request.Asset);
 
@@ -46,10 +52,15 @@ public static class EVMTransactionBuilder
     }
 
     public static PrepareTransactionResponse BuildTransferTransaction(
-    Network network,
-    string args)
+        Network network,
+        string args)
     {
-        var request = args.FromArgs<TransferPrepareRequest>();
+        var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var response = new PrepareTransactionResponse();
         string memoHex = "";
@@ -73,7 +84,6 @@ public static class EVMTransactionBuilder
                 Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
             }.GetCallData().ToHex().EnsureEvenLengthHex()}{memoHex.RemoveHexPrefix()}".EnsureHexPrefix();
 
-
             response.Amount = 0m;
             response.AmountInWei = "0";
             response.ToAddress = currency.TokenContract;
@@ -96,8 +106,12 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(Network network, string args)
     {
-        var request = args.FromArgs<HTLCAddLockSigTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCAddLockSigTransactionPrepareRequest>(args);
 
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
@@ -138,8 +152,12 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCCommitTransaction(Network network, string args)
     {
-        var request = args.FromArgs<HTLCCommitTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCCommitTransactionPrepareRequest>(args);
 
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
 
@@ -206,7 +224,12 @@ public static class EVMTransactionBuilder
         Network network,
         string args)
     {
-        var request = args.FromArgs<HTLCLockTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var response = new PrepareTransactionResponse();
 
@@ -280,9 +303,15 @@ public static class EVMTransactionBuilder
     }
 
     public static PrepareTransactionResponse BuildHTLCRedeemTranaction(
-Network network, string args)
+        Network network,
+        string args)
     {
-        var request = args.FromArgs<HTLCRedeemTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
         
@@ -314,9 +343,13 @@ Network network, string args)
 
     public static PrepareTransactionResponse BuildHTLCRefundTransaction(Network network, string args)
     {
-        var request = args.FromArgs<HTLCRefundTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
 
-        
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
+
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
         
         var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);

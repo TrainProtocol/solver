@@ -11,6 +11,9 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
     "allowJs": true                          
   },
   "include": ["src/**/*.ts", "src/**/*.js"],

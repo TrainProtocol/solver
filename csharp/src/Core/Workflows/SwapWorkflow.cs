@@ -1,8 +1,8 @@
-﻿using Temporalio.Exceptions;
+﻿using System.Text.Json;
+using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Core.Activities;
 using Train.Solver.Core.Exceptions;
-using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
 using Train.Solver.Data.Entities;
@@ -130,7 +130,7 @@ public class SwapWorkflow
         // Lock in destination network
         await ExecuteChildWorkflowAsync(TemporalHelper.ResolveProcessor(_htlcCommitMessage.DestinationNetwrokGroup), [new TransactionContext()
         {
-            PrepareArgs = new HTLCLockTransactionPrepareRequest
+            PrepareArgs = JsonSerializer.Serialize(new HTLCLockTransactionPrepareRequest
             {
                 SourceAsset = _htlcCommitMessage.DestinationAsset,
                 DestinationAsset = _htlcCommitMessage.SourceAsset,
@@ -144,10 +144,10 @@ public class SwapWorkflow
                 Reward = 0,
                 Receiver = _htlcCommitMessage.DestinationAddress,
                 Hashlock = hashlock.Hash,
-            }.ToArgs(),
+            }),
             Type = TransactionType.HTLCLock,
             NetworkName = _htlcCommitMessage.DestinationNetwork,
-            NetworkGroup= _htlcCommitMessage.DestinationNetwrokGroup,
+            NetworkGroup = _htlcCommitMessage.DestinationNetwrokGroup,
             FromAddress = _solverManagedAccountInDestination!,
             SwapId = _swapId,
         }], new() { Id = TransactionProcessorBase.BuildId(_htlcCommitMessage.DestinationNetwork, TransactionType.HTLCLock) });
@@ -174,7 +174,7 @@ public class SwapWorkflow
 
                 var childWorkflowTask = ExecuteChildWorkflowAsync(TemporalHelper.ResolveProcessor(_htlcCommitMessage.SourceNetwrokGroup), [new TransactionContext()
                 {
-                    PrepareArgs = new HTLCAddLockSigTransactionPrepareRequest
+                    PrepareArgs = JsonSerializer.Serialize(new HTLCAddLockSigTransactionPrepareRequest
                     {
                         Id = _htlcCommitMessage.Id,
                         Hashlock = hashlock.Hash,
@@ -185,7 +185,7 @@ public class SwapWorkflow
                         S = _htlcAddLockSigMessage.S,
                         V = _htlcAddLockSigMessage.V,
                         Asset = _htlcCommitMessage.SourceAsset
-                    }.ToArgs(),
+                    }),
                     Type = TransactionType.HTLCAddLockSig,
                     NetworkName = _htlcCommitMessage.SourceNetwork,
                     NetworkGroup = _htlcCommitMessage.SourceNetwrokGroup,
@@ -214,33 +214,33 @@ public class SwapWorkflow
 
             // Redeem user funds
             var redeemInDestinationTask = ExecuteChildWorkflowAsync(TemporalHelper.ResolveProcessor(_htlcCommitMessage.DestinationNetwrokGroup), [new TransactionContext()
+            {
+                PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
-                    PrepareArgs = new HTLCRedeemTransactionPrepareRequest
-                    {
-                        Id = _htlcCommitMessage!.Id,
-                        Asset = _htlcCommitMessage.DestinationAsset,
-                        Secret = hashlock.Secret,
-                        DestinationAddress = _htlcCommitMessage.DestinationAddress,
-                        SenderAddress = _solverManagedAccountInDestination
-                    }.ToArgs(),
-                    Type = TransactionType.HTLCRedeem,
-                    NetworkName = _htlcCommitMessage.DestinationNetwork,
-                    NetworkGroup = _htlcCommitMessage.DestinationNetwrokGroup,
-                    FromAddress = _solverManagedAccountInDestination!,
-                    SwapId = _swapId
-                }], new() { Id = TransactionProcessorBase.BuildId(_htlcCommitMessage.DestinationNetwork, TransactionType.HTLCRedeem) });
+                    Id = _htlcCommitMessage!.Id,
+                    Asset = _htlcCommitMessage.DestinationAsset,
+                    Secret = hashlock.Secret,
+                    DestinationAddress = _htlcCommitMessage.DestinationAddress,
+                    SenderAddress = _solverManagedAccountInDestination
+                }),
+                Type = TransactionType.HTLCRedeem,
+                NetworkName = _htlcCommitMessage.DestinationNetwork,
+                NetworkGroup = _htlcCommitMessage.DestinationNetwrokGroup,
+                FromAddress = _solverManagedAccountInDestination!,
+                SwapId = _swapId
+            }], new() { Id = TransactionProcessorBase.BuildId(_htlcCommitMessage.DestinationNetwork, TransactionType.HTLCRedeem) });
 
             // Redeem LP funds
             var redeemInSourceTask = ExecuteChildWorkflowAsync(TemporalHelper.ResolveProcessor(_htlcCommitMessage.SourceNetwrokGroup), [new TransactionContext()
             {
-                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
+                PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
                     Id = _htlcCommitMessage!.Id,
                     Asset = _htlcCommitMessage.SourceAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _solverManagedAccountInSource,
                     SenderAddress = _htlcCommitMessage.SenderAddress
-                }.ToArgs(),
+                }),
                 Type = TransactionType.HTLCRedeem,
                 NetworkName = _htlcCommitMessage.SourceNetwork,
                 NetworkGroup = _htlcCommitMessage.SourceNetwrokGroup,
@@ -270,18 +270,18 @@ public class SwapWorkflow
         }
 
         await ExecuteChildWorkflowAsync(TemporalHelper.ResolveProcessor(_htlcCommitMessage!.DestinationNetwrokGroup), [new TransactionContext()
+        {
+            PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
             {
-                PrepareArgs = new HTLCRefundTransactionPrepareRequest
-                {
-                    Id = _htlcCommitMessage!.Id,
-                    Asset = _htlcCommitMessage.DestinationAsset,
-                }.ToArgs(),
-                Type = TransactionType.HTLCRefund,
-                NetworkName = _htlcCommitMessage.DestinationNetwork,
-                NetworkGroup = _htlcCommitMessage.DestinationNetwrokGroup,
-                FromAddress = _solverManagedAccountInDestination!,
-                SwapId = _swapId!
-            }], new() { Id = TransactionProcessorBase.BuildId(_htlcCommitMessage.DestinationNetwork, TransactionType.HTLCRefund) });
+                Id = _htlcCommitMessage!.Id,
+                Asset = _htlcCommitMessage.DestinationAsset,
+            }),
+            Type = TransactionType.HTLCRefund,
+            NetworkName = _htlcCommitMessage.DestinationNetwork,
+            NetworkGroup = _htlcCommitMessage.DestinationNetwrokGroup,
+            FromAddress = _solverManagedAccountInDestination!,
+            SwapId = _swapId!
+        }], new() { Id = TransactionProcessorBase.BuildId(_htlcCommitMessage.DestinationNetwork, TransactionType.HTLCRefund) });
     }
 
     [WorkflowUpdate]
@@ -292,8 +292,7 @@ public class SwapWorkflow
             var isValid = await ExecuteActivityAsync<bool>(
                 $"{_htlcCommitMessage!.SourceNetwrokGroup}{nameof(IBlockchainActivities.ValidateAddLockSignatureAsync)}",
                 [networkName, addLockSig],
-                TemporalHelper.DefaultActivityOptions(Constants.CSharpTaskQueue));
-
+                TemporalHelper.DefaultActivityOptions(_htlcCommitMessage.SourceNetwrokGroup));
 
             if (isValid)
             {

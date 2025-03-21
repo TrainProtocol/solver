@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Text.Json;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
@@ -11,7 +12,6 @@ using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 using Train.Solver.Core.Blockchains.Solana.Programs;
 using Train.Solver.Core.Blockchains.Solana.Programs.Models;
-using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
 using Train.Solver.Data.Entities;
 
@@ -23,7 +23,12 @@ public static class SolanaTransactionBuilder
         Network network,
         string args)
     {
-        var request = args.FromArgs<HTLCLockTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
 
@@ -128,7 +133,12 @@ public static class SolanaTransactionBuilder
 
     public static async Task<PrepareTransactionResponse> BuildHTLCRedeemTransactionAsync(Network network, string args)
     {
-        var request = args.FromArgs<HTLCRedeemTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         if (string.IsNullOrEmpty(request.DestinationAddress))
         {
@@ -232,7 +242,12 @@ public static class SolanaTransactionBuilder
     public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(Network network,
         string args)
     {
-        var request = args.FromArgs<HTLCRefundTransactionPrepareRequest>();
+        var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         if (string.IsNullOrEmpty(request.DestinationAddress))
         {
@@ -327,7 +342,13 @@ public static class SolanaTransactionBuilder
 
     public static async Task<PrepareTransactionResponse> BuildTransferTransactionAsync(Network network, string args)
     {
-        var request = args.FromArgs<TransferPrepareRequest>();
+       
+        var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
 
         var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
 

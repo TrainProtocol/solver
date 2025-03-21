@@ -9,8 +9,8 @@ namespace Train.Solver.Core.Activities;
 public abstract class BlockchainActivitiesBase(
     SolverDbContext dbContext) : IBlockchainActivities
 {
-    protected abstract Task<string> GetNextNonceAsync(string networkName, string address, string referenceId);
-
+    protected abstract Task<string> GetPersistedNonceAsync(string networkName, string address);
+    public abstract Task<string> GetNextNonceAsync(string networkName, string address);
     public abstract Task<PrepareTransactionResponse> BuildTransactionAsync(string networkName, TransactionType transactionType, string args);
     public abstract Task<string> GenerateAddressAsync(string networkName);
     public abstract Task<Fee> EstimateFeeAsync(string networkName, EstimateFeeRequest request);
@@ -22,7 +22,7 @@ public abstract class BlockchainActivitiesBase(
     public abstract string FormatAddress(string address);
     public abstract bool ValidateAddress(string address);
 
-    public virtual async Task<string> GetNonceAsync(
+    public virtual async Task<string> GetReservedNonceAsync(
         string networkName,
         string address,
         string referenceId)
@@ -41,10 +41,9 @@ public abstract class BlockchainActivitiesBase(
             return reservedNonce.Nonce;
         }
 
-        var nextNonceResult = await GetNextNonceAsync(
+        var nextNonceResult = await GetPersistedNonceAsync(
             networkName,
-            address,
-            referenceId);
+            address);
 
         if (nextNonceResult is not null)
         {

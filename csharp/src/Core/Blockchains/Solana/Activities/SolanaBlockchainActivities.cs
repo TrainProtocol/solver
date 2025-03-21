@@ -541,8 +541,12 @@ public class SolanaBlockchainActivities(
         };
     }
 
-    [Activity(name: $"{nameof(NetworkGroup.Solana)}{nameof(GetNonceAsync)}")]
-    protected override async Task<string> GetNextNonceAsync(string networkName, string address, string referenceId)
+    public override Task<string> GetNextNonceAsync(string networkName, string address)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override async Task<string> GetPersistedNonceAsync(string networkName, string address)
     {
         var network = await dbContext.Networks
                    .Include(x => x.Nodes)
@@ -568,6 +572,12 @@ public class SolanaBlockchainActivities(
                 expiry: TimeSpan.FromDays(7));
 
         return latestBlockHashResponse.Result.Value.Blockhash;
+    }
+
+    [Activity(name: $"{nameof(NetworkGroup.Solana)}{nameof(GetReservedNonceAsync)}")]
+    public override Task<string> GetReservedNonceAsync(string networkName, string address, string referenceId)
+    {
+        return base.GetReservedNonceAsync(networkName, address, referenceId);
     }
 
     [Activity(name: $"{nameof(NetworkGroup.Solana)}{nameof(ValidateAddLockSignatureAsync)}")]

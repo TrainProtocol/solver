@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Temporalio.Activities;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
 using Temporalio.Exceptions;
-using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Helpers;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Workflows;
@@ -70,11 +70,11 @@ public class WorkflowActivities(SolverDbContext dbContext, ITemporalClient tempo
         await temporalClient.StartWorkflowAsync(
             TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Group), [new TransactionContext()
                 {
-                    PrepareArgs = new HTLCRefundTransactionPrepareRequest
+                    PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
                         Id = swap.Id,
                         Asset = swap.DestinationToken.Asset,
-                    }.ToArgs(),
+                    }),
                     Type = TransactionType.HTLCRefund,
                     NetworkName = swap.DestinationToken.Network.Name,
                     NetworkGroup = swap.DestinationToken.Network.Group,

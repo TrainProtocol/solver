@@ -2,6 +2,7 @@
 using Temporalio.Workflows;
 using Train.Solver.Core.Blockchains.EVM.Workflows;
 using Train.Solver.Core.Blockchains.Solana.Workflows;
+using Train.Solver.Core.Blockchains.Starknet.Workflows;
 using Train.Solver.Data.Entities;
 
 namespace Train.Solver.Core.Helpers;
@@ -34,7 +35,7 @@ public static class TemporalHelper
             NetworkGroup.EVMPolygonEip1559 => typeof(EVMTransactionProcessor),
 
             // Networks starting with Starknet
-            //NetworkGroup.Starknet => typeof(StarknetTransactionProcessor),
+            NetworkGroup.Starknet => typeof(StarknetTransactionProcessor),
 
             // SolanaTransactionProcessorWorkflow-specific network
             NetworkGroup.Solana => typeof(SolanaTransactionProcessor),
