@@ -50,10 +50,11 @@ services:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
-      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING_JS}
       TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
     depends_on:
       - temporal
+      - db
       - redis
     networks:
       - app-network
