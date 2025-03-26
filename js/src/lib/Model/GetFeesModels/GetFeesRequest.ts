@@ -1,6 +1,7 @@
 export interface GetFeesRequest {
+    NetworkName: string,
     ToAddress: string,
-    amount: number,
+    Amount: number,
     FromAddress: string,
     Asset: string,
     CallData?: string

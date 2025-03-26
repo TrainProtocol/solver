@@ -1,4 +1,5 @@
 export interface AddLockSignatureModel {
+    NetworkName: string;
     R?: string;
     S?: string;
     V?: string;
