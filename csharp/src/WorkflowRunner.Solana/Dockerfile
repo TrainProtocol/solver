@@ -11,11 +11,11 @@ COPY csharp/src/Core/ csharp/src/Core/
 COPY csharp/nuget.config /
 COPY csharp/Directory.Build.props /
 
-FROM build AS publish
-RUN dotnet publish "csharp/src/WorkflowRunner/WorkflowRunner.Swap.csproj" -c Release -o /app/publish
+FROM build AS publish   
+RUN dotnet publish "csharp/src/WorkflowRunner/WorkflowRunner.Solana.csproj" -c Release -o /app/publish
 
 FROM base AS final
 
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Train.Solver.WorkflowRunner.Swap.dll"]
+ENTRYPOINT ["dotnet", "Train.Solver.WorkflowRunner.Solana.dll"]

@@ -1,21 +1,21 @@
-name: CSharp Workflow runner
+name: Starknet Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-cs.yml'
+      - '.github/workflows/workflow-runner-starknet.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-cs.yml'
+      - '.github/workflows/workflow-runner-starknet.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-wf-runner-cs
+  DOCKER_IMAGE: trainprotocol/train-solver-runner-starknet
   DOTNET_VERSION: 8
   
 jobs:
@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/WorkflowRunner/Dockerfile
+          file: csharp/src/WorkflowRunner.Starknet/Dockerfile
           push: true
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
