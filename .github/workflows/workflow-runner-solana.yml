@@ -1,22 +1,23 @@
-name: JS Workflow runner
+name: Solana Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
-      - 'js/**'
-      - '.github/workflows/workflow-runner-js.yml'
+      - 'csharp/**'
+      - '.github/workflows/workflow-runner-solana.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
-      - 'js/**'
-      - '.github/workflows/workflow-runner-js.yml'
+      - 'csharp/**'
+      - '.github/workflows/workflow-runner-solana.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-wf-runner-js
-
+  DOCKER_IMAGE: trainprotocol/train-solver-runner-solana
+  DOTNET_VERSION: 8 
+  
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -46,11 +47,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v5 
         with:
           context: .
-          file: js/Dockerfile
+          file: csharp/src/WorkflowRunner.Solana/Dockerfile
           push: true
+          build-args: |
+            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
