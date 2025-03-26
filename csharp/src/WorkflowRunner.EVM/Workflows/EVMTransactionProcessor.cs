@@ -6,7 +6,6 @@ using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Extensions;
 using Train.Solver.Core.Workflows.Helpers;

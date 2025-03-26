@@ -5,7 +5,6 @@ using Temporalio.Client;
 using Temporalio.Exceptions;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Repositories;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Workflows.Worklows;

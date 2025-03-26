@@ -14,7 +14,6 @@ using Train.Solver.Blockchains.Solana.Programs;
 using Train.Solver.Blockchains.Solana.Programs.Models;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 
 namespace Train.Solver.Blockchains.Solana.Helpers;
 

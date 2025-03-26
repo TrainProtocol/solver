@@ -9,7 +9,6 @@ using Train.Solver.Blockchains.EVM.FunctionMessages;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 
 namespace Train.Solver.Blockchains.EVM.Helpers;
 
@@ -107,7 +106,7 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(Network network, string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCAddLockSigTransactionPrepareRequest>(args);
+        var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
 
         if (request is null)
         {

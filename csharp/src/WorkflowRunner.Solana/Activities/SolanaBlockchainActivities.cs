@@ -11,7 +11,6 @@ using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using Nethereum.Web3;
 using Train.Solver.Core.Services;

@@ -1,7 +1,6 @@
 ﻿using Temporalio.Workflows;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
 using static Temporalio.Workflows.Workflow;

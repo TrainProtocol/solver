@@ -19,7 +19,6 @@ using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using static Train.Solver.Blockchains.EVM.Helpers.EVMResilientNodeHelper;
 using Train.Solver.Core.Models;
 using Nethereum.RPC.Eth.Mappers;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Services;
 using Temporalio.Activities;
 using Train.Solver.Blockchains.EVM.Models;

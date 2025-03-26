@@ -1,6 +1,5 @@
 ﻿using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Repositories;
 
 namespace Train.Solver.Core.Workflows.Activities;

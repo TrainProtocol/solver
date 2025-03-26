@@ -4,7 +4,6 @@ using Temporalio.Workflows;
 using Train.Solver.Core.Entities;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Models;
-using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
 using static Temporalio.Workflows.Workflow;
@@ -163,7 +162,7 @@ public class SwapWorkflow
 
                 var childWorkflowTask = ExecuteTransactionAsync(new TransactionContext()
                 {
-                    PrepareArgs = JsonSerializer.Serialize(new HTLCAddLockSigTransactionPrepareRequest
+                    PrepareArgs = JsonSerializer.Serialize(new AddLockSigTransactionPrepareRequest
                     {
                         Id = _htlcCommitMessage.Id,
                         Hashlock = hashlock.Hash,

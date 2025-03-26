@@ -1,6 +1,6 @@
-﻿namespace Train.Solver.Core.Models.HTLCModels;
+﻿namespace Train.Solver.Core.Models;
 
-public class HTLCAddLockSigTransactionPrepareRequest
+public class AddLockSigTransactionPrepareRequest
 {
     public string Id { get; set; } = null!;
 

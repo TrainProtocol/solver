@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Models.HTLCModels;
+﻿namespace Train.Solver.Core.Models;
 
 public class HTLCLockEventMessage
 {

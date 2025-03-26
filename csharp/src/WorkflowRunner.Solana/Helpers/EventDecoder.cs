@@ -9,7 +9,7 @@ using Solnet.Wallet;
 using Train.Solver.Blockchains.Solana.Extensions;
 using Train.Solver.Blockchains.Solana.Models;
 using Train.Solver.Core.Entities;
-using Train.Solver.Core.Models.HTLCModels;
+using Train.Solver.Core.Models;
 
 namespace Train.Solver.Blockchains.Solana.Helpers;
 
