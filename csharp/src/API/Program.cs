@@ -57,7 +57,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
-    .WithOpenTelemetryLogging()
+    .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
 
 builder.Services.AddCors(options =>
