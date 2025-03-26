@@ -2,12 +2,12 @@
 using Nethereum.Hex.HexTypes;
 using System.Security.Cryptography;
 using Temporalio.Activities;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Exceptions;
-using Train.Solver.Core.Models;
-using Train.Solver.Core.Repositories;
-using Train.Solver.Core.Services;
-using TransactionResponse = Train.Solver.Core.Models.TransactionResponse;
+using Train.Solver.Core.Abstractions;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Exceptions;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Repositories;
+using TransactionResponse = Train.Solver.Core.Abstractions.Models.TransactionResponse;
 
 namespace Train.Solver.Core.Workflows.Activities;
 

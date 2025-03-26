@@ -1,8 +1,8 @@
 ﻿using Temporalio.Extensions.Hosting;
 using Train.Solver.Blockchains.EVM.Activities;
 using Train.Solver.Blockchains.EVM.Workflows;
+using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.DependencyInjection;
-using Train.Solver.Core.Entities;
 
 namespace Train.Solver.Blockchains.EVM.Extensions;
 

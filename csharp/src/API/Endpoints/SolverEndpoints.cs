@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
 using Train.Solver.API.Models;
-using Train.Solver.Core.Entities;
+using Train.Solver.Core.Abstractions;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Models;
-using Train.Solver.Core.Repositories;
-using Train.Solver.Core.Services;
 using Train.Solver.Core.Workflows.Worklows;
 
 namespace Train.Solver.API.Endpoints;

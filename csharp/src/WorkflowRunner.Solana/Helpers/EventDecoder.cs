@@ -8,8 +8,8 @@ using Solnet.Rpc.Models;
 using Solnet.Wallet;
 using Train.Solver.Blockchains.Solana.Extensions;
 using Train.Solver.Blockchains.Solana.Models;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Models;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Models;
 
 namespace Train.Solver.Blockchains.Solana.Helpers;
 

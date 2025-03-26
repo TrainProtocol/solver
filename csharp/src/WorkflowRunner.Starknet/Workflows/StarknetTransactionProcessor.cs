@@ -3,13 +3,13 @@ using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchains.Starknet.Activities;
 using Train.Solver.Blockchains.Starknet.Models;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Exceptions;
-using Train.Solver.Core.Models;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Exceptions;
+using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Workflows.Extensions;
 using Train.Solver.Core.Workflows.Helpers;
 using static Temporalio.Workflows.Workflow;
-using TransactionResponse = Train.Solver.Core.Models.TransactionResponse;
+using TransactionResponse = Train.Solver.Core.Abstractions.Models.TransactionResponse;
 
 namespace Train.Solver.Blockchains.Starknet.Workflows;
 

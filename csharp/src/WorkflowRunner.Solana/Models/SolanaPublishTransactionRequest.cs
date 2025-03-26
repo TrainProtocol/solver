@@ -1,4 +1,4 @@
-﻿using Train.Solver.Core.Models;
+﻿using Train.Solver.Core.Abstractions.Models;
 
 namespace Train.Solver.Blockchains.Solana.Models;
 

@@ -7,20 +7,20 @@ using Solnet.Wallet;
 using Solnet.Wallet.Utilities;
 using StackExchange.Redis;
 using Temporalio.Activities;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Models;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using Nethereum.Web3;
-using Train.Solver.Core.Services;
 using Train.Solver.Blockchains.Solana.Extensions;
 using Train.Solver.Blockchains.Solana.Helpers;
 using Train.Solver.Blockchains.Solana.Models;
 using Train.Solver.Blockchains.Solana.Programs;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.Core.Repositories;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Exceptions;
+using Train.Solver.Core.Abstractions;
 
 namespace Train.Solver.Blockchains.Solana.Activities;
 

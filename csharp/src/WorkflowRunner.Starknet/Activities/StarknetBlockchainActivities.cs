@@ -6,10 +6,7 @@ using Newtonsoft.Json;
 using RedLockNet;
 using StackExchange.Redis;
 using Temporalio.Activities;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Models;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
 using Train.Solver.Blockchains.Starknet.Models;
@@ -17,7 +14,10 @@ using Train.Solver.Blockchains.Starknet.Extensions;
 using Train.Solver.Blockchains.Starknet.Helpers;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Repositories;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Core.Abstractions.Exceptions;
 
 namespace Train.Solver.Blockchains.Starknet.Activities;
 
@@ -94,7 +94,7 @@ public class StarknetBlockchainActivities(
         };
     }
 
-    private async Task<Core.Models.TransactionResponse> GetTransactionAsync(
+    private async Task<Core.Abstractions.Models.TransactionResponse> GetTransactionAsync(
         Network network,
         string transactionId)
     {
@@ -102,7 +102,7 @@ public class StarknetBlockchainActivities(
 
         var rpcClient = new StarknetRpcClient(new Uri(node.Url));
 
-        Core.Models.TransactionResponse? transactionModel = null;
+        Core.Abstractions.Models.TransactionResponse? transactionModel = null;
 
         var transactionStatusResponse = await rpcClient.SendRequestAsync<StatusResponse>(new RpcRequest(
             id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
@@ -132,7 +132,7 @@ public class StarknetBlockchainActivities(
         var feeInWei = new HexBigInteger(transactionReceiptResponse.ActualFee.Amount).Value;
         var feeDecimals = 18;
 
-        transactionModel = new Core.Models.TransactionResponse
+        transactionModel = new Core.Abstractions.Models.TransactionResponse
         {
             TransactionHash = FormatAddress(new() { Address = transactionReceiptResponse.TransactionHash }),
             Confirmations = statusResult == TransactionStatus.Initiated ? 0 : 1,
@@ -439,7 +439,7 @@ public class StarknetBlockchainActivities(
     }
 
     [Activity(name: $"{nameof(NetworkType.Starknet)}{nameof(GetBatchTransactionAsync)}")]
-    public async Task<Core.Models.TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request)
+    public async Task<Core.Abstractions.Models.TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -448,7 +448,7 @@ public class StarknetBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        Core.Models.TransactionResponse? transaction = null;
+        Core.Abstractions.Models.TransactionResponse? transaction = null;
 
         foreach (var transactionId in request.TransactionIds)
         {
@@ -463,7 +463,7 @@ public class StarknetBlockchainActivities(
         return transaction;
     }
 
-    public override async Task<Core.Models.TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
+    public override async Task<Core.Abstractions.Models.TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 

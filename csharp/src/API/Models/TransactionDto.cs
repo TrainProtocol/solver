@@ -1,4 +1,4 @@
-﻿using Train.Solver.Core.Entities;
+﻿using Train.Solver.Core.Abstractions.Entities;
 
 namespace Train.Solver.API.Models;
 

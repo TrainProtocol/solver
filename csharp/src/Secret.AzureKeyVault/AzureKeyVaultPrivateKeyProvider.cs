@@ -1,5 +1,5 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using Train.Solver.Core.Services;
+using Train.Solver.Core.Abstractions;
 
 namespace Train.Solver.Secret.AzureKeyVault;
 

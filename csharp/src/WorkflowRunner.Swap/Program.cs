@@ -1,4 +1,4 @@
-﻿using Train.Solver.Core.DependencyInjection;
+﻿using Train.Solver.Core.Extensions;
 using Train.Solver.Repositories.Npgsql.Extensions;
 using Train.Solver.Secret.AzureKeyVault;
 using Train.Solver.TokenPrice.Coingecko;

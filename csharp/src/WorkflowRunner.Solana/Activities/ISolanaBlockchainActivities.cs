@@ -1,4 +1,5 @@
 ﻿using Train.Solver.Blockchains.Solana.Models;
+using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Workflows.Activities;
 
 namespace Train.Solver.Blockchains.Solana.Activities;

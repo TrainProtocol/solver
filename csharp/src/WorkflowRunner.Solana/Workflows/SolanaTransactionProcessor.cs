@@ -2,8 +2,8 @@
 using Temporalio.Workflows;
 using Train.Solver.Blockchains.Solana.Activities;
 using Train.Solver.Blockchains.Solana.Models;
-using Train.Solver.Core.Exceptions;
-using Train.Solver.Core.Models;
+using Train.Solver.Core.Abstractions.Exceptions;
+using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Workflows.Extensions;
 using Train.Solver.Core.Workflows.Helpers;
 using static Temporalio.Workflows.Workflow;

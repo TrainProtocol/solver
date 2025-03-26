@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.DependencyInjection;
-using Train.Solver.Core.Services;
 
 namespace Train.Solver.Secret.AzureKeyVault;
 

@@ -8,9 +8,9 @@ using Nethereum.Web3;
 using System.Numerics;
 using Train.Solver.Blockchains.EVM.FunctionMessages;
 using Train.Solver.Blockchains.EVM.Models;
-using Train.Solver.Core.Entities;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Models;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Blockchains.EVM.Helpers;

@@ -4,7 +4,6 @@ using Train.Solver.API;
 using Train.Solver.API.Endpoints;
 using Train.Solver.API.Extensions;
 using Train.Solver.API.MIddlewares;
-using Train.Solver.Core.DependencyInjection;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Logging.OpenTelemetry;
 using Train.Solver.Repositories.Npgsql.Extensions;

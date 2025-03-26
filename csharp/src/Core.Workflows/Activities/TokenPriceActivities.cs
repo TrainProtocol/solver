@@ -1,6 +1,6 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Core.Repositories;
-using Train.Solver.Core.Services;
+using Train.Solver.Core.Abstractions;
+using Train.Solver.Core.Abstractions.Repositories;
 
 namespace Train.Solver.Core.Workflows.Activities;
 

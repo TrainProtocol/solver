@@ -44,6 +44,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_scripts", "_scripts", "{63
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.OpenTelemetry", "src\Logging.OpenTelemetry\Logging.OpenTelemetry.csproj", "{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Abstractions", "src\Core.Abstractions\Core.Abstractions.csproj", "{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.DependencyInjection", "src\Core.DependencyInjection\Core.DependencyInjection.csproj", "{0C7D1799-62F0-49C6-84FF-229AD21D0509}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +98,14 @@ Global
 		{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C7D1799-62F0-49C6-84FF-229AD21D0509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C7D1799-62F0-49C6-84FF-229AD21D0509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C7D1799-62F0-49C6-84FF-229AD21D0509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C7D1799-62F0-49C6-84FF-229AD21D0509}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +122,8 @@ Global
 		{477456EA-7CC7-42E6-A408-AD81744CB612} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{B425A7FB-8FAF-402E-BD1B-D7BF8E668B4B} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{9E642F6C-680C-43CA-8C0A-BA537CED5AA6} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
+		{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
+		{0C7D1799-62F0-49C6-84FF-229AD21D0509} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9194A24-3EC3-4F7F-BD7F-8DE45515A2E3}

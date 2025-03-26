@@ -1,5 +1,5 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Core.Models;
+using Train.Solver.Core.Abstractions.Models;
 
 namespace Train.Solver.Core.Workflows.Activities;
 

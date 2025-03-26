@@ -3,9 +3,9 @@ using Temporalio.Activities;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
 using Temporalio.Exceptions;
-using Train.Solver.Core.Entities;
-using Train.Solver.Core.Models;
-using Train.Solver.Core.Repositories;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Workflows.Worklows;
 

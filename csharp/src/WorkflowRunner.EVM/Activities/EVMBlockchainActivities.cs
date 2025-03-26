@@ -13,20 +13,20 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using RedLockNet;
 using StackExchange.Redis;
-using Train.Solver.Core.Exceptions;
-using Train.Solver.Core.Entities;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using static Train.Solver.Blockchains.EVM.Helpers.EVMResilientNodeHelper;
-using Train.Solver.Core.Models;
 using Nethereum.RPC.Eth.Mappers;
-using Train.Solver.Core.Services;
 using Temporalio.Activities;
 using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Blockchains.EVM.Helpers;
 using Train.Solver.Blockchains.EVM.FunctionMessages;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.Core.Repositories;
+using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Core.Abstractions;
+using Train.Solver.Core.Abstractions.Exceptions;
 
 namespace Train.Solver.Blockchains.EVM.Activities;
 

@@ -7,14 +7,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="RedLock.net" Version="2.3.2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.10.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
 		<PackageReference Include="Temporalio.Extensions.Hosting" Version="1.0.0" />
-		<PackageReference Include="Google.Protobuf.Tools" Version="3.30.1" />
-		<PackageReference Include="Nethereum.Util" Version="4.29.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
+	</ItemGroup>
 
-  </ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Core.Abstractions\Core.Abstractions.csproj" />
+	  <ProjectReference Include="..\Core.DependencyInjection\Core.DependencyInjection.csproj" />
+	</ItemGroup>
 </Project>
