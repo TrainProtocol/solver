@@ -4,7 +4,7 @@ The following Docker images are available for Train.Solver components:
 
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
-| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainsolver/api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
+| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/train-solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
 | Workflow Runner (Swap) | `csharp/src/WorkflowRunner.Swap/Dockerfile` | [![WorkflowRunner-Swap](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-swap?label=WorkflowRunner-Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
 | Workflow Runner (EVM) | `csharp/src/WorkflowRunner.EVM/Dockerfile` | [![WorkflowRunner-EVM](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-evm?label=WorkflowRunner-EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-evm) |
 | Workflow Runner (Solana) | `csharp/src/WorkflowRunner.Solana/Dockerfile` | [![WorkflowRunner-Solana](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-solana?label=WorkflowRunner-Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-solana) |
