@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Train.Solver.Blockchains.Starknet.Models;
+namespace Train.Solver.WorkflowRunner.Starknet.Models;
 
 public class GetBlockResponse
 {

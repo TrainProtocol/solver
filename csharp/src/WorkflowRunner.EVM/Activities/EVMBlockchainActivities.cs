@@ -16,9 +16,6 @@ using StackExchange.Redis;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
-using Train.Solver.Blockchains.EVM.Models;
-using Train.Solver.Blockchains.EVM.Helpers;
-using Train.Solver.Blockchains.EVM.FunctionMessages;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Abstractions.Models;
@@ -27,8 +24,11 @@ using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Exceptions;
 using Nethereum.BlockchainProcessing.BlockStorage.Entities;
+using Train.Solver.WorkflowRunner.EVM.Models;
+using Train.Solver.WorkflowRunner.EVM.Helpers;
+using Train.Solver.WorkflowRunner.EVM.FunctionMessages;
 
-namespace Train.Solver.Blockchains.EVM.Activities;
+namespace Train.Solver.WorkflowRunner.EVM.Activities;
 
 public class EVMBlockchainActivities(
     ISwapRepository swapRepository,

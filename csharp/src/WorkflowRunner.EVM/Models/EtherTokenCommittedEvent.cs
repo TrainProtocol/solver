@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 
-namespace Train.Solver.Blockchains.EVM.Models;
+namespace Train.Solver.WorkflowRunner.EVM.Models;
 
 [Event("TokenCommitted")]
 public class EtherTokenCommittedEvent : IEventDTO

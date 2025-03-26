@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Blockchains.Solana.Helpers;
+﻿namespace Train.Solver.WorkflowRunner.Solana.Helpers;
 
 public static class FieldEncoder
 {

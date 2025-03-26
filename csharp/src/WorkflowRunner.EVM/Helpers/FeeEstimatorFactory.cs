@@ -1,6 +1,6 @@
 ﻿using Train.Solver.Core.Abstractions.Entities;
 
-namespace Train.Solver.Blockchains.EVM.Helpers;
+namespace Train.Solver.WorkflowRunner.EVM.Helpers;
 
 public static class FeeEstimatorFactory
 {

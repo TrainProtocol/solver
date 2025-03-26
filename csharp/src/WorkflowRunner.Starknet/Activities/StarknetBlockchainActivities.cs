@@ -9,17 +9,17 @@ using Temporalio.Activities;
 using Train.Solver.Core.Extensions;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Web3;
-using Train.Solver.Blockchains.Starknet.Models;
-using Train.Solver.Blockchains.Starknet.Extensions;
-using Train.Solver.Blockchains.Starknet.Helpers;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Abstractions.Exceptions;
+using Train.Solver.WorkflowRunner.Starknet.Models;
+using Train.Solver.WorkflowRunner.Starknet.Extensions;
+using Train.Solver.WorkflowRunner.Starknet.Helpers;
 
-namespace Train.Solver.Blockchains.Starknet.Activities;
+namespace Train.Solver.WorkflowRunner.Starknet.Activities;
 
 public class StarknetBlockchainActivities(
     ISwapRepository swapRepository,

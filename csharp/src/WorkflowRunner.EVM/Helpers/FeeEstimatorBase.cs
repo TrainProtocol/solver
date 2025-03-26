@@ -6,13 +6,13 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using System.Numerics;
-using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Exceptions;
 using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.WorkflowRunner.EVM.Models;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 
-namespace Train.Solver.Blockchains.EVM.Helpers;
+namespace Train.Solver.WorkflowRunner.EVM.Helpers;
 
 public abstract class FeeEstimatorBase : IFeeEstimator
 {

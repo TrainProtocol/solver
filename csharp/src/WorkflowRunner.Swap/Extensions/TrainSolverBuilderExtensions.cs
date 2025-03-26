@@ -4,7 +4,7 @@ using Train.Solver.Core.Workflows;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Worklows;
 
-namespace Train.Solver.Workflows.Extensions;
+namespace Train.Solver.WorkflowRunner.Swap.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

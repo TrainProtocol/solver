@@ -1,8 +1,8 @@
-﻿using Train.Solver.Blockchains.Solana.Models;
-using Train.Solver.Core.Abstractions;
+﻿using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Workflows.Activities;
+using Train.Solver.WorkflowRunner.Solana.Models;
 
-namespace Train.Solver.Blockchains.Solana.Activities;
+namespace Train.Solver.WorkflowRunner.Solana.Activities;
 
 public interface ISolanaBlockchainActivities : IBlockchainActivities
 {

@@ -6,12 +6,12 @@ using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
-using Train.Solver.Blockchains.Solana.Extensions;
-using Train.Solver.Blockchains.Solana.Models;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.WorkflowRunner.Solana.Extensions;
+using Train.Solver.WorkflowRunner.Solana.Models;
 
-namespace Train.Solver.Blockchains.Solana.Helpers;
+namespace Train.Solver.WorkflowRunner.Solana.Helpers;
 
 public static class EventDecoder
 {

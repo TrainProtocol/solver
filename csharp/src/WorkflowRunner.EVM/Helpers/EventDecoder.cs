@@ -1,8 +1,8 @@
 ﻿using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
-using Train.Solver.Blockchains.EVM.Models;
+using Train.Solver.WorkflowRunner.EVM.Models;
 
-namespace Train.Solver.Blockchains.EVM.Helpers;
+namespace Train.Solver.WorkflowRunner.EVM.Helpers;
 
 public static class EventDecoder
 {

@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Blockchains.Solana.Models;
+﻿namespace Train.Solver.WorkflowRunner.Solana.Models;
 
 public class SolanaHTLCCommitEventModel
 {

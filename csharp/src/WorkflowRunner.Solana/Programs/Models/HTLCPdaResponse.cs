@@ -1,6 +1,6 @@
 ﻿using Solnet.Wallet;
 
-namespace Train.Solver.Blockchains.Solana.Programs.Models;
+namespace Train.Solver.WorkflowRunner.Solana.Programs.Models;
 
 public class HTLCPdaResponse
 {

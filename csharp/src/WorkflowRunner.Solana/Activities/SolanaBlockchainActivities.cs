@@ -10,10 +10,6 @@ using Temporalio.Activities;
 using Train.Solver.Core.Extensions;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 using Nethereum.Web3;
-using Train.Solver.Blockchains.Solana.Extensions;
-using Train.Solver.Blockchains.Solana.Helpers;
-using Train.Solver.Blockchains.Solana.Models;
-using Train.Solver.Blockchains.Solana.Programs;
 using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Helpers;
 using Train.Solver.Core.Abstractions.Models;
@@ -21,8 +17,12 @@ using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Exceptions;
 using Train.Solver.Core.Abstractions;
+using Train.Solver.WorkflowRunner.Solana.Extensions;
+using Train.Solver.WorkflowRunner.Solana.Helpers;
+using Train.Solver.WorkflowRunner.Solana.Models;
+using Train.Solver.WorkflowRunner.Solana.Programs;
 
-namespace Train.Solver.Blockchains.Solana.Activities;
+namespace Train.Solver.WorkflowRunner.Solana.Activities;
 
 public class SolanaBlockchainActivities(
     ISwapRepository swapRepository,

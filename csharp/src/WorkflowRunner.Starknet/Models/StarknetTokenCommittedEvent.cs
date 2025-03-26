@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Train.Solver.Blockchains.Starknet.Models;
+namespace Train.Solver.WorkflowRunner.Starknet.Models;
 
 public class StarknetTokenCommittedEvent
 {

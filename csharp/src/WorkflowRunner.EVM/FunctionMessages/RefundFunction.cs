@@ -1,7 +1,7 @@
 ﻿using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Contracts;
 
-namespace Train.Solver.Blockchains.EVM.FunctionMessages;
+namespace Train.Solver.WorkflowRunner.EVM.FunctionMessages;
 
 [Function("refund")]
 public class RefundFunction : FunctionMessage

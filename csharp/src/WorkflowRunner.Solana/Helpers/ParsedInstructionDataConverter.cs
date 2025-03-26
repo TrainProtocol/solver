@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Train.Solver.Blockchains.Solana.Models;
+using Train.Solver.WorkflowRunner.Solana.Models;
 
-namespace Train.Solver.Blockchains.Solana.Helpers;
+namespace Train.Solver.WorkflowRunner.Solana.Helpers;
 
 public class ParsedInstructionDataConverter : JsonConverter<ParsedInstructionData>
 {

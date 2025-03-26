@@ -2,7 +2,7 @@
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
 
-namespace Train.Solver.Blockchains.Solana.Programs;
+namespace Train.Solver.WorkflowRunner.Solana.Programs;
 
 public static class ComputeBudgetProgram
 {

@@ -1,18 +1,17 @@
 ﻿using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
-using Train.Solver.Blockchains.EVM.Activities;
-using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Exceptions;
 using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Extensions;
 using Train.Solver.Core.Workflows.Helpers;
+using Train.Solver.WorkflowRunner.EVM.Activities;
+using Train.Solver.WorkflowRunner.EVM.Models;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.Blockchains.EVM.Workflows;
+namespace Train.Solver.WorkflowRunner.EVM.Workflows;
 
 [Workflow]
 public class EVMTransactionProcessor

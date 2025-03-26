@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Blockchains.Starknet.Models;
+﻿namespace Train.Solver.WorkflowRunner.Starknet.Models;
 
 public class GetEventsRequest<TBlock> : GetEventsRequestBase where TBlock : class
 {

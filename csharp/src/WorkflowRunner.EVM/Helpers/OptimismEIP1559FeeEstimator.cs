@@ -6,14 +6,14 @@ using Nethereum.RPC.Eth;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using System.Numerics;
-using Train.Solver.Blockchains.EVM.FunctionMessages;
-using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Extensions;
+using Train.Solver.WorkflowRunner.EVM.FunctionMessages;
+using Train.Solver.WorkflowRunner.EVM.Models;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
 
-namespace Train.Solver.Blockchains.EVM.Helpers;
+namespace Train.Solver.WorkflowRunner.EVM.Helpers;
 
 public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
 {

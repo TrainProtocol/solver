@@ -1,11 +1,11 @@
 ﻿using Temporalio.Extensions.Hosting;
-using Train.Solver.Blockchains.Starknet.Activities;
-using Train.Solver.Blockchains.Starknet.Workflows;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.DependencyInjection;
 using Train.Solver.Core.Workflows.Worklows;
+using Train.Solver.WorkflowRunner.Starknet.Activities;
+using Train.Solver.WorkflowRunner.Starknet.Workflows;
 
-namespace Train.Solver.Blockchains.Starknet.Extensions;
+namespace Train.Solver.WorkflowRunner.Starknet.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

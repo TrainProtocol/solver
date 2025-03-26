@@ -1,9 +1,9 @@
-﻿using Train.Solver.Blockchains.EVM.Models;
-using Train.Solver.Core.Abstractions;
+﻿using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Workflows.Activities;
+using Train.Solver.WorkflowRunner.EVM.Models;
 
-namespace Train.Solver.Blockchains.EVM.Activities;
+namespace Train.Solver.WorkflowRunner.EVM.Activities;
 
 public interface IEVMBlockchainActivities : IBlockchainActivities
 {

@@ -1,10 +1,10 @@
 ﻿using Nethereum.RPC.Eth.DTOs;
 using System.Numerics;
-using Train.Solver.Blockchains.EVM.Models;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.WorkflowRunner.EVM.Models;
 
-namespace Train.Solver.Blockchains.EVM.Helpers;
+namespace Train.Solver.WorkflowRunner.EVM.Helpers;
 
 public interface IFeeEstimator
 {

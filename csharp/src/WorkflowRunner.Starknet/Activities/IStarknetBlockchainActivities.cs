@@ -1,8 +1,8 @@
-﻿using Train.Solver.Blockchains.Starknet.Models;
-using Train.Solver.Core.Abstractions;
+﻿using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.WorkflowRunner.Starknet.Models;
 
-namespace Train.Solver.Blockchains.Starknet.Activities;
+namespace Train.Solver.WorkflowRunner.Starknet.Activities;
 
 public interface IStarknetBlockchainActivities : IBlockchainActivities
 {

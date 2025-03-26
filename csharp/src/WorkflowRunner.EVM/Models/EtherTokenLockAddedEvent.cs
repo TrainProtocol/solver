@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 
-namespace Train.Solver.Blockchains.EVM.Models;
+namespace Train.Solver.WorkflowRunner.EVM.Models;
 
 [Event("TokenLockAdded")]
 public class EtherTokenLockAddedEvent : IEventDTO

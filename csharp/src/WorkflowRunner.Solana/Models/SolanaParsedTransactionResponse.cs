@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Train.Solver.Blockchains.Solana.Models;
+namespace Train.Solver.WorkflowRunner.Solana.Models;
 
 public class SolanaParsedTransactionResponse
 {
