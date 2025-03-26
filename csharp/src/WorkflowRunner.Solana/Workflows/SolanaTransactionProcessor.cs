@@ -13,7 +13,7 @@ namespace Train.Solver.WorkflowRunner.Solana.Workflows;
 [Workflow]
 public class SolanaTransactionProcessor
 {
-    public static readonly ActivityOptions SolanaRetryableActivityOptions = new()
+    private static readonly ActivityOptions SolanaRetryableActivityOptions = new()
     {
         ScheduleToCloseTimeout = TimeSpan.FromHours(1),
         StartToCloseTimeout = TimeSpan.FromDays(2),
@@ -26,27 +26,24 @@ public class SolanaTransactionProcessor
             }
         }
     };
+
     [WorkflowRun]
     public async Task<TransactionResponse> RunAsync(TransactionContext context)
     {
-        var preparedTransaction = await ExecuteActivityAsync<PrepareTransactionResponse>(
-            $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.BuildTransactionAsync)}",
-            [
-                new TransactionBuilderRequest
+        var preparedTransaction = await ExecuteActivityAsync(
+            (SolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest
                 {
                     NetworkName = context.NetworkName,
                     Args = context.PrepareArgs,
                     Type = context.Type
                 }
-            ],
+            ),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         if (context.Fee == null)
         {
-            var fee = await ExecuteActivityAsync<Fee>(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.EstimateFeeAsync)}",
-                [
-                    new EstimateFeeRequest
+            var fee = await ExecuteActivityAsync(
+                (SolanaBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
                     {
                         NetworkName = context.NetworkName,
                         FromAddress = context.FromAddress!,
@@ -55,7 +52,7 @@ public class SolanaTransactionProcessor
                         Amount = preparedTransaction.Amount,
                         CallData = preparedTransaction.Data,
                     }
-                ],
+                ),
                TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             if (fee is null)
@@ -69,71 +66,61 @@ public class SolanaTransactionProcessor
         if (context.Fee.Asset == preparedTransaction.CallDataAsset)
         {
             await ExecuteActivityAsync(
-                 $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                 [
-                    new SufficientBalanceRequest
+                 (SolanaBlockchainActivities x) => x.EnsureSufficientBalanceAsync(
+                     new SufficientBalanceRequest
                     {
                         NetworkName = context.NetworkName,
                         Address = context.FromAddress!,
                         Asset = context.Fee.Asset!,
                         Amount = context.Fee.Amount + preparedTransaction.CallDataAmount
                     }
-                ],
+                ),
                TemporalHelper.DefaultActivityOptions(context.NetworkType));
         }
         else
         {
             await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                [
+                (SolanaBlockchainActivities x) => x.EnsureSufficientBalanceAsync(
                     new SufficientBalanceRequest
                     {
                         NetworkName = context.NetworkName,
                         Address = context.FromAddress!,
                         Asset = preparedTransaction.CallDataAsset!,
                         Amount = preparedTransaction.CallDataAmount
-                    }
-                ],
+                    }),
                TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                [
-                     new SufficientBalanceRequest
+                (SolanaBlockchainActivities x) => x.EnsureSufficientBalanceAsync(
+                    new SufficientBalanceRequest
                      {
                          NetworkName = context.NetworkName,
                          Address = context.FromAddress!,
                          Asset = context.Fee.Asset!,
                          Amount = context.Fee.Amount
-                     }
-                ],
+                     }),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         }
 
-        var lastValidBLockHash = await ExecuteActivityAsync<string>(
-            $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.GetReservedNonceAsync)}",
-             [
+        var lastValidBLockHash = await ExecuteActivityAsync(
+            (SolanaBlockchainActivities x) => x.GetReservedNonceAsync(
                 new ReservedNonceRequest()
                 {
                     Address = context.NetworkName,
                     NetworkName = context.NetworkName,
                     ReferenceId = context.UniquenessToken
-                }
-             ],
+                }),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
-        var rawTx = await ExecuteActivityAsync<byte[]>(
-            $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.ComposeSolanaTranscationAsync)}",
-            [
-                new SolanaComposeTransactionRequest()
+        var rawTx = await ExecuteActivityAsync(
+            (SolanaBlockchainActivities x) => x.ComposeSolanaTranscationAsync(new SolanaComposeTransactionRequest()
                 {
                     Fee = context.Fee,
                     FromAddress = context.FromAddress,
                     CallData = preparedTransaction.Data,
                     LastValidBlockHash = lastValidBLockHash,
-                }
-            ],
+                }),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         TransactionResponse confirmedTransaction;
@@ -142,40 +129,34 @@ public class SolanaTransactionProcessor
         {
             //Simulate transaction
             await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.SimulateTransactionAsync)}",
-                    [
-                        new SolanaPublishTransactionRequest()
+                (SolanaBlockchainActivities x) => x.SimulateTransactionAsync(
+                    new SolanaPublishTransactionRequest()
                         {
                             RawTx = rawTx,
                             NetworkName = context.NetworkName
-                        }
-                    ],
+                        }),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             //Send transaction
 
-            var transactionId = await ExecuteActivityAsync<string>(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.PublishTransactionAsync)}",
-                [
+            var transactionId = await ExecuteActivityAsync(
+                (SolanaBlockchainActivities x) => x.PublishTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
                         RawTx = rawTx,
                         NetworkName = context.NetworkName
-                    }
-                ],
+                    }),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             //Wait for transaction receipt
 
-            confirmedTransaction = await ExecuteActivityAsync<TransactionResponse>(
-                $"{context.NetworkType}{nameof(ISolanaBlockchainActivities.GetTransactionAsync)}",
-                [
+            confirmedTransaction = await ExecuteActivityAsync(
+                (SolanaBlockchainActivities x) => x.GetTransactionAsync(
                     new GetTransactionRequest()
                     {
                         NetworkName = context.NetworkName,
                         TransactionId = transactionId
-                    }
-                ],
+                    }),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
