@@ -1,6 +1,7 @@
 ﻿using Temporalio.Extensions.Hosting;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.DependencyInjection;
+using Train.Solver.Core.Workflows.Activities;
 using Train.Solver.Core.Workflows.Worklows;
 using Train.Solver.WorkflowRunner.Starknet.Activities;
 using Train.Solver.WorkflowRunner.Starknet.Workflows;
@@ -16,7 +17,8 @@ public static class TrainSolverBuilderExtensions
             .AddHostedTemporalWorker(nameof(NetworkType.Starknet))
             .AddWorkflow<StarknetTransactionProcessor>()
             .AddWorkflow<EventListenerWorkflow>()
-            .AddTransientActivities<StarknetBlockchainActivities>();
+            .AddTransientActivities<StarknetBlockchainActivities>()
+            .AddTransientActivities<UtilityActivities>();
 
         return builder;
     }
