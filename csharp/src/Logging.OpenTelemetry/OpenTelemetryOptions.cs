@@ -8,5 +8,5 @@ namespace Train.Solver.Logging.OpenTelemetry;
 
 public class OpenTelemetryOptions
 {
-    public Uri OpenTelemetryExplorerUrl { get; set; } = null!;
+    public Uri OpenTelemetryUrl { get; set; } = null!;
 }

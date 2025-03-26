@@ -21,9 +21,9 @@ public static class TrainSolverBuilderExtensions
         var options = new OpenTelemetryOptions();
         builder.Configuration.GetSection(TrainSolverOptions.SectionName).Bind(options);
 
-        if (options.OpenTelemetryExplorerUrl == null)
+        if (options.OpenTelemetryUrl == null)
         {
-            throw new InvalidOperationException("OpenTelemetryExplorerUrl is required");
+            throw new InvalidOperationException("OpenTelemetryUrl is required");
         }
 
         configureOptions?.Invoke(options);
@@ -40,7 +40,7 @@ public static class TrainSolverBuilderExtensions
                 ot.SetResourceBuilder(ResourceBuilder.CreateDefault());
                 ot.AddOtlpExporter(otlp =>
                 {
-                    otlp.Endpoint = options.OpenTelemetryExplorerUrl;
+                    otlp.Endpoint = options.OpenTelemetryUrl;
                 });
             });
         });
