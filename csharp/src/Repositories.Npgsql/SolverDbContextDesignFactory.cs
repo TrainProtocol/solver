@@ -11,7 +11,7 @@ public class SolverDbContextDesignFactory : IDesignTimeDbContextFactory<SolverDb
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("dbsettings.json", optional: false)
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<SolverDbContext>();
