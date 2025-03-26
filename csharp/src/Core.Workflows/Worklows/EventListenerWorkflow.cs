@@ -45,7 +45,7 @@ public class EventListenerWorkflow
             {
                 var blockNumberWithHash = await ExecuteActivityAsync<BlockNumberResponse>(
                     $"{networkType}{nameof(IBlockchainActivities.GetLastConfirmedBlockNumberAsync)}",
-                    [networkName],
+                    [new BaseRequest { NetworkName = networkName }],
                     new()
                     {
                         StartToCloseTimeout = TimeSpan.FromSeconds(20),
@@ -119,7 +119,7 @@ public class EventListenerWorkflow
                 RetryPolicy = new()
                 {
                     InitialInterval = TimeSpan.FromSeconds(10),
-                    BackoffCoefficient = 1f,    
+                    BackoffCoefficient = 1f,
                     MaximumAttempts = 3,
                 }
             });
