@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
 	<PropertyGroup>
-		<AssemblyName>Train.Solver.Blockchains.Starknet</AssemblyName>
-		<RootNamespace>Train.Solver.Blockchains.Starknet</RootNamespace>
+		<AssemblyName>Train.Solver.WorkflowRunner.Starknet</AssemblyName>
+		<RootNamespace>Train.Solver.WorkflowRunner.Starknet</RootNamespace>
 	</PropertyGroup>
 
 

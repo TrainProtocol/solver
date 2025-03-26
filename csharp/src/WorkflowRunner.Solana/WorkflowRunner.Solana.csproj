@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
 	<PropertyGroup>
-		<AssemblyName>Train.Solver.Blockchains.Solana</AssemblyName>
-		<RootNamespace>Train.Solver.Blockchains.Solana</RootNamespace>
+		<AssemblyName>Train.Solver.WorkflowRunner.Solana</AssemblyName>
+		<RootNamespace>Train.Solver.WorkflowRunner.Solana</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

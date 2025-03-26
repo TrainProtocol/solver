@@ -15,4 +15,4 @@ FROM base AS final
 
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Train.Solver.WorkflowRunner.Swap.dll"]
+ENTRYPOINT ["dotnet", "Train.Solver.WorkflowRunner.Starknet.dll"]
