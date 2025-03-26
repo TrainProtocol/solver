@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
 	<PropertyGroup>
-		<AssemblyName>Train.Solver.Workflows</AssemblyName>
-		<RootNamespace>Train.Solver.Workflows</RootNamespace>
+		<AssemblyName>Train.Solver.WorkflowRunner.Swap</AssemblyName>
+		<RootNamespace>Train.Solver.WorkflowRunner.Swap</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

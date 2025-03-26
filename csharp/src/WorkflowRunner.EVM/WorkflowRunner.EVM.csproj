@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
 	<PropertyGroup>
-		<AssemblyName>Train.Solver.Blockchains.EVM</AssemblyName>
-		<RootNamespace>Train.Solver.Blockchains.EVM</RootNamespace>
+		<AssemblyName>Train.Solver.WorkflowRunner.EVM</AssemblyName>
+		<RootNamespace>Train.Solver.WorkflowRunner.EVM</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
