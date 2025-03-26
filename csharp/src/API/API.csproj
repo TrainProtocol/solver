@@ -11,10 +11,13 @@
 		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.2.0" />
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Core\Core.csproj" />
+	  <ProjectReference Include="..\Core.Workflows\Core.Workflows.csproj" />
+	  <ProjectReference Include="..\Logging.OpenTelemetry\Logging.OpenTelemetry.csproj" />
+	  <ProjectReference Include="..\Repositories.Npgsql\Repositories.Npgsql.csproj" />
 	</ItemGroup>
 
 </Project>

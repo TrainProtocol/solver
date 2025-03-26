@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<AssemblyName>Train.Solver.TokenPrice.Coingecko</AssemblyName>
+		<RootNamespace>Train.Solver.TokenPrice.Coingecko</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>

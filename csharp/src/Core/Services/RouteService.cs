@@ -1,122 +1,49 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Train.Solver.Core.Data;
-using Train.Solver.Core.Entities;
+﻿using Train.Solver.Core.Entities;
 using Train.Solver.Core.Extensions;
 using Train.Solver.Core.Models;
+using Train.Solver.Core.Repositories;
 
 namespace Train.Solver.Core.Services;
 
-//public class RouteModel
-//{
-//    public int Id { get; set; }
-
-//    public decimal MaxAmountInSource { get; set; }
-
-//    public TokenModel Source { get; set; } = null!;
-
-//    public TokenModel Destination { get; set; } = null!;
-
-//    public RouteStatus Status { get; set; }
-//}
-
-public class RouteWithFeesModel : RouteModel
-{
-    public decimal ServiceFeeInSource { get; set; }
-
-    public decimal ServiceFeePercentage { get; set; }
-
-    public decimal ExpenseInSource { get; set; }
-}
-
-public class QuoteModel
-{
-    public RouteModel Route { get; set; } = null!;
-
-    public decimal ReceiveAmount { get; set; }
-
-    public decimal TotalFee { get; set; }
-}
-
-public class QuoteRequest : SourceDestinationRequest
-{
-    public decimal Amount { get; set; }
-}
-
-public class LimitModel
-{
-    public RouteModel Route { get; set; } = null!;
-
-    public decimal MinAmount { get; set; }
-
-    public decimal MaxAmount { get; set; }
-}
-
-public class SourceDestinationRequest
-{
-    public string SourceNetwork { get; set; } = null!;
-
-    public string SourceToken { get; set; } = null!;
-
-    public string DestinationNetwork { get; set; } = null!;
-
-    public string DestinationToken { get; set; } = null!;
-}
-
-public class FindReachableTokenRequest
-{
-    public string Network { get; set; } = null!;
-
-    public string Asset { get; set; } = null!;
-
-    public bool FromSource { get; set; }
-}
-
-public class ServiceFeeModel
-{
-    public decimal ServiceFeePercentage { get; set; }
-
-    public decimal ServiceFeeInSource { get; set; }
-}
-
-public class ExpenseFee
-{
-    public decimal ExpenseFeeInSource { get; set; }
-}
-
-public class RouteService(SolverDbContext dbContext)
+public class RouteService(
+    IRouteRepository routeRepository,
+    INetworkRepository tokenRepository,
+    IFeeRepository feeRepository) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
     public virtual async Task<IEnumerable<Token>?> GetReachablePointsAsync(
         bool fromSrcToDest,
-        string? network,
+        string? networkName,
         string? asset)
     {
         var requests = new List<FindReachableTokenRequest>();
 
-        if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(network))
+        if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(networkName))
         {
-            var token = await dbContext.Tokens
-                .SingleAsync(x =>
-                    x.Asset == asset
-                    && x.Network.Name == network);
+            var token = await tokenRepository.GetTokenAsync(networkName, asset);
+
+            if (token is null)
+            {
+                throw new Exception($"Token {asset} not found in network {networkName}");
+            }
 
             requests.Add(new()
             {
                 Asset = asset,
-                Network = network,
+                Network = networkName,
                 FromSource = fromSrcToDest,
             });
         }
-        else if ((!string.IsNullOrEmpty(asset) && string.IsNullOrEmpty(network)) 
-            || (!string.IsNullOrEmpty(network) && string.IsNullOrEmpty(asset)))
+        else if (!string.IsNullOrEmpty(asset) && string.IsNullOrEmpty(networkName)
+            || !string.IsNullOrEmpty(networkName) && string.IsNullOrEmpty(asset))
         {
             throw new Exception($"{(fromSrcToDest ? "Source" : "Destination")} network and token should be provided");
         }
 
         var reachableTokens = new List<Token>();
 
-        var routes = await GetActiveRoutesAsync();
+        var routes = await routeRepository.GetAllAsync();
 
         if (!requests.Any())
         {
@@ -179,14 +106,7 @@ public class RouteService(SolverDbContext dbContext)
 
     public virtual Task<QuoteModel?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
-
-    private async Task<IEnumerable<Route>> GetActiveRoutesAsync()
-    {
-        var routes = await GetActiveRoutesQuery(dbContext).ToListAsync();
-
-        return routes;
-    }
-
+      
     private static LimitModel? GetLimit(RouteWithFeesModel route)
     {
         var minBufferAmount = MinUsdAmount / route.Source.UsdPrice;
@@ -255,34 +175,12 @@ public class RouteService(SolverDbContext dbContext)
         SourceDestinationRequest request,
         decimal? amount)
     {
-        var sourceNetworkCurrency = await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .SingleAsync(x =>
-                x.Network.Name == request.SourceNetwork
-                && x.Asset == request.SourceToken);
-
-        var destinationNetworkCurrency = await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .SingleAsync(x =>
-                x.Network.Name == request.DestinationNetwork
-                && x.Asset == request.DestinationToken);
-
-        var query = GetActiveRoutesQuery(dbContext);
-
-        query = query.Where(x =>
-            x.SourceToken.Asset == request.SourceToken
-            && x.SourceToken.Network.Name == request.SourceNetwork
-            && x.DestinationToken.Asset == request.DestinationToken
-            && x.DestinationToken.Network.Name == request.DestinationNetwork);
-
-        if (amount.HasValue)
-        {
-            query = query.Where(x => amount <= x.MaxAmountInSource);
-        }
-
-        var route = await query.FirstAsync();
+        var route = await routeRepository.GetAsync(
+            request.SourceNetwork,
+            request.SourceToken,
+            request.DestinationNetwork,
+            request.DestinationToken,
+            amount);
 
         var mappedRoute = new RouteWithFeesModel()
         {
@@ -327,26 +225,10 @@ public class RouteService(SolverDbContext dbContext)
         return mappedRoute;
     }
 
-    private static IQueryable<Route> GetActiveRoutesQuery(SolverDbContext dbContext)
-    {
-        var query = dbContext.Routes
-            .Include(x => x.SourceToken.Network.Nodes.Where(y => y.Type == NodeType.Public))
-            .Include(x => x.SourceToken.Network.ManagedAccounts.Where(y => y.Type == AccountType.LP))
-            .Include(x => x.SourceToken.Network.DeployedContracts)
-            .Include(x => x.SourceToken.TokenPrice)
-            .Include(x => x.DestinationToken.Network.Nodes.Where(y => y.Type == NodeType.Public))
-            .Include(x => x.DestinationToken.Network.ManagedAccounts.Where(y => y.Type == AccountType.LP))
-            .Include(x => x.DestinationToken.Network.DeployedContracts)
-            .Include(x => x.DestinationToken.TokenPrice)
-            .Where(x => x.MaxAmountInSource > 0 && x.Status == RouteStatus.Active);
-
-        return query;
-    }
-
     private async Task<ServiceFeeModel> CalculateServiceFeeAsync(
         Route route)
     {
-        var serviceFees = await dbContext.ServiceFees.ToListAsync();
+        var serviceFees = await feeRepository.GetServiceFeesAsync();
 
         var fee = new ServiceFeeModel();
 
@@ -354,7 +236,7 @@ public class RouteService(SolverDbContext dbContext)
         {
             var serviceFee = MatchServiceFee(
                 serviceFees,
-                new()
+                new SourceDestinationRequest()
                 {
                     SourceNetwork = route.SourceToken.Network.Name,
                     SourceToken = route.SourceToken.Asset,
@@ -375,7 +257,7 @@ public class RouteService(SolverDbContext dbContext)
     }
 
     private static ServiceFee? MatchServiceFee(
-        IEnumerable<ServiceFee> feeSettings,
+        List<ServiceFee> feeSettings,
         SourceDestinationRequest request)
     {
         if (feeSettings.Any())
@@ -433,9 +315,7 @@ public class RouteService(SolverDbContext dbContext)
 
     private async Task<ExpenseFee?> CalculateExpenseFeeAsync(Route route)
     {
-        var expenses = await dbContext.Expenses
-            .Include(x => x.FeeToken.TokenPrice)
-            .ToListAsync();
+        var expenses = await feeRepository.GetExpensesAsync();
 
 
         var filterredExpenses = expenses

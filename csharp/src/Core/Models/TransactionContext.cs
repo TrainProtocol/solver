@@ -12,7 +12,7 @@ public class TransactionContext
 
     public required string NetworkName { get; set; } = null!;
 
-    public required NetworkGroup NetworkGroup { get; set; }
+    public required NetworkType NetworkType { get; set; }
 
     public required string FromAddress { get; set; } = null!;
 

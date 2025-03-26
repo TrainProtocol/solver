@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Workflows</AssemblyName>
+		<RootNamespace>Train.Solver.Workflows</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Core.Workflows\Core.Workflows.csproj" />
+		<ProjectReference Include="..\Repositories.Npgsql\Repositories.Npgsql.csproj" />
+		<ProjectReference Include="..\Secret.AzureKeyVault\Secret.AzureKeyVault.csproj" />
+	  <ProjectReference Include="..\TokenPrice.Coingecko\TokenPrice.Coingecko.csproj" />
+	</ItemGroup>
+</Project>

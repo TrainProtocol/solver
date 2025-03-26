@@ -8,11 +8,7 @@ public class TrainSolverOptions
 
     public string TemporalNamespace { get; set; } = "atomic";
 
-    public string DatabaseConnectionString { get; set; } = null!;
-
     public string RedisConnectionString { get; set; } = null!;
 
     public int RedisDatabaseIndex { get; set; } = 3;
-
-    public bool MigrateDatabase { get; set; }
 }

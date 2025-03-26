@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Serilog;
 using Train.Solver.API.Models;
 
 namespace Train.Solver.API.MIddlewares;
@@ -19,7 +18,6 @@ public class ErrorHandlerMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Unhandled exception happened during processing request.");
             await HandleErrorAsync(httpContext, ex);
         }
     }

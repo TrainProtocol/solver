@@ -2,18 +2,19 @@
 
 namespace Train.Solver.Core.Entities;
 
-public enum NetworkGroup
+public enum NetworkType
 {
-    EVMEthereumLegacy,
-    EVMEthereumEip1559,
-    EVMArbitrumLegacy,
-    EVMArbitrumEip1559,
-    EVMOptimismEip1559,
-    EVMOptimismLegacy,
-    EVMPolygonLegacy,
-    EVMPolygonEip1559,
+    EVM,
     Solana,
     Starknet,
+}
+
+public enum TransactionFeeType
+{
+    Default,
+    EIP1559,
+    ArbitrumEIP1559,
+    OptimismEIP1559,
 }
 
 public class Network : EntityBase<int>
@@ -22,7 +23,9 @@ public class Network : EntityBase<int>
 
     public string DisplayName { get; set; } = null!;
 
-    public NetworkGroup Group { get; set; }
+    public NetworkType Type { get; set; }
+
+    public TransactionFeeType FeeType { get; set; }
 
     public string? ChainId { get; set; }
 
@@ -50,6 +53,6 @@ public class Network : EntityBase<int>
 
     public virtual List<Node> Nodes { get; set; } = new();
     
-    public virtual List<Contract> DeployedContracts { get; set; } = new();
+    public virtual List<Contract> Contracts { get; set; } = new();
 
 }

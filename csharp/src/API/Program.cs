@@ -6,12 +6,11 @@ using Train.Solver.API.Extensions;
 using Train.Solver.API.MIddlewares;
 using Train.Solver.Core.DependencyInjection;
 using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Services.Secret.AzureKeyVault;
-using Train.Solver.Core.Services.TokenPrice.Coingecko;
+using Train.Solver.Logging.OpenTelemetry;
+using Train.Solver.Repositories.Npgsql.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-
 
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
@@ -35,6 +34,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -56,9 +56,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
-    .AddTrainSolver(builder.Configuration, opts => opts.MigrateDatabase = true)
-    .WithAzureKeyVault()
-    .WithCoingeckoPrices();
+    .AddTrainSolver(builder.Configuration)
+    .WithOpenTelemetryLogging()
+    .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
 
 builder.Services.AddCors(options =>
 {

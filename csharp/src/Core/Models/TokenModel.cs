@@ -20,5 +20,5 @@ public class TokenModel
 
     public int NetworkId { get; set; }
 
-    public NetworkGroup NetowrkGroup { get; set; }
+    public NetworkType NetworkType { get; set; }
 }

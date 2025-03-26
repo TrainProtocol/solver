@@ -2,6 +2,7 @@
 using Flurl;
 using Train.Solver.API.Models;
 using Train.Solver.Core.Entities;
+using Train.Solver.Core.Models;
 
 namespace Train.Solver.API;
 
@@ -11,7 +12,7 @@ public class MapperProfile : Profile
 
     public MapperProfile()
     {
-        CreateMap<Swap, SwapModel>()
+        CreateMap<Swap, SwapDto>()
             .ForMember(
             dest => dest.CommitId,
             opt => opt.MapFrom(x => x.Id))
@@ -28,7 +29,7 @@ public class MapperProfile : Profile
                 dest => dest.DestinationToken,
                 opt => opt.MapFrom(x => x.DestinationToken.Asset));
 
-        CreateMap<Transaction, TransactionModel>()
+        CreateMap<Transaction, TransactionDto>()
            .ForMember(
              dest => dest.Type,
              opt => opt.MapFrom(x => x.Type.ToString()))
@@ -39,7 +40,7 @@ public class MapperProfile : Profile
              dest => dest.Hash,
              opt => opt.MapFrom(x => x.TransactionId));
 
-        CreateMap<Core.Services.LimitModel, API.Models.LimitModel>()
+        CreateMap<LimitModel, LimitDto>()
             .ForMember(
                 dest => dest.MinAmountInUsd,
                 opt => opt.Ignore())
@@ -47,18 +48,18 @@ public class MapperProfile : Profile
                 dest => dest.MaxAmountInUsd,
                 opt => opt.Ignore());
 
-        CreateMap<Core.Services.QuoteModel, API.Models.QuoteModel>()
+        CreateMap<QuoteModel, QuoteDto>()
              .ForMember(
               dest => dest.TotalFeeInUsd,
               opt => opt.Ignore());
 
-        CreateMap<Network, NetworkWithTokensModel>()
+        CreateMap<Network, NetworkWithTokensDto>()
              .ForMember(
                dest => dest.Contracts,
-               opt => opt.MapFrom(y => y.DeployedContracts))
-            .IncludeBase<Network, NetworkModel>();
+               opt => opt.MapFrom(y => y.Contracts))
+            .IncludeBase<Network, NetworkDto>();
 
-        CreateMap<Network, NetworkModel>()
+        CreateMap<Network, NetworkDto>()
           .ForMember(
                  dest => dest.Logo,
                  opt => opt.MapFrom(src => GithubUserContentUrl.AppendPathSegment(src.Logo, false).ToString()))
@@ -67,10 +68,10 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.CreatedDate))
                         .ForMember(dest => dest.NativeToken, opt => opt.MapFrom(src => src.Tokens.FirstOrDefault(t => t.IsNative)));
 
-        CreateMap<Node, NodeModel>();
-        CreateMap<ManagedAccount, ManagedAccountModel>();
-        CreateMap<Contract, ContractModel>();
-        CreateMap<Token, TokenModel>()
+        CreateMap<Node, NodeDto>();
+        CreateMap<ManagedAccount, ManagedAccountDto>();
+        CreateMap<Contract, ContractDto>();
+        CreateMap<Token, TokenDto>()
             .ForMember(
                 dest => dest.Symbol,
                 opt => opt.MapFrom(src => src.Asset))

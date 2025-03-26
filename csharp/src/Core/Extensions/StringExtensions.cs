@@ -53,12 +53,7 @@ public static class StringExtensions
 
     public static string AddAddressPadding(this string address)
     {
-        return AddHexPrefix(address.RemoveHexPrefix().PadLeft(64, '0'));
-    }
-
-    public static string AddHexPrefix(this string hex)
-    {
-        return $"0x{hex.RemoveHexPrefix()}";
+        return address.RemoveHexPrefix().PadLeft(64, '0').EnsureHexPrefix();
     }
 
     public static string EnsureEvenLengthHex(this string hex)

@@ -11,7 +11,7 @@ public class AddLockSignatureRequest : AddLockSignatureModel
     public required string Asset { get; set; } = null!;
 }
 
-public class AddLockSignatureModel
+public class AddLockSignatureModel : BaseRequest
 {
     public string? R { get; set; }
 

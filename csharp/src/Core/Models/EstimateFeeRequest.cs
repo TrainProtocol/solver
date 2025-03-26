@@ -1,6 +1,6 @@
 ﻿namespace Train.Solver.Core.Models;
 
-public class EstimateFeeRequest
+public class EstimateFeeRequest : BaseRequest
 {
     public required string Asset { get; set; } = null!;
 

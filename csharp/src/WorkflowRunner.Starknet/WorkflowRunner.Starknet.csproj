@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchains.Starknet</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchains.Starknet</RootNamespace>
+	</PropertyGroup>
+
+
+
+  <ItemGroup>
+		<PackageReference Include="Nethereum.Web3Lite" Version="4.29.0" />
+		<PackageReference Include="Nethereum.JsonRpc.RpcClient" Version="4.29.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+		<ProjectReference Include="..\Core.Workflows\Core.Workflows.csproj" />
+		<ProjectReference Include="..\Repositories.Npgsql\Repositories.Npgsql.csproj" />
+    <ProjectReference Include="..\Secret.AzureKeyVault\Secret.AzureKeyVault.csproj" />
+  </ItemGroup>
+
+</Project>

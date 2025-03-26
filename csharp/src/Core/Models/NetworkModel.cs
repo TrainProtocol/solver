@@ -6,5 +6,5 @@ public class NetworkModel
 {
     public string Name { get; set; } = null!;
 
-    public NetworkGroup Group { get; set; }
+    public NetworkType Type { get; set; }
 }
