@@ -1,6 +1,6 @@
 # 🚄 Train.Solver
 
-The following Docker images are available for Train.Solver components:
+Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
 
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
@@ -13,11 +13,7 @@ The following Docker images are available for Train.Solver components:
 
 ---
 
-Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
-
----
-
-## 🔍 How It Works 
+## 🔍 How It Works
 
 Train.Solver continuously monitors events across all configured blockchains and waits for a **user funds lock event**. Once detected, the following steps occur:
 
