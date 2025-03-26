@@ -26,16 +26,13 @@ public class StarknetTransactionProcessor
             await CheckAllowanceAsync(context);
         }
 
-        var preparedTransaction = await ExecuteActivityAsync<PrepareTransactionResponse>(
-            $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.BuildTransactionAsync)}",
-            [
-                new TransactionBuilderRequest()
-                {
-                    NetworkName = context.NetworkName,
-                    Args = context.PrepareArgs,
-                    Type = context.Type
-                }
-            ],
+        var preparedTransaction = await ExecuteActivityAsync(
+            (StarknetBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest()
+            {
+                NetworkName = context.NetworkName,
+                Args = context.PrepareArgs,
+                Type = context.Type
+            }),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         try
@@ -50,16 +47,13 @@ public class StarknetTransactionProcessor
             // Get nonce
             if (string.IsNullOrEmpty(context.Nonce))
             {
-                context.Nonce = await ExecuteActivityAsync<string>(
-                    $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetReservedNonceAsync)}",
-                    [
-                        new ReservedNonceRequest()
-                        {
-                            NetworkName = context.NetworkName,
-                            Address = context.FromAddress!,
-                            ReferenceId = context.UniquenessToken
-                        }
-                    ],
+                context.Nonce = await ExecuteActivityAsync(
+                    (StarknetBlockchainActivities x) => x.GetReservedNonceAsync(new ReservedNonceRequest()
+                    {
+                        NetworkName = context.NetworkName,
+                        Address = context.FromAddress!,
+                        ReferenceId = context.UniquenessToken
+                    }),
                     TemporalHelper.DefaultActivityOptions(context.NetworkType));
             }
 
@@ -67,7 +61,7 @@ public class StarknetTransactionProcessor
                 $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.SimulateTransactionAsync)}",
                 [
                     new StarknetPublishTransactionRequest()
-                    { 
+                    {
                         NetworkName = context.NetworkName,
                         FromAddress = context.FromAddress,
                         Nonce = context.Nonce,
@@ -94,18 +88,16 @@ public class StarknetTransactionProcessor
 
             context.PublishedTransactionIds.Add(calculatedTxId);
 
-            var txId = await ExecuteActivityAsync<string>(
-                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.PublishTransactionAsync)}",
-                [
-                    new StarknetPublishTransactionRequest()
-                    {
-                        NetworkName = context.NetworkName,
-                        FromAddress = context.FromAddress,
-                        Nonce = context.Nonce,
-                        CallData = preparedTransaction.Data,
-                        Fee = context.Fee
-                    }
-                ],
+            var txId = await ExecuteActivityAsync(
+                (StarknetBlockchainActivities x) => x.PublishTransactionAsync(new StarknetPublishTransactionRequest()
+                {
+                    NetworkName = context.NetworkName,
+                    FromAddress = context.FromAddress,
+                    Nonce = context.Nonce,
+                    CallData = preparedTransaction.Data,
+                    Fee = context.Fee
+                }
+                ),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
             context.PublishedTransactionIds.Add(txId);
@@ -123,7 +115,7 @@ public class StarknetTransactionProcessor
             {
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
-                    await ExecuteChildWorkflowAsync(nameof(StarknetTransactionProcessor), [new TransactionContext()
+                    await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionContext()
                     {
                         UniquenessToken = context.UniquenessToken,
                         NetworkName = context.NetworkName,
@@ -135,10 +127,10 @@ public class StarknetTransactionProcessor
                             Amount = 0,
                             Asset = context.Fee!.Asset,
                             ToAddress = context.FromAddress,
-                        }),
+                        }, (JsonSerializerOptions?)null),
                         Type = TransactionType.Transfer,
                         SwapId = context.SwapId,
-                    }], new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
+                    }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
                 }
             }
 
@@ -270,50 +262,47 @@ public class StarknetTransactionProcessor
         }
 
         // Get spender address
-        var spenderAddress = await ExecuteActivityAsync<string>(
-            $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetSpenderAddressAsync)}",
-            [
-                new SpenderAddressRequest ()
+        var spenderAddress = await ExecuteActivityAsync(
+            (StarknetBlockchainActivities x) => x.GetSpenderAddressAsync(
+                new SpenderAddressRequest()
                 {
                     Asset = lockRequest.SourceAsset,
                     NetworkName = lockRequest.SourceNetwork,
                 }
-            ],
+            ),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         // Check allowance
-        var allowance = await ExecuteActivityAsync<decimal>(
-            $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetSpenderAllowanceAsync)}",
-                [
-                    new AllowanceRequest()
-                    {   
-                        NetworkName = lockRequest.SourceNetwork,
-                        OwnerAddress = context.FromAddress,
-                        SpenderAddress = spenderAddress,
-                        Asset = lockRequest.SourceAsset
-                    
-                    }
-                ],
+        var allowance = await ExecuteActivityAsync(
+            (StarknetBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
+            {
+                NetworkName = lockRequest.SourceNetwork,
+                OwnerAddress = context.FromAddress,
+                SpenderAddress = spenderAddress,
+                Asset = lockRequest.SourceAsset
+
+            }
+                ),
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         if (lockRequest.Amount > allowance)
         {
             // Initiate approval transaction
-            await ExecuteChildWorkflowAsync(nameof(StarknetTransactionProcessor), [new TransactionContext()
+            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync( new TransactionContext()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
                     SpenderAddress = spenderAddress,
                     Amount = 1000000000m,
                     Asset = lockRequest.SourceAsset,
-                }),
+                },(JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,
                 UniquenessToken = Guid.NewGuid().ToString(),
                 FromAddress = context.FromAddress,
                 NetworkName = lockRequest.SourceNetwork,
                 NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
-            }], new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Approve, NewGuid()) });
         }
     }
 
@@ -321,15 +310,14 @@ public class StarknetTransactionProcessor
     {
         try
         {
-            return await ExecuteActivityAsync<TransactionResponse>(
-            $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetBatchTransactionAsync)}",
-            [
+            return await ExecuteActivityAsync(
+            (StarknetBlockchainActivities x) => x.GetBatchTransactionAsync(
                 new GetBatchTransactionRequest()
                 {
                     NetworkName = context.NetworkName,
                     TransactionIds = context.PublishedTransactionIds.ToArray()
                 }
-            ],
+            ),
             new()
             {
                 ScheduleToCloseTimeout = TimeSpan.FromDays(2),

@@ -110,8 +110,16 @@ public class EventListenerWorkflow
         NetworkType networkType,
         BlockRangeModel blockRange)
     {
-        var result = await ExecuteActivityAsync<HTLCBlockEventResponse>($"{networkType}{nameof(IBlockchainActivities.GetEventsAsync)}",
-            [networkName, blockRange.From, blockRange.To],
+        var result = await ExecuteActivityAsync<HTLCBlockEventResponse>(
+            $"{networkType}{nameof(IBlockchainActivities.GetEventsAsync)}",
+            [
+                new EventRequest() 
+                {
+                    NetworkName = networkName,
+                    FromBlock = blockRange.From,
+                    ToBlock = blockRange.To
+                }
+            ],
             new()
             {
                 StartToCloseTimeout = TimeSpan.FromSeconds(20),
