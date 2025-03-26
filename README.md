@@ -1,5 +1,19 @@
 # 🚄 Train.Solver
 
+The following Docker images are available for Train.Solver components:
+
+| Component | Dockerfile Location | Image Badge |
+|-----------|---------------------|-------------|
+| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainsolver/api?label=API&logo=docker)](https://hub.docker.com/r/trainsolver/api) |
+| Workflow Runner | `csharp/src/WorkflowRunner/Dockerfile` | [![WorkflowRunner](https://img.shields.io/docker/v/trainsolver/workflow-runner?label=WorkflowRunner&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner) |
+| Workflow Runner (EVM) | `csharp/src/WorkflowRunner.EVM/Dockerfile` | [![WorkflowRunner-EVM](https://img.shields.io/docker/v/trainsolver/workflow-runner-evm?label=WorkflowRunner-EVM&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner-evm) |
+| Workflow Runner (Solana) | `csharp/src/WorkflowRunner.Solana/Dockerfile` | [![WorkflowRunner-Solana](https://img.shields.io/docker/v/trainsolver/workflow-runner-solana?label=WorkflowRunner-Solana&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner-solana) |
+| Workflow Runner (Starknet) | `csharp/src/WorkflowRunner.Starknet/Dockerfile` | [![WorkflowRunner-Starknet](https://img.shields.io/docker/v/trainsolver/workflow-runner-starknet?label=WorkflowRunner-Starknet&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner-starknet) |
+| Workflow Runner (Starknet JS) | `js/Dockerfile` | [![WorkflowRunner-Starknet-JS](https://img.shields.io/docker/v/trainsolver/workflow-runner-starknet-js?label=WorkflowRunner-Starknet-JS&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner-starknet-js) |
+| Workflow Runner (Swap) | `csharp/src/WorkflowRunner.Swap/Dockerfile` | [![WorkflowRunner-Swap](https://img.shields.io/docker/v/trainsolver/workflow-runner-swap?label=WorkflowRunner-Swap&logo=docker)](https://hub.docker.com/r/trainsolver/workflow-runner-swap) |
+
+---
+
 Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
 
 ---
