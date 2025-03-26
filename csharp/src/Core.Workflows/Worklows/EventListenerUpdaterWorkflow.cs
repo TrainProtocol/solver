@@ -29,7 +29,7 @@ public class EventListenerUpdaterWorkflow
                         network.Type,
                         20,
                         TimeSpan.FromSeconds(5)),
-                    TemporalHelper.DefaultActivityOptions(network.Type));
+                    TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
             }
         }
 
