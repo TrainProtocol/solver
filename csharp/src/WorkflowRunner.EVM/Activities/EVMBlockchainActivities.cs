@@ -12,7 +12,6 @@ using Nethereum.Util;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using RedLockNet;
-using Serilog;
 using StackExchange.Redis;
 using Train.Solver.Core.Exceptions;
 using Train.Solver.Core.Entities;
@@ -671,8 +670,6 @@ public class EVMBlockchainActivities(
                     && _nonRetriableErrors.Any(x =>
                         exNonceTooLow.Message.Contains(x, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    Log.Warning($"Nonce too low in {request.NetworkName}. {request.FromAddress}. Message {exNonceTooLow.Message}");
-
                     // Assuming if nonce too low then the transaction is already confirmed on blockchain and we have to return txId
                     break;
                 }

@@ -1,5 +1,4 @@
-﻿using Serilog;
-using Train.Solver.Core.Entities;
+﻿using Train.Solver.Core.Entities;
 using Train.Solver.Core.Models;
 using Train.Solver.Core.Models.HTLCModels;
 using Train.Solver.Core.Repositories;
@@ -63,7 +62,6 @@ public abstract class BlockchainActivitiesBase(
 
         if (request.Amount > balance.Amount)
         {
-            Log.Warning($"Insufficient {request.Asset} funds in {request.NetworkName} {request.Address}");
             throw new($"Insufficient balance on {request.Address}. Balance is less than {request.Amount}");
         }
     }

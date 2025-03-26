@@ -1,5 +1,4 @@
-﻿using Serilog;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchains.EVM.Activities;
@@ -290,7 +289,6 @@ public class EVMTransactionProcessor
             {
                 if (context.Fee == null)
                 {
-                    Log.Error("Hashlock already set, first attempt");
                     throw;
                 }
 

@@ -1,6 +1,4 @@
-﻿using Serilog;
-using Serilog.Extensions.Logging;
-using Train.Solver.Core.DependencyInjection;
+﻿using Train.Solver.Core.DependencyInjection;
 using Train.Solver.Repositories.Npgsql.Extensions;
 using Train.Solver.Secret.AzureKeyVault;
 using Train.Solver.TokenPrice.Coingecko;
@@ -20,13 +18,6 @@ IHost host = Host.CreateDefaultBuilder(args)
             .WithCoreWorkflows()
             .WithAzureKeyVault()
             .WithCoingeckoPrices();
-
-        services.AddLogging(loggingBuilder => loggingBuilder
-            .ClearProviders()
-            .AddSerilog(dispose: true)
-            .AddFilter<SerilogLoggerProvider>("Microsoft", LogLevel.None)
-            .AddFilter<SerilogLoggerProvider>("System", LogLevel.None)
-            .AddFilter<SerilogLoggerProvider>("Azure", LogLevel.None));
     })
     .Build();
 

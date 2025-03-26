@@ -286,7 +286,6 @@ public static class EventDecoder
 
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Error while  deserializing add lock event data");
             return null;
         }
     }

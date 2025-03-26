@@ -659,7 +659,6 @@ public class SolanaBlockchainActivities(
         }
         catch (Exception ex)
         {
-            Serilog.Log.Error($"Occurred exception while sending raw transaction in network {network.Name}. Message {ex.Message}.");
         }
 
         return CalculateTransactionHash(request.RawTx);

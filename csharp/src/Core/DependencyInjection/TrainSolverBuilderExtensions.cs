@@ -4,8 +4,6 @@ using Microsoft.Extensions.Logging;
 using RedLockNet;
 using RedLockNet.SERedis;
 using RedLockNet.SERedis.Configuration;
-using Serilog;
-using Serilog.Events;
 using StackExchange.Redis;
 using Temporalio.Client;
 using Temporalio.Exceptions;

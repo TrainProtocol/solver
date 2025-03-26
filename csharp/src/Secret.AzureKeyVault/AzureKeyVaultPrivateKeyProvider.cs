@@ -1,5 +1,4 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using Serilog;
 using Train.Solver.Core.Services;
 
 namespace Train.Solver.Secret.AzureKeyVault;
@@ -17,7 +16,6 @@ public class AzureKeyVaultPrivateKeyProvider(
         }
         catch (Exception e)
         {
-            Log.Error(e, $"Exception while getting private key for address: {publicKey}");
             throw;
         }
     }
@@ -32,7 +30,6 @@ public class AzureKeyVaultPrivateKeyProvider(
         }
         catch (Exception e)
         {
-            Log.Error(e, $"Exception while settings private key for address: {publicKey}");
             throw;
         }
 
