@@ -3,6 +3,7 @@ using Train.Solver.Blockchains.Starknet.Activities;
 using Train.Solver.Blockchains.Starknet.Workflows;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.DependencyInjection;
+using Train.Solver.Core.Workflows.Worklows;
 
 namespace Train.Solver.Blockchains.Starknet.Extensions;
 
@@ -14,6 +15,7 @@ public static class TrainSolverBuilderExtensions
         var temporalBuilder = builder.Services
             .AddHostedTemporalWorker(nameof(NetworkType.Starknet))
             .AddWorkflow<StarknetTransactionProcessor>()
+            .AddWorkflow<EventListenerWorkflow>()
             .AddTransientActivities<StarknetBlockchainActivities>();
 
         return builder;
