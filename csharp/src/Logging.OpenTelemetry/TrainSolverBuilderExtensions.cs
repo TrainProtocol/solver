@@ -30,6 +30,13 @@ public static class TrainSolverBuilderExtensions
 
         configureOptions?.Invoke(options);
 
+
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => 
+                resource.AddService(serviceName: serviceName))
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation());
+
         builder.Services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -39,7 +46,6 @@ public static class TrainSolverBuilderExtensions
                 ot.IncludeFormattedMessage = true;
                 ot.IncludeScopes = true;
                 ot.ParseStateValues = true;
-                ot.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName));
                 ot.AddOtlpExporter(otlp =>
                 {
                     otlp.Endpoint = options.OpenTelemetryUrl;
@@ -55,6 +61,7 @@ public static class TrainSolverBuilderExtensions
                 });
             });
         });
+
         return builder;
     }
 }

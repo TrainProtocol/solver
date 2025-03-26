@@ -2,9 +2,18 @@
 
 Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
 
+| Component | Dockerfile Location | Image Badge |
+|-----------|---------------------|-------------|
+| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/train-solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
+| Workflow Runner (Swap) | `csharp/src/WorkflowRunner.Swap/Dockerfile` | [![WorkflowRunner-Swap](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-swap?label=WorkflowRunner-Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
+| Workflow Runner (EVM) | `csharp/src/WorkflowRunner.EVM/Dockerfile` | [![WorkflowRunner-EVM](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-evm?label=WorkflowRunner-EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-evm) |
+| Workflow Runner (Solana) | `csharp/src/WorkflowRunner.Solana/Dockerfile` | [![WorkflowRunner-Solana](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-solana?label=WorkflowRunner-Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-solana) |
+| Workflow Runner (Starknet) | `csharp/src/WorkflowRunner.Starknet/Dockerfile` | [![WorkflowRunner-Starknet](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-starknet?label=WorkflowRunner-Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-starknet) |
+| Workflow Runner (Starknet JS) | `js/Dockerfile` | [![WorkflowRunner-Starknet-JS](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-starknet-js?label=WorkflowRunner-Starknet-JS&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-starknet-js) |
+
 ---
 
-## 🔍 How It Works 
+## 🔍 How It Works
 
 Train.Solver continuously monitors events across all configured blockchains and waits for a **user funds lock event**. Once detected, the following steps occur:
 
