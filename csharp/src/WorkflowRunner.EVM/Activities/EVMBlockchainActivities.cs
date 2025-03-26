@@ -14,7 +14,6 @@ using Nethereum.Web3.Accounts;
 using RedLockNet;
 using StackExchange.Redis;
 using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
-using static Train.Solver.Blockchains.EVM.Helpers.EVMResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
 using Train.Solver.Blockchains.EVM.Models;
@@ -27,6 +26,7 @@ using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Repositories;
 using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Exceptions;
+using Nethereum.BlockchainProcessing.BlockStorage.Entities;
 
 namespace Train.Solver.Blockchains.EVM.Activities;
 
@@ -179,14 +179,29 @@ public class EVMBlockchainActivities(
             throw new Exception($"Failed to retrieve block");
         }
 
-        var transactionReceiptResult =
-            await GetTransactionReceiptAsync(nodes, transaction.TransactionHash);
+        var transactionReceipt = await GetDataFromNodesAsync(nodes,
+            async nodeUrl => await new Web3(nodeUrl).Client
+                .SendRequestAsync<EVMTransactionReceipt>(
+                    new RpcRequest(
+                        DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        "eth_getTransactionReceipt",
+                        transaction.TransactionHash)));
+
+        if (transactionReceipt is null)
+        {
+            throw new Exception("Failed to get receipt. Receipt was null");
+        }
+
+        if (!transactionReceipt.Succeeded())
+        {
+            throw new TransactionFailedException("Transaction failed");
+        }
 
         var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
         var transactionFee = feeEstimator.CalculateFee(
             transactionBlock,
             transaction,
-            transactionReceiptResult);
+            transactionReceipt);
 
         var from = FormatAddress(new() { Address = transaction.From });
         var to = FormatAddress(new() { Address = transaction.To });
