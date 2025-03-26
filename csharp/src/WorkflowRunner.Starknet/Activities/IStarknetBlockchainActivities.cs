@@ -1,7 +1,6 @@
 ﻿using Train.Solver.Blockchains.Starknet.Models;
 using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Activities;
 
 namespace Train.Solver.Blockchains.Starknet.Activities;
 

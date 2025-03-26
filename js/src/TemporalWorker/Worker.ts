@@ -22,7 +22,7 @@ async function run() {
 
     const worker = await Worker.create({
       namespace: 'atomic',
-      taskQueue: 'atomicJs',
+      taskQueue: 'Starknet',
       activities: activities,
       connection,
     });
