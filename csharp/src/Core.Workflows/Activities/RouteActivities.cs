@@ -9,54 +9,53 @@ public class RouteActivities(IRouteRepository routeRepository)
     [Activity]
     public async Task<List<RouteModel>> GetAllRoutesAsync()
     {
-        return null;
-        //await dbContext.Routes
-        //    .Select(r => new RouteModel
-        //    {
-        //        Id = r.Id,
-        //        Status = r.Status,
-        //        MaxAmountInSource = r.MaxAmountInSource,
+        var routes = await routeRepository.GetAllAsync();
 
-        //        Source = new TokenModel
-        //        {
-        //            Id = r.SourceToken.Id,
-        //            NetworkName = r.SourceToken.Network.Name,
-        //            Asset = r.SourceToken.Asset,
-        //            Precision = r.SourceToken.Precision,
-        //            IsTestnet = r.SourceToken.Network.IsTestnet,
-        //            NetworkId = r.DestinationToken.NetworkId,
-        //            NetowrkGroup = r.SourceToken.Network.Group
-        //        },
+        return routes
+            .Select(r => new RouteModel
+            {
+                Id = r.Id,
+                Status = r.Status,
+                MaxAmountInSource = r.MaxAmountInSource,
 
-        //        Destionation = new TokenModel
-        //        {
-        //            Id = r.DestinationToken.Id,
-        //            NetworkName = r.DestinationToken.Network.Name,
-        //            Asset = r.DestinationToken.Asset,
-        //            Precision = r.DestinationToken.Precision,
-        //            IsTestnet = r.DestinationToken.Network.IsTestnet,
-        //            NetworkId = r.DestinationToken.NetworkId,
-        //            NetowrkGroup = r.DestinationToken.Network.Group
-        //        }
-        //    })
-        //    .ToListAsync();
+                Source = new TokenModel
+                {
+                    Id = r.SourceToken.Id,
+                    NetworkName = r.SourceToken.Network.Name,
+                    Asset = r.SourceToken.Asset,
+                    Precision = r.SourceToken.Precision,
+                    IsTestnet = r.SourceToken.Network.IsTestnet,
+                    NetworkId = r.DestinationToken.NetworkId,
+                    NetworkType = r.SourceToken.Network.Type
+                },
+
+                Destionation = new TokenModel
+                {
+                    Id = r.DestinationToken.Id,
+                    NetworkName = r.DestinationToken.Network.Name,
+                    Asset = r.DestinationToken.Asset,
+                    Precision = r.DestinationToken.Precision,
+                    IsTestnet = r.DestinationToken.Network.IsTestnet,
+                    NetworkId = r.DestinationToken.NetworkId,
+                    NetworkType = r.DestinationToken.Network.Type
+                }
+            })
+            .ToList();
     }
     [Activity]
     public async Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync()
     {
-        return null;
-            
-            //await dbContext.Routes
-            //.Where(x => x.Status == RouteStatus.Active)
-            //.Include(x => x.SourceToken)
-            //.ThenInclude(x => x.Network)
-            //.Select(x => new NetworkModel
-            //{
-            //    Name = x.SourceToken.Network.Name,
-            //    Group = x.SourceToken.Network.Group
-            //})
-            //.Distinct()
-            //.ToListAsync();
+        var routes = await routeRepository.GetAllAsync();
+
+        return routes
+            .Where(x => x.Status == Abstractions.Entities.RouteStatus.Active)
+            .Select(x => new NetworkModel
+            {
+                Name = x.SourceToken.Network.Name,
+                Type = x.SourceToken.Network.Type
+            })
+            .Distinct()
+            .ToList();
     }
 
     [Activity]
