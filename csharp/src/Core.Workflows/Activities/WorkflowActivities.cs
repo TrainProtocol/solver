@@ -81,7 +81,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
                     FromAddress = swap.DestinationToken.Network.ManagedAccounts.First().Address,
                     SwapId = swap.Id,
             }],
-            new(id: TemporalHelper.BuildId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())
+            new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())
             {
                 IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
             });

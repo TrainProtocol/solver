@@ -256,7 +256,7 @@ public class EVMTransactionProcessor
                         }, (JsonSerializerOptions?)null),
                         Type = TransactionType.Transfer,
                         SwapId = context.SwapId,
-                    }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
+                    }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
                 }
 
                 throw;
@@ -334,7 +334,7 @@ public class EVMTransactionProcessor
                 NetworkName = lockRequest.SourceNetwork,
                 NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
-            }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
 
         }
     }

@@ -322,7 +322,7 @@ public class SwapWorkflow
             [transactionContext],
             new ChildWorkflowOptions
             {
-                Id = TemporalHelper.BuildId(
+                Id = TemporalHelper.BuildProcessorId(
                     transactionContext.NetworkName,
                     transactionContext.Type,
                     NewGuid()),

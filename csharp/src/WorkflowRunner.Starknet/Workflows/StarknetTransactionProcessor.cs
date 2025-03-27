@@ -130,7 +130,7 @@ public class StarknetTransactionProcessor
                         }, (JsonSerializerOptions?)null),
                         Type = TransactionType.Transfer,
                         SwapId = context.SwapId,
-                    }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
+                    }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
                 }
             }
 
@@ -302,7 +302,7 @@ public class StarknetTransactionProcessor
                 NetworkName = lockRequest.SourceNetwork,
                 NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
-            }), new() { Id = TemporalHelper.BuildId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
         }
     }
 
