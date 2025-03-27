@@ -14,14 +14,16 @@ public abstract class BlockchainActivitiesBase(
     protected abstract string FormatAddress(AddressRequest request);
     protected abstract bool ValidateAddress(AddressRequest request);
 
-    public abstract Task<string> GetNextNonceAsync(NextNonceRequest request);
-    public abstract Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
-    public abstract Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
-    public abstract Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
-    public abstract Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
-    public abstract Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
-    public abstract Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
-    public abstract Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
+    [Activity] public abstract Task<string> GetNextNonceAsync(NextNonceRequest request);
+    [Activity] public abstract Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
+    [Activity] public abstract Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
+    [Activity] public abstract Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
+    [Activity] public abstract Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
+    [Activity] public abstract Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
+    [Activity] public abstract Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
+    [Activity] public abstract Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
+
+    [Activity]
     public virtual async Task<string> GetReservedNonceAsync(ReservedNonceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -51,6 +53,8 @@ public abstract class BlockchainActivitiesBase(
 
         return nextNonce;
     }
+
+    [Activity]
     public virtual async Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request)
     {
         var balance = await GetBalanceAsync(
