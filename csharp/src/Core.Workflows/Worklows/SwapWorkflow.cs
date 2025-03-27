@@ -318,7 +318,7 @@ public class SwapWorkflow
         transactionContext.UniquenessToken = swapReferenceTransactionId.ToString();
 
         var confirmedTransaction = await ExecuteChildWorkflowAsync<TransactionResponse>(
-            $"{transactionContext.NetworkType}TransactionProcessor",
+            TemporalHelper.ResolveProcessor(transactionContext.NetworkType),
             [transactionContext],
             new ChildWorkflowOptions
             {
