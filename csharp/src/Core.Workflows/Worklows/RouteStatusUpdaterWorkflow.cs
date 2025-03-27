@@ -51,9 +51,12 @@ public class RouteStatusUpdaterWorkflow
                 balance = await ExecuteActivityAsync<BalanceResponse>(
                     "GetBalance",
                         [
-                            networkName,
-                            managedAddress!,
-                            asset,
+                            new BalanceRequest
+                            {
+                                NetworkName = networkName,
+                                Address = managedAddress!,
+                                Asset = asset
+                            }
                         ],
                     TemporalHelper.DefaultActivityOptions(networkType));
             }
