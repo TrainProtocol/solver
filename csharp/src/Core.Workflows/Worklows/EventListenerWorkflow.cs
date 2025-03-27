@@ -44,10 +44,11 @@ public class EventListenerWorkflow
             try
             {
                 var blockNumberWithHash = await ExecuteActivityAsync<BlockNumberResponse>(
-                    $"{networkType}{nameof(IBlockchainActivities.GetLastConfirmedBlockNumberAsync)}",
+                    "GetLastConfirmedBlockNumber",
                     [new BaseRequest { NetworkName = networkName }],
                     new()
                     {
+                        TaskQueue = networkType.ToString(),
                         StartToCloseTimeout = TimeSpan.FromSeconds(20),
                         ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
                         RetryPolicy = new()
@@ -111,7 +112,7 @@ public class EventListenerWorkflow
         BlockRangeModel blockRange)
     {
         var result = await ExecuteActivityAsync<HTLCBlockEventResponse>(
-            $"{networkType}{nameof(IBlockchainActivities.GetEventsAsync)}",
+            "GetEvents",
             [
                 new EventRequest() 
                 {
@@ -122,6 +123,7 @@ public class EventListenerWorkflow
             ],
             new()
             {
+                TaskQueue = networkType.ToString(),
                 StartToCloseTimeout = TimeSpan.FromSeconds(20),
                 ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
                 RetryPolicy = new()
