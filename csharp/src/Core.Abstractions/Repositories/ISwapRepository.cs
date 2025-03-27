@@ -38,8 +38,6 @@ public interface ISwapRepository
         string feeToken,
         decimal feeAmount);
 
-    Task<Transaction?> GetSwapTransactionAsync(Guid transactionId);
-
     Task<ReservedNonce?> GetSwapTransactionReservedNonceAsync(Guid transactionId);
 
     Task<ReservedNonce> CreateSwapTransactionReservedNonceAsync(string networkName, Guid transactionId, string nonce);

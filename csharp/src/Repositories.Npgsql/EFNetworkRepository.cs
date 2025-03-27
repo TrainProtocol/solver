@@ -14,31 +14,6 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .FirstOrDefaultAsync(x => x.Asset == asset && x.Network.Name == networkName);
     }
 
-    public async Task<Token?> GetTokenByContractAsync(string networkName, string contractAddress)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .FirstOrDefaultAsync(x => x.TokenContract == contractAddress && x.Network.Name == networkName);
-    }
-
-    public async Task<Token?> GetNativeTokenAsync(string networkName)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .FirstOrDefaultAsync(x => x.Network.Name == networkName && x.IsNative);
-    }
-
-    public async Task<Dictionary<string, Token>> GetTokensAsync(string networkName, string[] assets)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .Where(x => x.Network.Name == networkName && assets.Contains(x.Asset))
-            .ToDictionaryAsync(x => x.Asset);
-    }
-
     public async Task<Network?> GetAsync(string networkName)
     {
         return await dbContext.Networks
@@ -86,33 +61,19 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ToListAsync();
     }
 
-    public async Task<Dictionary<string, Token>> GetTokensBySymbolsAsync(string[] assets)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .Where(x => assets.Contains(x.Asset))
-            .ToDictionaryAsync(x => x.Asset);
-    }
-
-    public Task<Dictionary<string, Token>> GetTokensByExternalIdsAsync(string[] assets)
-    {
-        return dbContext.Tokens
-            .Include(x => x.TokenPrice)
-            .Where(x => assets.Contains(x.TokenPrice.ExternalId))
-            .ToDictionaryAsync(x => x.TokenPrice.ExternalId);
-    }
-
     public async Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices)
     {
-        var assets = prices.Keys.ToArray();
-        var tokensByAsset = await GetTokensBySymbolsAsync(assets);
+        var externalIds = prices.Keys.ToArray();
 
-        foreach (var asset in prices.Keys)
+        var tokenPrices = await dbContext.TokenPrices
+            .Where(x => externalIds.Contains(x.ExternalId))
+            .ToDictionaryAsync(x => x.ExternalId);
+
+        foreach (var externalId in prices.Keys)
         {
-            if (tokensByAsset.TryGetValue(asset, out var token))
+            if (tokenPrices.TryGetValue(externalId, out var token))
             {
-                token.TokenPrice.PriceInUsd = prices[asset];
+                token.PriceInUsd = prices[externalId];
             }
         }
 

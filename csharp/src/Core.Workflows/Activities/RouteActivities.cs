@@ -1,4 +1,5 @@
 ﻿using Temporalio.Activities;
+using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Abstractions.Repositories;
 
@@ -42,13 +43,14 @@ public class RouteActivities(IRouteRepository routeRepository)
             })
             .ToList();
     }
+
     [Activity]
     public async Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync()
     {
         var routes = await routeRepository.GetAllAsync();
 
         return routes
-            .Where(x => x.Status == Abstractions.Entities.RouteStatus.Active)
+            .Where(x => x.Status == RouteStatus.Active)
             .Select(x => new NetworkModel
             {
                 Name = x.SourceToken.Network.Name,
@@ -59,35 +61,10 @@ public class RouteActivities(IRouteRepository routeRepository)
     }
 
     [Activity]
-    public Dictionary<int, string> GetManagedAddressesByNetworkAsync()
+    public virtual async Task UpdateRoutesStatusAsync(
+        int[] routeIds,
+        RouteStatus status)
     {
-        return null;
-        //dbContext.Networks
-        //     .Include(x => x.ManagedAccounts)
-        //     .ToDictionary(x => x.Id, x => x.ManagedAccounts.First().Address);
-    }
-
-    [Activity]
-    public virtual async Task UpdateDestinationRouteStatusAsync(
-      IEnumerable<int> routeIds,
-      decimal balance)
-    {
-        //var routes = await dbContext.Routes
-        //    .Where(x => routeIds.Any(y => y == x.Id))
-        //    .ToListAsync();
-
-        //foreach (var route in routes)
-        //{
-        //    if (balance < route.MaxAmountInSource && route.Status == RouteStatus.Active)
-        //    {
-        //        route.Status = RouteStatus.Inactive;
-        //    }
-        //    else if (balance >= route.MaxAmountInSource && route.Status == RouteStatus.Inactive)
-        //    {
-        //        route.Status = RouteStatus.Active;
-        //    }
-        //}
-
-        //await dbContext.SaveChangesAsync();
+        await routeRepository.UpdateRoutesStatusAsync(routeIds, status);
     }
 }

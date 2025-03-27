@@ -12,4 +12,6 @@ public interface IRouteRepository
         string destinationNetworkName,
         string destinationToken,
         decimal? amount);
+
+    Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
 }

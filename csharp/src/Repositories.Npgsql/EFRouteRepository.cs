@@ -34,6 +34,20 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         return await query.FirstOrDefaultAsync();
     }
 
+    public async Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status)
+    {
+        var routes = await dbContext.Routes
+            .Where(x => ids.Any(y => y == x.Id))
+            .ToListAsync();
+
+        foreach (var route in routes)
+        {
+            route.Status = status;
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
     private IQueryable<Route> GetBaseQuery()
         => dbContext.Routes
             .Include(x => x.SourceToken.Network.Nodes)

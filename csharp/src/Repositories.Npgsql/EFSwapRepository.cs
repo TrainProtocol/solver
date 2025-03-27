@@ -110,13 +110,6 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
             .ToListAsync();
     }
 
-    public async Task<Transaction?> GetSwapTransactionAsync(Guid transactionId)
-    {
-        return await dbContext.Transactions
-            .Include(x => x.Swap)
-            .FirstOrDefaultAsync(x => x.Id == transactionId);
-    }
-
     public async Task<ReservedNonce?> GetSwapTransactionReservedNonceAsync(Guid transactionId)
     {
         return await dbContext.ReservedNonces
