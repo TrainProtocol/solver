@@ -66,7 +66,7 @@ public class RouteStatusUpdaterWorkflow
             }
 
             var routesToDisable = group
-                .Where(route => route.MaxAmountInSource < balance.Amount)
+                .Where(route => route.Status == RouteStatus.Active && route.MaxAmountInSource < balance.Amount)
                 .ToList();
 
             if (routesToDisable.Any())
@@ -79,7 +79,7 @@ public class RouteStatusUpdaterWorkflow
             }
 
             var routesToEnable = group
-                .Where(route => route.MaxAmountInSource >= balance.Amount)
+                .Where(route => route.Status == RouteStatus.Inactive && route.MaxAmountInSource >= balance.Amount)
                 .ToList();
 
             if (routesToEnable.Any())

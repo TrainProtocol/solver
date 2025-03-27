@@ -4,7 +4,7 @@ namespace Train.Solver.Core.Abstractions.Repositories;
 
 public interface IRouteRepository
 {
-    Task<List<Route>> GetAllAsync();
+    Task<List<Route>> GetAllAsync(RouteStatus[] statuses);
 
     Task<Route?> GetAsync(
         string sourceNetworkName,

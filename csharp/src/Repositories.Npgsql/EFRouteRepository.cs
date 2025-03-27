@@ -6,9 +6,9 @@ namespace Train.Solver.Repositories.Npgsql;
 
 public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
 {
-    public Task<List<Route>> GetAllAsync()
+    public Task<List<Route>> GetAllAsync(RouteStatus[] statuses)
     {
-        return GetBaseQuery().ToListAsync();
+        return GetBaseQuery(statuses).ToListAsync();
     }
 
     public async Task<Route?> GetAsync(
@@ -18,7 +18,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         string destinationToken,
         decimal? amount)
     {
-        var query = GetBaseQuery();
+        var query = GetBaseQuery([RouteStatus.Active]);
 
         query = query.Where(x =>
             x.SourceToken.Asset == sourceToken
@@ -48,7 +48,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         await dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<Route> GetBaseQuery()
+    private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
         => dbContext.Routes
             .Include(x => x.SourceToken.Network.Nodes)
             .Include(x => x.SourceToken.Network.ManagedAccounts)
@@ -58,5 +58,5 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
             .Include(x => x.DestinationToken.Network.ManagedAccounts)
             .Include(x => x.DestinationToken.Network.Contracts)
             .Include(x => x.DestinationToken.TokenPrice)
-            .Where(x => x.MaxAmountInSource > 0 && x.Status == RouteStatus.Active);
+            .Where(x => x.MaxAmountInSource > 0 && statuses.Contains(x.Status));
 }

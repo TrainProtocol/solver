@@ -44,7 +44,7 @@ public class RouteService(
 
         var reachableTokens = new List<Token>();
 
-        var routes = await routeRepository.GetAllAsync();
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
 
         if (!requests.Any())
         {

@@ -10,7 +10,7 @@ public class RouteActivities(IRouteRepository routeRepository)
     [Activity]
     public async Task<List<RouteModel>> GetAllRoutesAsync()
     {
-        var routes = await routeRepository.GetAllAsync();
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active, RouteStatus.Inactive]);
 
         return routes
             .Select(r => new RouteModel
@@ -47,7 +47,7 @@ public class RouteActivities(IRouteRepository routeRepository)
     [Activity]
     public async Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync()
     {
-        var routes = await routeRepository.GetAllAsync();
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
 
         return routes
             .Where(x => x.Status == RouteStatus.Active)
