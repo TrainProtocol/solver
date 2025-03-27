@@ -50,7 +50,7 @@ public class SwapWorkflow
         var solverAddresses = await ExecuteActivityAsync(
             (SwapActivities x) => x.GetSolverAddressesAsync(
                 _htlcCommitMessage.SourceNetwork, _htlcCommitMessage.DestinationNetwork),
-                       TemporalHelper.DefaultActivityOptions(_htlcCommitMessage.SourceNetworkType));
+                       TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _solverManagedAccountInDestination = solverAddresses[_htlcCommitMessage.DestinationNetwork];
         _solverManagedAccountInSource = solverAddresses[_htlcCommitMessage.SourceNetwork];
