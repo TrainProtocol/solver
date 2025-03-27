@@ -88,6 +88,7 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
     public async Task<Swap?> GetAsync(string id)
     {
         return await dbContext.Swaps
+            .Include(x => x.Transactions)
             .Include(x => x.SourceToken.Network)
             .Include(x => x.SourceToken.TokenPrice)
             .Include(x => x.DestinationToken.Network)
