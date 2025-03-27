@@ -32,35 +32,23 @@ public static class TrainSolverBuilderExtensions
 
 
         builder.Services.AddOpenTelemetry()
-            .ConfigureResource(resource => 
+            .ConfigureResource(resource =>
                 resource.AddService(serviceName: serviceName))
             .WithTracing(tracing => tracing
-                .AddAspNetCoreInstrumentation());
-
-        builder.Services.AddLogging(logging =>
-        {
-            logging.ClearProviders();
-
-            logging.AddOpenTelemetry(ot =>
-            {
-                ot.IncludeFormattedMessage = true;
-                ot.IncludeScopes = true;
-                ot.ParseStateValues = true;
-                ot.AddOtlpExporter(otlp =>
-                {
-                    otlp.Endpoint = options.OpenTelemetryUrl;
-                    otlp.Protocol = OtlpExportProtocol.Grpc;
-                    
-                    if(!string.IsNullOrEmpty(options.SignozIngestionKey))
+                .AddAspNetCoreInstrumentation()
+                .AddOtlpExporter(ot =>
                     {
-                        string headerKey = "signoz-ingestion-key";
-                        string headerValue = options.SignozIngestionKey;
-                        string formattedHeader = $"{headerKey}={headerValue}";
-                        otlp.Headers = formattedHeader;
-                    }
-                });
-            });
-        });
+                        ot.Endpoint = options.OpenTelemetryUrl;
+                        ot.Protocol = OtlpExportProtocol.Grpc;
+                        
+                        if (!string.IsNullOrEmpty(options.SignozIngestionKey))
+                        {
+                            string headerKey = "signoz-ingestion-key";
+                            string headerValue = options.SignozIngestionKey;
+                            string formattedHeader = $"{headerKey}={headerValue}";
+                            ot.Headers = formattedHeader;
+                        }
+                    }));
 
         return builder;
     }
