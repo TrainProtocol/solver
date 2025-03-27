@@ -1,4 +1,5 @@
-﻿using Train.Solver.Core.Abstractions;
+﻿using Temporalio.Activities;
+using Train.Solver.Core.Abstractions;
 using Train.Solver.Core.Abstractions.Entities;
 using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Abstractions.Repositories;
@@ -65,6 +66,8 @@ public abstract class BlockchainActivitiesBase(
             throw new($"Insufficient balance on {request.Address}. Balance is less than {request.Amount}");
         }
     }
+
+    [Activity]
     public virtual async Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
