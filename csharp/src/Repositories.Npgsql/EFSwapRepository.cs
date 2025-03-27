@@ -85,21 +85,14 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
             .ToListAsync();
     }
 
-    public async Task<Swap> GetAsync(string id)
+    public async Task<Swap?> GetAsync(string id)
     {
-        var swap = await dbContext.Swaps
+        return await dbContext.Swaps
             .Include(x => x.SourceToken.Network)
             .Include(x => x.SourceToken.TokenPrice)
             .Include(x => x.DestinationToken.Network)
             .Include(x => x.DestinationToken.TokenPrice)
             .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (swap == null)
-        {
-            throw new Exception($"Swap with id {id} not found");
-        }
-
-        return swap;
     }
 
     public async Task<List<string>> GetNonRefundedSwapIdsAsync()

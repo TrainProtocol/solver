@@ -62,6 +62,11 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
     {
         var swap = await swapRepository.GetAsync(swapId);
 
+        if(swap == null)
+        {
+            throw new ArgumentException("Swap not found", nameof(swapId));
+        }
+
         await temporalClient.StartWorkflowAsync(
             TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionContext()
                 {

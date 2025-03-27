@@ -4,7 +4,7 @@ namespace Train.Solver.Core.Abstractions.Repositories;
 
 public interface ISwapRepository
 {
-    Task<Swap> GetAsync(string id);
+    Task<Swap?> GetAsync(string id);
 
     Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20, string[]? addresses = null);
 
