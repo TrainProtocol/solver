@@ -283,7 +283,9 @@ public class SwapWorkflow
                 [
                     addLockSig
                 ],
-                TemporalHelper.DefaultActivityOptions(_htlcCommitMessage.SourceNetworkType));
+                TemporalHelper.DefaultActivityOptions(
+                    TemporalHelper.ResolveBlockchainActivityTaskQueue(
+                        _htlcCommitMessage!.SourceNetworkType))); // Todo: temp workaround
 
             if (isValid)
             {
@@ -341,5 +343,5 @@ public class SwapWorkflow
                 transactionContext.Type),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         return confirmedTransaction;
-    }
+    }    
 }

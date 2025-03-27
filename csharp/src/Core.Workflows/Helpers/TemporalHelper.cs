@@ -21,5 +21,19 @@ public static class TemporalHelper
         return $"{networkType}TransactionProcessor";
     }
 
+    public static string ResolveBlockchainActivityTaskQueue(NetworkType type)
+    {
+        switch (type)
+        {
+            case NetworkType.EVM:
+            case NetworkType.Solana:
+                return type.ToString();
+            case NetworkType.Starknet:
+                return $"{type}JS"; // Todo: temp workaround until starknet integration moves to JS
+            default:
+                throw new("Unsupported network type");
+        }
+    }
+
     public static string BuildId(string networkName, TransactionType type, Guid uniqueId) => $"{networkName}-{type}-{uniqueId}";
 }
