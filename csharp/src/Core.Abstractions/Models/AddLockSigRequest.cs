@@ -9,9 +9,11 @@ public class AddLockSignatureRequest : AddLockSignatureModel
     public required string SignerAddress { get; set; } = null!;
 
     public required string Asset { get; set; } = null!;
+
+    public required string NetworkName { get; set; } = null!;
 }
 
-public class AddLockSignatureModel : BaseRequest
+public class AddLockSignatureModel
 {
     public string? R { get; set; }
 

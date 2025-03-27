@@ -279,7 +279,7 @@ public class SwapWorkflow
         try
         {
             var isValid = await ExecuteActivityAsync<bool>(
-                $"{_htlcCommitMessage!.SourceNetworkType}{nameof(IBlockchainActivities.ValidateAddLockSignatureAsync)}",
+                "ValidateAddLockSignature",
                 [
                     addLockSig
                 ],
