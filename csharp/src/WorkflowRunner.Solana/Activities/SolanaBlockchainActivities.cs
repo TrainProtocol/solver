@@ -35,6 +35,23 @@ public class SolanaBlockchainActivities(
     private const int LamportsPerRent = 3000000;
     private const int BlockhashNotFoundErrorCode = -32002;
 
+    [Activity]
+    public override Task<string> GetReservedNonceAsync(ReservedNonceRequest request)
+    {
+        return base.GetReservedNonceAsync(request);
+    }
+
+    [Activity]
+    public override Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request)
+    {
+        return base.EnsureSufficientBalanceAsync(request);
+    }
+
+    [Activity]
+    public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)
+    {
+        return base.GetSpenderAddressAsync(request);
+    }
 
     [Activity]
     public async Task<TransactionResponse> GetSolanaTransactionReceiptAsync(SolanaGetTransactionRequest request)
@@ -74,7 +91,7 @@ public class SolanaBlockchainActivities(
         return transaction;
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(BuildTransactionAsync)}")]
+    [Activity]
     public override async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -107,7 +124,7 @@ public class SolanaBlockchainActivities(
         return result;
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(EstimateFeeAsync)}")]
+    [Activity]
     public override async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
         var result = new Dictionary<string, Fee>();
@@ -265,9 +282,7 @@ public class SolanaBlockchainActivities(
                     baseFeeInLamports.ToString()));
     }
 
-    protected override string FormatAddress(AddressRequest request) => request.Address;
-
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(GetBalanceAsync)}")]
+    [Activity]
     public override async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -338,7 +353,7 @@ public class SolanaBlockchainActivities(
         return balanceResponse;
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(GetTransactionAsync)}")]
+    [Activity]
     public override async Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -394,9 +409,7 @@ public class SolanaBlockchainActivities(
         return transaction;
     }    
 
-   
-
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(GetEventsAsync)}")]
+    [Activity]
     public override async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -446,7 +459,7 @@ public class SolanaBlockchainActivities(
         return events;
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(GetLastConfirmedBlockNumberAsync)}")]
+    [Activity]
     public override async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -488,52 +501,19 @@ public class SolanaBlockchainActivities(
         };
     }
 
+    [Activity]
     public override Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
         throw new NotImplementedException();
     }
 
-    protected override async Task<string> GetCachedNonceAsync(NextNonceRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node), $"Node for network: {network.Id} is not configured");
-        }
-
-        var latestBlockHashResponse = await ClientFactory
-            .GetClient(node.Url)
-            .GetLatestBlockHashAsync();
-
-        if (!latestBlockHashResponse.WasSuccessful)
-        {
-            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
-        }
-
-        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
-                latestBlockHashResponse.Result.Value.LastValidBlockHeight,
-                expiry: TimeSpan.FromDays(7));
-
-        return latestBlockHashResponse.Result.Value.Blockhash;
-    }
-
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(ValidateAddLockSignatureAsync)}")]
+    [Activity]
     public override Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
         throw new NotImplementedException();
     }
 
-    protected override bool ValidateAddress(AddressRequest request)
-        => PublicKey.IsValid(request.Address);
- 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(SimulateTransactionAsync)}")]
+    [Activity]
     public async Task SimulateTransactionAsync(SolanaPublishTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -576,7 +556,7 @@ public class SolanaBlockchainActivities(
         }
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(ComposeSolanaTranscationAsync)}")]
+    [Activity]
     public async Task<byte[]> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request)
     {
         var solanaAddress = new PublicKey(request.FromAddress);
@@ -613,7 +593,7 @@ public class SolanaBlockchainActivities(
         return rawTxResult;
     }
 
-    [Activity(name: $"{nameof(NetworkType.Solana)}{nameof(PublishTransactionAsync)}")]
+    [Activity]
     public async Task<string> PublishTransactionAsync(SolanaPublishTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -662,6 +642,40 @@ public class SolanaBlockchainActivities(
 
         return CalculateTransactionHash(request.RawTx);
     }
+
+    protected override async Task<string> GetCachedNonceAsync(NextNonceRequest request)
+    {
+        var network = await networkRepository.GetAsync(request.NetworkName);
+
+        if (network is null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
+        }
+
+        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        if (node is null)
+        {
+            throw new ArgumentNullException(nameof(node), $"Node for network: {network.Id} is not configured");
+        }
+
+        var latestBlockHashResponse = await ClientFactory
+            .GetClient(node.Url)
+            .GetLatestBlockHashAsync();
+
+        if (!latestBlockHashResponse.WasSuccessful)
+        {
+            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+        }
+
+        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
+                latestBlockHashResponse.Result.Value.LastValidBlockHeight,
+                expiry: TimeSpan.FromDays(7));
+
+        return latestBlockHashResponse.Result.Value.Blockhash;
+    }
+
+    protected override bool ValidateAddress(AddressRequest request)
+        => PublicKey.IsValid(request.Address);
 
     private async Task<byte[]> SignSolanaTransactionAsync(
         TransactionBuilder builder,
@@ -791,4 +805,6 @@ public class SolanaBlockchainActivities(
 
         return result;
     }
+
+    protected override string FormatAddress(AddressRequest request) => request.Address;
 }
