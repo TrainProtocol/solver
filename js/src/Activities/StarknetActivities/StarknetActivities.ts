@@ -19,7 +19,6 @@ import { SufficientBalanceRequest } from "../../lib/Model/BalanceRequestModels/S
 import { AllowanceRequest } from "../../lib/Model/AllowanceModels/AllowanceRequest";
 import { TransactionBuilderRequest } from "../../lib/Model/TransactionBuilderModels/TransactionBuilderRequest";
 
-
 export class StarknetActivities {
     constructor(private dbContext: SolverContext) { }
 
@@ -27,7 +26,7 @@ export class StarknetActivities {
     readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
-    public async StarknetPublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetPublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
         const network = await this.dbContext.Networks
@@ -95,7 +94,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetBuildTransactionAsync(request: TransactionBuilderRequest): Promise<TransferBuilderResponse> {
+    public async StarknetBuildTransaction(request: TransactionBuilderRequest): Promise<TransferBuilderResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -128,7 +127,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEnsureSufficientBalanceAsync(request: SufficientBalanceRequest): Promise<void> {
+    public async StarknetEnsureSufficientBalance(request: SufficientBalanceRequest): Promise<void> {
         try {
 
             const network = await this.dbContext.Networks
@@ -169,7 +168,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetSimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetSimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -237,7 +236,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEstimateFeeAsync(feeRequest: GetFeesRequest): Promise<Fee> {
+    public async StarknetEstimateFee(feeRequest: GetFeesRequest): Promise<Fee> {
         try {
             const network = await this.dbContext.Networks
                 .createQueryBuilder("network")
@@ -289,7 +288,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetValidateAddLockSignatureAsync(request: AddLockSignatureRequest): Promise<boolean> {
+    public async StarknetValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const network = await this.dbContext.Networks
@@ -355,7 +354,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetGetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
+    public async StarknetGetSpenderAllowance(request: AllowanceRequest): Promise<number> {
 
         try {
 
