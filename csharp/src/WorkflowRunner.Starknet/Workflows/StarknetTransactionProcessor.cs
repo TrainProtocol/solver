@@ -284,7 +284,12 @@ public class StarknetTransactionProcessor
                         Asset = lockRequest.SourceAsset
                     }
                 ],
-                TemporalHelper.DefaultActivityOptions(context.NetworkType));
+                new()
+                {
+                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                    StartToCloseTimeout = TimeSpan.FromHours(1),
+                    TaskQueue = JS_TASK_QUEUE,
+                });
 
         if (lockRequest.Amount > allowance)
         {
