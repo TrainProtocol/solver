@@ -273,29 +273,30 @@ public class StarknetTransactionProcessor
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         // Check allowance
-        var allowance = await ExecuteActivityAsync(
-            (StarknetBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
-            {
-                NetworkName = lockRequest.SourceNetwork,
-                OwnerAddress = context.FromAddress,
-                SpenderAddress = spenderAddress,
-                Asset = lockRequest.SourceAsset
-
-            }
-                ),
+        var allowance = await ExecuteActivityAsync<decimal>(
+                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetSpenderAllowanceAsync)}",
+                [
+                    new AllowanceRequest()
+                    {
+                        NetworkName = lockRequest.SourceNetwork,
+                        OwnerAddress = context.FromAddress,
+                        SpenderAddress = spenderAddress,
+                        Asset = lockRequest.SourceAsset
+                    }
+                ],
                 TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
         if (lockRequest.Amount > allowance)
         {
             // Initiate approval transaction
-            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync( new TransactionContext()
+            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionContext()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
                     SpenderAddress = spenderAddress,
                     Amount = 1000000000m,
                     Asset = lockRequest.SourceAsset,
-                },(JsonSerializerOptions?)null),
+                }, (JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,
                 UniquenessToken = Guid.NewGuid().ToString(),
                 FromAddress = context.FromAddress,
