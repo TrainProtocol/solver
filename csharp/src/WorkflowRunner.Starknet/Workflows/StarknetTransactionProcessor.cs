@@ -19,27 +19,32 @@ public class StarknetTransactionProcessor
     private const string JS_TASK_QUEUE = $"{nameof(NetworkType.Starknet)}JS";
 
     [WorkflowRun]
-    public async Task<TransactionResponse> RunAsync(TransactionContext context)
+    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext? context = null)
     {
-        if (context.Type == TransactionType.HTLCLock)
+        if (context is null)
         {
-            await CheckAllowanceAsync(context);
+            context = new();
+        }
+
+        if (request.Type == TransactionType.HTLCLock)
+        {
+            await CheckAllowanceAsync(request);
         }
 
         var preparedTransaction = await ExecuteActivityAsync(
             (StarknetBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest()
             {
-                NetworkName = context.NetworkName,
-                Args = context.PrepareArgs,
-                Type = context.Type
+                NetworkName = request.NetworkName,
+                Args = request.PrepareArgs,
+                Type = request.Type
             }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
         try
         {
             if (context.Fee == null)
             {
-                var fee = await GetFeesAsync(context, preparedTransaction);
+                var fee = await GetFeesAsync(request, preparedTransaction);
 
                 context.Fee = fee;
             }
@@ -48,22 +53,21 @@ public class StarknetTransactionProcessor
             if (string.IsNullOrEmpty(context.Nonce))
             {
                 context.Nonce = await ExecuteActivityAsync(
-                    (StarknetBlockchainActivities x) => x.GetReservedNonceAsync(new ReservedNonceRequest()
+                    (StarknetBlockchainActivities x) => x.GetNextNonceAsync(new NextNonceRequest()
                     {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        ReferenceId = context.UniquenessToken
+                        NetworkName = request.NetworkName,
+                        Address = request.FromAddress!,
                     }),
-                    TemporalHelper.DefaultActivityOptions(context.NetworkType));
+                    TemporalHelper.DefaultActivityOptions(request.NetworkType));
             }
 
             var calculatedTxId = await ExecuteActivityAsync<string>(
-                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.SimulateTransactionAsync)}",
+                $"{request.NetworkType}{nameof(IStarknetBlockchainActivities.SimulateTransactionAsync)}",
                 [
                     new StarknetPublishTransactionRequest()
                     {
-                        NetworkName = context.NetworkName,
-                        FromAddress = context.FromAddress,
+                        NetworkName = request.NetworkName,
+                        FromAddress = request.FromAddress,
                         Nonce = context.Nonce,
                         CallData = preparedTransaction.Data,
                         Fee = context.Fee
@@ -91,18 +95,18 @@ public class StarknetTransactionProcessor
             var txId = await ExecuteActivityAsync(
                 (StarknetBlockchainActivities x) => x.PublishTransactionAsync(new StarknetPublishTransactionRequest()
                 {
-                    NetworkName = context.NetworkName,
-                    FromAddress = context.FromAddress,
+                    NetworkName = request.NetworkName,
+                    FromAddress = request.FromAddress,
                     Nonce = context.Nonce,
                     CallData = preparedTransaction.Data,
                     Fee = context.Fee
                 }
                 ),
-                TemporalHelper.DefaultActivityOptions(context.NetworkType));
+                TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
             context.PublishedTransactionIds.Add(txId);
 
-            var confirmedTransaction = await GetTransactionReceiptAsync(context);
+            var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
             confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
             confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
@@ -115,22 +119,25 @@ public class StarknetTransactionProcessor
             {
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
-                    await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionContext()
-                    {
-                        UniquenessToken = context.UniquenessToken,
-                        NetworkName = context.NetworkName,
-                        Nonce = context.Nonce,
-                        FromAddress = context.FromAddress,
-                        NetworkType = context.NetworkType,
-                        PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+                    await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(
+                        new TransactionRequest()
                         {
-                            Amount = 0,
-                            Asset = context.Fee!.Asset,
-                            ToAddress = context.FromAddress,
-                        }, (JsonSerializerOptions?)null),
-                        Type = TransactionType.Transfer,
-                        SwapId = context.SwapId,
-                    }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
+                            NetworkName = request.NetworkName,
+                            FromAddress = request.FromAddress,
+                            NetworkType = request.NetworkType,
+                            PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+                            {
+                                Amount = 0,
+                                Asset = context.Fee!.Asset,
+                                ToAddress = request.FromAddress,
+                            }, (JsonSerializerOptions?)null),
+                            Type = TransactionType.Transfer,
+                            SwapId = request.SwapId,
+                        }, 
+                        new TransactionExecutionContext
+                        {
+                            Nonce = context.Nonce,
+                        }), new() { Id = TemporalHelper.BuildProcessorId(request.NetworkName, TransactionType.Transfer, NewGuid()) });
                 }
             }
 
@@ -138,11 +145,11 @@ public class StarknetTransactionProcessor
         }
     }
 
-    private async Task<Fee> GetFeesAsync(
-        TransactionContext context,
+    private Task<Fee> GetFeesAsync(
+        TransactionRequest context,
         PrepareTransactionResponse preparedTransaction)
     {
-        var fee = await ExecuteActivityAsync<Fee>(
+        return ExecuteActivityAsync<Fee>(
                 $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.EstimateFeeAsync)}",
                 [
                     new EstimateFeeRequest
@@ -171,88 +178,10 @@ public class StarknetTransactionProcessor
                         }
                     }
                 });
-
-        if (fee.Asset == preparedTransaction.CallDataAsset)
-        {
-            await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                [
-                    new SufficientBalanceRequest
-                    {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        Asset = fee.Asset!,
-                        Amount = fee.Amount + preparedTransaction.CallDataAmount
-                    }
-                ],
-                new()
-                {
-                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                    StartToCloseTimeout = TimeSpan.FromHours(1),
-                    TaskQueue = JS_TASK_QUEUE,
-                    RetryPolicy = new()
-                    {
-                        InitialInterval = TimeSpan.FromMinutes(10),
-                        BackoffCoefficient = 1f,
-                    },
-                });
-        }
-        else
-        {
-            // Fee asset ensure balance
-            await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                [
-                    new SufficientBalanceRequest
-                    {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        Asset = fee.Asset!,
-                        Amount = fee.Amount
-                    }
-                ],
-                new()
-                {
-                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                    StartToCloseTimeout = TimeSpan.FromHours(1),
-                    TaskQueue = JS_TASK_QUEUE,
-                    RetryPolicy = new()
-                    {
-                        InitialInterval = TimeSpan.FromMinutes(10),
-                        BackoffCoefficient = 1f,
-                    },
-                });
-
-            // Transfeable asset ensure balance
-            await ExecuteActivityAsync(
-                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.EnsureSufficientBalanceAsync)}",
-                [
-                    new SufficientBalanceRequest
-                    {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        Asset = preparedTransaction.CallDataAsset!,
-                        Amount = preparedTransaction.CallDataAmount
-                    }
-                ],
-                new()
-                {
-                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                    StartToCloseTimeout = TimeSpan.FromHours(1),
-                    TaskQueue = JS_TASK_QUEUE,
-                    RetryPolicy = new()
-                    {
-                        InitialInterval = TimeSpan.FromMinutes(10),
-                        BackoffCoefficient = 1f,
-                    },
-                });
-        }
-
-        return fee;
     }
 
     private async Task CheckAllowanceAsync(
-        TransactionContext context)
+        TransactionRequest context)
     {
         var lockRequest = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
 
@@ -294,7 +223,7 @@ public class StarknetTransactionProcessor
         if (lockRequest.Amount > allowance)
         {
             // Initiate approval transaction
-            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionContext()
+            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
@@ -303,16 +232,15 @@ public class StarknetTransactionProcessor
                     Asset = lockRequest.SourceAsset,
                 }, (JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,
-                UniquenessToken = Guid.NewGuid().ToString(),
                 FromAddress = context.FromAddress,
                 NetworkName = lockRequest.SourceNetwork,
                 NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
-            }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            }, new()), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
         }
     }
 
-    private async Task<TransactionResponse> GetTransactionReceiptAsync(TransactionContext context)
+    private async Task<TransactionResponse> GetTransactionReceiptAsync(TransactionRequest request, TransactionExecutionContext context)
     {
         try
         {
@@ -320,7 +248,7 @@ public class StarknetTransactionProcessor
             (StarknetBlockchainActivities x) => x.GetBatchTransactionAsync(
                 new GetBatchTransactionRequest()
                 {
-                    NetworkName = context.NetworkName,
+                    NetworkName = request.NetworkName,
                     TransactionIds = context.PublishedTransactionIds.ToArray()
                 }
             ),

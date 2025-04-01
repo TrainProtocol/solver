@@ -47,25 +47,19 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<Guid> CreateSwapReferenceTransactionAsync(
-        string networkName, string? swapId, TransactionType type)
+    public virtual async Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction)
     {
-        var transaction = await swapRepository.InitiateSwapTransactionAsync(networkName, swapId, type);
-        return transaction.Id;
-    }
-
-    [Activity]
-    public virtual async Task UpdateSwapReferenceTransactionAsync(Guid id, TransactionResponse confirmedTransaction)
-    {
-        await swapRepository.UpdateSwapTransactionAsync(
-            id,
-            confirmedTransaction.TransactionHash,
-            confirmedTransaction.Asset,
-            confirmedTransaction.Amount,
-            confirmedTransaction.Confirmations,
-            confirmedTransaction.Timestamp,
-            confirmedTransaction.FeeAsset,
-            confirmedTransaction.FeeAmount);
+        return await swapRepository.CreateSwapTransactionAsync(
+            transaction.NetworkName,
+            swapId,
+            transactionType,
+            transaction.TransactionHash,
+            transaction.Asset,
+            transaction.Amount,
+            transaction.Confirmations,
+            transaction.Timestamp,
+            transaction.FeeAsset,
+            transaction.FeeAmount);
     }
 
     [Activity]

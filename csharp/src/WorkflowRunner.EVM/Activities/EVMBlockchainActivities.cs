@@ -31,11 +31,10 @@ using Train.Solver.WorkflowRunner.EVM.FunctionMessages;
 namespace Train.Solver.WorkflowRunner.EVM.Activities;
 
 public class EVMBlockchainActivities(
-    ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository, swapRepository), IEVMBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository), IEVMBlockchainActivities
 {
     private readonly string[] _nonRetriableErrors =
     [
@@ -56,18 +55,6 @@ public class EVMBlockchainActivities(
         "already known",
         "existing tx with same hash"
     ];
-
-    [Activity]
-    public override Task<string> GetReservedNonceAsync(ReservedNonceRequest request)
-    {
-        return base.GetReservedNonceAsync(request); 
-    }
-
-    [Activity]
-    public override Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request)
-    {
-        return base.EnsureSufficientBalanceAsync(request);
-    }
 
     [Activity]
     public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)

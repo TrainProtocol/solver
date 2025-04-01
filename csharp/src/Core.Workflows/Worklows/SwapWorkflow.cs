@@ -117,7 +117,7 @@ public class SwapWorkflow
         var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));
 
         // Lock in destination network
-        await ExecuteTransactionAsync(new TransactionContext()
+        await ExecuteTransactionAsync(new TransactionRequest()
         {
             PrepareArgs = JsonSerializer.Serialize(new HTLCLockTransactionPrepareRequest
             {
@@ -161,7 +161,7 @@ public class SwapWorkflow
                     throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
                 }
 
-                var childWorkflowTask = ExecuteTransactionAsync(new TransactionContext()
+                var childWorkflowTask = ExecuteTransactionAsync(new TransactionRequest()
                 {
                     PrepareArgs = JsonSerializer.Serialize(new AddLockSigTransactionPrepareRequest
                     {
@@ -202,7 +202,7 @@ public class SwapWorkflow
             }
 
             // Redeem user funds
-            var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionContext()
+            var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
@@ -220,7 +220,7 @@ public class SwapWorkflow
             });
 
             // Redeem LP funds
-            var redeemInSourceTask = ExecuteTransactionAsync(new TransactionContext()
+            var redeemInSourceTask = ExecuteTransactionAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
@@ -258,7 +258,7 @@ public class SwapWorkflow
             await DelayAsync(diff);
         }
 
-        await ExecuteTransactionAsync(new TransactionContext()
+        await ExecuteTransactionAsync(new TransactionRequest()
         {
             PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
             {
@@ -307,31 +307,23 @@ public class SwapWorkflow
         return Task.CompletedTask;
     }
 
-    private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionContext transactionContext)
+    private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
     {
-        var swapReferenceTransactionId = await ExecuteActivityAsync(
-            (SwapActivities x) => x.CreateSwapReferenceTransactionAsync(
-            transactionContext.NetworkName,
-            transactionContext.SwapId,
-            transactionContext.Type), TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
-
-        transactionContext.UniquenessToken = swapReferenceTransactionId.ToString();
-
         var confirmedTransaction = await ExecuteChildWorkflowAsync<TransactionResponse>(
-            TemporalHelper.ResolveProcessor(transactionContext.NetworkType),
-            [transactionContext],
+            TemporalHelper.ResolveProcessor(transactionRequest.NetworkType),
+            [transactionRequest, null],
             new ChildWorkflowOptions
             {
                 Id = TemporalHelper.BuildProcessorId(
-                    transactionContext.NetworkName,
-                    transactionContext.Type,
+                    transactionRequest.NetworkName,
+                    transactionRequest.Type,
                     NewGuid()),
-                TaskQueue = transactionContext.NetworkType.ToString(),
+                TaskQueue = transactionRequest.NetworkType.ToString(),
             });
 
         await ExecuteActivityAsync(
             (SwapActivities x) =>
-                x.UpdateSwapReferenceTransactionAsync(swapReferenceTransactionId, confirmedTransaction),
+                x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
@@ -340,8 +332,8 @@ public class SwapWorkflow
                 confirmedTransaction.FeeAsset,
                 confirmedTransaction.FeeAmount,
                 confirmedTransaction.Asset,
-                transactionContext.Type),
+                transactionRequest.Type),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         return confirmedTransaction;
-    }    
+    }
 }

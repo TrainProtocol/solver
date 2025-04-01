@@ -28,24 +28,12 @@ public class SolanaBlockchainActivities(
     ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository, swapRepository), ISolanaBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository), ISolanaBlockchainActivities
 {
     private const int MaxConcurrentTaskCount = 4;
     private const int LamportsPerSignature = 5000;
     private const int LamportsPerRent = 3000000;
     private const int BlockhashNotFoundErrorCode = -32002;
-
-    [Activity]
-    public override Task<string> GetReservedNonceAsync(ReservedNonceRequest request)
-    {
-        return base.GetReservedNonceAsync(request);
-    }
-
-    [Activity]
-    public override Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request)
-    {
-        return base.EnsureSufficientBalanceAsync(request);
-    }
 
     [Activity]
     public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)

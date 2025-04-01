@@ -19,12 +19,17 @@ public class EVMTransactionProcessor
     const int MaxRetryCount = 5;
 
     [WorkflowRun]
-    public async Task<TransactionResponse> RunAsync(TransactionContext context)
+    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext? context = null)
     {
-        // Check allowance
-        if (context.Type == TransactionType.HTLCLock)
+        if (context == null)
         {
-            await CheckAllowanceAsync(context);
+            context = new();
+        }
+
+        // Check allowance
+        if (request.Type == TransactionType.HTLCLock)
+        {
+            await CheckAllowanceAsync(request);
         }
 
         // Prepare transaction
@@ -32,43 +37,42 @@ public class EVMTransactionProcessor
             (EVMBlockchainActivities x) => x.BuildTransactionAsync(
                 new TransactionBuilderRequest()
                 {
-                    NetworkName = context.NetworkName,
-                    Args = context.PrepareArgs,
-                    Type = context.Type
+                    NetworkName = request.NetworkName,
+                    Args = request.PrepareArgs,
+                    Type = request.Type
                 }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
         // Estimate fee
         if (context.Fee == null)
         {
-            context.Fee = await GetFeeAsync(context, preparedTransaction);
+            context.Fee = await GetFeeAsync(request, context, preparedTransaction);
         }
 
         // Get nonce
         if (string.IsNullOrEmpty(context.Nonce))
         {
             context.Nonce = await ExecuteActivityAsync(
-                (EVMBlockchainActivities x) => x.GetReservedNonceAsync(new ReservedNonceRequest()
+                (EVMBlockchainActivities x) => x.GetNextNonceAsync(new ()
                 {
-                    NetworkName = context.NetworkName,
-                    Address = context.FromAddress!,
-                    ReferenceId = context.UniquenessToken
+                    NetworkName = request.NetworkName,
+                    Address = request.FromAddress!,
                 }),
-                TemporalHelper.DefaultActivityOptions(context.NetworkType));
+                TemporalHelper.DefaultActivityOptions(request.NetworkType));
         }
 
         var rawTransaction = await ExecuteActivityAsync(
             (EVMBlockchainActivities x) => x.ComposeSignedRawTransactionAsync(new EVMComposeTransactionRequest()
             {
-                NetworkName = context.NetworkName,
-                FromAddress = context.FromAddress,
+                NetworkName = request.NetworkName,
+                FromAddress = request.FromAddress,
                 ToAddress = preparedTransaction.ToAddress,
                 Nonce = context.Nonce,
                 AmountInWei = preparedTransaction.AmountInWei,
                 CallData = preparedTransaction.Data,
                 Fee = context.Fee
             }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
         // Initiate blockchain transfer
         try
@@ -77,8 +81,8 @@ public class EVMTransactionProcessor
                 (EVMBlockchainActivities x) => x.PublishRawTransactionAsync(
                     new EVMPublishTransactionRequest()
                     {
-                        NetworkName = context.NetworkName,
-                        FromAddress = context.FromAddress,
+                        NetworkName = request.NetworkName,
+                        FromAddress = request.FromAddress,
                         SignedTransaction = rawTransaction
                     }),
                 new()
@@ -102,26 +106,26 @@ public class EVMTransactionProcessor
                 appFailEx.HasError<TransactionUnderpricedException>() &&
                 context.Attempts < MaxRetryCount)
             {
-                var newFee = await GetFeeAsync(context, preparedTransaction);
+                var newFee = await GetFeeAsync(request, context, preparedTransaction);
 
                 var increasedFee = await ExecuteActivityAsync(
                     (EVMBlockchainActivities x) => x.IncreaseFeeAsync(new EVMFeeIncreaseRequest()
                     {
                         Fee = newFee,
-                        NetworkName = context.NetworkName,
+                        NetworkName = request.NetworkName,
                     }),
-                    TemporalHelper.DefaultActivityOptions(context.NetworkType));
+                    TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
                 context.Fee = increasedFee;
                 context.Attempts++;
 
-                throw CreateContinueAsNewException<EVMTransactionProcessor>((x) => x.RunAsync(context));
+                throw CreateContinueAsNewException<EVMTransactionProcessor>((x) => x.RunAsync(request, context));
             }
 
             throw;
         }
 
-        var confirmedTransaction = await GetTransactionReceiptAsync(context);
+        var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
         confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
         confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
@@ -130,7 +134,8 @@ public class EVMTransactionProcessor
     }
 
     private async Task<Fee> GetFeeAsync(
-        TransactionContext context,
+        TransactionRequest request,
+        TransactionExecutionContext context,
         PrepareTransactionResponse preparedTransaction)
     {
         try
@@ -138,8 +143,8 @@ public class EVMTransactionProcessor
             var fee = await ExecuteActivityAsync(
                 (EVMBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
                 {
-                    NetworkName = context.NetworkName,
-                    FromAddress = context.FromAddress!,
+                    NetworkName = request.NetworkName,
+                    FromAddress = request.FromAddress!,
                     ToAddress = preparedTransaction.ToAddress!,
                     Asset = preparedTransaction.Asset!,
                     Amount = preparedTransaction.Amount,
@@ -166,71 +171,6 @@ public class EVMTransactionProcessor
                 throw new("Unable to pay fees with any asset");
             }
 
-            if (fee.Asset == preparedTransaction.CallDataAsset)
-            {
-                await ExecuteActivityAsync(
-                    (EVMBlockchainActivities x) => x.EnsureSufficientBalanceAsync(new SufficientBalanceRequest
-                    {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        Asset = fee.Asset!,
-                        Amount = fee.Amount + preparedTransaction.CallDataAmount
-                    }),
-                  new()
-                  {
-                      ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                      StartToCloseTimeout = TimeSpan.FromHours(1),
-                      RetryPolicy = new()
-                      {
-                          InitialInterval = TimeSpan.FromMinutes(10),
-                          BackoffCoefficient = 1f,
-                      },
-                  });
-            }
-            else
-            {
-                // Fee asset ensure balance
-                await ExecuteActivityAsync(
-                    (EVMBlockchainActivities x) => x.EnsureSufficientBalanceAsync(
-                        new SufficientBalanceRequest
-                        {
-                            NetworkName = context.NetworkName,
-                            Address = context.FromAddress!,
-                            Asset = fee.Asset!,
-                            Amount = fee.Amount
-                        }),
-                    new()
-                    {
-                        ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                        StartToCloseTimeout = TimeSpan.FromHours(1),
-                        RetryPolicy = new()
-                        {
-                            InitialInterval = TimeSpan.FromMinutes(10),
-                            BackoffCoefficient = 1f,
-                        },
-                    });
-
-                // Transfeable asset ensure balance
-                await ExecuteActivityAsync(
-                    (EVMBlockchainActivities x) => x.EnsureSufficientBalanceAsync(new SufficientBalanceRequest
-                    {
-                        NetworkName = context.NetworkName,
-                        Address = context.FromAddress!,
-                        Asset = preparedTransaction.CallDataAsset!,
-                        Amount = preparedTransaction.CallDataAmount
-                    }),
-                    new()
-                    {
-                        ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                        StartToCloseTimeout = TimeSpan.FromHours(1),
-                        RetryPolicy = new()
-                        {
-                            InitialInterval = TimeSpan.FromMinutes(10),
-                            BackoffCoefficient = 1f,
-                        },
-                    });
-            }
-
             return fee;
         }
         catch (ActivityFailureException ex)
@@ -241,22 +181,24 @@ public class EVMTransactionProcessor
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
                     await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((EVMTransactionProcessor x) => x.RunAsync(
-                        new TransactionContext()
-                    {
-                        UniquenessToken = context.UniquenessToken,
-                        NetworkName = context.NetworkName,
-                        Nonce = context.Nonce,
-                        FromAddress = context.FromAddress,
-                        NetworkType = context.NetworkType,
-                        PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+                        new TransactionRequest()
                         {
-                            Amount = 0,
-                            Asset = context.Fee!.Asset,
-                            ToAddress = context.FromAddress,
-                        }, (JsonSerializerOptions?)null),
-                        Type = TransactionType.Transfer,
-                        SwapId = context.SwapId,
-                    }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Transfer, NewGuid()) });
+                            NetworkName = request.NetworkName,
+                            FromAddress = request.FromAddress,
+                            NetworkType = request.NetworkType,
+                            PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+                            {
+                                Amount = 0,
+                                Asset = context.Fee!.Asset,
+                                ToAddress = request.FromAddress,
+                            }, (JsonSerializerOptions?)null),
+                            Type = TransactionType.Transfer,
+                            SwapId = request.SwapId,
+                        }, new TransactionExecutionContext
+                        {
+                            Nonce = context.Nonce,
+                        }),
+                        new() { Id = TemporalHelper.BuildProcessorId(request.NetworkName, TransactionType.Transfer, NewGuid()) });
                 }
 
                 throw;
@@ -274,7 +216,7 @@ public class EVMTransactionProcessor
             // if lock already exists
             else if (ex.InnerException is ApplicationFailureException appEx && appEx.HasError<HTLCAlreadyExistsException>())
             {
-                var confirmedTransaction = await GetTransactionReceiptAsync(context);
+                var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
                 if (confirmedTransaction != null)
                 {
                     return context.Fee!;
@@ -286,7 +228,7 @@ public class EVMTransactionProcessor
     }
 
     private async Task CheckAllowanceAsync(
-        TransactionContext context)
+        TransactionRequest context)
     {
         var lockRequest = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
 
@@ -320,7 +262,7 @@ public class EVMTransactionProcessor
         {
             // Initiate approval transaction
 
-            await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((EVMTransactionProcessor x) => x.RunAsync(new TransactionContext()
+            await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((EVMTransactionProcessor x) => x.RunAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
@@ -329,24 +271,24 @@ public class EVMTransactionProcessor
                     Asset = lockRequest.SourceAsset,
                 }, (JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,
-                UniquenessToken = Guid.NewGuid().ToString(),
                 FromAddress = context.FromAddress,
                 NetworkName = lockRequest.SourceNetwork,
                 NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
-            }), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            },
+            new()), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
 
         }
     }
 
-    private async Task<TransactionResponse> GetTransactionReceiptAsync(TransactionContext context)
+    private async Task<TransactionResponse> GetTransactionReceiptAsync(TransactionRequest request, TransactionExecutionContext context)
     {
         try
         {
             return await ExecuteActivityAsync(
                (EVMBlockchainActivities x) => x.GetBatchTransactionAsync(new GetBatchTransactionRequest()
                {
-                   NetworkName = context.NetworkName,
+                   NetworkName = request.NetworkName,
                    TransactionIds = context.PublishedTransactionIds.ToArray()
                }),
                     new()
@@ -365,7 +307,7 @@ public class EVMTransactionProcessor
         {
             if (ex.InnerException is ApplicationFailureException appFailEx && appFailEx.HasError<TransactionNotComfirmedException>())
             {
-                throw CreateContinueAsNewException<EVMTransactionProcessor>((x) => x.RunAsync(context));
+                throw CreateContinueAsNewException<EVMTransactionProcessor>((x) => x.RunAsync(request, context));
             }
             else if (ex.InnerException is ApplicationFailureException appEx && appEx.HasError<TransactionFailedException>())
             {

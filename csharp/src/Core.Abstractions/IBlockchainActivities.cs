@@ -6,8 +6,6 @@ public interface IBlockchainActivities
 {
     Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
 
-    Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request);
-
     Task<string> GetSpenderAddressAsync(SpenderAddressRequest request);
 
     Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
@@ -17,8 +15,6 @@ public interface IBlockchainActivities
     Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
 
     Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
-
-    Task<string> GetReservedNonceAsync(ReservedNonceRequest request);
 
     Task<string> GetNextNonceAsync(NextNonceRequest request);
 

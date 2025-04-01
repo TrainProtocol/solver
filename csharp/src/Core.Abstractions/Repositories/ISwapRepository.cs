@@ -23,22 +23,15 @@ public interface ISwapRepository
         string hashlock,
         decimal feeAmount);
 
-    Task<Transaction> InitiateSwapTransactionAsync(
+    Task<Guid> CreateSwapTransactionAsync(
         string networkName,
         string swapId,
-        TransactionType transactionType);
-
-    Task<Guid> UpdateSwapTransactionAsync(
-        Guid transactionId,
+        TransactionType transactionType,
         string transactionHash,
-        string token,
+        string asset,
         decimal amount,
         int confirmations,
         DateTimeOffset timestamp,
-        string feeToken,
+        string feeAsset,
         decimal feeAmount);
-
-    Task<ReservedNonce?> GetSwapTransactionReservedNonceAsync(Guid transactionId);
-
-    Task<ReservedNonce> CreateSwapTransactionReservedNonceAsync(string networkName, Guid transactionId, string nonce);
 }

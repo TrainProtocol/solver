@@ -26,18 +26,13 @@ public class StarknetBlockchainActivities(
     INetworkRepository networkRepository,
     IHttpClientFactory httpClientFactory,
     IDatabase cache,
-    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase(networkRepository, swapRepository), IStarknetBlockchainActivities
+    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase(networkRepository), IStarknetBlockchainActivities
 {
     private static readonly BigInteger BigIntTwo = new BigInteger(2);
     private static readonly BigInteger Mask221 = BigInteger.Pow(BigIntTwo, 221);
     private static readonly BigInteger Mask251 = BigInteger.Pow(BigIntTwo, 251);
 
     public override Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
-    {
-        throw new TaskQueueMismatchException();
-    }
-
-    public override Task EnsureSufficientBalanceAsync(SufficientBalanceRequest request)
     {
         throw new TaskQueueMismatchException();
     }
@@ -183,12 +178,6 @@ public class StarknetBlockchainActivities(
             BlockNumber = (ulong)lastBlock,
             BlockHash = getBlockResponse.BlockHash
         };
-    }
-
-    [Activity]
-    public override Task<string> GetReservedNonceAsync(ReservedNonceRequest request)
-    {
-        return base.GetReservedNonceAsync(request);
     }
 
     [Activity]

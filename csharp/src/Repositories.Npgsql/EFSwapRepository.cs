@@ -44,30 +44,6 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
         return swap;
     }
 
-    public async Task<ReservedNonce> CreateSwapTransactionReservedNonceAsync(string networkName, Guid transactionId, string nonce)
-    {
-        var network = await dbContext.Networks
-            .SingleOrDefaultAsync(x => x.Name == networkName);
-
-        if (network == null)
-        {
-            throw new Exception($"Network {networkName} not found");
-        }
-
-        var reservedNonce = new ReservedNonce
-        {
-            ReferenceId = transactionId.ToString(),
-            NetworkId = network.Id,
-            Nonce = nonce,
-        };
-
-        dbContext.ReservedNonces.Add(reservedNonce);
-
-        await dbContext.SaveChangesAsync();
-
-        return reservedNonce;
-    }
-
     public async Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20, string[]? addresses = null)
     {
         return await dbContext.Swaps
@@ -110,12 +86,6 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
             .ToListAsync();
     }
 
-    public async Task<ReservedNonce?> GetSwapTransactionReservedNonceAsync(Guid transactionId)
-    {
-        return await dbContext.ReservedNonces
-            .FirstOrDefaultAsync(x => x.ReferenceId == transactionId.ToString());
-    }
-
     public async Task<Transaction> InitiateSwapTransactionAsync(string networkName, string swapId, TransactionType transactionType)
     {
         var transaction = new Transaction
@@ -132,53 +102,57 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
         return transaction;
     }
 
-    public async Task<Guid> UpdateSwapTransactionAsync(Guid transactionId, string transactionHash, string asset, decimal amount, int confirmations, DateTimeOffset timestamp, string feeAsset, decimal feeAmount)
+    public async Task<Guid> CreateSwapTransactionAsync(
+        string networkName,
+        string swapId,
+        TransactionType transactionType,
+        string transactionHash,
+        string asset,
+        decimal amount,
+        int confirmations,
+        DateTimeOffset timestamp,
+        string feeAsset,
+        decimal feeAmount)
     {
-        var transaction = await dbContext.Transactions
-            .SingleOrDefaultAsync(x => x.Id == transactionId);
-
-        if (transaction == null)
-        {
-            throw new Exception($"Transaction with id {transactionId} not found.");
-        }
-
-        transaction.TransactionId = transactionHash;
-        transaction.Status = TransactionStatus.Completed;
-        transaction.Confirmations = confirmations;
-        transaction.Timestamp = timestamp;
-        transaction.FeeAmount = feeAmount;
-        transaction.FeeAsset = feeAsset;
-        transaction.Amount = amount;
-        transaction.Asset = asset;
-
         var token = await dbContext.Tokens
-            .Include(x => x.TokenPrice)
-            .SingleOrDefaultAsync(x =>
-                x.Asset == transaction.Asset
-                && x.Network.Name == transaction.NetworkName);
+         .Include(x => x.TokenPrice)
+         .SingleOrDefaultAsync(x =>
+             x.Asset == asset
+             && x.Network.Name == networkName);
 
         if (token == null)
         {
-            throw new($"Token with asset {transaction.Asset} not found.");
+            throw new($"Token with asset {asset} not found.");
         }
-
-        transaction.UsdPrice = token.TokenPrice.PriceInUsd;
 
         var feeToken = await dbContext.Tokens
             .Include(x => x.TokenPrice)
             .SingleOrDefaultAsync(x =>
-                x.Asset == transaction.FeeAsset
-                && x.Network.Name == transaction.NetworkName);
+                x.Asset == feeAsset
+                && x.Network.Name == networkName);
 
         if (feeToken == null)
         {
-            throw new($"Token with asset {transaction.FeeAsset} not found.");
+            throw new($"Token with asset {feeAsset} not found.");
         }
 
-        transaction.FeeUsdPrice = feeToken.TokenPrice.PriceInUsd;
+        var transaction = new Transaction
+        {
+            TransactionId = transactionHash,
+            Status = TransactionStatus.Completed,
+            Confirmations = confirmations,
+            Timestamp = timestamp,
+            FeeAmount = feeAmount,
+            FeeAsset = feeToken.Asset,
+            Amount = amount,
+            Asset = token.Asset,
+            FeeUsdPrice = feeToken.TokenPrice.PriceInUsd,
+            UsdPrice = token.TokenPrice.PriceInUsd
+        };
 
+        dbContext.Transactions.Add(transaction);
         await dbContext.SaveChangesAsync();
 
-        return transactionId;
+        return transaction.Id;
     }
 }

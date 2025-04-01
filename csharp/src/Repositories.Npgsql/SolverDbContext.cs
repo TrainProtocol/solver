@@ -15,8 +15,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<TokenPrice> TokenPrices { get; set; }
 
-    public DbSet<ReservedNonce> ReservedNonces { get; set; }
-
     public DbSet<ManagedAccount> ManagedAccounts { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
@@ -78,10 +76,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<ManagedAccount>()
             .Property(b => b.Type)
             .HasEnumComment();
-
-        modelBuilder.Entity<ReservedNonce>()
-            .HasIndex(x => new { x.NetworkId, x.ReferenceId })
-            .IsUnique();
 
         modelBuilder.Entity<Route>()
             .Property(b => b.Status)

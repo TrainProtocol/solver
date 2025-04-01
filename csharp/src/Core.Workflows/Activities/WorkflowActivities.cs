@@ -68,7 +68,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
         }
 
         await temporalClient.StartWorkflowAsync(
-            TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionContext()
+            TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionRequest()
                 {
                     PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
