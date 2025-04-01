@@ -147,6 +147,9 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
             Amount = amount,
             Asset = token.Asset,
             FeeUsdPrice = feeToken.TokenPrice.PriceInUsd,
+            NetworkName = networkName,
+            SwapId = swapId,
+            Type = transactionType,
             UsdPrice = token.TokenPrice.PriceInUsd
         };
 
