@@ -14,13 +14,8 @@ namespace Train.Solver.WorkflowRunner.Solana.Workflows;
 public class SolanaTransactionProcessor
 {
     [WorkflowRun]
-    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext? context = null)
+    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
     {
-        if (context is null)
-        {
-            context = new();
-        }
-
         var preparedTransaction = await ExecuteActivityAsync(
             (SolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest
                 {

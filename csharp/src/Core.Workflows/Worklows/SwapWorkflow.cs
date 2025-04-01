@@ -311,7 +311,7 @@ public class SwapWorkflow
     {
         var confirmedTransaction = await ExecuteChildWorkflowAsync<TransactionResponse>(
             TemporalHelper.ResolveProcessor(transactionRequest.NetworkType),
-            [transactionRequest, null],
+            [transactionRequest, new TransactionExecutionContext()],
             new ChildWorkflowOptions
             {
                 Id = TemporalHelper.BuildProcessorId(

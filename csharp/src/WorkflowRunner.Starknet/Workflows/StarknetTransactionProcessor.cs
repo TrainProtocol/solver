@@ -19,13 +19,8 @@ public class StarknetTransactionProcessor
     private const string JS_TASK_QUEUE = $"{nameof(NetworkType.Starknet)}JS";
 
     [WorkflowRun]
-    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext? context = null)
+    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
     {
-        if (context is null)
-        {
-            context = new();
-        }
-
         if (request.Type == TransactionType.HTLCLock)
         {
             await CheckAllowanceAsync(request);

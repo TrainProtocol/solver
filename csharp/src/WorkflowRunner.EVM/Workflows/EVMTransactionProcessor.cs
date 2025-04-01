@@ -19,13 +19,8 @@ public class EVMTransactionProcessor
     const int MaxRetryCount = 5;
 
     [WorkflowRun]
-    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext? context = null)
+    public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
     {
-        if (context == null)
-        {
-            context = new();
-        }
-
         // Check allowance
         if (request.Type == TransactionType.HTLCLock)
         {
