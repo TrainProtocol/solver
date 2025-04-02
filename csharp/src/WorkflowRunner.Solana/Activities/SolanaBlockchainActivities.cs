@@ -224,7 +224,7 @@ public class SolanaBlockchainActivities(
         {
             NetworkName = request.NetworkName,
             Address = request.FromAddress,
-            Asset = request.Asset
+            Asset = fee.Asset
         });
 
         var amount = fee.Amount + request.Amount;
