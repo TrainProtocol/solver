@@ -34,7 +34,7 @@ public class SolanaTransactionProcessor
                         NetworkName = request.NetworkName,
                         FromAddress = request.FromAddress!,
                         ToAddress = preparedTransaction.ToAddress,
-                        Asset = preparedTransaction.Asset,
+                        Asset = preparedTransaction.CallDataAsset,
                         Amount = preparedTransaction.Amount,
                         CallData = preparedTransaction.Data,
                     }

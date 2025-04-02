@@ -151,7 +151,7 @@ public class StarknetTransactionProcessor
                     {
                         FromAddress = context.FromAddress!,
                         ToAddress = preparedTransaction.ToAddress!,
-                        Asset = preparedTransaction.Asset!,
+                        Asset = preparedTransaction.CallDataAsset!,
                         Amount = preparedTransaction.Amount,
                         CallData = preparedTransaction.Data,
                         NetworkName = context.NetworkName,
