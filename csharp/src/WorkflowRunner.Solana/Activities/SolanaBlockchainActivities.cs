@@ -21,7 +21,7 @@ using Train.Solver.WorkflowRunner.Solana.Extensions;
 using Train.Solver.WorkflowRunner.Solana.Helpers;
 using Train.Solver.WorkflowRunner.Solana.Models;
 using Train.Solver.WorkflowRunner.Solana.Programs;
-using Solnet.Programs.TokenSwap.Models;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace Train.Solver.WorkflowRunner.Solana.Activities;
 
@@ -46,7 +46,7 @@ public class SolanaBlockchainActivities(
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
-        if(network is null)
+        if (network is null)
         {
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
@@ -150,100 +150,51 @@ public class SolanaBlockchainActivities(
             throw new Exception($"Failed to get minimum balance for rent exemption in network: {request.NetworkName}");
         }
 
-        BigInteger baseFeeInLamports = balanceForRentExemptionResult.Result;
-        BigInteger computeUnitsUsed = SolanaConstants.BaseLimit;
+        var builder = new TransactionBuilder()
+            .SetFeePayer(solanaAccount);
 
-        if (request.CallData != null)
+        var signers = new List<Account> { solanaAccount };
+
+        var transaction = Convert.FromBase64String(request.CallData);
+        var tx = Solnet.Rpc.Models.Transaction.Deserialize(transaction);
+
+        foreach (var instruction in tx.Instructions)
         {
-            var builder = new TransactionBuilder()
-                .SetFeePayer(solanaAccount);
-
-            var signers = new List<Account> { solanaAccount };
-
-            var transaction = Convert.FromBase64String(request.CallData);
-            var tx = Solnet.Rpc.Models.Transaction.Deserialize(transaction);
-
-            foreach (var instruction in tx.Instructions)
-            {
-                builder.AddInstruction(instruction);
-            }
-
-            if (tx.FeePayer != solanaAccount)
-            {
-                var managedAddressPrivateKey = await privateKeyProvider.GetAsync(tx.FeePayer);
-                signers.Add(new Account(managedAddressPrivateKey, tx.FeePayer));
-            }
-
-            var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
-
-            if (!latestBlockHashResponse.WasSuccessful)
-            {
-                throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
-            }
-
-            builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
-
-            var rawTx = builder.Build(signers);
-
-            var simulatedTransaction = await rpcClient.SimulateTransactionAsync(rawTx);
-
-            if (!simulatedTransaction.WasSuccessful || simulatedTransaction.Result.Value.Error != null)
-            {
-                if (!simulatedTransaction.WasSuccessful)
-                {
-                    throw new Exception($"Failed to simulate transaction in network{request.NetworkName}: Reason {simulatedTransaction.Reason}");
-                }
-
-                throw new Exception($"Failed to simulate transaction in network{request.NetworkName}: Error Type {simulatedTransaction.Result.Value.Error.Type}");
-            }
-
-            computeUnitsUsed += TransactionLogExtension.ExtractTotalComputeUnitsUsed(simulatedTransaction.Result.Value.Logs.ToList());
-
-            baseFeeInLamports += ComputeRentFee(request.NetworkName, tx.Instructions) + signers.Count * LamportsPerSignature;
+            builder.AddInstruction(instruction);
         }
-        else
+
+        if (tx.FeePayer != solanaAccount)
         {
-            var withdrawalAmount = (ulong)Web3.Convert.ToWei(request.Amount, currency.Decimals);
-
-            var builder = new TransactionBuilder()
-                .SetFeePayer(solanaAccount);
-
-            var transactionInstructionResult = await builder.CreateTransactionInstructionAsync(
-                currency,
-                rpcClient,
-                solanaAccount,
-                request.ToAddress,
-                withdrawalAmount);
-
-            var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
-
-            if (!latestBlockHashResponse.WasSuccessful)
-            {
-                throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
-            }
-
-            builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
-
-            var rawTx = builder.Build(solanaAccount);
-
-            var simulatedTransaction = await rpcClient.SimulateTransactionAsync(rawTx);
-
-            computeUnitsUsed += TransactionLogExtension.ExtractTotalComputeUnitsUsed(simulatedTransaction.Result.Value.Logs.ToList());
-
-            baseFeeInLamports += LamportsPerSignature;
-
-            if (currency.TokenContract != null)
-            {
-                var isActivatedAddress = await IsAssociatedTokenAccountInitialized(
-                    rpcClient,
-                    new PublicKey(currency.TokenContract),
-                    new PublicKey(request.ToAddress));
-
-                baseFeeInLamports += isActivatedAddress ?
-                    0 :
-                    LamportsPerRent;
-            }
+            var managedAddressPrivateKey = await privateKeyProvider.GetAsync(tx.FeePayer);
+            signers.Add(new Account(managedAddressPrivateKey, tx.FeePayer));
         }
+
+        var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
+
+        if (!latestBlockHashResponse.WasSuccessful)
+        {
+            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+        }
+
+        builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
+
+        var rawTx = builder.Build(signers);
+
+        var simulatedTransaction = await rpcClient.SimulateTransactionAsync(rawTx);
+
+        if (!simulatedTransaction.WasSuccessful || simulatedTransaction.Result.Value.Error != null)
+        {
+            if (!simulatedTransaction.WasSuccessful)
+            {
+                throw new Exception($"Failed to simulate transaction in network{request.NetworkName}: Reason {simulatedTransaction.Reason}");
+            }
+
+            throw new Exception($"Failed to simulate transaction in network{request.NetworkName}: Error Type {simulatedTransaction.Result.Value.Error.Type}");
+        }
+
+        var computeUnitsUsed = SolanaConstants.BaseLimit + TransactionLogExtension.ExtractTotalComputeUnitsUsed(simulatedTransaction.Result.Value.Logs.ToList());
+
+        var baseFeeInLamports = balanceForRentExemptionResult.Result + ComputeRentFee(request.NetworkName, tx.Instructions) + signers.Count * LamportsPerSignature;
 
         var nativeCurrency = network.Tokens.SingleOrDefault(x => x.TokenContract is null);
 
@@ -276,9 +227,16 @@ public class SolanaBlockchainActivities(
             Asset = nativeCurrency.Asset
         });
 
-        if (balance.Amount < fee.Amount)
+        var amount = fee.Amount;
+
+        if (request.Asset == nativeCurrency.Asset)
         {
-            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {fee.Amount} {fee.Asset}");
+            amount += request.Amount;
+        }
+
+        if (balance.Amount < amount)
+        {
+            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
 
         return fee;
@@ -409,7 +367,7 @@ public class SolanaBlockchainActivities(
         }
 
         return transaction;
-    }    
+    }
 
     [Activity]
     public override async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)

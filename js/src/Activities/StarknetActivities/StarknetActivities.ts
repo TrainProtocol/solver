@@ -111,7 +111,7 @@ export class StarknetActivities {
                 case TransactionType.HTLCRedeem:
                     return StarknetTransactionBuilder.CreateRedeemCallData(network, request.Args);
                 case TransactionType.HTLCRefund:
-                    return StarknetTransactionBuilder.CreateRefundCallData(network,request.Args);
+                    return StarknetTransactionBuilder.CreateRefundCallData(network, request.Args);
                 case TransactionType.HTLCAddLockSig:
                     return StarknetTransactionBuilder.CreateAddLockSigCallData(network, request.Args);
                 case TransactionType.Approve:
@@ -278,13 +278,19 @@ export class StarknetActivities {
             }
 
             const balanceInWei = await this.StarknetGetBalanceAsync({
-                Address: feeRequest.FromAddress, 
+                Address: feeRequest.FromAddress,
                 NetworkName: feeRequest.NetworkName,
                 Asset: this.FeeSymbol
-             });
+            });
 
-            if (feeInWei > balanceInWei) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${fixedfeeData.FeeInWei}`);
+            var amount = feeInWei;
+
+            if (feeRequest.Asset === this.FeeSymbol) {
+                amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
+            }
+
+            if (balanceInWei < amount) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${amount}`);
             }
 
             return result;

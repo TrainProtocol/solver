@@ -75,6 +75,8 @@ public class EVMBlockchainActivities(
         var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
         var fee = await feeEstimator.EstimateAsync(network, request);
 
+        var nativeCurrency = network.Tokens.Single(x => x.IsNative);
+
         var balance = await GetBalanceAsync(new BalanceRequest
         {
             NetworkName = request.NetworkName,
@@ -82,9 +84,16 @@ public class EVMBlockchainActivities(
             Asset = fee.Asset
         });
 
-        if (balance.Amount < fee.Amount)
+        var amount = fee.Amount;
+
+        if (request.Asset == nativeCurrency.Asset)
         {
-            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {fee.Amount} {fee.Asset}");
+            amount += request.Amount;
+        }
+
+        if (balance.Amount < amount)
+        {
+            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
 
         return fee;
@@ -676,7 +685,7 @@ public class EVMBlockchainActivities(
 
         return nonce.ToString();
     }
-    
+
     protected override string FormatAddress(AddressRequest request) => request.Address.ToLower();
 
     protected override bool ValidateAddress(AddressRequest request)
