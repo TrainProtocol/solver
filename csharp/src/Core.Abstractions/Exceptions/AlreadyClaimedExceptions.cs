@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Abstractions.Exceptions;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
 
 public class AlreadyClaimedExceptions(string message) : Exception(message)
 {

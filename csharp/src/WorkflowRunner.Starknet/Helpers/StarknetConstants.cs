@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.WorkflowRunner.Starknet.Helpers;
+﻿namespace Train.Solver.Blockchain.Starknet.Helpers;
 
 public static class StarknetConstants
 {

@@ -1,11 +1,12 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
-namespace Train.Solver.Core.Workflows.Activities;
+namespace Train.Solver.Blockchain.Common.Activities;
 
-public class RouteActivities(IRouteRepository routeRepository)
+public class RouteActivities(IRouteRepository routeRepository) : IRouteActivities
 {
     [Activity]
     public async Task<List<RouteModel>> GetAllRoutesAsync()

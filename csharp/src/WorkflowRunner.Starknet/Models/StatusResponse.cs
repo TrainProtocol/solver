@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.WorkflowRunner.Starknet.Models;
+﻿namespace Train.Solver.Blockchain.Starknet.Models;
 
 public class StatusResponse
 {

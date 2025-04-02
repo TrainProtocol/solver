@@ -1,7 +1,7 @@
 ﻿using Temporalio.Workflows;
-using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Entities;
 
-namespace Train.Solver.Core.Workflows.Helpers;
+namespace Train.Solver.Blockchain.Common.Helpers;
 
 public static class TemporalHelper
 {

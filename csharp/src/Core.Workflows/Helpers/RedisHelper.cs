@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Workflows.Helpers;
+﻿namespace Train.Solver.Blockchain.Common.Helpers;
 
 public static class RedisHelper
 {

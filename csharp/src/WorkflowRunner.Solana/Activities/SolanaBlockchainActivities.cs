@@ -7,22 +7,22 @@ using Solnet.Wallet;
 using Solnet.Wallet.Utilities;
 using StackExchange.Redis;
 using Temporalio.Activities;
-using Train.Solver.Core.Extensions;
-using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
+using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
 using Nethereum.Web3;
-using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Repositories;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.WorkflowRunner.Solana.Extensions;
-using Train.Solver.WorkflowRunner.Solana.Helpers;
-using Train.Solver.WorkflowRunner.Solana.Models;
-using Train.Solver.WorkflowRunner.Solana.Programs;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Util.Extensions;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Blockchain.Solana.Extensions;
+using Train.Solver.Blockchain.Solana.Helpers;
+using Train.Solver.Blockchain.Solana.Models;
+using Train.Solver.Blockchain.Solana.Programs;
+using Train.Solver.Blockchain.Common.Helpers;
 
-namespace Train.Solver.WorkflowRunner.Solana.Activities;
+namespace Train.Solver.Blockchain.Solana.Activities;
 
 public class SolanaBlockchainActivities(
     ISwapRepository swapRepository,

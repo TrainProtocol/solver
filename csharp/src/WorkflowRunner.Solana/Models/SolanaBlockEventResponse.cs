@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Train.Solver.WorkflowRunner.Solana.Models;
+namespace Train.Solver.Blockchain.Solana.Models;
 
 public class SolanaBlockEventResponse
 {

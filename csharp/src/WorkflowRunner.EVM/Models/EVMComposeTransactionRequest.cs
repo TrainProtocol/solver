@@ -1,6 +1,6 @@
-﻿using Train.Solver.Core.Abstractions.Models;
+﻿using Train.Solver.Blockchain.Abstractions.Models;
 
-namespace Train.Solver.WorkflowRunner.EVM.Models;
+namespace Train.Solver.Blockchain.EVM.Models;
 public class EVMComposeTransactionRequest : BaseRequest
 {
     public required string FromAddress { get; set; } = null!;

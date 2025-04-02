@@ -10,12 +10,12 @@ using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.WorkflowRunner.Solana.Programs;
-using Train.Solver.WorkflowRunner.Solana.Programs.Models;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Solana.Programs;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Blockchain.Solana.Programs.Models;
 
-namespace Train.Solver.WorkflowRunner.Solana.Helpers;
+namespace Train.Solver.Blockchain.Solana.Helpers;
 
 public static class SolanaTransactionBuilder
 {

@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.WorkflowRunner.EVM.Models;
+﻿namespace Train.Solver.Blockchain.EVM.Models;
 
 public class SignedTransaction
 {

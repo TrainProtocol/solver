@@ -23,7 +23,7 @@ namespace Train.Solver.Data.EF.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Contract", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Contract", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,7 +60,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Contracts");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Expense", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Expense", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -103,7 +103,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Expenses");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.ManagedAccount", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.ManagedAccount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -142,7 +142,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("ManagedAccounts");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Network", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Network", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -217,7 +217,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Networks");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Node", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Node", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -263,7 +263,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Nodes");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Route", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Route", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -305,7 +305,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Routes");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.ServiceFee", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.ServiceFee", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -347,7 +347,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("ServiceFees");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Swap", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Swap", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -405,7 +405,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Swaps");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Token", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Token", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -460,7 +460,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Tokens");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.TokenPrice", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.TokenPrice", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -494,7 +494,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("TokenPrices");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Transaction", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -570,9 +570,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Contract", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Contract", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Network", "Network")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Network", "Network")
                         .WithMany("Contracts")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -581,15 +581,15 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Expense", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Expense", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "FeeToken")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "FeeToken")
                         .WithMany()
                         .HasForeignKey("FeeTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "Token")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "Token")
                         .WithMany()
                         .HasForeignKey("TokenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -600,9 +600,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Token");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.ManagedAccount", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.ManagedAccount", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Network", "Network")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Network", "Network")
                         .WithMany("ManagedAccounts")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -611,9 +611,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Node", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Node", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Network", "Network")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Network", "Network")
                         .WithMany("Nodes")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -622,15 +622,15 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Network");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Route", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Route", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "DestinationToken")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "DestinationToken")
                         .WithMany()
                         .HasForeignKey("DestinationTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "SourceToken")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "SourceToken")
                         .WithMany()
                         .HasForeignKey("SourceTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -641,15 +641,15 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("SourceToken");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Swap", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Swap", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "DestinationToken")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "DestinationToken")
                         .WithMany()
                         .HasForeignKey("DestinationTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Token", "SourceToken")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Token", "SourceToken")
                         .WithMany()
                         .HasForeignKey("SourceTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -660,15 +660,15 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("SourceToken");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Token", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Token", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Network", "Network")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Network", "Network")
                         .WithMany("Tokens")
                         .HasForeignKey("NetworkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.TokenPrice", "TokenPrice")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.TokenPrice", "TokenPrice")
                         .WithMany()
                         .HasForeignKey("TokenPriceId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -679,9 +679,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("TokenPrice");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Transaction", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Transaction", b =>
                 {
-                    b.HasOne("Train.Solver.Core.Abstractions.Entities.Swap", "Swap")
+                    b.HasOne("Train.Solver.Infrastructure.Abstractions.Entities.Swap", "Swap")
                         .WithMany("Transactions")
                         .HasForeignKey("SwapId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -689,7 +689,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Swap");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Network", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Network", b =>
                 {
                     b.Navigation("Contracts");
 
@@ -700,7 +700,7 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Tokens");
                 });
 
-            modelBuilder.Entity("Train.Solver.Core.Abstractions.Entities.Swap", b =>
+            modelBuilder.Entity("Train.Solver.Infrastructure.Abstractions.Entities.Swap", b =>
                 {
                     b.Navigation("Transactions");
                 });

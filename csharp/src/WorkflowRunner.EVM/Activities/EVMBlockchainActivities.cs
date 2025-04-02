@@ -13,22 +13,21 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using RedLockNet;
 using StackExchange.Redis;
-using static Train.Solver.Core.Workflows.Helpers.ResilientNodeHelper;
+using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
-using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Repositories;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Nethereum.BlockchainProcessing.BlockStorage.Entities;
-using Train.Solver.WorkflowRunner.EVM.Models;
-using Train.Solver.WorkflowRunner.EVM.Helpers;
-using Train.Solver.WorkflowRunner.EVM.FunctionMessages;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.EVM.Models;
+using Train.Solver.Blockchain.EVM.Helpers;
+using Train.Solver.Blockchain.EVM.FunctionMessages;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Blockchain.Common.Helpers;
 
-namespace Train.Solver.WorkflowRunner.EVM.Activities;
+namespace Train.Solver.Blockchain.EVM.Activities;
 
 public class EVMBlockchainActivities(
     INetworkRepository networkRepository,

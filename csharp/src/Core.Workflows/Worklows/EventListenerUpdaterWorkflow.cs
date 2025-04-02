@@ -1,12 +1,13 @@
 using Temporalio.Workflows;
-using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Workflows.Helpers;
+using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common.Activities;
+using Train.Solver.Blockchain.Common.Helpers;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.Core.Workflows.Worklows;
+namespace Train.Solver.Blockchain.Common.Worklows;
 
 [Workflow]
-public class EventListenerUpdaterWorkflow
+public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 {
     [WorkflowRun]
     public async Task RunAsync()

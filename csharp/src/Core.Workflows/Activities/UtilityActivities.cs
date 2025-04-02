@@ -1,10 +1,11 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
 
-namespace Train.Solver.Core.Workflows.Activities;
+namespace Train.Solver.Blockchain.Common.Activities;
 
 
-public class UtilityActivities
+public class UtilityActivities : IUtilityActivities
 {
     [Activity]
     public IEnumerable<BlockRangeModel> GenerateBlockRanges(ulong start, ulong end, uint chunkSize)

@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
-using Train.Solver.Core.DependencyInjection;
 using OpenTelemetry.Trace;
+using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.Logging.OpenTelemetry;
+namespace Train.Solver.Infrastructure.Logging.OpenTelemetry;
 
 public static class TrainSolverBuilderExtensions
 {

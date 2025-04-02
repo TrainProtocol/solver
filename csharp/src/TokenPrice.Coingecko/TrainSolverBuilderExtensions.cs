@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.DependencyInjection;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.TokenPrice.Coingecko;
+namespace Train.Solver.Infrastructure.TokenPrice.Coingecko;
 
 public static class TrainSolverBuilderExtensions
 {

@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Workflows;
+﻿namespace Train.Solver.Blockchain.Common;
 
 public class Constants
 {

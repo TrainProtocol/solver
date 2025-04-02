@@ -1,6 +1,6 @@
 ﻿using Nethereum.ABI.FunctionEncoding.Attributes;
 
-namespace Train.Solver.WorkflowRunner.EVM.FunctionMessages;
+namespace Train.Solver.Blockchain.EVM.FunctionMessages;
 
 [Struct("addLockMsg")]
 public class AddLockMessage

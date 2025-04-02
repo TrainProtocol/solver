@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Infrastructure.Logging.OpenTelemetry</AssemblyName>
+		<RootNamespace>Train.Solver.Infrastructure.Logging.OpenTelemetry</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="OpenTelemetry" Version="1.11.2" />
+	  <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.11.0" />
+	  <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
+	  <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
+	</ItemGroup>
+
+</Project>

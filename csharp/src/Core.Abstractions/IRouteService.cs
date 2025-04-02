@@ -1,7 +1,7 @@
-﻿using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
+﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
-namespace Train.Solver.Core.Abstractions;
+namespace Train.Solver.Infrastructure.Abstractions;
 public interface IRouteService
 {
     Task<LimitModel?> GetLimitAsync(SourceDestinationRequest request);

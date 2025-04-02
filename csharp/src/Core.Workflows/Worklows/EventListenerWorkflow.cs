@@ -1,15 +1,15 @@
 ﻿using Temporalio.Workflows;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Workflows.Helpers;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common.Activities;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Data.Abstractions.Entities;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.Core.Workflows.Worklows;
+namespace Train.Solver.Blockchain.Common.Worklows;
 
 [Workflow]
-public class EventListenerWorkflow
+public class EventListenerWorkflow : IEventListenerWorkflow
 {
     private ulong? _lastProcessedBlockNumber;
     private const int _maxConcurrentTaskCount = 4;
@@ -114,7 +114,7 @@ public class EventListenerWorkflow
         var result = await ExecuteActivityAsync<HTLCBlockEventResponse>(
             "GetEvents",
             [
-                new EventRequest() 
+                new EventRequest()
                 {
                     NetworkName = networkName,
                     FromBlock = blockRange.From,

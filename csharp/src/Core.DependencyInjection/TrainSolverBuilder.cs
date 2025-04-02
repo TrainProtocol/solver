@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Train.Solver.Core.DependencyInjection;
+namespace Train.Solver.Infrastructure.DependencyInjection;
 
 public class TrainSolverBuilder(IServiceCollection services, IConfiguration configuration, TrainSolverOptions options)
 {

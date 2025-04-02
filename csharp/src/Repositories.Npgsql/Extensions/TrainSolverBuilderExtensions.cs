@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Train.Solver.Core.Abstractions.Repositories;
-using Train.Solver.Core.DependencyInjection;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.DependencyInjection;
 
 namespace Train.Solver.Repositories.Npgsql.Extensions;
 

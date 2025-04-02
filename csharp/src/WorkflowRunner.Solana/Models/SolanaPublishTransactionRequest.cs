@@ -1,6 +1,6 @@
-﻿using Train.Solver.Core.Abstractions.Models;
+﻿using Train.Solver.Blockchain.Abstractions.Models;
 
-namespace Train.Solver.WorkflowRunner.Solana.Models;
+namespace Train.Solver.Blockchain.Solana.Models;
 
 public class SolanaPublishTransactionRequest : BaseRequest
 {

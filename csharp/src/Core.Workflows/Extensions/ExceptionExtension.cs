@@ -1,6 +1,6 @@
 ﻿using Temporalio.Exceptions;
 
-namespace Train.Solver.Core.Workflows.Extensions;
+namespace Train.Solver.Blockchain.Common.Extensions;
 
 public static class ExceptionExtension
 {

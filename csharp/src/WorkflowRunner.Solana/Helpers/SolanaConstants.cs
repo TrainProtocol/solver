@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.WorkflowRunner.Solana.Helpers;
+﻿namespace Train.Solver.Blockchain.Solana.Helpers;
 
 public static class SolanaConstants
 {

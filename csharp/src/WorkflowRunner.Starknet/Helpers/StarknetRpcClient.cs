@@ -3,7 +3,7 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.JsonRpc.Client.RpcMessages;
 using Newtonsoft.Json;
 
-namespace Train.Solver.WorkflowRunner.Starknet.Helpers;
+namespace Train.Solver.Blockchain.Starknet.Helpers;
 
 public class StarknetRpcClient : RpcClient
 {

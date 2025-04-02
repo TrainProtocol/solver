@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.DependencyInjection;
+﻿namespace Train.Solver.Infrastructure.DependencyInjection;
 
 public class TrainSolverOptions
 {

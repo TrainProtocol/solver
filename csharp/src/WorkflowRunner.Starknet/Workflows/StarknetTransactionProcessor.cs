@@ -1,17 +1,17 @@
 ﻿using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Extensions;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.WorkflowRunner.Starknet.Activities;
-using Train.Solver.WorkflowRunner.Starknet.Models;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Common.Extensions;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Starknet.Activities;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Blockchain.Starknet.Models;
 using static Temporalio.Workflows.Workflow;
-using TransactionResponse = Train.Solver.Core.Abstractions.Models.TransactionResponse;
+using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
 
-namespace Train.Solver.WorkflowRunner.Starknet.Workflows;
+namespace Train.Solver.Blockchain.Starknet.Workflows;
 
 [Workflow]
 public class StarknetTransactionProcessor
@@ -114,7 +114,7 @@ public class StarknetTransactionProcessor
             {
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
-                    await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(
+                    await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((x) => x.RunAsync(
                         new TransactionRequest()
                         {
                             NetworkName = request.NetworkName,
@@ -218,7 +218,7 @@ public class StarknetTransactionProcessor
         if (lockRequest.Amount > allowance)
         {
             // Initiate approval transaction
-            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((StarknetTransactionProcessor x) => x.RunAsync(new TransactionRequest()
+            await ExecuteChildWorkflowAsync<StarknetTransactionProcessor>((x) => x.RunAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {

@@ -1,14 +1,14 @@
 ﻿using Temporalio.Exceptions;
 using Temporalio.Workflows;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Extensions;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.WorkflowRunner.Solana.Activities;
-using Train.Solver.WorkflowRunner.Solana.Models;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Common.Extensions;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Solana.Activities;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Blockchain.Solana.Models;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.WorkflowRunner.Solana.Workflows;
+namespace Train.Solver.Blockchain.Solana.Workflows;
 
 [Workflow]
 public class SolanaTransactionProcessor

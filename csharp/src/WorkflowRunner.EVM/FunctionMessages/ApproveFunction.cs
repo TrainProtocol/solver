@@ -2,7 +2,7 @@
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Contracts;
 
-namespace Train.Solver.WorkflowRunner.EVM.FunctionMessages;
+namespace Train.Solver.Blockchain.EVM.FunctionMessages;
 
 [Function("approve", "bool")]
 public class ApproveFunction : FunctionMessage

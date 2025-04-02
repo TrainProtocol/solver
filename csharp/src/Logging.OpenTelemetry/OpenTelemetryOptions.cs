@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Logging.OpenTelemetry;
+﻿namespace Train.Solver.Infrastructure.Logging.OpenTelemetry;
 
 public class OpenTelemetryOptions
 {

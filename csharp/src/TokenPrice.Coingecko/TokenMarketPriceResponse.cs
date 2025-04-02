@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.TokenPrice.Coingecko;
+﻿namespace Train.Solver.Infrastructure.TokenPrice.Coingecko;
 
 public class TokenMarketPriceResponse
 {

@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Secret.AzureKeyVault;
+﻿namespace Train.Solver.Infrastructure.Secret.AzureKeyVault;
 
 public class AzureKeyVaultOptions
 {

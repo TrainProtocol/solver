@@ -3,15 +3,16 @@ using Temporalio.Activities;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
 using Temporalio.Exceptions;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Repositories;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.Core.Workflows.Worklows;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Common.Worklows;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
 
-namespace Train.Solver.Core.Workflows.Activities;
+namespace Train.Solver.Blockchain.Common.Activities;
 
-public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient temporalClient)
+public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient temporalClient) : IWorkflowActivities
 {
     [Activity]
     public virtual async Task TerminateWorkflowAsync(string workflowId)
@@ -62,7 +63,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
     {
         var swap = await swapRepository.GetAsync(swapId);
 
-        if(swap == null)
+        if (swap == null)
         {
             throw new ArgumentException("Swap not found", nameof(swapId));
         }

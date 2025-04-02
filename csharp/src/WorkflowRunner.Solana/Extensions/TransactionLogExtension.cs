@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.RegularExpressions;
 
-namespace Train.Solver.WorkflowRunner.Solana.Extensions;
+namespace Train.Solver.Blockchain.Solana.Extensions;
 
 public static class TransactionLogExtension
 {

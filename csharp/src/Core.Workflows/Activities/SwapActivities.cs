@@ -2,20 +2,22 @@
 using Nethereum.Hex.HexTypes;
 using System.Security.Cryptography;
 using Temporalio.Activities;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Repositories;
-using TransactionResponse = Train.Solver.Core.Abstractions.Models.TransactionResponse;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
 
-namespace Train.Solver.Core.Workflows.Activities;
+namespace Train.Solver.Blockchain.Common.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
-    IRouteService routeService)
+    IRouteService routeService) : ISwapActivities
 {
     [Activity]
     public virtual async Task<string> CreateSwapAsync(
@@ -118,7 +120,7 @@ public class SwapActivities(
             currentFee,
             callDataType);
     }
-   
+
     [Activity]
     public async Task<List<string>> GetNonRefundedSwapIdsAsync()
     {

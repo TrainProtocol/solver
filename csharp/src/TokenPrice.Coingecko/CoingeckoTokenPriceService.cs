@@ -1,9 +1,9 @@
 ﻿using Flurl;
 using Flurl.Http;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions;
 
-namespace Train.Solver.TokenPrice.Coingecko;
+namespace Train.Solver.Infrastructure.TokenPrice.Coingecko;
 
 public class CoingeckoTokenPriceService(INetworkRepository networkRepository) : ITokenPriceService
 {

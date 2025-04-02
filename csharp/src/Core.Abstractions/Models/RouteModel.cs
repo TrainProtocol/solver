@@ -1,6 +1,6 @@
-﻿using Train.Solver.Core.Abstractions.Entities;
+﻿using Train.Solver.Data.Abstractions.Entities;
 
-namespace Train.Solver.Core.Abstractions.Models;
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class RouteModel
 {

@@ -1,6 +1,6 @@
-﻿using Train.Solver.Core.Abstractions.Models;
+﻿using Train.Solver.Blockchain.Abstractions.Models;
 
-namespace Train.Solver.WorkflowRunner.Starknet.Models;
+namespace Train.Solver.Blockchain.Starknet.Models;
 
 public class StarknetPublishTransactionRequest : BaseRequest
 {

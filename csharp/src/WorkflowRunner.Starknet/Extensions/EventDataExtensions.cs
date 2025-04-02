@@ -1,9 +1,9 @@
 ﻿using Nethereum.Hex.HexConvertors.Extensions;
-using Train.Solver.Core.Extensions;
-using Train.Solver.WorkflowRunner.Starknet.Models;
-using static Train.Solver.WorkflowRunner.Starknet.Models.GetEventsResponse;
+using Train.Solver.Blockchain.Starknet.Models;
+using Train.Solver.Util.Extensions;
+using static Train.Solver.Blockchain.Starknet.Models.GetEventsResponse;
 
-namespace Train.Solver.WorkflowRunner.Starknet.Extensions;
+namespace Train.Solver.Blockchain.Starknet.Extensions;
 public static class EventDataExtensions
 {
     public static StarknetTokenLockedEvent DeserializeLockEventData(this EventData eventData)

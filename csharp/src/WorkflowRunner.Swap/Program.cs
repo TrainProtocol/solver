@@ -1,8 +1,8 @@
-﻿using Train.Solver.Core.Extensions;
+﻿using Train.Solver.Blockchain.Swap.Extensions;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Secret.AzureKeyVault;
+using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Repositories.Npgsql.Extensions;
-using Train.Solver.Secret.AzureKeyVault;
-using Train.Solver.TokenPrice.Coingecko;
-using Train.Solver.WorkflowRunner.Swap.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>

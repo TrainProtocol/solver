@@ -1,6 +1,6 @@
 ﻿using Solnet.Wallet;
 
-namespace Train.Solver.WorkflowRunner.Solana.Programs.Models;
+namespace Train.Solver.Blockchain.Solana.Programs.Models;
 
 public class HTLCRedeemRequest
 {

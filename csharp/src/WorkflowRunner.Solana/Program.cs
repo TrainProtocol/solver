@@ -1,7 +1,7 @@
-﻿using Train.Solver.Core.Extensions;
+﻿using Train.Solver.Blockchain.Solana.Extensions;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Repositories.Npgsql.Extensions;
-using Train.Solver.Secret.AzureKeyVault;
-using Train.Solver.WorkflowRunner.Solana.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>

@@ -1,8 +1,8 @@
-﻿using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.WorkflowRunner.Starknet.Models;
+﻿using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Starknet.Models;
 
-namespace Train.Solver.WorkflowRunner.Starknet.Activities;
+namespace Train.Solver.Blockchain.Starknet.Activities;
 
 public interface IStarknetBlockchainActivities : IBlockchainActivities
 {
@@ -12,5 +12,5 @@ public interface IStarknetBlockchainActivities : IBlockchainActivities
 
     Task<string> PublishTransactionAsync(StarknetPublishTransactionRequest request);
 
-    Task<Core.Abstractions.Models.TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request);
+    Task<Abstractions.Models.TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request);
 }

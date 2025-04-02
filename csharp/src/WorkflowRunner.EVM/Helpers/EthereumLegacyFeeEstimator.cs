@@ -2,12 +2,12 @@
 using Nethereum.Util;
 using Nethereum.Web3;
 using System.Numerics;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Extensions;
-using Train.Solver.WorkflowRunner.EVM.Models;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.EVM.Models;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Util.Extensions;
 
-namespace Train.Solver.WorkflowRunner.EVM.Helpers;
+namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public class EthereumLegacyFeeEstimator : FeeEstimatorBase
 {

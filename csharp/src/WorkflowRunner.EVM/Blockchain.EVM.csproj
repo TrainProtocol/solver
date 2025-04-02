@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchain.EVM</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchain.EVM</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Nethereum.Signer" Version="4.29.0" />
+		<PackageReference Include="Nethereum.Web3" Version="4.29.0" />
+	</ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Core.Workflows\Blockchain.Common.csproj" />
+    <ProjectReference Include="..\Repositories.Npgsql\Data.Npgsql.csproj" />
+    <ProjectReference Include="..\Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />
+  </ItemGroup>
+	
+</Project>

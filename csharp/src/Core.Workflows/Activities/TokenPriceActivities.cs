@@ -1,12 +1,13 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Repositories;
+using Train.Solver.Blockchain.Abstractions.Activities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions;
 
-namespace Train.Solver.Core.Workflows.Activities;
+namespace Train.Solver.Blockchain.Common.Activities;
 
 public class TokenPriceActivities(
     INetworkRepository networkRepository,
-    ITokenPriceService tokenPriceService)
+    ITokenPriceService tokenPriceService) : ITokenPriceActivities
 {
     [Activity]
     public async Task<Dictionary<string, decimal>> GetTokensPricesAsync()

@@ -1,6 +1,6 @@
 ﻿using Nethereum.ABI.FunctionEncoding.Attributes;
 
-namespace Train.Solver.WorkflowRunner.EVM.Models;
+namespace Train.Solver.Blockchain.EVM.Models;
 
 public class ERC20TokenCommitedEvent : EtherTokenCommittedEvent
 {

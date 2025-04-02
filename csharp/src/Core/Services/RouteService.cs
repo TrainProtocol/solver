@@ -1,10 +1,10 @@
-﻿using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Abstractions.Repositories;
-using Train.Solver.Core.Extensions;
+﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Util.Extensions;
 
-namespace Train.Solver.Core.Services;
+namespace Train.Solver.Infrastructure.Services;
 
 public class RouteService(
     IRouteRepository routeRepository,

@@ -1,12 +1,12 @@
 ﻿using Temporalio.Extensions.Hosting;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.DependencyInjection;
-using Train.Solver.Core.Workflows.Activities;
-using Train.Solver.Core.Workflows.Worklows;
-using Train.Solver.WorkflowRunner.EVM.Activities;
-using Train.Solver.WorkflowRunner.EVM.Workflows;
+using Train.Solver.Blockchain.Common.Activities;
+using Train.Solver.Blockchain.Common.Worklows;
+using Train.Solver.Blockchain.EVM.Activities;
+using Train.Solver.Blockchain.EVM.Workflows;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.WorkflowRunner.EVM.Extensions;
+namespace Train.Solver.Blockchain.EVM.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

@@ -5,12 +5,12 @@ using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
-using Train.Solver.WorkflowRunner.EVM.FunctionMessages;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Extensions;
+using Train.Solver.Blockchain.EVM.FunctionMessages;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Util.Extensions;
 
-namespace Train.Solver.WorkflowRunner.EVM.Helpers;
+namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public static class EVMTransactionBuilder
 {

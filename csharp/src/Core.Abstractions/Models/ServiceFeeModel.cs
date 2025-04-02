@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Abstractions.Models;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class ServiceFeeModel
 {

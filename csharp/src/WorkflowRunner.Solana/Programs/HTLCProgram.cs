@@ -5,10 +5,10 @@ using Solnet.Programs.Utilities;
 using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
-using Train.Solver.WorkflowRunner.Solana.Programs.Models;
-using FieldEncoder = Train.Solver.WorkflowRunner.Solana.Helpers.FieldEncoder;
+using Train.Solver.Blockchain.Solana.Programs.Models;
+using FieldEncoder = Train.Solver.Blockchain.Solana.Helpers.FieldEncoder;
 
-namespace Train.Solver.WorkflowRunner.Solana.Programs;
+namespace Train.Solver.Blockchain.Solana.Programs;
 
 public static class HTLCProgram
 {

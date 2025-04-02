@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Core.Abstractions;
+﻿namespace Train.Solver.Infrastructure.Abstractions;
 
 public interface IPrivateKeyProvider
 {

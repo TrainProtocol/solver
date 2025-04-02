@@ -1,7 +1,7 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using Train.Solver.Core.Abstractions;
+using Train.Solver.Infrastructure.Abstractions;
 
-namespace Train.Solver.Secret.AzureKeyVault;
+namespace Train.Solver.Infrastructure.Secret.AzureKeyVault;
 
 public class AzureKeyVaultPrivateKeyProvider(
     SecretClient secretClient) : IPrivateKeyProvider

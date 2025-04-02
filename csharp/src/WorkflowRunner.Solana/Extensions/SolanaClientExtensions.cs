@@ -5,10 +5,10 @@ using Solnet.Rpc;
 using Solnet.Rpc.Core.Http;
 using Solnet.Rpc.Messages;
 using Solnet.Rpc.Types;
-using Train.Solver.WorkflowRunner.Solana.Helpers;
-using Train.Solver.WorkflowRunner.Solana.Models;
+using Train.Solver.Blockchain.Solana.Models;
+using Train.Solver.Blockchain.Solana.Helpers;
 
-namespace Train.Solver.WorkflowRunner.Solana.Extensions;
+namespace Train.Solver.Blockchain.Solana.Extensions;
 
 public static class SolanaClientExtensions
 {

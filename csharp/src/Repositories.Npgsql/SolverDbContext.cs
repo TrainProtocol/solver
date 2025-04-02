@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Entities.Base;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Entities.Base;
 using Train.Solver.Repositories.Npgsql.Extensions;
 
 namespace Train.Solver.Repositories.Npgsql;

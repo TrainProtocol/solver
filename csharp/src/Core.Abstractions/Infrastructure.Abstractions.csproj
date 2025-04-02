@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<AssemblyName>Train.Solver.Infrastructure.Abstractions</AssemblyName>
+		<RootNamespace>Train.Solver.Infrastructure.Abstractions</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Nethereum.Util" Version="4.29.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,20 +1,20 @@
 ﻿using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
-using Train.Solver.Core.Abstractions;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Exceptions;
-using Train.Solver.Core.Abstractions.Models;
-using Train.Solver.Core.Workflows.Extensions;
-using Train.Solver.Core.Workflows.Helpers;
-using Train.Solver.WorkflowRunner.EVM.Activities;
-using Train.Solver.WorkflowRunner.EVM.Models;
+using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common.Extensions;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.EVM.Activities;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Blockchain.EVM.Models;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.WorkflowRunner.EVM.Workflows;
+namespace Train.Solver.Blockchain.EVM.Workflows;
 
 [Workflow]
-public class EVMTransactionProcessor
+public class EVMTransactionProcessor : ITransactionProcessor
 {
     const int MaxRetryCount = 5;
 
@@ -48,7 +48,7 @@ public class EVMTransactionProcessor
         if (string.IsNullOrEmpty(context.Nonce))
         {
             context.Nonce = await ExecuteActivityAsync(
-                (EVMBlockchainActivities x) => x.GetNextNonceAsync(new ()
+                (EVMBlockchainActivities x) => x.GetNextNonceAsync(new()
                 {
                     NetworkName = request.NetworkName,
                     Address = request.FromAddress!,
@@ -175,7 +175,7 @@ public class EVMTransactionProcessor
             {
                 if (!string.IsNullOrEmpty(context.Nonce))
                 {
-                    await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((EVMTransactionProcessor x) => x.RunAsync(
+                    await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((x) => x.RunAsync(
                         new TransactionRequest()
                         {
                             NetworkName = request.NetworkName,
@@ -257,7 +257,7 @@ public class EVMTransactionProcessor
         {
             // Initiate approval transaction
 
-            await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((EVMTransactionProcessor x) => x.RunAsync(new TransactionRequest()
+            await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((x) => x.RunAsync(new TransactionRequest()
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {

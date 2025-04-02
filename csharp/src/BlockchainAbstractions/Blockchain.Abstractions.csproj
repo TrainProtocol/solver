@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchain.Abstractions</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchain.Abstractions</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Temporalio.Extensions.Hosting" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core.Abstractions\Infrastructure.Abstractions.csproj" />
+	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
+	</ItemGroup>
+
+</Project>
