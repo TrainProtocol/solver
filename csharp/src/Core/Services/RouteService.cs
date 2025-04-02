@@ -107,8 +107,8 @@ public class RouteService(
 
     public virtual Task<QuoteModel?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
-      
-    private static LimitModel? GetLimit(RouteWithFeesModel route)
+
+    private static LimitModel GetLimit(RouteWithFeesModel route)
     {
         var minBufferAmount = MinUsdAmount / route.Source.UsdPrice;
 
@@ -182,6 +182,11 @@ public class RouteService(
             request.DestinationNetwork,
             request.DestinationToken,
             amount);
+
+        if (route is null)
+        {
+            return null;
+        }
 
         var mappedRoute = new RouteWithFeesModel()
         {
