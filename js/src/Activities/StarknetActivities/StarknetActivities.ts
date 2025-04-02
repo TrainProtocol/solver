@@ -15,9 +15,9 @@ import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder"
 import { CalcV2InvokeTxHashArgs } from "../../lib/Model/WithdrawalModels/TransactioCalculationType";
 import { TransactionType } from "../../lib/Model/TransactionTypes/TransactionType";
 import { StarknetPublishTransactionRequest } from "./Models/StarknetPublishTransactionRequest ";
-import { SufficientBalanceRequest } from "../../lib/Model/BalanceRequestModels/SufficientBalanceRequest";
 import { AllowanceRequest } from "../../lib/Model/AllowanceModels/AllowanceRequest";
 import { TransactionBuilderRequest } from "../../lib/Model/TransactionBuilderModels/TransactionBuilderRequest";
+import { BalanceRequest } from "../../lib/Model/BalanceRequestModels/BalanceRequest";
 
 export class StarknetActivities {
     constructor(private dbContext: SolverContext) { }
@@ -26,7 +26,7 @@ export class StarknetActivities {
     readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
-    public async StarknetPublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetPublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
         const network = await this.dbContext.Networks
@@ -94,7 +94,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetBuildTransaction(request: TransactionBuilderRequest): Promise<TransferBuilderResponse> {
+    public async StarknetBuildTransactionAsync(request: TransactionBuilderRequest): Promise<TransferBuilderResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -127,7 +127,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEnsureSufficientBalance(request: SufficientBalanceRequest): Promise<void> {
+    public async StarknetGetBalanceAsync(request: BalanceRequest): Promise<BigNumber> {
         try {
 
             const network = await this.dbContext.Networks
@@ -156,19 +156,16 @@ export class StarknetActivities {
             const erc20 = new Contract(erc20Json as Abi, token.tokenContract, provider);
 
             const balanceResult = await erc20.balanceOf(request.Address);
-            const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString()).toString();
-            const balance = Number(utils.formatUnits(balanceInWei, token.decimals));
+            const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString());
 
-            if (balance <= request.Amount) {
-                throw new Error(`Insufficient balance on ${request.Address}. Balance is less than ${request.Amount}`);
-            }
+            return balanceInWei;
         }
         catch (error) {
             throw error;
         }
     }
 
-    public async StarknetSimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetSimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -236,7 +233,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEstimateFee(feeRequest: GetFeesRequest): Promise<Fee> {
+    public async StarknetEstimateFeeAsync(feeRequest: GetFeesRequest): Promise<Fee> {
         try {
             const network = await this.dbContext.Networks
                 .createQueryBuilder("network")
@@ -265,10 +262,12 @@ export class StarknetActivities {
                 throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
             };
 
-            const feeInWei = (feeEstimateResponse.suggestedMaxFee * this.FEE_ESTIMATE_MULTIPLIER).toString();
+            const feeInWei = BigNumber
+                .from(feeEstimateResponse.suggestedMaxFee)
+                .mul(this.FEE_ESTIMATE_MULTIPLIER);
 
             const fixedfeeData: FixedFeeData = {
-                FeeInWei: feeInWei,
+                FeeInWei: feeInWei.toString(),
             };
 
             let result: Fee =
@@ -276,6 +275,16 @@ export class StarknetActivities {
                 Asset: this.FeeSymbol,
                 FixedFeeData: fixedfeeData,
                 Decimals: this.FeeDecimals
+            }
+
+            const balanceInWei = await this.StarknetGetBalanceAsync({
+                Address: feeRequest.FromAddress, 
+                NetworkName: feeRequest.NetworkName,
+                Asset: this.FeeSymbol
+             });
+
+            if (feeInWei > balanceInWei) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${fixedfeeData.FeeInWei}`);
             }
 
             return result;
@@ -288,7 +297,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+    public async StarknetValidateAddLockSignatureAsync(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const network = await this.dbContext.Networks
@@ -354,7 +363,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetGetSpenderAllowance(request: AllowanceRequest): Promise<number> {
+    public async StarknetGetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
 
         try {
 

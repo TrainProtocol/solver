@@ -21,11 +21,11 @@ using Train.Solver.WorkflowRunner.Solana.Extensions;
 using Train.Solver.WorkflowRunner.Solana.Helpers;
 using Train.Solver.WorkflowRunner.Solana.Models;
 using Train.Solver.WorkflowRunner.Solana.Programs;
+using Solnet.Programs.TokenSwap.Models;
 
 namespace Train.Solver.WorkflowRunner.Solana.Activities;
 
 public class SolanaBlockchainActivities(
-    ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IDatabase cache,
     IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository), ISolanaBlockchainActivities
@@ -261,13 +261,27 @@ public class SolanaBlockchainActivities(
 
         computeUnitsUsed = computeUnitsUsed.PercentageIncrease(200);
 
-        return new Fee(
+        var fee = new Fee(
                 nativeCurrency.Asset,
                 nativeCurrency.Decimals,
                 new SolanaFeeData(
                     computeUnitPrice.ToString(),
                     computeUnitsUsed.ToString(),
                     baseFeeInLamports.ToString()));
+
+        var balance = await GetBalanceAsync(new BalanceRequest
+        {
+            NetworkName = request.NetworkName,
+            Address = request.FromAddress,
+            Asset = nativeCurrency.Asset
+        });
+
+        if (balance.Amount < fee.Amount)
+        {
+            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {fee.Amount} {fee.Asset}");
+        }
+
+        return fee;
     }
 
     [Activity]

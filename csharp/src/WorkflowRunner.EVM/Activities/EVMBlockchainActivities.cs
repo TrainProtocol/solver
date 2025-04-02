@@ -75,6 +75,18 @@ public class EVMBlockchainActivities(
         var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
         var fee = await feeEstimator.EstimateAsync(network, request);
 
+        var balance = await GetBalanceAsync(new BalanceRequest
+        {
+            NetworkName = request.NetworkName,
+            Address = request.FromAddress,
+            Asset = fee.Asset
+        });
+
+        if (balance.Amount < fee.Amount)
+        {
+            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {fee.Amount} {fee.Asset}");
+        }
+
         return fee;
     }
 
