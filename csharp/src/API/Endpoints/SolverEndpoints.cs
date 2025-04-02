@@ -130,7 +130,6 @@ public static class SolverEndpoints
         [FromQuery] string[]? addresses,
         [FromQuery] uint? page)
     {
-        var pageSize = 20;
         if (addresses != null && addresses.Length > 6)
         {
             return Results.BadRequest(new ApiResponse()
@@ -149,7 +148,7 @@ public static class SolverEndpoints
 
         if (!swaps.Any())
         {
-            return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = Enumerable.Empty<SwapDto>() });
+            return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = [] });
         }
 
         return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = mapper.Map<List<SwapDto>>(swaps) });
