@@ -284,7 +284,7 @@ public class EVMTransactionProcessor
                (EVMBlockchainActivities x) => x.GetBatchTransactionAsync(new GetBatchTransactionRequest()
                {
                    NetworkName = request.NetworkName,
-                   TransactionIds = context.PublishedTransactionIds.ToArray()
+                   TransactionHashes = context.PublishedTransactionIds.ToArray()
                }),
                     new()
                     {

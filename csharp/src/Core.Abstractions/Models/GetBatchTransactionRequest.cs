@@ -2,5 +2,5 @@
 
 public class GetBatchTransactionRequest : BaseRequest
 {
-    public string[] TransactionIds { get; set; } = null!;
+    public string[] TransactionHashes { get; set; } = null!;
 }

@@ -32,7 +32,7 @@ public class RouteService(
             requests.Add(new()
             {
                 Asset = asset,
-                Network = networkName,
+                NetworkName = networkName,
                 FromSource = fromSrcToDest,
             });
         }
@@ -55,13 +55,13 @@ public class RouteService(
         {
             foreach (var request in requests)
             {
-                if (!string.IsNullOrEmpty(request.Network) && !string.IsNullOrEmpty(request.Asset))
+                if (!string.IsNullOrEmpty(request.NetworkName) && !string.IsNullOrEmpty(request.Asset))
                 {
                     var token = routes
                         .Select(x => request.FromSource ? x.SourceToken : x.DestinationToken)
                         .DistinctBy(x => x.Id)
                         .SingleOrDefault(x =>
-                            x.Network.Name.ToUpper() == request.Network.ToUpper()
+                            x.Network.Name.ToUpper() == request.NetworkName.ToUpper()
                             && x.Asset.ToUpper() == request.Asset.ToUpper());
 
                     if (token is null)
@@ -77,7 +77,7 @@ public class RouteService(
                             .Select(x => fromSrcToDest ? x.DestinationToken : x.SourceToken)
                             .DistinctBy(x => x.Id));
                 }
-                else if (string.IsNullOrEmpty(request.Network) && string.IsNullOrEmpty(request.Asset))
+                else if (string.IsNullOrEmpty(request.NetworkName) && string.IsNullOrEmpty(request.Asset))
                 {
                     reachableTokens
                         .AddRange(routes

@@ -192,7 +192,7 @@ public class StarknetBlockchainActivities(
 
         Core.Abstractions.Models.TransactionResponse? transaction = null;
 
-        foreach (var transactionId in request.TransactionIds)
+        foreach (var transactionId in request.TransactionHashes)
         {
             transaction = await GetTransactionAsync(network, transactionId);
         }
@@ -215,7 +215,7 @@ public class StarknetBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var transaction = await GetTransactionAsync(network, request.TransactionId);
+        var transaction = await GetTransactionAsync(network, request.TransactionHash);
 
         if (transaction == null)
         {
@@ -238,12 +238,12 @@ public class StarknetBlockchainActivities(
         var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
         var web3Client = new StarknetRpcClient(new Uri(node.Url));
 
-        var formattedAddress = FormatAddress(new() { Address = request.Address });
+        var formattedAddress = FormatAddress( request.Address);
 
         return await GetNextNonceAsync(web3Client, formattedAddress);
     }
 
-    protected override string FormatAddress(AddressRequest request) => request.Address.AddAddressPadding().ToLowerInvariant();
+    protected override string FormatAddress(string address) => address.AddAddressPadding().ToLowerInvariant();
 
     protected override async Task<string> GetCachedNonceAsync(NextNonceRequest request)
     {
@@ -257,7 +257,7 @@ public class StarknetBlockchainActivities(
         var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
         var web3Client = new StarknetRpcClient(new Uri(node.Url));
 
-        var formattedAddress = FormatAddress(new() { Address = request.Address });
+        var formattedAddress = FormatAddress(request.Address);
 
         await using var distributedLock = await distributedLockFactory.CreateLockAsync(
             resource: RedisHelper.BuildLockKey(request.NetworkName, formattedAddress),
@@ -298,15 +298,15 @@ public class StarknetBlockchainActivities(
         return currentNonce.ToString();
     }
 
-    protected override bool ValidateAddress(AddressRequest request)
+    protected override bool ValidateAddress(string address)
     {
         bool result = false;
 
-        var addressInt = new HexBigInteger(request.Address);
+        var addressInt = new HexBigInteger(address);
 
         if (addressInt.InRange(Mask221, Mask251))
         {
-            result = Regex.Match(request.Address.AddAddressPadding(), "^(0x)?[0-9a-fA-F]{64}$").Success;
+            result = Regex.Match(address.AddAddressPadding(), "^(0x)?[0-9a-fA-F]{64}$").Success;
         }
 
         return result;
@@ -397,8 +397,8 @@ public class StarknetBlockchainActivities(
             {
                 var starknetTokenCommittedEventResult = htlcEvent.DeserializeCommitEventData();
 
-                if (FormatAddress(new() { Address = starknetTokenCommittedEventResult.SourceReciever })
-                    != FormatAddress(new() { Address = solverAddress }))
+                if (FormatAddress(starknetTokenCommittedEventResult.SourceReciever)
+                    != FormatAddress(solverAddress))
                 {
                     continue;
                 }
@@ -431,7 +431,7 @@ public class StarknetBlockchainActivities(
                     AmountInWei = starknetTokenCommittedEventResult.AmountInBaseUnits,
                     ReceiverAddress = solverAddress,
                     SourceNetwork = networkName,
-                    SenderAddress = FormatAddress(new() { Address = starknetTokenCommittedEventResult.SenderAddress }),
+                    SenderAddress = FormatAddress(starknetTokenCommittedEventResult.SenderAddress),
                     SourceAsset = starknetTokenCommittedEventResult.SourceAsset,
                     DestinationAddress = starknetTokenCommittedEventResult.DestinationAddress,
                     DestinationNetwork = starknetTokenCommittedEventResult.DestinationNetwork,
@@ -529,7 +529,7 @@ public class StarknetBlockchainActivities(
 
         transactionModel = new Core.Abstractions.Models.TransactionResponse
         {
-            TransactionHash = FormatAddress(new() { Address = transactionReceiptResponse.TransactionHash }),
+            TransactionHash = FormatAddress(transactionReceiptResponse.TransactionHash),
             Confirmations = statusResult == TransactionStatus.Initiated ? 0 : 1,
             Status = statusResult,
             FeeAsset = "ETH",

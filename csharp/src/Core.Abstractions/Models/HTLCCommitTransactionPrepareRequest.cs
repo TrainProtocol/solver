@@ -10,11 +10,11 @@ public class HTLCCommitTransactionPrepareRequest
 
     public string[] HopAddresses { get; set; }
 
-    public string DestinationChain { get; set; }
+    public string DestinationChain { get; set; } = null!;
 
-    public string DestinationAsset { get; set; }
+    public string DestinationAsset { get; set; } = null!;
 
-    public string DestinationAddress { get; set; }
+    public string DestinationAddress { get; set; } = null!;
 
     public string SourceAsset { get; set; } = null!;
 

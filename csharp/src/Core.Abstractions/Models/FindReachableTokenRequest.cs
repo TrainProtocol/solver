@@ -1,9 +1,7 @@
 ﻿namespace Train.Solver.Core.Abstractions.Models;
 
-public class FindReachableTokenRequest
+public class FindReachableTokenRequest : BaseRequest
 {
-    public string Network { get; set; } = null!;
-
     public string Asset { get; set; } = null!;
 
     public bool FromSource { get; set; }

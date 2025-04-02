@@ -2,5 +2,5 @@
 
 public class GetTransactionRequest : BaseRequest
 {
-    public required string TransactionId { get; set; } = null!;
+    public required string TransactionHash { get; set; } = null!;
 }

@@ -104,7 +104,7 @@ public class EVMBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var transaction = await GetTransactionAsync(network, request.TransactionId);
+        var transaction = await GetTransactionAsync(network, request.TransactionHash);
 
         if (transaction == null)
         {
@@ -126,7 +126,7 @@ public class EVMBlockchainActivities(
 
         TransactionResponse? transaction = null;
 
-        foreach (var transactionId in request.TransactionIds)
+        foreach (var transactionId in request.TransactionHashes)
         {
             transaction = await GetTransactionAsync(network, transactionId);
         }
@@ -317,8 +317,8 @@ public class EVMBlockchainActivities(
             {
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
-                if (FormatAddress(new() { Address = commitedEvent.Receiver })
-                    != FormatAddress(new() { Address = solverAccount.Address }))
+                if (FormatAddress(commitedEvent.Receiver)
+                    != FormatAddress(solverAccount.Address))
                 {
                     continue;
                 }
@@ -354,11 +354,11 @@ public class EVMBlockchainActivities(
                     SourceAsset = sourceCurrency.Asset,
                     SenderAddress = commitedEvent.Sender,
                     SourceNetwork = request.NetworkName,
-                    DestinationAddress = FormatAddress(new() { Address = commitedEvent.DestinationAddress }),
+                    DestinationAddress = FormatAddress(commitedEvent.DestinationAddress),
                     DestinationNetwork = destinationCurrency.Network.Name,
                     DestinationAsset = destinationCurrency.Asset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(new() { Address = solverAccount.Address }),
+                    ReceiverAddress = FormatAddress(solverAccount.Address),
                     DestinationNetworkType = destinationCurrency.Network.Type,
                     SourceNetworkType = sourceCurrency.Network.Type
                 };
@@ -505,7 +505,7 @@ public class EVMBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        request.Address = FormatAddress(new() { Address = request.Address });
+        request.Address = FormatAddress(request.Address);
 
         return await GetNextNonceAsync(network.Nodes, request.Address);
     }
@@ -665,16 +665,12 @@ public class EVMBlockchainActivities(
         return nonce.ToString();
     }
     
-    protected override string FormatAddress(AddressRequest request) => request.Address.ToLower();
+    protected override string FormatAddress(string address) => address.ToLower();
 
-    protected override bool ValidateAddress(AddressRequest request)
+    protected override bool ValidateAddress(string address)
     {
         return AddressUtil.Current.IsValidEthereumAddressHexFormat(
-            FormatAddress(
-                new()
-                {
-                    Address = request.Address
-                }));
+            FormatAddress(address));
     }
 
     private static async Task<string> GetNextNonceAsync(List<Node> nodes, string address)
@@ -843,8 +839,8 @@ public class EVMBlockchainActivities(
             transaction,
             transactionReceipt);
 
-        var from = FormatAddress(new() { Address = transaction.From });
-        var to = FormatAddress(new() { Address = transaction.To });
+        var from = FormatAddress(transaction.From);
+        var to = FormatAddress(transaction.To);
 
         var transactionModel = new TransactionResponse
         {

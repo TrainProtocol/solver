@@ -4,7 +4,7 @@ public class HTLCLockTransactionPrepareRequest
 {
     public string Receiver { get; set; } = null!;
 
-    public string Hashlock { get; set; }
+    public string Hashlock { get; set; } = null!;
 
     public long Timelock { get; set; }
 
@@ -18,7 +18,7 @@ public class HTLCLockTransactionPrepareRequest
 
     public string DestinationAsset { get; set; } = null!;
 
-    public string Id { get; set; }
+    public string Id { get; set; } = null!;
 
     public decimal Amount { get; set; }
 

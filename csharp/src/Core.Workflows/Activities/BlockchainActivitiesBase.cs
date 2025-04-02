@@ -9,8 +9,8 @@ namespace Train.Solver.Core.Workflows.Activities;
 public abstract class BlockchainActivitiesBase(INetworkRepository networkRepository) : IBlockchainActivities
 {
     protected abstract Task<string> GetCachedNonceAsync(NextNonceRequest request);
-    protected abstract string FormatAddress(AddressRequest request);
-    protected abstract bool ValidateAddress(AddressRequest request);
+    protected abstract string FormatAddress(string request);
+    protected abstract bool ValidateAddress(string request);
 
     [Activity] public abstract Task<string> GetNextNonceAsync(NextNonceRequest request);
     [Activity] public abstract Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);

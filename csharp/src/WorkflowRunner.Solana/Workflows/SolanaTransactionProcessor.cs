@@ -100,7 +100,7 @@ public class SolanaTransactionProcessor
                     new GetTransactionRequest()
                     {
                         NetworkName = request.NetworkName,
-                        TransactionId = transactionId
+                        TransactionHash = transactionId
                     }),
                 TemporalHelper.DefaultActivityOptions(request.NetworkType));
 

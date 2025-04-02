@@ -2,11 +2,11 @@
 
 public class HTLCRedeemTransactionPrepareRequest
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = null!;
 
-    public string Secret { get; set; }
+    public string Secret { get; set; } = null!;
 
-    public string Asset { get; set; }
+    public string Asset { get; set; } = null!;
 
     public string? DestinationAddress { get; set; }
 

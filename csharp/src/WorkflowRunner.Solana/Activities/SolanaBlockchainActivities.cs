@@ -365,7 +365,7 @@ public class SolanaBlockchainActivities(
         try
         {
             transaction = await GetDataFromNodesAsync(nodes,
-               async url => await GetTransactionAsync(request.TransactionId, network, epochInfoResponse.Result,
+               async url => await GetTransactionAsync(request.TransactionHash, network, epochInfoResponse.Result,
                    ClientFactory.GetClient(url)));
 
         }
@@ -379,11 +379,11 @@ public class SolanaBlockchainActivities(
             }
 
             var status = await GetDataFromNodesAsync(nodes,
-                async url => await ClientFactory.GetClient(url).GetSignatureStatusAsync(request.TransactionId));
+                async url => await ClientFactory.GetClient(url).GetSignatureStatusAsync(request.TransactionHash));
 
             if (status.Result.Value.FirstOrDefault() != null)
             {
-                throw new TransactionNotComfirmedException($"Transaction is not confirmed yet, TxHash: {request.TransactionId}.");
+                throw new TransactionNotComfirmedException($"Transaction is not confirmed yet, TxHash: {request.TransactionHash}.");
             }
 
             throw;
@@ -662,8 +662,8 @@ public class SolanaBlockchainActivities(
         return latestBlockHashResponse.Result.Value.Blockhash;
     }
 
-    protected override bool ValidateAddress(AddressRequest request)
-        => PublicKey.IsValid(request.Address);
+    protected override bool ValidateAddress(string address)
+        => PublicKey.IsValid(address);
 
     private async Task<byte[]> SignSolanaTransactionAsync(
         TransactionBuilder builder,
@@ -794,5 +794,5 @@ public class SolanaBlockchainActivities(
         return result;
     }
 
-    protected override string FormatAddress(AddressRequest request) => request.Address;
+    protected override string FormatAddress(string address) => address;
 }
