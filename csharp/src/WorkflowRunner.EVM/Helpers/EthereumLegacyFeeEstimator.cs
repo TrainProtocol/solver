@@ -34,8 +34,8 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
                 request.FromAddress,
                 request.ToAddress,
                 currency,
-                request.CallData,
-                request.Amount);
+                request.Amount,
+                request.CallData);
 
         var currentGasPriceResult = await GetGasPriceAsync(nodes);
 

@@ -10,5 +10,5 @@ public class EstimateFeeRequest : BaseRequest
 
     public required decimal Amount { get; set; }
 
-    public required string CallData { get; set; } = null!;
+    public string? CallData { get; set; }
 }

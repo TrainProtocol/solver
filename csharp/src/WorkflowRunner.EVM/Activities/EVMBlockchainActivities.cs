@@ -75,8 +75,6 @@ public class EVMBlockchainActivities(
         var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
         var fee = await feeEstimator.EstimateAsync(network, request);
 
-        var nativeCurrency = network.Tokens.Single(x => x.IsNative);
-
         var balance = await GetBalanceAsync(new BalanceRequest
         {
             NetworkName = request.NetworkName,
@@ -84,12 +82,7 @@ public class EVMBlockchainActivities(
             Asset = fee.Asset
         });
 
-        var amount = fee.Amount;
-
-        if (request.Asset == nativeCurrency.Asset)
-        {
-            amount += request.Amount;
-        }
+        var amount = fee.Amount + request.Amount;
 
         if (balance.Amount < amount)
         {

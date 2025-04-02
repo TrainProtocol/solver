@@ -284,10 +284,7 @@ export class StarknetActivities {
             });
 
             var amount = feeInWei;
-
-            if (feeRequest.Asset === this.FeeSymbol) {
-                amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
-            }
+            amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
 
             if (balanceInWei < amount) {
                 throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${amount}`);

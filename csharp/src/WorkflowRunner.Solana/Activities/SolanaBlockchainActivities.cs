@@ -224,15 +224,10 @@ public class SolanaBlockchainActivities(
         {
             NetworkName = request.NetworkName,
             Address = request.FromAddress,
-            Asset = nativeCurrency.Asset
+            Asset = request.Asset
         });
 
-        var amount = fee.Amount;
-
-        if (request.Asset == nativeCurrency.Asset)
-        {
-            amount += request.Amount;
-        }
+        var amount = fee.Amount + request.Amount;
 
         if (balance.Amount < amount)
         {

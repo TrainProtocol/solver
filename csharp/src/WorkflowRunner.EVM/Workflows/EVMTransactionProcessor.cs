@@ -141,7 +141,7 @@ public class EVMTransactionProcessor
                     NetworkName = request.NetworkName,
                     FromAddress = request.FromAddress!,
                     ToAddress = preparedTransaction.ToAddress!,
-                    Asset = preparedTransaction.CallDataAsset!,
+                    Asset = preparedTransaction.Asset!,
                     Amount = preparedTransaction.Amount,
                     CallData = preparedTransaction.Data,
                 }),

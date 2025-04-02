@@ -47,8 +47,8 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 request.FromAddress,
                 request.ToAddress,
                 currency,
-                request.CallData,
-                request.Amount);
+                request.Amount,
+                request.CallData);
 
         var currentGasPriceResult = await GetGasPriceAsync(nodes);
 

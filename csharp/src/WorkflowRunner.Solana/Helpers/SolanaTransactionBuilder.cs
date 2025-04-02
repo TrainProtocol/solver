@@ -128,6 +128,12 @@ public static class SolanaTransactionBuilder
             CallDataAsset = currency.Asset,
         };
 
+        if (nativeCurrency.Id == currency.Id)
+        {
+            response.Amount = request.Amount;
+            response.AmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+        }
+
         return response;
     }
 
