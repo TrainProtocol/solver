@@ -4,21 +4,13 @@ using Train.Solver.Core.Abstractions.Repositories;
 
 namespace Train.Solver.Repositories.Npgsql;
 
-public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
+public class EFSwapRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : ISwapRepository
 {
     public async Task<Swap> CreateAsync(string id, string senderAddress, string destinationAddress, string sourceNetworkName, string sourceAsset, decimal sourceAmount, string destinationNetworkName, string destinationAsset, decimal destinationAmount, string hashlock, decimal feeAmount)
     {
-        var sourceToken = await dbContext.Tokens
-            .Include(x => x.Network)
-            .SingleOrDefaultAsync(x =>
-                x.Network.Name == sourceNetworkName
-                && x.Asset == sourceAsset);
 
-        var destinationToken = await dbContext.Tokens
-            .Include(x => x.Network)
-            .SingleOrDefaultAsync(x =>
-                x.Network.Name == destinationNetworkName
-                && x.Asset == destinationAsset);
+        var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceAsset);
+        var destinationToken = await networkRepository.GetTokenAsync(destinationNetworkName, destinationAsset);
 
         if (sourceToken == null || destinationToken == null)
         {
@@ -114,22 +106,14 @@ public class EFSwapRepository(SolverDbContext dbContext) : ISwapRepository
         string feeAsset,
         decimal feeAmount)
     {
-        var token = await dbContext.Tokens
-         .Include(x => x.TokenPrice)
-         .SingleOrDefaultAsync(x =>
-             x.Asset == asset
-             && x.Network.Name == networkName);
-
+        var token = await networkRepository.GetTokenAsync(networkName, asset);
+       
         if (token == null)
         {
             throw new($"Token with asset {asset} not found.");
         }
 
-        var feeToken = await dbContext.Tokens
-            .Include(x => x.TokenPrice)
-            .SingleOrDefaultAsync(x =>
-                x.Asset == feeAsset
-                && x.Network.Name == networkName);
+        var feeToken = await networkRepository.GetTokenAsync(networkName, feeAsset);
 
         if (feeToken == null)
         {

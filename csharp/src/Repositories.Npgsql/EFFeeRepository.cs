@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using Train.Solver.Core.Abstractions.Entities;
+using Train.Solver.Core.Abstractions.Models;
 using Train.Solver.Core.Abstractions.Repositories;
 
 namespace Train.Solver.Repositories.Npgsql;
 
-public class EFFeeRepository(SolverDbContext dbContext) : IFeeRepository
+public class EFFeeRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : IFeeRepository
 {
     public async Task<List<Expense>> GetExpensesAsync()
     {
@@ -16,20 +18,16 @@ public class EFFeeRepository(SolverDbContext dbContext) : IFeeRepository
         return await dbContext.ServiceFees.ToListAsync();
     }
 
-    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, decimal fee, TransactionType transactionType)
+    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, decimal feeAmount, TransactionType transactionType)
     {
-        var feeToken = await dbContext.Tokens
-            .Include(x => x.Network)
-            .FirstOrDefaultAsync(x => x.Asset == feeAsset && x.Network.Name == networkName);
+        var feeToken = await networkRepository.GetTokenAsync(networkName, tokenAsset);
 
         if (feeToken == null)
         {
             throw new Exception($"Fee token {feeAsset} not found in network {networkName}");
         }
 
-        var token = await dbContext.Tokens
-            .Include(x => x.Network)
-            .FirstOrDefaultAsync(x => x.Asset == tokenAsset && x.Network.Name == networkName);
+        var token = await networkRepository.GetTokenAsync(networkName, tokenAsset);
 
         if (token == null)
         {
@@ -48,12 +46,27 @@ public class EFFeeRepository(SolverDbContext dbContext) : IFeeRepository
                 TransactionType = transactionType
             };
 
-            expense.AddFeeValue(fee);
-
             dbContext.Expenses.Add(expense);
         }
 
-        expense.AddFeeValue(fee);
+        if (expense.LastFeeValues.Length == 0)
+        {
+            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
+        }
+        else
+        {
+            if (feeAmount > expense.LastFeeValues.Average() * 30)
+            {
+                return;
+            }
+
+            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
+
+            if (expense.LastFeeValues.Length > 10)
+            {
+                expense.LastFeeValues = expense.LastFeeValues.Skip(expense.LastFeeValues.Length - 10).ToArray();
+            }
+        }
 
         await dbContext.SaveChangesAsync();
     }
