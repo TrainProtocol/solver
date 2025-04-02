@@ -1,10 +1,11 @@
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.Blockchain.Common.Worklows;
+namespace Train.Solver.Blockchain.Swap.Workflows;
 
 [Workflow]
 public class RefundWorkflow : IScheduledWorkflow

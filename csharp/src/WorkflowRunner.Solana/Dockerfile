@@ -10,10 +10,10 @@ COPY csharp/ csharp/
 
 
 FROM build AS publish
-RUN dotnet publish "csharp/src/WorkflowRunner.Solana/WorkflowRunner.Solana.csproj" -c Release -o /app/publish
+RUN dotnet publish "csharp/src/Blockchain.Solana/Blockchain.Solana.csproj" -c Release -o /app/publish
 
 FROM base AS final
 
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Train.Solver.WorkflowRunner.Solana.dll"]
+ENTRYPOINT ["dotnet", "Train.Solver.Blockchain.Solana.dll"]
