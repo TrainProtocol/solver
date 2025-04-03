@@ -210,17 +210,6 @@ public class EVMBlockchainActivities(
             throw new ArgumentException($"Chain is not configured for {request.NetworkName} network");
         }
 
-        // var primaryNode = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
-        //
-        //  if (primaryNode is null)
-        //  {
-        //      return Result.Fail(
-        //              new NotFoundError(
-        //                  $"Primary node is not configured on {networkName} network"));
-        //  }
-        //
-        //  var web3 = new Web3(primaryNode.Url);
-
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
         BigInteger balance;
@@ -232,7 +221,6 @@ public class EVMBlockchainActivities(
                     await new Web3(url).Eth.GetBalance.SendRequestAsync(request.Address));
 
             balance = result.Value;
-            //(await web3.Eth.GetBalance.SendRequestAsync(address)).Value;
         }
         else
         {

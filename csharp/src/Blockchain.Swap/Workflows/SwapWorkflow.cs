@@ -1,14 +1,17 @@
 ﻿using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
+using Train.Solver.Blockchain.Common.Extensions;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using static Temporalio.Workflows.Workflow;
+using static Train.Solver.Blockchain.Common.Helpers.TemporalHelper;
 
 namespace Train.Solver.Blockchain.Swap.Workflows;
 
@@ -51,7 +54,7 @@ public class SwapWorkflow : ISwapWorkflow
         var solverAddresses = await ExecuteActivityAsync(
             (SwapActivities x) => x.GetSolverAddressesAsync(
                 _htlcCommitMessage.SourceNetwork, _htlcCommitMessage.DestinationNetwork),
-                       TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+                       DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _solverManagedAccountInDestination = solverAddresses[_htlcCommitMessage.DestinationNetwork];
         _solverManagedAccountInSource = solverAddresses[_htlcCommitMessage.SourceNetwork];
@@ -92,7 +95,7 @@ public class SwapWorkflow : ISwapWorkflow
                DestinationToken = _htlcCommitMessage.DestinationAsset,
                DestinationNetwork = _htlcCommitMessage.DestinationNetwork,
                Amount = _htlcCommitMessage.Amount
-           }), TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+           }), DefaultActivityOptions(Constants.CoreTaskQueue));
 
         if (quote.ReceiveAmount <= 0)
         {
@@ -105,14 +108,14 @@ public class SwapWorkflow : ISwapWorkflow
                 x.GenerateHashlockAsync(),
                 new()
                 {
-                    StartToCloseTimeout = TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue).StartToCloseTimeout,
-                    ScheduleToCloseTimeout = TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue).ScheduleToCloseTimeout,
+                    StartToCloseTimeout = DefaultActivityOptions(Constants.CoreTaskQueue).StartToCloseTimeout,
+                    ScheduleToCloseTimeout = DefaultActivityOptions(Constants.CoreTaskQueue).ScheduleToCloseTimeout,
                 });
 
         // Create swap 
         _swapId = await ExecuteActivityAsync(
             (SwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
-                TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+                DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
         var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));
@@ -279,13 +282,10 @@ public class SwapWorkflow : ISwapWorkflow
     {
         try
         {
-            var isValid = await ExecuteActivityAsync<bool>(
-                "ValidateAddLockSignature",
-                [
-                    addLockSig
-                ],
-                TemporalHelper.DefaultActivityOptions(
-                    TemporalHelper.ResolveBlockchainActivityTaskQueue(
+            var isValid = await ExecuteActivityAsync(
+                (IBlockchainActivities x) => x.ValidateAddLockSignatureAsync(addLockSig),
+                DefaultActivityOptions(
+                    ResolveBlockchainActivityTaskQueue(
                         _htlcCommitMessage!.SourceNetworkType))); // Todo: temp workaround
 
             if (isValid)
@@ -310,12 +310,12 @@ public class SwapWorkflow : ISwapWorkflow
 
     private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
     {
-        var confirmedTransaction = await ExecuteChildWorkflowAsync<TransactionResponse>(
-            TemporalHelper.ResolveProcessor(transactionRequest.NetworkType),
-            [transactionRequest, new TransactionExecutionContext()],
+        var confirmedTransaction = await ExecuteChildTransactionProcessorWorkflowAsync(
+            transactionRequest.NetworkType,
+            x => x.RunAsync(transactionRequest, new TransactionExecutionContext()),
             new ChildWorkflowOptions
             {
-                Id = TemporalHelper.BuildProcessorId(
+                Id = BuildProcessorId(
                     transactionRequest.NetworkName,
                     transactionRequest.Type,
                     NewGuid()),
@@ -325,7 +325,7 @@ public class SwapWorkflow : ISwapWorkflow
         await ExecuteActivityAsync(
             (SwapActivities x) =>
                 x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
-            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
             (SwapActivities x) => x.UpdateExpensesAsync(
@@ -334,7 +334,7 @@ public class SwapWorkflow : ISwapWorkflow
                 confirmedTransaction.FeeAmount,
                 confirmedTransaction.Asset,
                 transactionRequest.Type),
-            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            DefaultActivityOptions(Constants.CoreTaskQueue));
         return confirmedTransaction;
     }
 }

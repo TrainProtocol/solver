@@ -1,11 +1,28 @@
-﻿using Temporalio.Workflows;
+﻿using System.Linq.Expressions;
+using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common.Worklows;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Util;
 
 namespace Train.Solver.Blockchain.Common.Helpers;
 
 public static class TemporalHelper
 {
+    public static async Task<TResult> ExecuteChildTransactionProcessorWorkflowAsync<TResult>(
+       NetworkType networkType,
+       Expression<Func<ITransactionProcessor, Task<TResult>>> workflowRunCall,
+       ChildWorkflowOptions? options = null)
+    {
+        var (_, args) = ExpressionUtil.ExtractCall(workflowRunCall);
+        var handle = await Workflow.StartChildWorkflowAsync(
+            ResolveProcessor(networkType),
+            args,
+            options ?? new()).ConfigureAwait(true);
+
+        return await handle.GetResultAsync<TResult>().ConfigureAwait(true);
+    }
+
     public static ActivityOptions DefaultActivityOptions() =>
         DefaultActivityOptions(null);
 
@@ -24,7 +41,6 @@ public static class TemporalHelper
     {
         return $"{networkType}TransactionProcessor";
     }
-
 
     public static string BuildEventListenerId(string networkName)
         => $"{nameof(EventListenerWorkflow)}-{networkName.ToUpper()}";
