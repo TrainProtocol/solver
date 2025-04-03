@@ -36,12 +36,6 @@ public class SolanaBlockchainActivities(
     private const int BlockhashNotFoundErrorCode = -32002;
 
     [Activity]
-    public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)
-    {
-        return base.GetSpenderAddressAsync(request);
-    }
-
-    [Activity]
     public async Task<TransactionResponse> GetSolanaTransactionReceiptAsync(SolanaGetTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
