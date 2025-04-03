@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9D441E87-E87F-4A21-92F0-45AEBA1397D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Core\Infrastructure.csproj", "{C53B90A7-0975-4331-B776-2247F9964EEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{C53B90A7-0975-4331-B776-2247F9964EEF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_config", "_config", "{E67A8BE0-0795-4F3B-A9BB-BD37C9CBD916}"
 	ProjectSection(SolutionItems) = preProject
@@ -17,21 +17,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_config", "_config", "{E67A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "src\API\API.csproj", "{3E020761-9DEE-4422-9333-15B90B90D6E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.EVM", "src\WorkflowRunner.EVM\Blockchain.EVM.csproj", "{43E53083-B279-4FF6-A4E5-6A72C04279A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.EVM", "src\Blockchain.EVM\Blockchain.EVM.csproj", "{43E53083-B279-4FF6-A4E5-6A72C04279A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Starknet", "src\WorkflowRunner.Starknet\Blockchain.Starknet.csproj", "{1492A46C-1332-4947-B53C-4A1EECE16031}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Starknet", "src\Blockchain.Starknet\Blockchain.Starknet.csproj", "{1492A46C-1332-4947-B53C-4A1EECE16031}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Solana", "src\WorkflowRunner.Solana\Blockchain.Solana.csproj", "{4C1F8BC2-53B1-4D70-A2AA-48EAB284C216}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Solana", "src\Blockchain.Solana\Blockchain.Solana.csproj", "{4C1F8BC2-53B1-4D70-A2AA-48EAB284C216}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Npgsql", "src\Repositories.Npgsql\Data.Npgsql.csproj", "{E77855D2-3214-41F8-9202-6C06E95A260C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Npgsql", "src\Data.Npgsql\Data.Npgsql.csproj", "{E77855D2-3214-41F8-9202-6C06E95A260C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Common", "src\Core.Workflows\Blockchain.Common.csproj", "{068D2ACA-E7E0-4DA3-82EE-7FC20FABB7A1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Common", "src\Blockchain.Common\Blockchain.Common.csproj", "{068D2ACA-E7E0-4DA3-82EE-7FC20FABB7A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Swap", "src\WorkflowRunner.Swap\Blockchain.Swap.csproj", "{69C0CFFD-6AA3-4D62-B818-257A6266D93D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Swap", "src\Blockchain.Swap\Blockchain.Swap.csproj", "{69C0CFFD-6AA3-4D62-B818-257A6266D93D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Secret.AzureKeyVault", "src\Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj", "{477456EA-7CC7-42E6-A408-AD81744CB612}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Secret.AzureKeyVault", "src\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj", "{477456EA-7CC7-42E6-A408-AD81744CB612}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.TokenPrice.Coingecko", "src\TokenPrice.Coingecko\Infrastructure.TokenPrice.Coingecko.csproj", "{B425A7FB-8FAF-402E-BD1B-D7BF8E668B4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.TokenPrice.Coingecko", "src\Infrastructure.TokenPrice.Coingecko\Infrastructure.TokenPrice.Coingecko.csproj", "{B425A7FB-8FAF-402E-BD1B-D7BF8E668B4B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_protos", "_protos", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
@@ -43,11 +43,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_scripts", "_scripts", "{63
 		..\tools\protogen.ps1 = ..\tools\protogen.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Logging.OpenTelemetry", "src\Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj", "{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Logging.OpenTelemetry", "src\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj", "{9E642F6C-680C-43CA-8C0A-BA537CED5AA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Abstractions", "src\Core.Abstractions\Infrastructure.Abstractions.csproj", "{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Abstractions", "src\Infrastructure.Abstractions\Infrastructure.Abstractions.csproj", "{3F903443-45B6-4E4A-B3D6-BA1A41DE3CCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.DependencyInjection", "src\Core.DependencyInjection\Infrastructure.DependencyInjection.csproj", "{0C7D1799-62F0-49C6-84FF-229AD21D0509}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.DependencyInjection", "src\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj", "{0C7D1799-62F0-49C6-84FF-229AD21D0509}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data.Abstractions", "src\Data.Abstractions\Data.Abstractions.csproj", "{DD17C81E-017B-4D4B-AB8A-F21E7FF2B8CF}"
 EndProject
@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{D8C171FD-424E-476C-A40A-0C00FBC34AD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Abstractions", "src\BlockchainAbstractions\Blockchain.Abstractions.csproj", "{2BB9264A-8CD1-4CC1-9424-08035D174989}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Abstractions", "src\Blockchain.Abstractions\Blockchain.Abstractions.csproj", "{2BB9264A-8CD1-4CC1-9424-08035D174989}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{417046CB-2C35-43D3-B887-98E708339594}"
 EndProject

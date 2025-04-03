@@ -15,10 +15,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Core.Workflows\Blockchain.Common.csproj" />
-	  <ProjectReference Include="..\Core\Infrastructure.csproj" />
-	  <ProjectReference Include="..\Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
-	  <ProjectReference Include="..\Repositories.Npgsql\Data.Npgsql.csproj" />
+	  <ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
+	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	  <ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+	  <ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
 	</ItemGroup>
 
 </Project>

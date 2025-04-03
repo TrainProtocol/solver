@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Blockchain.Helpers\Blockchain.Helpers.csproj" />
-    <ProjectReference Include="..\BlockchainAbstractions\Blockchain.Abstractions.csproj" />
-    <ProjectReference Include="..\Core\Infrastructure.csproj" />
+    <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
 

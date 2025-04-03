@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Core.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
+	  <ProjectReference Include="..\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
 	</ItemGroup>
 
 </Project>
