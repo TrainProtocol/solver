@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Data.Abstractions</AssemblyName>
+		<RootNamespace>Train.Solver.Data.Abstractions</RootNamespace>
+	</PropertyGroup>
+
+</Project>

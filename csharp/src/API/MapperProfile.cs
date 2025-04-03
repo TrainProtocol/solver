@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Flurl;
 using Train.Solver.API.Models;
-using Train.Solver.Core.Abstractions.Entities;
-using Train.Solver.Core.Abstractions.Models;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.API;
 

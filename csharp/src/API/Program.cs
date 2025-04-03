@@ -4,8 +4,8 @@ using Train.Solver.API;
 using Train.Solver.API.Endpoints;
 using Train.Solver.API.Extensions;
 using Train.Solver.API.MIddlewares;
-using Train.Solver.Core.Extensions;
-using Train.Solver.Logging.OpenTelemetry;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Repositories.Npgsql.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

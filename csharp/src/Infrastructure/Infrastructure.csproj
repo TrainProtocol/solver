@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+    <AssemblyName>Train.Solver.Infrastructure</AssemblyName>
+    <RootNamespace>Train.Solver.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Infrastructure.Abstractions\Infrastructure.Abstractions.csproj" />
+	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
+	  <ProjectReference Include="..\Util\Util.csproj" />
+	</ItemGroup>
+</Project>

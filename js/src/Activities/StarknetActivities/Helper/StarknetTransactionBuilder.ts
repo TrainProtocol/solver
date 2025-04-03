@@ -102,6 +102,12 @@ export class StarknetTransactionBuilder {
             throw new Error(`Token not found for network ${network.name} and asset ${lockRequest.SourceAsset}`)
         };
 
+        const nativeToken = network.tokens.find(t => t.isNative === true);
+
+        if (!nativeToken) {
+            throw new Error(`Native token not found for network ${network.name}`);
+        }
+
         const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
 
         const callData = [
@@ -125,16 +131,23 @@ export class StarknetTransactionBuilder {
             calldata: callData
         };
 
-        return {
+        let response: TransferBuilderResponse = {
             Data: JSON.stringify(methodCall),
             Amount: 0,
             AmountInWei: "0",
-            Asset: lockRequest.SourceAsset,
+            Asset: nativeToken.asset,
             CallDataAsset: lockRequest.SourceAsset,
             CallDataAmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
             CallDataAmount: lockRequest.Amount + lockRequest.Reward,
             ToAddress: htlcContractAddress.address,
         };
+
+        if (nativeToken.id === token.id) {
+            response.Amount = lockRequest.Amount + lockRequest.Reward;
+            response.AmountInWei = utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString();
+        }
+
+        return response;
     }
 
     public static CreateAddLockSigCallData(network: Networks, args: string): TransferBuilderResponse {

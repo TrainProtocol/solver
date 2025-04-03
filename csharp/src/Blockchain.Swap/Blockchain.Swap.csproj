@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchain.Swap</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchain.Swap</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
+		<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
+		<ProjectReference Include="..\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />
+	  <ProjectReference Include="..\Infrastructure.TokenPrice.Coingecko\Infrastructure.TokenPrice.Coingecko.csproj" />
+	</ItemGroup>
+</Project>
