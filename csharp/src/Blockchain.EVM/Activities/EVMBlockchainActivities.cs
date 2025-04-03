@@ -56,12 +56,6 @@ public class EVMBlockchainActivities(
     ];
 
     [Activity]
-    public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)
-    {
-        return base.GetSpenderAddressAsync(request);
-    }
-
-    [Activity]
     public override async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
@@ -446,12 +440,16 @@ public class EVMBlockchainActivities(
 
         var currency = network.Tokens.Single(x => x.Asset == request.Asset);
 
+        var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
+           network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
+           : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+
         if (!string.IsNullOrEmpty(currency.TokenContract))
         {
             var allowanceFunctionMessage = new AllowanceFunction
             {
                 Owner = request.OwnerAddress,
-                Spender = request.SpenderAddress,
+                Spender = spenderAddress,
             };
 
             var allowanceHandler = await GetDataFromNodesAsync(nodes,

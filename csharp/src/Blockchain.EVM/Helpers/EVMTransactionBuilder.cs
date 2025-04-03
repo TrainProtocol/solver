@@ -27,6 +27,10 @@ public static class EVMTransactionBuilder
 
         var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.TokenContract));
 
+        var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
+           network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
+           : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+
         if (currency.Id != nativeCurrency.Id)
         {
             var response = new PrepareTransactionResponse
@@ -37,7 +41,7 @@ public static class EVMTransactionBuilder
                 Asset = nativeCurrency.Asset,
                 Data = new FunctionMessages.ApproveFunction
                 {
-                    Spender = request.SpenderAddress,
+                    Spender = spenderAddress,
                     Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
                 CallDataAsset = nativeCurrency.Asset,

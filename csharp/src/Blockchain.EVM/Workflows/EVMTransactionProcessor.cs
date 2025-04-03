@@ -232,24 +232,13 @@ public class EVMTransactionProcessor : ITransactionProcessor
             throw new Exception($"Occured exception during deserializing {context.PrepareArgs}");
         }
 
-        // Get spender address
-        var spenderAddress = await ExecuteActivityAsync(
-            (EVMBlockchainActivities x) => x.GetSpenderAddressAsync(new SpenderAddressRequest()
-            {
-                Asset = lockRequest.SourceAsset,
-                NetworkName = lockRequest.SourceNetwork,
-            }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
-
         // Check allowance
         var allowance = await ExecuteActivityAsync(
             (EVMBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
             {
                 NetworkName = lockRequest.SourceNetwork,
                 OwnerAddress = context.FromAddress,
-                SpenderAddress = spenderAddress,
                 Asset = lockRequest.SourceAsset
-
             }),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
@@ -261,7 +250,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
-                    SpenderAddress = spenderAddress,
                     Amount = 1000000000m,
                     Asset = lockRequest.SourceAsset,
                 }, (JsonSerializerOptions?)null),

@@ -185,17 +185,6 @@ public class StarknetTransactionProcessor
             throw new Exception($"Occured exception during deserializing {context.PrepareArgs}");
         }
 
-        // Get spender address
-        var spenderAddress = await ExecuteActivityAsync(
-            (StarknetBlockchainActivities x) => x.GetSpenderAddressAsync(
-                new SpenderAddressRequest()
-                {
-                    Asset = lockRequest.SourceAsset,
-                    NetworkName = lockRequest.SourceNetwork,
-                }
-            ),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
-
         // Check allowance
         var allowance = await ExecuteActivityAsync<decimal>(
                 $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetSpenderAllowanceAsync)}",
@@ -204,7 +193,6 @@ public class StarknetTransactionProcessor
                     {
                         NetworkName = lockRequest.SourceNetwork,
                         OwnerAddress = context.FromAddress,
-                        SpenderAddress = spenderAddress,
                         Asset = lockRequest.SourceAsset
                     }
                 ],
@@ -222,7 +210,6 @@ public class StarknetTransactionProcessor
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
-                    SpenderAddress = spenderAddress,
                     Amount = 1000000000m,
                     Asset = lockRequest.SourceAsset,
                 }, (JsonSerializerOptions?)null),

@@ -61,12 +61,6 @@ public class StarknetBlockchainActivities(
     {
         throw new TaskQueueMismatchException();
     }
-
-    [Activity]
-    public override Task<string> GetSpenderAddressAsync(SpenderAddressRequest request)
-    {
-        return base.GetSpenderAddressAsync(request);
-    }
    
     [Activity]
     public override async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)

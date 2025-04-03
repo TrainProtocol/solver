@@ -201,8 +201,12 @@ export class StarknetTransactionBuilder {
             throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.Asset}`);
         }
 
+        const spenderAddress = !token.tokenContract
+            ? network.contracts.find(c => c.type === ContractType.HTLCNativeContractAddress)?.address
+            : network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
+
         const callData = [
-            approveRequest.SpenderAddress,
+            spenderAddress,
             cairo.uint256(Number(utils.parseUnits(approveRequest.Amount.toString(), token.decimals)))
         ];
 
