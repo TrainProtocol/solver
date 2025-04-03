@@ -188,9 +188,3 @@ To integrate a new blockchain:
 > 🧠 These implementations can be done in any language supported by Temporal.io.
 
 > 📦 Final step: Package your worker as a Docker image to run alongside the system.
-
----
-
-## 📄 License
-
-MIT (or your preferred license)
