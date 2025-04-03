@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/WorkflowRunner.EVM/Dockerfile
+          file: csharp/src/Blockchain.EVM/Dockerfile
           push: true
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}

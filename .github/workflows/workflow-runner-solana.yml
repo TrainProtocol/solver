@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v5 
         with:
           context: .
-          file: csharp/src/WorkflowRunner.Solana/Dockerfile
+          file: csharp/src/Blockchain.Solana/Dockerfile
           push: true
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
