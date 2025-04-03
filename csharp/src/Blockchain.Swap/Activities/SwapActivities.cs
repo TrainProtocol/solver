@@ -11,7 +11,7 @@ using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
 
-namespace Train.Solver.Blockchain.Common.Activities;
+namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,

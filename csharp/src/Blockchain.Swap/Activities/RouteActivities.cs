@@ -4,7 +4,7 @@ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 
-namespace Train.Solver.Blockchain.Common.Activities;
+namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class RouteActivities(IRouteRepository routeRepository) : IRouteActivities
 {

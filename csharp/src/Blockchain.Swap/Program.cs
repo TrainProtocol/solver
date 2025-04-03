@@ -1,5 +1,5 @@
 ﻿using Train.Solver.Blockchain.Swap.Extensions;
-using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Repositories.Npgsql.Extensions;

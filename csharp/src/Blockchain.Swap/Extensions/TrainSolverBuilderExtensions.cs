@@ -1,7 +1,8 @@
 ﻿using Temporalio.Extensions.Hosting;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
-using Train.Solver.Blockchain.Common.Worklows;
+using Train.Solver.Blockchain.Swap.Activities;
+using Train.Solver.Blockchain.Swap.Workflows;
 using Train.Solver.Infrastructure.DependencyInjection;
 
 namespace Train.Solver.Blockchain.Swap.Extensions;

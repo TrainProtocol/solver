@@ -1,10 +1,13 @@
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Common.Worklows;
+using Train.Solver.Blockchain.Swap.Activities;
 using static Temporalio.Workflows.Workflow;
 
-namespace Train.Solver.Blockchain.Common.Worklows;
+namespace Train.Solver.Blockchain.Swap.Workflows;
 
 [Workflow]
 public class EventListenerUpdaterWorkflow : IScheduledWorkflow
@@ -22,7 +25,7 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 
         foreach (var network in activeNetworks)
         {
-            if (!activeEventListenerWorkflowIds.Any(x => x == EventListenerWorkflow.BuildWorkflowId(network.Name)))
+            if (!activeEventListenerWorkflowIds.Any(x => x == TemporalHelper.BuildEventListenerId(network.Name)))
             {
                 await ExecuteActivityAsync(
                     (WorkflowActivities x) => x.RunEventListeningWorkflowAsync(
@@ -36,7 +39,7 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 
         var mustBeStoppedEventListenersIds = activeEventListenerWorkflowIds
             .Where(workflowId =>
-                !activeNetworks.Any(x => workflowId == EventListenerWorkflow.BuildWorkflowId(x.Name)))
+                !activeNetworks.Any(x => workflowId == TemporalHelper.BuildEventListenerId(x.Name)))
             .ToList();
 
         foreach (var eventListenerId in mustBeStoppedEventListenersIds)

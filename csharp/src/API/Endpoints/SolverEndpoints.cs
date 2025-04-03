@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
 using Train.Solver.API.Models;
 using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Blockchain.Common.Worklows;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Util.Extensions;
+using Train.Solver.Blockchain.Abstractions.Workflows;
 
 namespace Train.Solver.API.Endpoints;
 
@@ -69,7 +69,7 @@ public static class SolverEndpoints
         }
 
         var isValid = await temporalClient
-            .GetWorkflowHandle<SwapWorkflow>(commitId)
+            .GetWorkflowHandle<ISwapWorkflow>(commitId)
             .ExecuteUpdateAsync((x) => x.SetAddLockSigAsync(
                 new AddLockSignatureRequest
                 {

@@ -1,4 +1,5 @@
 ﻿using Temporalio.Workflows;
+using Train.Solver.Blockchain.Common.Worklows;
 using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Blockchain.Common.Helpers;
@@ -23,6 +24,10 @@ public static class TemporalHelper
     {
         return $"{networkType}TransactionProcessor";
     }
+
+
+    public static string BuildEventListenerId(string networkName)
+        => $"{nameof(EventListenerWorkflow)}-{networkName.ToUpper()}";
 
     public static string BuildProcessorId(string networkName, TransactionType type, Guid uniqueId) => $"{networkName}-{type}-{uniqueId}";
 

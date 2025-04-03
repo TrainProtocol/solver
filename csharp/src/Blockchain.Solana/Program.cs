@@ -1,5 +1,5 @@
 ﻿using Train.Solver.Blockchain.Solana.Extensions;
-using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Repositories.Npgsql.Extensions;
 

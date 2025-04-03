@@ -17,6 +17,7 @@ public static class TrainSolverBuilderExtensions
             .AddHostedTemporalWorker(nameof(NetworkType.EVM))
             .AddWorkflow<EVMTransactionProcessor>()
             .AddWorkflow<EventListenerWorkflow>()
+            .AddTransientActivities<WorkflowActivities>()
             .AddTransientActivities<EVMBlockchainActivities>()
             .AddTransientActivities<UtilityActivities>();
 

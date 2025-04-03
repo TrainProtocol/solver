@@ -5,8 +5,8 @@ using Temporalio.Client;
 using Temporalio.Exceptions;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common.Helpers;
-using Train.Solver.Blockchain.Common.Worklows;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
@@ -44,14 +44,14 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
         TimeSpan waitInterval)
     {
         await temporalClient.StartWorkflowAsync(
-            (EventListenerWorkflow x) =>
+            (IEventListenerWorkflow x) =>
                 x.RunAsync(
                     networkName,
                     networkType,
                     blockBatchSize,
                     waitInterval,
                     null),
-            new(id: EventListenerWorkflow.BuildWorkflowId(networkName),
+            new(id: TemporalHelper.BuildEventListenerId(networkName),
             taskQueue: networkType.ToString())
             {
                 IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning
@@ -105,7 +105,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
                 return existingSwap.Id;
             }
 
-            var workflowHandle = await temporalClient.StartWorkflowAsync<SwapWorkflow>(
+            var workflowHandle = await temporalClient.StartWorkflowAsync<ISwapWorkflow>(
                 workflow => workflow.RunAsync(signal),
                 new WorkflowOptions
                 {

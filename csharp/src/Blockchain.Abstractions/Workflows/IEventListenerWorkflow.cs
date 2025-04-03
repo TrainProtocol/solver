@@ -6,8 +6,6 @@ namespace Train.Solver.Blockchain.Abstractions.Workflows;
 [Workflow]
 public interface IEventListenerWorkflow
 {
-    static abstract string BuildWorkflowId(string networkName);
-
     [WorkflowQuery]
     ulong? GetLastScannedBlock();
 

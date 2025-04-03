@@ -63,8 +63,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{417046
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "src\Util\Util.csproj", "{BED56D0D-6DB0-4124-93EC-97E39150F03F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Helpers", "src\Blockchain.Helpers\Blockchain.Helpers.csproj", "{4F1F07A9-65A8-4406-89A6-D254F7F158A3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_build", "_build", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		..\build\.env = ..\build\.env
@@ -141,10 +139,6 @@ Global
 		{BED56D0D-6DB0-4124-93EC-97E39150F03F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BED56D0D-6DB0-4124-93EC-97E39150F03F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BED56D0D-6DB0-4124-93EC-97E39150F03F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4F1F07A9-65A8-4406-89A6-D254F7F158A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4F1F07A9-65A8-4406-89A6-D254F7F158A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4F1F07A9-65A8-4406-89A6-D254F7F158A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4F1F07A9-65A8-4406-89A6-D254F7F158A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,7 +164,6 @@ Global
 		{2BB9264A-8CD1-4CC1-9424-08035D174989} = {6737D8C5-3F3B-484D-A62B-3A4C94C4AF95}
 		{417046CB-2C35-43D3-B887-98E708339594} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{BED56D0D-6DB0-4124-93EC-97E39150F03F} = {417046CB-2C35-43D3-B887-98E708339594}
-		{4F1F07A9-65A8-4406-89A6-D254F7F158A3} = {6737D8C5-3F3B-484D-A62B-3A4C94C4AF95}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9194A24-3EC3-4F7F-BD7F-8DE45515A2E3}

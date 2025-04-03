@@ -155,7 +155,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
             try
             {
-                await GetExternalWorkflowHandle<SwapWorkflow>(lockMessage.Id)
+                await GetExternalWorkflowHandle<ISwapWorkflow>(lockMessage.Id)
                     .SignalAsync((x) => x.LockCommitedAsync(lockMessage));
             }
             catch
@@ -175,7 +175,4 @@ public class EventListenerWorkflow : IEventListenerWorkflow
     {
         return _processedTransacrtionHashes;
     }
-
-    public static string BuildWorkflowId(string networkName)
-        => $"{nameof(EventListenerWorkflow)}-{networkName.ToUpper()}";
 }

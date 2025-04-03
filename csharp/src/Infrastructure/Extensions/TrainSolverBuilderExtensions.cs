@@ -7,9 +7,10 @@ using StackExchange.Redis;
 using Temporalio.Client;
 using Temporalio.Exceptions;
 using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Services;
 
-namespace Train.Solver.Infrastructure.DependencyInjection;
+namespace Train.Solver.Infrastructure.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

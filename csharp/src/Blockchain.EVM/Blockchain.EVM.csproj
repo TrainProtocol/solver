@@ -11,8 +11,6 @@
 	</ItemGroup>
 	
   <ItemGroup>
-    <ProjectReference Include="..\Blockchain.Helpers\Blockchain.Helpers.csproj" />
-    <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
     <ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
     <ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
     <ProjectReference Include="..\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />

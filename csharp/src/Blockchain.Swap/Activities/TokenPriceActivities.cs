@@ -3,7 +3,7 @@ using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 
-namespace Train.Solver.Blockchain.Common.Activities;
+namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class TokenPriceActivities(
     INetworkRepository networkRepository,
