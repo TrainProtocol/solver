@@ -1,4 +1,5 @@
 ﻿using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common.Activities;
@@ -43,9 +44,9 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
             try
             {
-                var blockNumberWithHash = await ExecuteActivityAsync<BlockNumberResponse>(
-                    "GetLastConfirmedBlockNumber",
-                    [new BaseRequest { NetworkName = networkName }],
+                var blockNumberWithHash = await ExecuteActivityAsync(
+                    (IBlockchainActivities x) => x.GetLastConfirmedBlockNumberAsync(
+                        new BaseRequest { NetworkName = networkName}),
                     new()
                     {
                         TaskQueue = networkType.ToString(),
@@ -111,16 +112,13 @@ public class EventListenerWorkflow : IEventListenerWorkflow
         NetworkType networkType,
         BlockRangeModel blockRange)
     {
-        var result = await ExecuteActivityAsync<HTLCBlockEventResponse>(
-            "GetEvents",
-            [
-                new EventRequest()
-                {
-                    NetworkName = networkName,
-                    FromBlock = blockRange.From,
-                    ToBlock = blockRange.To
-                }
-            ],
+        var result = await ExecuteActivityAsync(
+            (IBlockchainActivities x) => x.GetEventsAsync(new EventRequest()
+            {
+                NetworkName = networkName,
+                FromBlock = blockRange.From,
+                ToBlock = blockRange.To
+            }),
             new()
             {
                 TaskQueue = networkType.ToString(),
