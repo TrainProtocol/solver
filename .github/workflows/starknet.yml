@@ -34,6 +34,7 @@ jobs:
           commitHash=${GITHUB_SHA:0:7}
           ts=$(date +%s)
           version=$commitHash-$ts
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
