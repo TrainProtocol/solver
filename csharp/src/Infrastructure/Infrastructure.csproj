@@ -7,8 +7,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="RedLock.net" Version="2.3.2" />
-		<PackageReference Include="Temporalio.Extensions.Hosting" Version="1.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+		<PackageReference Include="Temporalio.Extensions.Hosting" Version="1.5.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.3" />
 	</ItemGroup>
 	
 	<ItemGroup>
