@@ -52,6 +52,7 @@ jobs:
           context: .
           file: csharp/src/Blockchain.EVM/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
