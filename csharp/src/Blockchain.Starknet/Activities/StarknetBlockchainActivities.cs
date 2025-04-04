@@ -22,11 +22,10 @@ using Train.Solver.Blockchain.Common.Helpers;
 namespace Train.Solver.Blockchain.Starknet.Activities;
 
 public class StarknetBlockchainActivities(
-    ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IHttpClientFactory httpClientFactory,
     IDatabase cache,
-    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase(networkRepository), IStarknetBlockchainActivities
+    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase, IStarknetBlockchainActivities
 {
     private static readonly BigInteger BigIntTwo = new BigInteger(2);
     private static readonly BigInteger Mask221 = BigInteger.Pow(BigIntTwo, 221);

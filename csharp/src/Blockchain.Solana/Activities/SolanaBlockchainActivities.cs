@@ -25,10 +25,9 @@ using Train.Solver.Blockchain.Common.Helpers;
 namespace Train.Solver.Blockchain.Solana.Activities;
 
 public class SolanaBlockchainActivities(
-    ISwapRepository swapRepository,
     INetworkRepository networkRepository,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository), ISolanaBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase, ISolanaBlockchainActivities
 {
     private const int MaxConcurrentTaskCount = 4;
     private const int LamportsPerSignature = 5000;

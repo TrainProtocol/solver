@@ -4,7 +4,7 @@ using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Blockchain.Abstractions.Activities;
 
-public abstract class BlockchainActivitiesBase(INetworkRepository networkRepository) : IBlockchainActivities
+public abstract class BlockchainActivitiesBase() : IBlockchainActivities
 {
     protected abstract Task<string> GetCachedNonceAsync(NextNonceRequest request);
     protected abstract string FormatAddress(string request);

@@ -33,7 +33,7 @@ public class EVMBlockchainActivities(
     INetworkRepository networkRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase(networkRepository), IEVMBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase, IEVMBlockchainActivities
 {
     private readonly string[] _nonRetriableErrors =
     [
