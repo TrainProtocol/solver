@@ -15,7 +15,7 @@ on:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-swap
+  DOCKER_IMAGE: trainprotocol/solver-swap
   
 jobs:
   build-and-push:
@@ -52,8 +52,6 @@ jobs:
           file: csharp/src/Blockchain.Swap/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
