@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Train.Solver.Repositories.Npgsql.Extensions;
+namespace Train.Solver.Data.Npgsql.Extensions;
 public static class PropertyBuilderExtension
 {
     public static PropertyBuilder<T> HasEnumComment<T>(this PropertyBuilder<T> propertyBuilder) where T : Enum

@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Repositories.Npgsql;
+﻿namespace Train.Solver.Data.Npgsql;
 
 public class EFOptions
 {

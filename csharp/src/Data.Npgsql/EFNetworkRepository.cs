@@ -2,7 +2,7 @@
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
-namespace Train.Solver.Repositories.Npgsql;
+namespace Train.Solver.Data.Npgsql;
 
 public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
 {

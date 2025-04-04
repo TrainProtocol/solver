@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Entities.Base;
-using Train.Solver.Repositories.Npgsql.Extensions;
+using Train.Solver.Data.Npgsql.Extensions;
 
-namespace Train.Solver.Repositories.Npgsql;
+namespace Train.Solver.Data.Npgsql;
 
 public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbContext(options)
 {

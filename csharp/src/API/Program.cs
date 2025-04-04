@@ -6,7 +6,7 @@ using Train.Solver.API.Extensions;
 using Train.Solver.API.MIddlewares;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Repositories.Npgsql.Extensions;
+using Train.Solver.Data.Npgsql.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

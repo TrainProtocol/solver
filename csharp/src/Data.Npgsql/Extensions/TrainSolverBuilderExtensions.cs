@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.Repositories.Npgsql.Extensions;
+namespace Train.Solver.Data.Npgsql.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

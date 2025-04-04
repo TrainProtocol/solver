@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.Repositories.Npgsql;
+namespace Train.Solver.Data.Npgsql;
 
 public class SolverDbContextDesignFactory : IDesignTimeDbContextFactory<SolverDbContext>
 {

@@ -1,7 +1,7 @@
 ﻿using Train.Solver.Blockchain.Starknet.Extensions;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
-using Train.Solver.Repositories.Npgsql.Extensions;
+using Train.Solver.Data.Npgsql.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>

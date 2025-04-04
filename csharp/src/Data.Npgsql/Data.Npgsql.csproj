@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<AssemblyName>Train.Solver.Repositories.Npgsql</AssemblyName>
-		<RootNamespace>Train.Solver.Repositories.Npgsql</RootNamespace>
+		<AssemblyName>Train.Solver.Data.Npgsql</AssemblyName>
+		<RootNamespace>Train.Solver.Data.Npgsql</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
