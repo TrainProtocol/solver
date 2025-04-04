@@ -3,8 +3,6 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/API/Dockerfile
-      args:
-        DOTNET_VERSION: 9
     container_name: solver.api
     ports:
       - "8080:8080"
@@ -25,8 +23,6 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Swap/Dockerfile
-      args:
-        DOTNET_VERSION: 9
     container_name: solver.workflow.runner-swap
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -44,8 +40,6 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.EVM/Dockerfile
-      args:
-        DOTNET_VERSION: 9
     container_name: solver.workflow.runner-evm
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -63,8 +57,6 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Solana/Dockerfile
-      args:
-        DOTNET_VERSION: 9
     container_name: solver.workflow.runner-solana
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -82,8 +74,6 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Starknet/Dockerfile
-      args:
-        DOTNET_VERSION: 9
     container_name: solver.workflow.runner-starknet
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}

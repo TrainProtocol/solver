@@ -8,12 +8,12 @@
 
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
-| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/train-solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
-| Workflow Runner (Swap) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-swap?label=WorkflowRunner-Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-api) |
-| Workflow Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-evm?label=WorkflowRunner-EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-evm) |
-| Workflow Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-solana?label=WorkflowRunner-Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-solana) |
-| Workflow Runner (Starknet) | `csharp/src/Blockchain.Starknet/Dockerfile` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-starknet?label=WorkflowRunner-Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-starknet) |
-| Workflow Runner (Starknet JS) | `js/Dockerfile` | [![Starknet-JS](https://img.shields.io/docker/v/trainprotocol/train-solver-runner-starknet-js?label=WorkflowRunner-Starknet-JS&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solver-runner-starknet-js) |
+| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/train-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/train-api) |
+| Runner (Swap) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/train-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/train-api) |
+| Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/train-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/train-evm) |
+| Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/train-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/train-solana) |
+| Runner (Starknet) | `csharp/src/Blockchain.Starknet/Dockerfile` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/train-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/train-starknet) |
+| Runner (Starknet JS) | `js/Dockerfile` | [![Starknet-JS](https://img.shields.io/docker/v/trainprotocol/train-starknet-js?label=Starknet-JS&logo=docker)](https://hub.docker.com/r/trainprotocol/train-starknet-js) |
 
 ---
 

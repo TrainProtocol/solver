@@ -1,22 +1,22 @@
-name: Starknet JS Workflow runner
+name: Solana Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
-      - 'js/**'
-      - '.github/workflows/workflow-runner-starknet-js.yml'
+      - 'csharp/**'
+      - '.github/workflows/solana.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
-      - 'js/**'
-      - '.github/workflows/workflow-runner-starknet-js.yml'
+      - 'csharp/**'
+      - '.github/workflows/solana.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-runner-starknet-js
-
+  DOCKER_IMAGE: trainprotocol/solver-solana
+  
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -46,10 +46,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v5 
         with:
           context: .
-          file: js/Dockerfile
+          file: csharp/src/Blockchain.Solana/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |

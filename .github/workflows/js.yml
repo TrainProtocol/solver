@@ -1,23 +1,22 @@
-name: Starknet Workflow runner
+name: Starknet JS Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
-      - 'csharp/**'
-      - '.github/workflows/workflow-runner-starknet.yml'
+      - 'js/**'
+      - '.github/workflows/js.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
-      - 'csharp/**'
-      - '.github/workflows/workflow-runner-starknet.yml'
+      - 'js/**'
+      - '.github/workflows/js.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-runner-starknet
-  DOTNET_VERSION: 9
-  
+  DOCKER_IMAGE: trainprotocol/solver-starknet-js
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -50,11 +49,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/Blockchain.Starknet/Dockerfile
+          file: js/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
