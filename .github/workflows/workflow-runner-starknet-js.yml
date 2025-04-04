@@ -51,8 +51,7 @@ jobs:
           context: .
           file: js/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max 

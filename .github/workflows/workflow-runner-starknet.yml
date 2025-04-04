@@ -52,10 +52,9 @@ jobs:
           context: .
           file: csharp/src/Blockchain.Starknet/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max 
