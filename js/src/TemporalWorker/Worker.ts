@@ -2,7 +2,7 @@ import { Worker, NativeConnection } from '@temporalio/worker';
 import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { SolverContext } from '../Data/SolverContext';
-import { StarknetActivities } from '../Activities/StarknetActivities/StarknetActivities';
+import { StarknetActivities } from '../Blockchian/WorkflowRunner.Starknet/Activities/StarknetBlockchainActivities';
 import { extractActivities } from './ActivityParser';
 
 async function run() {

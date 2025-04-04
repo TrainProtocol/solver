@@ -7,18 +7,17 @@ import { BigNumber, utils } from "ethers";
 import erc20Json from './ABIs/ERC20.json';
 import { TransferBuilderResponse } from "../../lib/Model/TransactionBuilderModels/TransferBuilderResponse";
 import { InvalidTimelockException } from "../../Exceptions/InvalidTimelockException";
-import { GetFeesRequest } from "../../lib/Model/GetFeesModels/GetFeesRequest";
-import { Fee, FixedFeeData } from "../../lib/Model/GetFeesModels/GetFeesResponse";
+import { GetFeesRequest } from "../../CoreAbstraction/Models/GetFeesModels/GetFeesRequest";
+import { Fee, FixedFeeData } from "../../CoreAbstraction/Models/GetFeesModels/GetFeesResponse";
 import { NodeType } from "../../Data/Entities/Nodes";
 import { AddLockSignatureRequest } from "../../lib/Model/TransactionBuilderModels/AddLockSignatureRequest";
 import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder";
 import { CalcV2InvokeTxHashArgs } from "../../lib/Model/WithdrawalModels/TransactioCalculationType";
 import { TransactionType } from "../../lib/Model/TransactionTypes/TransactionType";
 import { StarknetPublishTransactionRequest } from "./Models/StarknetPublishTransactionRequest ";
-import { AllowanceRequest } from "../../lib/Model/AllowanceModels/AllowanceRequest";
+import { AllowanceRequest } from "../../CoreAbstraction/Models/AllowanceRequest";
 import { TransactionBuilderRequest } from "../../lib/Model/TransactionBuilderModels/TransactionBuilderRequest";
-import { BalanceRequest } from "../../lib/Model/BalanceRequestModels/BalanceRequest";
-import { ContractType } from "../../Data/Entities/Contracts";
+import { BalanceRequest } from "../../CoreAbstraction/Models/BalanceRequestModels/BalanceRequest";
 
 export class StarknetActivities {
   constructor(private dbContext: SolverContext) { }
