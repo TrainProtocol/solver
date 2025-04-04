@@ -16,7 +16,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-evm
-  DOTNET_VERSION: 9.0
+  DOTNET_VERSION: 9
   
 jobs:
   build-and-push:
