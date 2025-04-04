@@ -1,9 +1,11 @@
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+ARG DOTNET_VERSION
+
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 WORKDIR /build
+
 COPY csharp/ csharp/
 
 FROM build AS publish

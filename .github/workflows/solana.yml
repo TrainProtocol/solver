@@ -16,6 +16,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-solana
+  DOTNET_VERSION: 9.0
   
 jobs:
   build-and-push:
@@ -51,7 +52,8 @@ jobs:
           context: .
           file: csharp/src/Blockchain.Solana/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          build-args: |
+            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}

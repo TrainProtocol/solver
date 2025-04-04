@@ -3,6 +3,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/API/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.api
     ports:
       - "8080:8080"
@@ -23,6 +25,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Swap/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.swap
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -33,6 +37,7 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
@@ -40,6 +45,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.EVM/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.evm
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -50,6 +57,7 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
@@ -57,6 +65,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Solana/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.solana
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -67,6 +77,7 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
@@ -74,6 +85,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Starknet/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.starknet
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
@@ -84,6 +97,7 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
       
@@ -91,17 +105,20 @@ services:
     build:
       context: ..
       dockerfile: js/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.starknet-js
     environment:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
-      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING_JS}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
       TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
     depends_on:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
