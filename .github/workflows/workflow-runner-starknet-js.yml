@@ -51,7 +51,6 @@ jobs:
           context: .
           file: js/Dockerfile
           push: true
-          no-cache: true
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
