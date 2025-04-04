@@ -30,6 +30,7 @@ builder.Services.AddRateLimiter(options =>
         }));
 });
 
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());

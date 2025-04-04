@@ -5,18 +5,17 @@ on:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-evm.yml'
+      - '.github/workflows/evm.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-evm.yml'
+      - '.github/workflows/evm.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-runner-evm
-  DOTNET_VERSION: 9
+  DOCKER_IMAGE: trainprotocol/solver-evm
   
 jobs:
   build-and-push:
@@ -53,8 +52,6 @@ jobs:
           file: csharp/src/Blockchain.EVM/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}

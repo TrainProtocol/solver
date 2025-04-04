@@ -1,22 +1,21 @@
-name: Solana Workflow runner
+name: Starknet Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-solana.yml'
+      - '.github/workflows/starknet.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/workflow-runner-solana.yml'
+      - '.github/workflows/starknet.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/train-solver-runner-solana
-  DOTNET_VERSION: 9
+  DOCKER_IMAGE: trainprotocol/solver-starknet
   
 jobs:
   build-and-push:
@@ -47,14 +46,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5 
+        uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/Blockchain.Solana/Dockerfile
+          file: csharp/src/Blockchain.Starknet/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
