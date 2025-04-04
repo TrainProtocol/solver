@@ -16,6 +16,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-starknet
+  DOTNET_VERSION: 9
   
 jobs:
   build-and-push:
@@ -51,7 +52,8 @@ jobs:
           context: .
           file: csharp/src/Blockchain.Starknet/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          build-args: |
+            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}

@@ -3,6 +3,8 @@ services:
     build:
       context: ..
       dockerfile: csharp/src/API/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.api
     ports:
       - "8080:8080"
@@ -19,11 +21,13 @@ services:
     networks:
       - app-network
 
-  solver.workflow.runner-swap:
+  solver.swap:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Swap/Dockerfile
-    container_name: solver.workflow.runner-swap
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.swap
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -33,14 +37,17 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
-  solver.workflow.runner-evm:
+  solver.evm:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.EVM/Dockerfile
-    container_name: solver.workflow.runner-evm
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.evm
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -50,14 +57,17 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
-  solver.workflow.runner-solana:
+  solver.solana:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Solana/Dockerfile
-    container_name: solver.workflow.runner-solana
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.solana
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -67,14 +77,17 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
-  solver.workflow.runner-starknet:
+  solver.starknet:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Starknet/Dockerfile
-    container_name: solver.workflow.runner-starknet
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.starknet
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -84,24 +97,28 @@ services:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
       
-  solver.workflow.runner-starknet-js:
+  solver.starknet-js:
     build:
       context: ..
       dockerfile: js/Dockerfile
-    container_name: solver.workflow.runner-js
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.starknet-js
     environment:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
-      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING_JS}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
       TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
     depends_on:
       - temporal
       - db
       - redis
+      - solver.api
     networks:
       - app-network
 
