@@ -5,6 +5,7 @@ using Train.Solver.Blockchain.EVM.Extensions;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Data.Npgsql.Extensions;
+using Train.Solver.Blockchain.EVM.Activities;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -24,6 +25,5 @@ IHost host = Host.CreateDefaultBuilder(args)
     .Build();
 
 var scope = host.Services.CreateScope();
-var a = scope.ServiceProvider.GetRequiredService<WorkflowActivities>();
 
 await host.RunAsync();

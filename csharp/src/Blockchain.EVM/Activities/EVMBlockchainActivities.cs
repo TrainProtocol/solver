@@ -504,9 +504,50 @@ public class EVMBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
+        var nodes = network.Nodes;
+
         request.Address = FormatAddress(request.Address);
 
-        return await GetNextNonceAsync(network.Nodes, request.Address);
+        await using var distributedLock = await distributedLockFactory.CreateLockAsync(
+            resource: RedisHelper.BuildLockKey(request.NetworkName, request.Address),
+            retryTime: TimeSpan.FromSeconds(1),
+            waitTime: TimeSpan.FromSeconds(20),
+            expiryTime: TimeSpan.FromSeconds(25));
+
+        if (!distributedLock.IsAcquired)
+        {
+            throw new Exception("Failed to acquire the lock");
+        }
+
+        var curentNonce = new BigInteger(-1);
+
+        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address));
+
+        if (currentNonceRedis != RedisValue.Null)
+        {
+            curentNonce = BigInteger.Parse(currentNonceRedis!);
+        }
+
+        var nonce = await GetDataFromNodesAsync(nodes,
+            async url =>
+                await new Web3(url).Eth.Transactions.GetTransactionCount
+                    .SendRequestAsync(request.Address, BlockParameter.CreatePending()));
+
+        if (nonce <= curentNonce)
+        {
+            curentNonce++;
+            nonce = new HexBigInteger(curentNonce);
+        }
+        else
+        {
+            curentNonce = nonce;
+        }
+
+        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
+            curentNonce.ToString(),
+            expiry: TimeSpan.FromDays(7));
+
+        return nonce.ToString();
     }
 
     [Activity]
@@ -610,76 +651,12 @@ public class EVMBlockchainActivities(
         return SignTransaction(account, transactionInput);
     }
 
-    protected override async Task<string> GetCachedNonceAsync(
-        NextNonceRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var nodes = network.Nodes;
-
-        await using var distributedLock = await distributedLockFactory.CreateLockAsync(
-            resource: RedisHelper.BuildLockKey(request.NetworkName, request.Address),
-            retryTime: TimeSpan.FromSeconds(1),
-            waitTime: TimeSpan.FromSeconds(20),
-            expiryTime: TimeSpan.FromSeconds(25));
-
-        if (!distributedLock.IsAcquired)
-        {
-            throw new Exception("Failed to acquire the lock");
-        }
-
-        var curentNonce = new BigInteger(-1);
-
-        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address));
-
-        if (currentNonceRedis != RedisValue.Null)
-        {
-            curentNonce = BigInteger.Parse(currentNonceRedis!);
-        }
-
-        var nonce = await GetDataFromNodesAsync(nodes,
-            async url =>
-                await new Web3(url).Eth.Transactions.GetTransactionCount
-                    .SendRequestAsync(request.Address, BlockParameter.CreatePending()));
-
-        if (nonce <= curentNonce)
-        {
-            curentNonce++;
-            nonce = new HexBigInteger(curentNonce);
-        }
-        else
-        {
-            curentNonce = nonce;
-        }
-
-        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
-            curentNonce.ToString(),
-            expiry: TimeSpan.FromDays(7));
-
-        return nonce.ToString();
-    }
-    
     protected override string FormatAddress(string address) => address.ToLower();
 
     protected override bool ValidateAddress(string address)
     {
         return AddressUtil.Current.IsValidEthereumAddressHexFormat(
             FormatAddress(address));
-    }
-
-    private static async Task<string> GetNextNonceAsync(List<Node> nodes, string address)
-    {
-        var nonce = await GetDataFromNodesAsync(nodes,
-            async url =>
-                await new Web3(url).Eth.Transactions.GetTransactionCount
-                    .SendRequestAsync(address, BlockParameter.CreatePending()));
-
-        return nonce.ToString();
     }
 
     private static TypedData<Domain> GetAddLockMessageTypedDefinition(

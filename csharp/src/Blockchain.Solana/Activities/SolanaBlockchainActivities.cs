@@ -450,9 +450,38 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override Task<string> GetNextNonceAsync(NextNonceRequest request)
+    public override async Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
-        throw new NotImplementedException();
+        var network = await networkRepository.GetAsync(request.NetworkName);
+
+        if (network == null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
+        }
+
+        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+
+        if (node is null)
+        {
+            throw new ArgumentNullException(nameof(node), $"Node for network: {network.Name} is not configured");
+        }
+
+        var rpcClient = ClientFactory.GetClient(node.Url);
+
+        var latestBlockHashResponse = await ClientFactory
+            .GetClient(node.Url)
+            .GetLatestBlockHashAsync();
+
+        if (!latestBlockHashResponse.WasSuccessful)
+        {
+            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+        }
+
+        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
+                latestBlockHashResponse.Result.Value.LastValidBlockHeight,
+                expiry: TimeSpan.FromDays(7));
+
+        return latestBlockHashResponse.Result.Value.Blockhash;
     }
 
     [Activity]
@@ -465,11 +494,6 @@ public class SolanaBlockchainActivities(
     public async Task SimulateTransactionAsync(SolanaPublishTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
 
         if (network == null)
         {
@@ -589,37 +613,6 @@ public class SolanaBlockchainActivities(
         }
 
         return CalculateTransactionHash(request.RawTx);
-    }
-
-    protected override async Task<string> GetCachedNonceAsync(NextNonceRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node), $"Node for network: {network.Id} is not configured");
-        }
-
-        var latestBlockHashResponse = await ClientFactory
-            .GetClient(node.Url)
-            .GetLatestBlockHashAsync();
-
-        if (!latestBlockHashResponse.WasSuccessful)
-        {
-            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
-        }
-
-        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
-                latestBlockHashResponse.Result.Value.LastValidBlockHeight,
-                expiry: TimeSpan.FromDays(7));
-
-        return latestBlockHashResponse.Result.Value.Blockhash;
     }
 
     protected override bool ValidateAddress(string address)

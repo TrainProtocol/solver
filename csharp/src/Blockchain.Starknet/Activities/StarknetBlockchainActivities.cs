@@ -231,25 +231,6 @@ public class StarknetBlockchainActivities(
         var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
         var web3Client = new StarknetRpcClient(new Uri(node.Url));
 
-        var formattedAddress = FormatAddress( request.Address);
-
-        return await GetNextNonceAsync(web3Client, formattedAddress);
-    }
-
-    protected override string FormatAddress(string address) => address.AddAddressPadding().ToLowerInvariant();
-
-    protected override async Task<string> GetCachedNonceAsync(NextNonceRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var node = network.Nodes.Single(x => x.Type == NodeType.Primary);
-        var web3Client = new StarknetRpcClient(new Uri(node.Url));
-
         var formattedAddress = FormatAddress(request.Address);
 
         await using var distributedLock = await distributedLockFactory.CreateLockAsync(
@@ -272,7 +253,14 @@ public class StarknetBlockchainActivities(
             currentNonce = BigInteger.Parse(currentNonceRedis);
         }
 
-        var nonce = BigInteger.Parse(await GetNextNonceAsync(web3Client, formattedAddress));
+        var nonceHex = await web3Client
+            .SendRequestAsync<string>(
+                new RpcRequest(
+                    id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    method: StarknetConstants.RpcMethods.GetNonce,
+                    new[] { "pending", formattedAddress }));
+
+        var nonce = BigInteger.Parse(nonceHex);
 
         if (nonce <= currentNonce)
         {
@@ -290,6 +278,8 @@ public class StarknetBlockchainActivities(
 
         return currentNonce.ToString();
     }
+
+    protected override string FormatAddress(string address) => address.AddAddressPadding().ToLowerInvariant();
 
     protected override bool ValidateAddress(string address)
     {
@@ -468,19 +458,7 @@ public class StarknetBlockchainActivities(
 
         throw new ArgumentOutOfRangeException(nameof(TransactionStatus),
             $"Transaction status is not supported. Finality status: {finalityStatus}, Execution status: {executionStatus}");
-    }
-        
-    private async Task<string> GetNextNonceAsync(StarknetRpcClient client, string address)
-    {
-        var nonceHex = await client
-            .SendRequestAsync<string>(
-                new RpcRequest(
-                    id: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    method: StarknetConstants.RpcMethods.GetNonce,
-                    new[] { "pending", address }));
-
-        return new HexBigInteger(nonceHex).Value.ToString();
-    }
+    }        
 
     private async Task<Abstractions.Models.TransactionResponse> GetTransactionAsync(
         Network network,

@@ -6,7 +6,6 @@ namespace Train.Solver.Blockchain.Abstractions.Activities;
 
 public abstract class BlockchainActivitiesBase() : IBlockchainActivities
 {
-    protected abstract Task<string> GetCachedNonceAsync(NextNonceRequest request);
     protected abstract string FormatAddress(string request);
     protected abstract bool ValidateAddress(string request);
 
