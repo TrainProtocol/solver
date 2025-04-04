@@ -19,11 +19,11 @@ services:
     networks:
       - app-network
 
-  solver.workflow.runner-swap:
+  solver.swap:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Swap/Dockerfile
-    container_name: solver.workflow.runner-swap
+    container_name: solver.swap
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -36,11 +36,11 @@ services:
     networks:
       - app-network
 
-  solver.workflow.runner-evm:
+  solver.evm:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.EVM/Dockerfile
-    container_name: solver.workflow.runner-evm
+    container_name: solver.evm
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -53,11 +53,11 @@ services:
     networks:
       - app-network
 
-  solver.workflow.runner-solana:
+  solver.solana:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Solana/Dockerfile
-    container_name: solver.workflow.runner-solana
+    container_name: solver.solana
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -70,11 +70,11 @@ services:
     networks:
       - app-network
 
-  solver.workflow.runner-starknet:
+  solver.starknet:
     build:
       context: ..
       dockerfile: csharp/src/Blockchain.Starknet/Dockerfile
-    container_name: solver.workflow.runner-starknet
+    container_name: solver.starknet
     environment:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
@@ -87,11 +87,11 @@ services:
     networks:
       - app-network
       
-  solver.workflow.runner-starknet-js:
+  solver.starknet-js:
     build:
       context: ..
       dockerfile: js/Dockerfile
-    container_name: solver.workflow.runner-js
+    container_name: solver.starknet-js
     environment:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
