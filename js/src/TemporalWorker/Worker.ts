@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { SolverContext } from '../Data/SolverContext';
 import { StarknetActivities } from '../Blockchian/WorkflowRunner.Starknet/Activities/StarknetBlockchainActivities';
-import { extractActivities } from './ActivityParser';
+import { extractActivities } from '../Blockchian/TemporalHelper/ActivityParser';
 
 async function run() {
   dotenv.config();

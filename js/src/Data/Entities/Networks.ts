@@ -77,3 +77,10 @@ export class Networks {
   @OneToMany(() => Tokens, (tokens) => tokens.network)
   tokens: Tokens[];
 }
+
+export enum NetworkType
+{
+    EVM,
+    Solana,
+    Starknet,
+}

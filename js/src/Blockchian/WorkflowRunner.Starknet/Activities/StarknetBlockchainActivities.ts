@@ -1,22 +1,24 @@
 import { Abi, Account, cairo, Call, CallData, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256 } from "starknet";
-import { SolverContext } from "../../../Data/SolverContext";
-import { ParseNonces } from "../Helper/ErrorParser";
 import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
-import { PrivateKeyRepository } from "../../../lib/PrivateKeyRepository";
-import { BigNumber, utils } from "ethers";
-import erc20Json from './ABIs/ERC20.json';
-import { InvalidTimelockException } from "../../../Exceptions/InvalidTimelockException";
-import { GetFeesRequest } from "../../../CoreAbstraction/Models/GetFeesModels/GetFeesRequest";
-import { Fee, FixedFeeData } from "../../../CoreAbstraction/Models/GetFeesModels/GetFeesResponse";
-import { NodeType } from "../../../Data/Entities/Nodes";
-import { StarknetTransactionBuilder } from "../Helper/StarknetTransactionBuilder";
-import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
-import { AllowanceRequest } from "../../../CoreAbstraction/Models/AllowanceRequest";
+import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
+import { BigNumber, utils } from "ethers";
+import { AllowanceRequest } from "../../../CoreAbstraction/Models/AllowanceRequest";
+import { BalanceRequest } from "../../../CoreAbstraction/Models/BalanceRequestModels/BalanceRequest";
+import { EstimateFeeRequest } from "../../../CoreAbstraction/Models/FeesModels/EstimateFeeRequest";
 import { AddLockSignatureRequest } from "../../../CoreAbstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
 import { TransactionBuilderRequest } from "../../../CoreAbstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
-import { TransferBuilderResponse } from "../../../CoreAbstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
+import { PrepareTransactionResponse } from "../../../CoreAbstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
+import { ContractType } from "../../../Data/Entities/Contracts";
+import { NodeType } from "../../../Data/Entities/Nodes";
+import { SolverContext } from "../../../Data/SolverContext";
+import { InvalidTimelockException } from "../../../Exceptions/InvalidTimelockException";
+import { PrivateKeyRepository } from "../../../lib/PrivateKeyRepository";
+import { ParseNonces } from "../Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
+import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder";
+import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
+import { Fee, FixedFeeData } from "../../../CoreAbstraction/Models/FeesModels/Fee";
 
 export class StarknetActivities {
     constructor(private dbContext: SolverContext) { }
@@ -25,7 +27,7 @@ export class StarknetActivities {
     readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
-    public async StarknetPublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetPublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
         const network = await this.dbContext.Networks
@@ -93,7 +95,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetBuildTransaction(request: TransactionBuilderRequest): Promise<TransferBuilderResponse> {
+    public async StarknetBuildTransactionAsync(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -110,7 +112,7 @@ export class StarknetActivities {
                 case TransactionType.HTLCRedeem:
                     return StarknetTransactionBuilder.CreateRedeemCallData(network, request.Args);
                 case TransactionType.HTLCRefund:
-                    return StarknetTransactionBuilder.CreateRefundCallData(network,request.Args);
+                    return StarknetTransactionBuilder.CreateRefundCallData(network, request.Args);
                 case TransactionType.HTLCAddLockSig:
                     return StarknetTransactionBuilder.CreateAddLockSigCallData(network, request.Args);
                 case TransactionType.Approve:
@@ -126,7 +128,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEnsureSufficientBalance(request: SufficientBalanceRequest): Promise<void> {
+    public async StarknetGetBalanceAsync(request: BalanceRequest): Promise<BigNumber> {
         try {
 
             const network = await this.dbContext.Networks
@@ -155,19 +157,16 @@ export class StarknetActivities {
             const erc20 = new Contract(erc20Json as Abi, token.tokenContract, provider);
 
             const balanceResult = await erc20.balanceOf(request.Address);
-            const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString()).toString();
-            const balance = Number(utils.formatUnits(balanceInWei, token.decimals));
+            const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString());
 
-            if (balance <= request.Amount) {
-                throw new Error(`Insufficient balance on ${request.Address}. Balance is less than ${request.Amount}`);
-            }
+            return balanceInWei;
         }
         catch (error) {
             throw error;
         }
     }
 
-    public async StarknetSimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async StarknetSimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -235,7 +234,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEstimateFee(feeRequest: GetFeesRequest): Promise<Fee> {
+    public async StarknetEstimateFeeAsync(feeRequest: EstimateFeeRequest): Promise<Fee> {
         try {
             const network = await this.dbContext.Networks
                 .createQueryBuilder("network")
@@ -264,10 +263,12 @@ export class StarknetActivities {
                 throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
             };
 
-            const feeInWei = (feeEstimateResponse.suggestedMaxFee * this.FEE_ESTIMATE_MULTIPLIER).toString();
+            const feeInWei = BigNumber
+                .from(feeEstimateResponse.suggestedMaxFee)
+                .mul(this.FEE_ESTIMATE_MULTIPLIER);
 
             const fixedfeeData: FixedFeeData = {
-                FeeInWei: feeInWei,
+                FeeInWei: feeInWei.toString(),
             };
 
             let result: Fee =
@@ -275,6 +276,19 @@ export class StarknetActivities {
                 Asset: this.FeeSymbol,
                 FixedFeeData: fixedfeeData,
                 Decimals: this.FeeDecimals
+            }
+
+            const balanceInWei = await this.StarknetGetBalanceAsync({
+                Address: feeRequest.FromAddress,
+                NetworkName: feeRequest.NetworkName,
+                Asset: this.FeeSymbol
+            });
+
+            var amount = feeInWei;
+            amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
+
+            if (balanceInWei < amount) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${amount}`);
             }
 
             return result;
@@ -287,7 +301,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+    public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const network = await this.dbContext.Networks
@@ -353,7 +367,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetGetSpenderAllowance(request: AllowanceRequest): Promise<number> {
+    public async StarknetGetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
 
         try {
 
@@ -361,6 +375,7 @@ export class StarknetActivities {
                 .createQueryBuilder("network")
                 .leftJoinAndSelect("network.nodes", "n")
                 .leftJoinAndSelect("network.tokens", "t")
+                .leftJoinAndSelect("network.contracts", "c")
                 .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
                 .getOneOrFail();
 
@@ -376,10 +391,14 @@ export class StarknetActivities {
                 throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.Asset}`);
             }
 
+            const spenderAddress = !token.tokenContract
+                ? network.contracts.find(c => c.type === ContractType.HTLCNativeContractAddress)?.address
+                : network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
+
             const provider = new RpcProvider({ nodeUrl: node.url });
             const { abi: tokenAbi } = await provider.getClassAt(token.tokenContract);
             const ercContract = new Contract(tokenAbi, token.tokenContract, provider);
-            var response: BigInt = await ercContract.allowance(request.OwnerAddress, request.SpenderAddress);
+            var response: BigInt = await ercContract.allowance(request.OwnerAddress, spenderAddress);
 
             return Number(utils.formatUnits(response.toString(), token.decimals))
         }

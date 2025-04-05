@@ -1,7 +1,7 @@
 import { IBlockchainActivities } from "../../../CoreAbstraction/IBlockchainActivities";
 import { AllowanceRequest } from "../../../CoreAbstraction/Models/AllowanceRequest";
 import { GetBatchTransactionRequest } from "../../../CoreAbstraction/Models/GetBatchTransactionRequest";
-import { TransactionResponse } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionResponse";
+import { TransactionResponse } from "../../../CoreAbstraction/Models/ReceiptModels/TransactionResponse";
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 
 export interface IStarknetBlockchainActivities extends IBlockchainActivities {

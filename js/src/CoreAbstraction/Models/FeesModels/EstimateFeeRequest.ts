@@ -1,4 +1,4 @@
-export interface GetFeesRequest {
+export interface EstimateFeeRequest {
     NetworkName: string,
     ToAddress: string,
     Amount: number,

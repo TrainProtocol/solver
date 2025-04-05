@@ -1,3 +1,3 @@
 export interface BaseRequest {
-    networkName: string;
+    NetworkName: string;
 }

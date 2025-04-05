@@ -1,14 +1,20 @@
 import { BalanceRequest } from "./Models/BalanceRequestModels/BalanceRequest";
-import { AddLockSignatureRequest } from "../lib/Model/TransactionBuilderModels/AddLockSignatureRequest";
 import { BalanceResponse } from "./Models/BalanceRequestModels/BalanceResponse";
 import { BaseRequest } from "./Models/BaseRequest";
 import { BlockNumberResponse } from "./Models/BlockNumberResponse";
+import { HTLCBlockEventResponse } from "./Models/EventModels/HTLCBlockEventResposne";
 import { EventRequest } from "./Models/EventRequest";
+import { EstimateFeeRequest } from "./Models/FeesModels/EstimateFeeRequest";
+import { Fee } from "./Models/FeesModels/Fee";
+import { NextNonceRequest } from "./Models/NextNonceRequest";
+import { GetTransactionRequest } from "./Models/ReceiptModels/GetTransactionRequest";
+import { TransactionResponse } from "./Models/ReceiptModels/TransactionResponse";
+import { AddLockSignatureRequest } from "./Models/TransactionBuilderModels/AddLockSignatureRequest";
+import { TransactionBuilderRequest } from "./Models/TransactionBuilderModels/TransactionBuilderRequest";
+import { PrepareTransactionResponse } from "./Models/TransactionBuilderModels/TransferBuilderResponse";
 
 export interface IBlockchainActivities {
-    GetBalanceAsync(request: BalanceRequest): Promise<BalanceResponse>;
-  
-    GetSpenderAddressAsync(request: SpenderAddressRequest): Promise<string>;
+    GetBalanceAsync(request: BalanceRequest): Promise<BalanceResponse>;  
   
     GetLastConfirmedBlockNumberAsync(request: BaseRequest): Promise<BlockNumberResponse>;
   
@@ -17,8 +23,6 @@ export interface IBlockchainActivities {
     ValidateAddLockSignatureAsync(request: AddLockSignatureRequest): Promise<boolean>;
   
     GetEventsAsync(request: EventRequest): Promise<HTLCBlockEventResponse>;
-  
-    GetReservedNonceAsync(request: ReservedNonceRequest): Promise<string>;
   
     GetNextNonceAsync(request: NextNonceRequest): Promise<string>;
   

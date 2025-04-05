@@ -1,4 +1,4 @@
-export interface TransferBuilderResponse {
+export interface PrepareTransactionResponse {
     ToAddress: string;
     Data?: string;
     Amount: Number;

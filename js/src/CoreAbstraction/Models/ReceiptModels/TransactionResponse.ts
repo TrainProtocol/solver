@@ -1,4 +1,4 @@
-import { TransactionStatus } from "./TransactionStatus";
+import { TransactionStatus } from "../TransacitonModels/TransactionStatus";
 
 export interface TransactionResponse {
     Amount: number;

@@ -1,4 +1,4 @@
-import { Fee } from "../GetFeesModels/GetFeesResponse";
+import { Fee } from "../FeesModels/Fee";
 
 export interface TransactionExecutionContext {
     Attempts: number;

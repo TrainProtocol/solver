@@ -1,4 +1,4 @@
-import { Fee } from "../../../CoreAbstraction/Models/GetFeesModels/GetFeesResponse";
+import { Fee } from "../../../CoreAbstraction/Models/FeesModels/Fee";
 
 export interface StarknetPublishTransactionRequest {
     networkName: string;

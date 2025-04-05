@@ -1,5 +1,5 @@
+import { NetworkType } from "../../../Data/Entities/Networks";
 import { BaseRequest } from "../BaseRequest";
-import { NetworkType } from "../NetworkModels/NetworkType";
 import { TransactionType } from "./TransactionType";
 
 export interface TransactionRequest extends BaseRequest {

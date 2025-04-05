@@ -1,5 +1,5 @@
-import { Fee } from "../GetFeesModels/GetFeesResponse";
-import { NetworkType } from "../NetworkModels/NetworkType";
+import { NetworkType } from "../../../Data/Entities/Networks";
+import { Fee } from "../FeesModels/Fee";
 import { TransactionType } from "./TransactionType";
 
 export interface TransactionContext {

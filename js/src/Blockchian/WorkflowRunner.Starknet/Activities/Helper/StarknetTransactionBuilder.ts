@@ -1,19 +1,19 @@
 import { utils } from "ethers";
 import { cairo, Call, shortString, byteArray } from "starknet";
-import { ContractType } from "../../Data/Entities/Contracts";
-import { Networks } from "../../Data/Entities/Networks";
-import { decodeJson } from "../../Extensions/StringExtensions";
-import { ApprovePrepareRequest } from "../../lib/Model/TransactionBuilderModels/ApprovePrepareRequest";
-import { HTLCAddLockSigTransactionPrepareRequest } from "../../lib/Model/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
-import { HTLCLockTransactionPrepareRequest } from "../../lib/Model/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
-import { HTLCRedeemTransactionPrepareRequest } from "../../lib/Model/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
-import { HTLCRefundTransactionPrepareRequest } from "../../lib/Model/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
-import { TransferPrepareRequest } from "../../lib/Model/TransactionBuilderModels/TransferPrepareRequest";
-import { TransferBuilderResponse } from "../../lib/Model/TransactionBuilderModels/TransferBuilderResponse";
+import { ApprovePrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
+import { HTLCAddLockSigTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
+import { HTLCLockTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
+import { HTLCRedeemTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
+import { HTLCRefundTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
+import { PrepareTransactionResponse } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
+import { TransferPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
+import { ContractType } from "../../../../Data/Entities/Contracts";
+import { Networks } from "../../../../Data/Entities/Networks";
+import { decodeJson } from "../../../../Extensions/StringExtensions";
 
 
 export class StarknetTransactionBuilder {
-    public static CreateRefundCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const refundRequest = decodeJson<HTLCRefundTransactionPrepareRequest>(args);
 
@@ -51,7 +51,7 @@ export class StarknetTransactionBuilder {
         };
     }
 
-    public static CreateRedeemCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateRedeemCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const redeemRequest = decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
 
@@ -92,7 +92,7 @@ export class StarknetTransactionBuilder {
         };
     }
 
-    public static CreateLockCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateLockCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(args);
 
@@ -137,7 +137,7 @@ export class StarknetTransactionBuilder {
         };
     }
 
-    public static CreateAddLockSigCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateAddLockSigCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const addLockSigRequest = decodeJson<HTLCAddLockSigTransactionPrepareRequest>(args);
 
@@ -179,7 +179,7 @@ export class StarknetTransactionBuilder {
         };
     }
 
-    public static CreateApproveCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateApproveCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const approveRequest = decodeJson<ApprovePrepareRequest>(args);
         const token = network.tokens.find(t => t.asset === approveRequest.Asset);
@@ -211,7 +211,7 @@ export class StarknetTransactionBuilder {
         };
     }
 
-    public static CreateTransferCallData(network: Networks, args: string): TransferBuilderResponse {
+    public static CreateTransferCallData(network: Networks, args: string): PrepareTransactionResponse {
 
         const transferRequest = decodeJson<TransferPrepareRequest>(args);
         const token = network.tokens.find(t => t.asset === transferRequest.Asset);
