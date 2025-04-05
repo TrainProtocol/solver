@@ -30,7 +30,6 @@
 - [Infrastructure](#infrastructure)
 - [Deployment](#deployment)
 - [Extending the System](#extending-the-system)
-- [License](#license)
 
 ---
 
