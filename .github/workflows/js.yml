@@ -19,9 +19,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'release'
-    
+    runs-on: ubuntu-latest    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,7 +48,7 @@ jobs:
         with:
           context: .
           file: js/Dockerfile
-          push: true
+          push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
