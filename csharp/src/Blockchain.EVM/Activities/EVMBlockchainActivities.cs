@@ -26,6 +26,7 @@ using Train.Solver.Blockchain.EVM.Helpers;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Common.Helpers;
+using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 
@@ -502,7 +503,7 @@ public class EVMBlockchainActivities(
         {
             var isValidSignatureFunction = new IsValidSignatureFunction
             {
-                Hash = typedData.GetHash(addLockMsg),
+                Hash = Sha3Keccack.Current.CalculateHash(signer.EncodeTypedData(addLockMsg, typedData)),
                 Signature = request.Signature.HexToByteArray()
             };
 
