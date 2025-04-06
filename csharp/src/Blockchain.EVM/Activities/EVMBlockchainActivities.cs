@@ -467,9 +467,8 @@ public class EVMBlockchainActivities(
         var htlcContractAddress = currency.IsNative
             ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
-
+        
         var signer = new Eip712TypedDataSigner();
-
         var typedData = GetAddLockMessageTypedDefinition(
             long.Parse(network.ChainId!),
             htlcContractAddress);
@@ -481,17 +480,40 @@ public class EVMBlockchainActivities(
             Timelock = (ulong)request.Timelock
         };
 
-        var signature = EthECDSASignatureFactory.FromComponents(
-            request.R.HexToByteArray(),
-            request.S.HexToByteArray(),
-            byte.Parse(request.V)
-        );
+        var code = await GetDataFromNodesAsync(network.Nodes,
+            async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
 
-        var sign = EthECDSASignature.CreateStringSignature(signature);
+        // EOA
+        if (string.IsNullOrEmpty(code) || code == "0x")
+        {
+            var signature = EthECDSASignatureFactory.FromComponents(
+                request.R.HexToByteArray(),
+                request.S.HexToByteArray(),
+                byte.Parse(request.V)
+            );
 
-        var addressRecovered = signer.RecoverFromSignatureV4(addLockMsg, typedData, sign);
+            var sign = EthECDSASignature.CreateStringSignature(signature);
+            var addressRecovered = signer.RecoverFromSignatureV4(addLockMsg, typedData, sign);
 
-        return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
+
+        // Assume https://eips.ethereum.org/EIPS/eip-1271
+        } else 
+        {
+            var isValidSignatureFunction = new IsValidSignatureFunction
+            {
+                Hash = typedData.GetHash(addLockMsg),
+                Signature = request.Signature.HexToByteArray()
+            };
+
+            var isValidSignatureHandler = await GetDataFromNodesAsync(network.Nodes,
+                async url =>
+                    await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
+
+            var isValidSignature = await isValidSignatureHandler.QueryAsync<bool>(request.SignerAddress, isValidSignatureFunction);
+
+            return isValidSignature;
+        }
     }
 
     [Activity]
