@@ -483,6 +483,9 @@ public class EVMBlockchainActivities(
 
         var code = await GetDataFromNodesAsync(network.Nodes,
             async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
+        
+        // TODO, make sure this is compatibly with Pectra update
+        // https://ithaca.xyz/updates/exp-0001
 
         // EOA
         if (string.IsNullOrEmpty(code) || code == "0x")
