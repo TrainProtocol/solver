@@ -2,7 +2,7 @@ import { Worker, NativeConnection } from '@temporalio/worker';
 import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { SolverContext } from '../Data/SolverContext';
-import { StarknetActivities } from '../Blockchian/WorkflowRunner.Starknet/Activities/StarknetBlockchainActivities';
+import { StarknetBlockchainActivities } from '../Blockchian/WorkflowRunner.Starknet/Activities/StarknetBlockchainActivities';
 import { extractActivities } from '../Blockchian/TemporalHelper/ActivityParser';
 
 async function run() {
@@ -12,7 +12,7 @@ async function run() {
 
     const dbCtx = new SolverContext(process.env.TrainSolver__DatabaseConnectionString);
 
-    const starknetActivities = new StarknetActivities(dbCtx);
+    const starknetActivities = new StarknetBlockchainActivities(dbCtx);
     
     const activities = extractActivities(starknetActivities);
 

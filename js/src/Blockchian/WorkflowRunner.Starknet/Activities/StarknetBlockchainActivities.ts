@@ -19,15 +19,76 @@ import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationT
 import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder";
 import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
 import { Fee, FixedFeeData } from "../../../CoreAbstraction/Models/FeesModels/Fee";
+import { IStarknetBlockchainActivities } from "./IStarknetBlockchainActivities";
+import { BalanceResponse } from "../../../CoreAbstraction/Models/BalanceRequestModels/BalanceResponse";
+import { GetBatchTransactionRequest } from "../../../CoreAbstraction/Models/GetBatchTransactionRequest";
+import { GetTransactionRequest } from "../../../CoreAbstraction/Models/ReceiptModels/GetTransactionRequest";
+import { TransactionResponse } from "../../../CoreAbstraction/Models/ReceiptModels/TransactionResponse";
+import { BaseRequest } from "../../../CoreAbstraction/Models/BaseRequest";
+import { BlockNumberResponse } from "../../../CoreAbstraction/Models/BlockNumberResponse";
+import { EventRequest } from "../../../CoreAbstraction/Models/EventRequest";
+import { HTLCBlockEventResponse } from "../../../CoreAbstraction/Models/EventModels/HTLCBlockEventResposne";
+import { NextNonceRequest } from "../../../CoreAbstraction/Models/NextNonceRequest";
+import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 
-export class StarknetActivities {
+export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(private dbContext: SolverContext) { }
 
     readonly FeeSymbol = "ETH";
     readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
-    public async StarknetPublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async GetBatchTransactionAsync(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
+        return null;
+    }
+
+    public async GetTransactionAsync(request: GetTransactionRequest): Promise<TransactionResponse> {
+        return null;
+    }
+
+    public async GetLastConfirmedBlockNumberAsync(request: BaseRequest): Promise<BlockNumberResponse> {
+        const network = await this.dbContext.Networks
+            .createQueryBuilder("network")
+            .leftJoinAndSelect("network.nodes", "n")
+            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
+            .getOne();
+
+        if (!network) {
+            throw new Error(`Network ${request.NetworkName} not found`);
+        }
+
+        const node = network.nodes.find((n) => n.type === NodeType.Primary);
+        if (!node) {
+            throw new Error(
+                `Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`
+            );
+        }
+
+        const provider = new RpcProvider({
+            nodeUrl: node.url,
+        });
+
+        const lastBlockNumber = await provider.getBlockNumber();
+
+        const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
+
+        return {
+            BlockNumber: lastBlockNumber,   
+            BlockHash: blockData.block_hash,
+        };
+    }
+
+    public async GetEventsAsync(request: EventRequest): Promise<HTLCBlockEventResponse> {
+        return null;
+    }
+
+    public async GetNextNonceAsync(request: NextNonceRequest): Promise<string> {
+        return null;
+    }
+
+
+
+    public async PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
         const network = await this.dbContext.Networks
@@ -95,7 +156,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetBuildTransactionAsync(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
+    public async BuildTransactionAsync(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -128,7 +189,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetGetBalanceAsync(request: BalanceRequest): Promise<BigNumber> {
+    public async GetBalanceAsync(request: BalanceRequest): Promise<BalanceResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -155,18 +216,23 @@ export class StarknetActivities {
             });
 
             const erc20 = new Contract(erc20Json as Abi, token.tokenContract, provider);
-
             const balanceResult = await erc20.balanceOf(request.Address);
             const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString());
 
-            return balanceInWei;
+            let result: BalanceResponse = {
+                Decimals: this.FeeDecimals,
+                AmountInWei: balanceInWei.toString(),
+                Amount: Number(utils.formatUnits(balanceInWei.toString(), this.FeeDecimals)),
+            }
+
+            return result;
         }
         catch (error) {
             throw error;
         }
     }
 
-    public async StarknetSimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async SimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -234,7 +300,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetEstimateFeeAsync(feeRequest: EstimateFeeRequest): Promise<Fee> {
+    public async EstimateFeeAsync(feeRequest: EstimateFeeRequest): Promise<Fee> {
         try {
             const network = await this.dbContext.Networks
                 .createQueryBuilder("network")
@@ -278,7 +344,7 @@ export class StarknetActivities {
                 Decimals: this.FeeDecimals
             }
 
-            const balanceInWei = await this.StarknetGetBalanceAsync({
+            const balanceResponse = await this.GetBalanceAsync({
                 Address: feeRequest.FromAddress,
                 NetworkName: feeRequest.NetworkName,
                 Asset: this.FeeSymbol
@@ -287,8 +353,8 @@ export class StarknetActivities {
             var amount = feeInWei;
             amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
 
-            if (balanceInWei < amount) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceInWei}, Fee: ${amount}`);
+            if (BigNumber.from(balanceResponse.AmountInWei) < amount) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse}, Fee: ${amount}`);
             }
 
             return result;
@@ -301,7 +367,7 @@ export class StarknetActivities {
         }
     }
 
-    public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+    public async ValidateAddLockSignatureAsync(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const network = await this.dbContext.Networks
@@ -367,7 +433,7 @@ export class StarknetActivities {
         }
     }
 
-    public async StarknetGetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
+    public async GetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
 
         try {
 
