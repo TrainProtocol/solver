@@ -35,6 +35,8 @@ import { TransactionStatus } from "../../../CoreAbstraction/Models/TransacitonMo
 import { TransactionFailedException } from "../../../Exceptions/TransactionFailedException";
 import { Networks } from "../../../Data/Entities/Networks";
 import { TransactionNotComfirmedException } from "../../../Exceptions/TransactionNotComfirmedException";
+import { StarknetEventTracker } from "./Helper/StarknetEventTracker";
+import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
 
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(private dbContext: SolverContext) { }
@@ -131,8 +133,9 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             NetworkName: network.name,
         };
 
-        if ("block_number" in confrimedTransaction) {
+        const isConfirmed = "block_number" in confrimedTransaction;
 
+        if (isConfirmed) {
             const blockNumber = confrimedTransaction.block_number as string;
             const blockData = await provider.getBlockWithTxHashes(blockNumber);
 
@@ -175,13 +178,52 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async GetEventsAsync(request: EventRequest): Promise<HTLCBlockEventResponse> {
-        return null;
+
+        const network = await this.dbContext.Networks
+            .createQueryBuilder("network")
+            .leftJoinAndSelect("network.nodes", "n")
+            .leftJoinAndSelect("network.contracts", "c")
+            .leftJoinAndSelect("network.managedAccounts", "ma")
+            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
+            .getOne();
+
+        if (!network) {
+            throw new Error(`Network ${request.NetworkName} not found`);
+        }
+
+        const node = network.nodes.find(n => n.type === NodeType.Primary);
+        if (!node) {
+            throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
+        }
+
+        const solverAddress = network.managedAccounts.find(m => m.type === AccountType.LP)?.address;
+
+        const htlcAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
+
+        const tokens = await this.dbContext.Tokens
+            .createQueryBuilder("currencies")
+            .leftJoinAndSelect("currencies.network", "n")
+            .getMany();
+
+        const provider = new RpcProvider({
+            nodeUrl: node.url
+        });
+
+        return StarknetEventTracker.TrackBlockEventsAsync(
+            network.name,
+            provider,
+            tokens,
+            solverAddress,
+            request.FromBlock,
+            request.ToBlock,
+            htlcAddress,
+        );
     }
 
     public async GetNextNonceAsync(request: NextNonceRequest): Promise<string> {
         return null;
     }
-    
+
     public async PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
