@@ -468,7 +468,7 @@ public class EVMBlockchainActivities(
         var htlcContractAddress = currency.IsNative
             ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
-        
+
         var signer = new Eip712TypedDataSigner();
         var typedData = GetAddLockMessageTypedDefinition(
             long.Parse(network.ChainId!),
@@ -483,7 +483,7 @@ public class EVMBlockchainActivities(
 
         var code = await GetDataFromNodesAsync(network.Nodes,
             async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
-        
+
         // TODO, make sure this is compatibly with Pectra update
         // https://ithaca.xyz/updates/exp-0001
 
@@ -501,8 +501,9 @@ public class EVMBlockchainActivities(
 
             return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
 
-        // Assume https://eips.ethereum.org/EIPS/eip-1271
-        } else 
+            // Assume https://eips.ethereum.org/EIPS/eip-1271
+        }
+        else
         {
             var isValidSignatureFunction = new IsValidSignatureFunction
             {
@@ -511,8 +512,12 @@ public class EVMBlockchainActivities(
             };
 
             var isValidSignatureHandler = await GetDataFromNodesAsync(network.Nodes,
-                async url =>
-                    await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
+                async url => await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
+
+            if (isValidSignatureHandler == null)
+            {
+                throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {network.Name}");
+            }
 
             var isValidSignature = await isValidSignatureHandler.QueryAsync<bool>(request.SignerAddress, isValidSignatureFunction);
 
