@@ -519,9 +519,10 @@ public class EVMBlockchainActivities(
                 throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {network.Name}");
             }
 
-            var isValidSignature = await isValidSignatureHandler.QueryAsync<bool>(request.SignerAddress, isValidSignatureFunction);
+            var isValidSignatureMagicValue = (await isValidSignatureHandler.QueryAsync<byte[]>(request.SignerAddress, isValidSignatureFunction)).ToHex();
 
-            return isValidSignature;
+            // magic value: https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/external/IERC1271
+            return string.Equals(isValidSignatureMagicValue, "1626ba7e", StringComparison.OrdinalIgnoreCase);
         }
     }
 
