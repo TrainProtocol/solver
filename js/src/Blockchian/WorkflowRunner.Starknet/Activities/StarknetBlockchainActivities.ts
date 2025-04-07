@@ -14,7 +14,7 @@ import { NodeType } from "../../../Data/Entities/Nodes";
 import { SolverContext } from "../../../Data/SolverContext";
 import { InvalidTimelockException } from "../../../Exceptions/InvalidTimelockException";
 import { PrivateKeyRepository } from "../../../lib/PrivateKeyRepository";
-import { ParseNonces } from "../Helper/ErrorParser";
+import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
 import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder";
 import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
@@ -30,6 +30,11 @@ import { EventRequest } from "../../../CoreAbstraction/Models/EventRequest";
 import { HTLCBlockEventResponse } from "../../../CoreAbstraction/Models/EventModels/HTLCBlockEventResposne";
 import { NextNonceRequest } from "../../../CoreAbstraction/Models/NextNonceRequest";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
+import { StarknetTransactionStatusValidator } from "./Helper/StarknetTransactionStatusValidator";
+import { TransactionStatus } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionStatus";
+import { TransactionFailedException } from "../../../Exceptions/TransactionFailedException";
+import { Networks } from "../../../Data/Entities/Networks";
+import { TransactionNotComfirmedException } from "../../../Exceptions/TransactionNotComfirmedException";
 
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(private dbContext: SolverContext) { }
@@ -39,11 +44,102 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
     public async GetBatchTransactionAsync(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
-        return null;
+        const network = await this.dbContext.Networks
+            .createQueryBuilder("network")
+            .leftJoinAndSelect("network.nodes", "n")
+            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
+            .getOne();
+
+        if (!network) {
+            throw new Error(`Network ${request.NetworkName} not found`);
+        }
+
+        let transaction: TransactionResponse = null;
+
+        for (const transactionId of request.TransactionHashes) {
+            transaction = await this.GetTransactionByHashAsync(network, transactionId);
+        }
+
+        if (!transaction) {
+            throw new TransactionNotComfirmedException("Transaction not confirmed");
+        }
+
+        return transaction;
     }
 
+
     public async GetTransactionAsync(request: GetTransactionRequest): Promise<TransactionResponse> {
-        return null;
+        const network = await this.dbContext.Networks
+            .createQueryBuilder("network")
+            .leftJoinAndSelect("network.nodes", "n")
+            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
+            .getOne();
+
+        if (!network) {
+            throw new Error(`Network ${request.NetworkName} not found`);
+        }
+
+        const transaction = await this.GetTransactionByHashAsync(network, request.TransactionHash);
+
+        if (!transaction) {
+            throw new TransactionNotComfirmedException(`Transaction ${request.TransactionHash} not found`);
+        }
+
+        return transaction;
+    }
+
+    private async GetTransactionByHashAsync(network: Networks, transactionHash: string): Promise<TransactionResponse> {
+
+        const node = network.nodes.find((n) => n.type === NodeType.Primary);
+        if (!node) {
+            throw new Error(
+                `Node with type ${NodeType.Primary} is not configured in ${network.name}`
+            );
+        }
+
+        const provider = new RpcProvider({ nodeUrl: node.url });
+
+        const statusResponse = await provider.getTransactionStatus(transactionHash);
+
+        const { finality_status, execution_status } = statusResponse;
+
+        const transactionStatus = StarknetTransactionStatusValidator.validateTransactionStatus(finality_status, execution_status);
+
+        if (transactionStatus === TransactionStatus.Failed) {
+            throw new TransactionFailedException(`Transaction ${transactionHash} failed with status: ${execution_status}`);
+        }
+
+        const transactionReceiptResponse = await provider.getTransactionReceipt(transactionHash);
+
+        const confrimedTransaction = transactionReceiptResponse.isSuccess() ? transactionReceiptResponse : null;
+
+        if (!confrimedTransaction) {
+            return null;
+        }
+
+        const feeInWei = confrimedTransaction.actual_fee;
+
+        const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
+
+        let transactionModel: TransactionResponse = {
+            TransactionHash: transactionHash,
+            Confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
+            Status: transactionStatus,
+            FeeAsset: "ETH",
+            FeeAmount: feeAmount,
+            Timestamp: new Date(),
+            NetworkName: network.name,
+        };
+
+        if ("block_number" in confrimedTransaction) {
+
+            const blockNumber = confrimedTransaction.block_number as string;
+            const blockData = await provider.getBlockWithTxHashes(blockNumber);
+
+            transactionModel.Timestamp = new Date(blockData.timestamp * 1000);
+        }
+
+        return transactionModel;
     }
 
     public async GetLastConfirmedBlockNumberAsync(request: BaseRequest): Promise<BlockNumberResponse> {
@@ -73,7 +169,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
 
         return {
-            BlockNumber: lastBlockNumber,   
+            BlockNumber: lastBlockNumber,
             BlockHash: blockData.block_hash,
         };
     }
@@ -85,9 +181,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     public async GetNextNonceAsync(request: NextNonceRequest): Promise<string> {
         return null;
     }
-
-
-
+    
     public async PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 

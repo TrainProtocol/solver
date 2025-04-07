@@ -1,8 +1,8 @@
 import { TransactionStatus } from "../TransacitonModels/TransactionStatus";
 
 export interface TransactionResponse {
-    Amount: number;
-    Asset: string;
+    Amount?: number;
+    Asset?: string;
     NetworkName: string;
     TransactionHash: string;
     Confirmations: number;
