@@ -30,12 +30,23 @@ public static class TrainSolverBuilderExtensions
 
         configureOptions?.Invoke(options);
 
+        var otelResources = ResourceBuilder.CreateEmpty()
+            .AddTelemetrySdk()
+            .AddEnvironmentVariableDetector()
+            .AddContainerDetector()
+            .AddService(serviceName);
 
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource =>
-                resource.AddService(serviceName: serviceName))
+                resource
+                    .AddTelemetrySdk()
+                    .AddEnvironmentVariableDetector()
+                    .AddContainerDetector()
+                    .AddService(serviceName: serviceName))
             .WithTracing(tracing => tracing
-                .AddAspNetCoreInstrumentation()
+                .AddAspNetCoreInstrumentation(oi => {
+                    oi.RecordException = true;
+                })
                 .AddOtlpExporter(ot =>
                     {
                         ot.Endpoint = options.OpenTelemetryUrl;
