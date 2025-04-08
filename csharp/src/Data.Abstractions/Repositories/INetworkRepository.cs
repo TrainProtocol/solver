@@ -12,6 +12,8 @@ public interface INetworkRepository
 
     Task<List<Token>> GetTokensAsync();
 
+    Task<List<Token>> GetTokensAsync(int[] ids);
+
     Task<Dictionary<string, Token>> GetNativeTokensAsync(string[] networkNames);
 
     Task<Dictionary<string, string>> GetSolverAccountsAsync(string[] networkNames);

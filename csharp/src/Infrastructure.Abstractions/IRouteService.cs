@@ -1,11 +1,13 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.API.Models;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.Abstractions;
 public interface IRouteService
 {
-    Task<LimitModel?> GetLimitAsync(SourceDestinationRequest request);
-    Task<QuoteModel?> GetQuoteAsync(QuoteRequest request);
-    Task<IEnumerable<Token>?> GetReachablePointsAsync(bool fromSrcToDest, string? networkName, string? token);
-    Task<QuoteModel?> GetValidatedQuoteAsync(QuoteRequest request);
+    Task<LimitDto?> GetLimitAsync(SourceDestinationRequest request);
+    Task<QuoteDto?> GetQuoteAsync(QuoteRequest request);
+    Task<QuoteDto?> GetValidatedQuoteAsync(QuoteRequest request);
+    Task<IEnumerable<NetworkWithTokensDto>?> GetSourcesAsync(string? networkName, string? token);
+    Task<IEnumerable<NetworkWithTokensDto>?> GetDestinationsAsync(string? networkName, string? token);
 }

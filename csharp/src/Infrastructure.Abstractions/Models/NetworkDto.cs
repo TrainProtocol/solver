@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.API.Models;
+﻿using Train.Solver.Data.Abstractions.Entities;
+
+namespace Train.Solver.API.Models;
 
 public class NetworkDto
 {
@@ -10,9 +12,9 @@ public class NetworkDto
 
     public string? ChainId { get; set; }
 
-    public string FeeType { get; set; } = null!;
+    public TransactionFeeType FeeType { get; set; }
 
-    public string Type { get; set; } = null!;
+    public NetworkType Type { get; set; }
 
     public string TransactionExplorerTemplate { get; set; } = null!;
 

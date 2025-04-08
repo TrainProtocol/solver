@@ -1,114 +1,151 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.API.Models;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Util.Extensions;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Services;
 
 public class RouteService(
     IRouteRepository routeRepository,
-    INetworkRepository tokenRepository,
+    INetworkRepository networkRepository,
     IFeeRepository feeRepository) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
-    public virtual async Task<IEnumerable<Token>?> GetReachablePointsAsync(
+    public async Task<IEnumerable<NetworkWithTokensDto>?> GetSourcesAsync(string? networkName, string? token)
+    {
+        return await GetReachablePointsAsync(
+            fromSrcToDest: true,
+            networkName: networkName,
+            asset: token);
+    }
+
+    public async Task<IEnumerable<NetworkWithTokensDto>?> GetDestinationsAsync(string? networkName, string? token)
+    {
+        return await GetReachablePointsAsync(
+           fromSrcToDest: true,
+           networkName: networkName,
+           asset: token);
+    }
+
+    private async Task<IEnumerable<NetworkWithTokensDto>?> GetReachablePointsAsync(
         bool fromSrcToDest,
         string? networkName,
         string? asset)
     {
-        var requests = new List<FindReachableTokenRequest>();
-
-        if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(networkName))
-        {
-            var token = await tokenRepository.GetTokenAsync(networkName, asset);
-
-            if (token is null)
-            {
-                throw new Exception($"Token {asset} not found in network {networkName}");
-            }
-
-            requests.Add(new()
-            {
-                Asset = asset,
-                NetworkName = networkName,
-                FromSource = fromSrcToDest,
-            });
-        }
-        else if (!string.IsNullOrEmpty(asset) && string.IsNullOrEmpty(networkName)
+        if (!string.IsNullOrEmpty(asset) && string.IsNullOrEmpty(networkName)
             || !string.IsNullOrEmpty(networkName) && string.IsNullOrEmpty(asset))
         {
             throw new Exception($"{(fromSrcToDest ? "Source" : "Destination")} network and token should be provided");
         }
 
-        var reachableTokens = new List<Token>();
+        Token? reuqestedPoint = null;
 
-        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
-
-        if (!requests.Any())
+        if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(networkName))
         {
-            reachableTokens.AddRange(
-                routes.Select(x => fromSrcToDest ? x.DestinationToken : x.SourceToken).DistinctBy(x => x.Id));
-        }
-        else
-        {
-            foreach (var request in requests)
-            {
-                if (!string.IsNullOrEmpty(request.NetworkName) && !string.IsNullOrEmpty(request.Asset))
-                {
-                    var token = routes
-                        .Select(x => request.FromSource ? x.SourceToken : x.DestinationToken)
-                        .DistinctBy(x => x.Id)
-                        .SingleOrDefault(x =>
-                            x.Network.Name.ToUpper() == request.NetworkName.ToUpper()
-                            && x.Asset.ToUpper() == request.Asset.ToUpper());
+            reuqestedPoint = await networkRepository.GetTokenAsync(networkName, asset);
 
-                    if (token is null)
-                    {
-                        continue;
-                    }
-
-                    var reachableRoutes = routes.Where(x =>
-                        request.FromSource ? x.SourceTokenId == token.Id : x.DestinationTokenId == token.Id);
-
-                    reachableTokens
-                        .AddRange(reachableRoutes
-                            .Select(x => fromSrcToDest ? x.DestinationToken : x.SourceToken)
-                            .DistinctBy(x => x.Id));
-                }
-                else if (string.IsNullOrEmpty(request.NetworkName) && string.IsNullOrEmpty(request.Asset))
-                {
-                    reachableTokens
-                        .AddRange(routes
-                            .Select(x => fromSrcToDest ? x.DestinationToken : x.SourceToken)
-                            .DistinctBy(x => x.Id));
-                }
-            }
-
-            if (!reachableTokens.Any())
+            if (reuqestedPoint == null)
             {
                 return null;
             }
         }
 
-        return reachableTokens.AsEnumerable();
+        var reachablePoints = await routeRepository.GetReachablePointsAsync(
+            [RouteStatus.Active],
+            fromSrcToDest,
+            reuqestedPoint?.Id);
+
+        if (reachablePoints == null || !reachablePoints.Any())
+        {
+            return null;
+        }
+
+        var tokens = await networkRepository.GetTokensAsync(reachablePoints.ToArray());
+
+        var networksWithAmounts = tokens
+            .GroupBy(x => x.Network.Name)
+            .Select(x =>
+            {
+                var network = x.First().Network;
+                var networkWithTokens = new NetworkWithTokensDto
+                {
+                    Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
+                    Name = x.Key,
+                    Type = network.Type,
+                    AccountExplorerTemplate = network.AccountExplorerTemplate,
+                    TransactionExplorerTemplate = network.TransactionExplorerTemplate,
+                    IsTestnet = network.IsTestnet,
+                    ChainId = network.ChainId,
+                    DisplayName = network.DisplayName,
+                    FeeType = network.FeeType,
+                    ListingDate = network.CreatedDate,
+                    Contracts = network.Contracts.Select(c => new ContractDto
+                    {
+                        Address = c.Address,
+                        Type = c.Type,
+                    }),
+                    Tokens = x.Select(t => new TokenDto
+                    {
+                        ListingDate = t.CreatedDate,
+                        Contract = t.TokenContract,
+                        Decimals = t.Decimals,
+                        Symbol = t.Asset,
+                        Precision = t.Precision,
+                        PriceInUsd = t.TokenPrice.PriceInUsd,
+                        Logo = LogoHelpers.BuildGithubLogoUrl(t.Logo),
+                    }),
+                    ManagedAccounts = network.ManagedAccounts.Select(m => new ManagedAccountDto
+                    {
+                        Address = m.Address,
+                        Type = m.Type,
+                    }),
+                    Nodes = network.Nodes.Where(x => x.Type == NodeType.Public).Select(n => new NodeDto
+                    {
+                        Url = n.Url,
+                        Type = n.Type,
+                    })
+                };
+
+                if (network.NativeToken != null)
+                {
+                    networkWithTokens.NativeToken = new TokenDto
+                    {
+                        ListingDate = network.NativeToken.CreatedDate,
+                        Contract = network.NativeToken.TokenContract,
+                        Decimals = network.NativeToken.Decimals,
+                        Symbol = network.NativeToken.Asset,
+                        Precision = network.NativeToken.Precision,
+                        PriceInUsd = network.NativeToken.TokenPrice.PriceInUsd,
+                        Logo = LogoHelpers.BuildGithubLogoUrl(network.NativeToken.Logo),
+                    };
+                }
+
+                return networkWithTokens;
+
+            });
+        // Build
+
+        return networksWithAmounts;
     }
 
-    public virtual async Task<LimitModel?> GetLimitAsync(SourceDestinationRequest request)
+    public virtual async Task<LimitDto?> GetLimitAsync(SourceDestinationRequest request)
     {
         var routeResult = await GetActiveRouteAsync(request, amount: null);
 
         return routeResult is not null ? GetLimit(routeResult) : null;
     }
 
-    public virtual Task<QuoteModel?> GetValidatedQuoteAsync(
+    public virtual Task<QuoteDto?> GetValidatedQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, GetLimit);
 
-    public virtual Task<QuoteModel?> GetQuoteAsync(
+    public virtual Task<QuoteDto?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
 
-    private static LimitModel GetLimit(RouteWithFeesModel route)
+    private static LimitDto GetLimit(RouteWithFeesModel route)
     {
         var minBufferAmount = MinUsdAmount / route.Source.UsdPrice;
 
@@ -117,32 +154,33 @@ public class RouteService(
         var totalFee = fixedFee + percentageFee;
         var minAmount = minBufferAmount + totalFee;
 
-        return new LimitModel
+        return new LimitDto
         {
-            Route = route,
             MinAmount = minAmount.Truncate(route.Source.Precision),
+            MinAmountInUsd = (minAmount * route.Source.UsdPrice).Truncate(2),
             MaxAmount = route.MaxAmountInSource.Truncate(route.Source.Precision),
+            MaxAmountInUsd = (route.MaxAmountInSource * route.Source.UsdPrice).Truncate(2),
         };
     }
 
-    private async Task<QuoteModel?> GetQuoteAsync(
+    private async Task<QuoteDto?> GetQuoteAsync(
         QuoteRequest request,
-        Func<RouteWithFeesModel, LimitModel>? validatelimit)
+        Func<RouteWithFeesModel, LimitDto>? validatelimit)
     {
         var shouldValidateLimit = validatelimit is not null;
 
-        var routeResult = await GetActiveRouteAsync(
+        var route = await GetActiveRouteAsync(
             request,
             amount: shouldValidateLimit ? request.Amount : null);
 
-        if (routeResult is null)
+        if (route is null)
         {
             return null;
         }
 
         if (shouldValidateLimit)
         {
-            var limit = validatelimit!(routeResult);
+            var limit = validatelimit!(route);
 
             if (request.Amount < limit.MinAmount)
             {
@@ -157,16 +195,16 @@ public class RouteService(
             }
         }
 
-        var fixedFee = routeResult.ExpenseInSource + routeResult.ServiceFeeInSource;
-        var percentageFee = request.Amount * routeResult.ServiceFeePercentage / 100m;
+        var fixedFee = route.ExpenseInSource + route.ServiceFeeInSource;
+        var percentageFee = request.Amount * route.ServiceFeePercentage / 100m;
         var totalFee = fixedFee + percentageFee;
         var receiveAmount = request.Amount - totalFee;
 
-        var quote = new QuoteModel
+        var quote = new QuoteDto
         {
-            Route = routeResult,
-            ReceiveAmount = receiveAmount.Truncate(routeResult.Destionation.Precision),
-            TotalFee = totalFee
+            ReceiveAmount = receiveAmount.Truncate(route.Destionation.Precision),
+            TotalFee = totalFee,
+            TotalFeeInUsd = totalFee * route.Source.UsdPrice,
         };
 
         return quote;
@@ -319,7 +357,7 @@ public class RouteService(
         return null;
     }
 
-    private async Task<ExpenseFee?> CalculateExpenseFeeAsync(Route route)
+    private async Task<ExpenseFeeDto?> CalculateExpenseFeeAsync(Route route)
     {
         var expenses = await feeRepository.GetExpensesAsync();
 
@@ -331,7 +369,7 @@ public class RouteService(
                 || x.TokenId == route.DestinationTokenId && x.TransactionType == TransactionType.HTLCRedeem
                 || x.TokenId == route.SourceTokenId && x.TransactionType == TransactionType.HTLCRedeem);
 
-        ExpenseFee? fee = null;
+        ExpenseFeeDto? fee = null;
 
         if (filterredExpenses.Any())
         {

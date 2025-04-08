@@ -40,19 +40,6 @@ public class MapperProfile : Profile
              dest => dest.Hash,
              opt => opt.MapFrom(x => x.TransactionId));
 
-        CreateMap<LimitModel, LimitDto>()
-            .ForMember(
-                dest => dest.MinAmountInUsd,
-                opt => opt.Ignore())
-            .ForMember(
-                dest => dest.MaxAmountInUsd,
-                opt => opt.Ignore());
-
-        CreateMap<QuoteModel, QuoteDto>()
-             .ForMember(
-              dest => dest.TotalFeeInUsd,
-              opt => opt.Ignore());
-
         CreateMap<Network, NetworkWithTokensDto>()
              .ForMember(
                dest => dest.Contracts,

@@ -50,6 +50,14 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .WithOne(x => x.Swap)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Network>(entity =>
+        {
+            entity.HasOne(n => n.NativeToken)
+                .WithMany()
+                .HasForeignKey(n => n.NativeTokenId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
         modelBuilder.Entity<Network>()
             .HasIndex(x => x.Name)
             .IsUnique();
@@ -108,7 +116,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
            .IsUnique();
 
         modelBuilder.Entity<Token>()
-           .HasIndex(x => x.Asset);
+           .HasIndex(x => x.Asset);       
 
         modelBuilder.Entity<Swap>()
             .HasIndex(x => x.SourceAddress);

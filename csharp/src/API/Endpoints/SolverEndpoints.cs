@@ -161,7 +161,7 @@ public static class SolverEndpoints
         IRouteService routeService,
         [AsParameters] GetRouteLimitsQueryParams queryParams)
     {
-        var limitResult = await routeService.GetLimitAsync(
+        var limit = await routeService.GetLimitAsync(
             new()
             {
                 SourceNetwork = queryParams.SourceNetwork!,
@@ -170,7 +170,7 @@ public static class SolverEndpoints
                 DestinationToken = queryParams.DestinationToken!,
             });
 
-        if (limitResult == null)
+        if (limit == null)
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -182,13 +182,7 @@ public static class SolverEndpoints
             });
         }
 
-        var route = limitResult.Route;
-        var mappedLimit = mapper.Map<LimitDto>(limitResult);
-
-        mappedLimit.MaxAmountInUsd = (mappedLimit.MaxAmount * route.Source.UsdPrice).Truncate(UsdPrecision);
-        mappedLimit.MinAmountInUsd = (mappedLimit.MinAmount * route.Source.UsdPrice).Truncate(UsdPrecision);
-
-        return Results.Ok(new ApiResponse<LimitDto> { Data = mappedLimit });
+        return Results.Ok(new ApiResponse<LimitDto> { Data = limit });
     }
 
     private static async Task<IResult> GetNetworksAsync(
@@ -215,12 +209,11 @@ public static class SolverEndpoints
         [FromQuery] string? destinationNetwork,
         [FromQuery] string? destinationToken)
     {
-        var reachablePointsResult = await routeService.GetReachablePointsAsync(
-            fromSrcToDest: false,
+        var sources = await routeService.GetSourcesAsync(
             networkName: destinationNetwork,
             token: destinationToken);
 
-        if (reachablePointsResult == null || !reachablePointsResult.Any())
+        if (sources == null || !sources.Any())
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -232,10 +225,7 @@ public static class SolverEndpoints
             });
         }
 
-        var networkNames = reachablePointsResult.Select(x => x.Network.Name).Distinct().ToArray();
-        var nativeTokens = await networkRepository.GetNativeTokensAsync(networkNames);
-
-        return MapToNetworkWithTokens(mapper, reachablePointsResult, nativeTokens);
+        return Results.Ok(new ApiResponse<IEnumerable<NetworkWithTokensDto>> { Data = sources });
     }
 
     private static async Task<IResult> GetAllDestinationsAsync(
@@ -245,12 +235,11 @@ public static class SolverEndpoints
         [FromQuery] string? sourceNetwork,
         [FromQuery] string? sourceToken)
     {
-        var reachablePointsResult = await routeService.GetReachablePointsAsync(
-            fromSrcToDest: true,
+        var destinations = await routeService.GetDestinationsAsync(
             networkName: sourceNetwork,
             token: sourceToken);
 
-        if (reachablePointsResult == null || !reachablePointsResult.Any())
+        if (destinations == null || !destinations.Any())
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -262,10 +251,7 @@ public static class SolverEndpoints
             });
         }
 
-        var networkNames = reachablePointsResult.Select(x => x.Network.Name).Distinct().ToArray();
-        var nativeTokens = await networkRepository.GetNativeTokensAsync(networkNames);
-
-        return MapToNetworkWithTokens(mapper, reachablePointsResult, nativeTokens);
+        return Results.Ok(new ApiResponse<IEnumerable<NetworkWithTokensDto>> { Data = destinations });
     }
 
     private static async Task<IResult> GetQuoteAsync(
@@ -283,9 +269,9 @@ public static class SolverEndpoints
             Amount = queryParams.Amount!.Value,
         };
 
-        var rateResult = await routeService.GetValidatedQuoteAsync(quoteRequest);
+        var quote = await routeService.GetValidatedQuoteAsync(quoteRequest);
 
-        if (rateResult == null)
+        if (quote == null)
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -297,12 +283,7 @@ public static class SolverEndpoints
             });
         }
 
-        var route = rateResult.Route;
-        var mappedQuote = mapper.Map<QuoteDto>(rateResult);
-
-        mappedQuote.TotalFeeInUsd = (mappedQuote.TotalFee * route.Source.UsdPrice).Truncate(UsdPrecision);
-
-        return Results.Ok(new ApiResponse<QuoteDto> { Data = mappedQuote });
+        return Results.Ok(new ApiResponse<QuoteDto> { Data = quote });
     }
 
     private static IResult MapToNetworkWithTokens(
