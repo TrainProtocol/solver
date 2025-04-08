@@ -3,7 +3,7 @@
 
 # 🚄 Train.Solver
 
-**TrainSolver** is a modular and extensible application built on [Temporal.io](https://temporal.io), implementing the [TRAIN Protocol](https://train.xyz). It provides a trustless, permissionless, and scalable framework for cross-chain asset swaps across multiple blockchain networks, such as Ethereum-compatible chains (EVM), Starknet, and Solana.
+**TrainSolver** is a modular and extensible application built on [Temporal.io](https://temporal.io), implementing the [TRAIN Protocol](https://train.xyz). It provides a trustless, permissionless, and scalable framework for cross-chain asset swaps across multiple blockchain networks, such as Ethereum-compatible chains (EVM), Starknet, Solana, Fuel, TON, Aptos & any altVM.
 
 
 | Component | Dockerfile Location | Image Badge |
