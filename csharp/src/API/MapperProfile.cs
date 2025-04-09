@@ -62,6 +62,9 @@ public class MapperProfile : Profile
               .ForMember(
                 dest => dest.ListingDate,
                 opt => opt.MapFrom(src => src.CreatedDate))
+                .ForMember(
+                dest => dest.PriceInUsd,
+                opt => opt.MapFrom(src => src.TokenPrice.PriceInUsd))
             .ForMember(
                  dest => dest.Logo,
                  opt => opt.MapFrom(src => LogoHelpers.BuildGithubLogoUrl(src.Logo)));
