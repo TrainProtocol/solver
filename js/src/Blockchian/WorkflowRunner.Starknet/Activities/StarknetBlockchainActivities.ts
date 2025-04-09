@@ -40,13 +40,16 @@ import Redis from "ioredis";
 import Redlock from "redlock";
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
+import { BuildLockKey, BuildNonceKey } from "../../../CoreAbstraction/Infrastructure/RedisHelper/RedisHelper";
+import { TimeSpan } from "../../../CoreAbstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 
 @injectable()
-export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {constructor(
-    @inject(SolverContext) private dbContext: SolverContext,
-    @inject("Redis") private redis: Redis,
-    @inject("Redlock") private lockFactory: Redlock
-  ) {}
+export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
+    constructor(
+        @inject(SolverContext) private dbContext: SolverContext,
+        @inject("Redis") private redis: Redis,
+        @inject("Redlock") private lockFactory: Redlock
+    ) { }
 
     readonly FeeSymbol = "ETH";
     readonly FeeDecimals = 18;
@@ -227,7 +230,57 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async GetNextNonceAsync(request: NextNonceRequest): Promise<string> {
-        return null;
+        const network = await this.dbContext.Networks
+            .createQueryBuilder("network")
+            .leftJoinAndSelect("network.nodes", "n")
+            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
+            .getOne();
+
+        if (!network) {
+            throw new Error(`Network ${request.NetworkName} not found`);
+        }
+
+        const node = network.nodes.find(n => n.type === NodeType.Primary);
+        if (!node) {
+            throw new Error(`Primary node not found in network ${request.NetworkName}`);
+        }
+
+        const provider = new RpcProvider({ nodeUrl: node.url });
+
+        const formattedAddress = formatAddress(request.Address);
+        const lockKey = BuildLockKey(request.NetworkName, formattedAddress);
+        const nonceKey = BuildNonceKey(request.NetworkName, formattedAddress);
+
+        const lock = await this.lockFactory.acquire(
+            [lockKey],
+            TimeSpan.FromSeconds(25),
+            {
+                retryDelay: TimeSpan.FromSeconds(1),
+                retryCount: 20,
+            }
+        );
+
+        try {
+            let currentNonce = BigInt(-1);
+
+            const cached = await this.redis.get(nonceKey);
+            if (cached !== null) {
+                currentNonce = BigInt(cached);
+            }
+
+            const nonceHex = await provider.getNonceForAddress(formattedAddress, "pending");
+            let nonce = BigInt(nonceHex);
+
+            if (nonce <= currentNonce) {
+                nonce = currentNonce + BigInt(1);
+            }
+
+            await this.redis.set(nonceKey, nonce.toString(), "EX", TimeSpan.FromDays(7));
+
+            return nonce.toString();
+        } finally {
+            await lock.release().catch(() => { });
+        }
     }
 
     public async PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
@@ -618,5 +671,4 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
 export function formatAddress(address: string): string {
     return addAddressPadding(address).toLowerCase();
-  }
-  
+}

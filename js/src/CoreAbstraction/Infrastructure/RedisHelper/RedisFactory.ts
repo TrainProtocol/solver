@@ -1,4 +1,4 @@
-export function convertToRedisUrl(connectionString: string, db: number = 3): string {
+export function ConvertToRedisUrl(connectionString: string, db: number = 3): string {
   const [hostPart, ...optionParts] = connectionString.split(',');
 
   const [host, portString] = hostPart.split(':');
