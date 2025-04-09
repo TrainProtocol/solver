@@ -1,5 +1,6 @@
 import { Abi, Account, cairo, Call, CallData, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding } from "starknet";
 import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
+import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 import { BigNumber, utils } from "ethers";
@@ -37,9 +38,15 @@ import { Networks } from "../../../Data/Entities/Networks";
 import { TransactionNotComfirmedException } from "../../../Exceptions/TransactionNotComfirmedException";
 import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
+import Redis from "ioredis";
+import Redlock from "redlock";
 
-export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
-    constructor(private dbContext: SolverContext) { }
+@injectable()
+export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {constructor(
+    @inject(SolverContext) private dbContext: SolverContext,
+    @inject("Redis") private redis: Redis,
+    @inject("Redlock") private lockFactory: Redlock
+  ) {}
 
     readonly FeeSymbol = "ETH";
     readonly FeeDecimals = 18;

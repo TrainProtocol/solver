@@ -1,21 +1,20 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
 import * as dotenv from 'dotenv';
 import 'reflect-metadata';
-import { SolverContext } from '../../../Data/SolverContext';
 import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainActivities';
 import { extractActivities as ExtractActivities } from '../../TemporalHelper/ActivityParser';
 import { NetworkType } from '../../../Data/Entities/Networks';
+import { AddCoreServices } from '../../../CoreAbstraction/Infrastructure/AddCoreServices';
+import { container } from 'tsyringe';
 
 async function run() {
   dotenv.config();
 
   try {
 
-    const dbCtx = new SolverContext(process.env.TrainSolver__DatabaseConnectionString);
-
-    const starknetActivities = new StarknetBlockchainActivities(dbCtx);
+    await AddCoreServices();
     
-    const activities = ExtractActivities(starknetActivities);
+    const activities = ExtractActivities(container.resolve(StarknetBlockchainActivities));
 
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,

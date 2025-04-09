@@ -1,11 +1,11 @@
 {
   "name": "js",
   "version": "1.0.0",
-  "main": "dist/src/TemporalWorker/worker.js",
+  "main": "dist/src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/TemporalWorker/Worker.js",
-    "dev": "ts-node src/TemporalWorker/worker.ts",
+    "start": "node dist/src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.js",
+    "dev": "ts-node src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.ts",
     "test": "jest --verbose"
   },
   "keywords": [],
@@ -22,11 +22,15 @@
     "build": "^0.1.4",
     "dotenv": "^16.4.7",
     "ethers": "5.7.0",
+    "ioredis": "^5.6.0",
     "pg": "^8.14.1",
     "pino": "^9.6.0",
     "pino-datadog": "^2.0.2",
     "pino-multi-stream": "^6.0.0",
+    "redlock": "^5.0.0-beta.2",
+    "reflect-metadata": "^0.2.2",
     "starknet": "^6.23.1",
+    "tsyringe": "^4.9.1",
     "typeorm": "^0.3.21",
     "web3-provider-engine": "^17.0.1"
   },
