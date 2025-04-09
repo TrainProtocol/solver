@@ -3,13 +3,12 @@ using Flurl;
 using Train.Solver.API.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.API;
 
 public class MapperProfile : Profile
 {
-    private const string GithubUserContentUrl = "https://raw.githubusercontent.com";
-
     public MapperProfile()
     {
         CreateMap<Swap, SwapDto>()
@@ -39,32 +38,24 @@ public class MapperProfile : Profile
            .ForMember(
              dest => dest.Hash,
              opt => opt.MapFrom(x => x.TransactionId));
-
-        CreateMap<Network, NetworkWithTokensDto>()
-             .ForMember(
-               dest => dest.Contracts,
-               opt => opt.MapFrom(y => y.Contracts))
-            .IncludeBase<Network, NetworkDto>();
-
-        CreateMap<Network, NetworkDto>()
+       
+        CreateMap<Network, DetailedNetworkDto>()
           .ForMember(
                  dest => dest.Logo,
-                 opt => opt.MapFrom(src => GithubUserContentUrl.AppendPathSegment(src.Logo, false).ToString()))
+                 opt => opt.MapFrom(src => LogoHelpers.BuildGithubLogoUrl(src.Logo)))
             .ForMember(
                 dest => dest.ListingDate,
                 opt => opt.MapFrom(src => src.CreatedDate))
-                        .ForMember(dest => dest.NativeToken, opt => opt.MapFrom(src => src.Tokens.FirstOrDefault(t => t.IsNative)));
+            .ForMember(dest => dest.NativeToken, opt => opt.MapFrom(src => src.NativeToken));
 
         CreateMap<Node, NodeDto>();
         CreateMap<ManagedAccount, ManagedAccountDto>();
         CreateMap<Contract, ContractDto>();
-        CreateMap<Token, TokenDto>()
+
+        CreateMap<Token, DetailedTokenDto>()
             .ForMember(
                 dest => dest.Symbol,
                 opt => opt.MapFrom(src => src.Asset))
-            .ForMember(
-              dest => dest.PriceInUsd,
-              opt => opt.MapFrom(x => x.TokenPrice.PriceInUsd))
             .ForMember(
                 dest => dest.Contract,
                 opt => opt.MapFrom(src => src.TokenContract))
@@ -73,6 +64,6 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.CreatedDate))
             .ForMember(
                  dest => dest.Logo,
-                 opt => opt.MapFrom(src => GithubUserContentUrl.AppendPathSegment(src.Logo, false).ToString()));
+                 opt => opt.MapFrom(src => LogoHelpers.BuildGithubLogoUrl(src.Logo)));
     }
 }

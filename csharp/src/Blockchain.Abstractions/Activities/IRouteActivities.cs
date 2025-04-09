@@ -10,7 +10,7 @@ public interface IRouteActivities
     Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync();
 
     [Activity]
-    Task<List<RouteModel>> GetAllRoutesAsync();
+    Task<List<RouteDto>> GetAllRoutesAsync();
 
     [Activity]
     Task UpdateRoutesStatusAsync(int[] routeIds, RouteStatus status);

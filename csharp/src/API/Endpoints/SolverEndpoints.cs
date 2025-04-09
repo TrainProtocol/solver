@@ -19,13 +19,13 @@ public static class SolverEndpoints
     public static RouteGroupBuilder MapEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();
@@ -192,14 +192,14 @@ public static class SolverEndpoints
     {
         var networks = await networkRepository.GetAllAsync();
 
-        var mappedNetworks = mapper.Map<List<NetworkWithTokensDto>>(networks);
+        var mappedNetworks = mapper.Map<List<DetailedNetworkDto>>(networks);
 
         mappedNetworks.ToList().ForEach(x =>
         {
             x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
         });
 
-        return Results.Ok(new ApiResponse<List<NetworkWithTokensDto>> { Data = mappedNetworks });
+        return Results.Ok(new ApiResponse<List<DetailedNetworkDto>> { Data = mappedNetworks });
     }
 
     private static async Task<IResult> GetAllSourcesAsync(
@@ -225,7 +225,7 @@ public static class SolverEndpoints
             });
         }
 
-        return Results.Ok(new ApiResponse<IEnumerable<NetworkWithTokensDto>> { Data = sources });
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = sources });
     }
 
     private static async Task<IResult> GetAllDestinationsAsync(
@@ -251,7 +251,7 @@ public static class SolverEndpoints
             });
         }
 
-        return Results.Ok(new ApiResponse<IEnumerable<NetworkWithTokensDto>> { Data = destinations });
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = destinations });
     }
 
     private static async Task<IResult> GetQuoteAsync(
@@ -284,35 +284,5 @@ public static class SolverEndpoints
         }
 
         return Results.Ok(new ApiResponse<QuoteDto> { Data = quote });
-    }
-
-    private static IResult MapToNetworkWithTokens(
-        IMapper mapper,
-        IEnumerable<Token> reachablePointsResult,
-        IDictionary<string, Token> nativeTokens)
-    {
-        var mappedNetworks = new List<NetworkWithTokensDto>();
-        var groupingsByNetwork = reachablePointsResult.GroupBy(x => x.Network);
-
-        foreach (var grouping in groupingsByNetwork)
-        {
-            var network = grouping.Key;
-            network.Tokens = grouping.ToList();
-            var mappedNetwork = mapper.Map<NetworkWithTokensDto>(network);
-
-            if (mappedNetwork.NativeToken == null)
-            {
-                mappedNetwork.NativeToken = mapper.Map<TokenDto>(nativeTokens[network.Name]);
-            }
-
-            mappedNetworks.Add(mappedNetwork);
-        }
-
-        mappedNetworks.ToList().ForEach(x =>
-        {
-            x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
-        });
-
-        return Results.Ok(new ApiResponse<List<NetworkWithTokensDto>> { Data = mappedNetworks });
     }
 }

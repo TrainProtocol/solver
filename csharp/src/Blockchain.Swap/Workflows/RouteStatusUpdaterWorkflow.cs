@@ -1,4 +1,5 @@
 using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
@@ -22,12 +23,12 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
         var groupedByNetworkAndAsset = allRoutes
             .GroupBy(route => new
             {
-                route.Destionation.NetworkName,
-                route.Destionation.NetworkType,
-                route.Destionation.Asset
+                route.Destionation.Network.Name,
+                route.Destionation.Network.Type,
+                route.Destionation.Symbol
             });
 
-        var networkNames = groupedByNetworkAndAsset.Select(x => x.Key.NetworkName).Distinct().ToArray();
+        var networkNames = groupedByNetworkAndAsset.Select(x => x.Key.Name).Distinct().ToArray();
 
         var managedAddressesByNetwork = await ExecuteActivityAsync(
             (SwapActivities x) => x.GetSolverAddressesAsync(networkNames),
@@ -36,9 +37,9 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
 
         foreach (var group in groupedByNetworkAndAsset)
         {
-            var networkName = group.Key.NetworkName;
-            var networkType = group.Key.NetworkType;
-            var asset = group.Key.Asset;
+            var networkName = group.Key.Name;
+            var networkType = group.Key.Type;
+            var asset = group.Key.Symbol;
 
             if (!managedAddressesByNetwork.TryGetValue(networkName, out var managedAddress))
             {
@@ -49,17 +50,12 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
 
             try
             {
-                balance = await ExecuteActivityAsync<BalanceResponse>(
-                    "GetBalance",
-                        [
-                            new BalanceRequest
-                            {
-                                NetworkName = networkName,
-                                Address = managedAddress!,
-                                Asset = asset
-                            }
-                        ],
-                    TemporalHelper.DefaultActivityOptions(networkType));
+                balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
+                {
+                    NetworkName = networkName,
+                    Address = managedAddress!,
+                    Asset = asset
+                }), TemporalHelper.DefaultActivityOptions(networkType));
             }
             catch (Exception ex)
             {

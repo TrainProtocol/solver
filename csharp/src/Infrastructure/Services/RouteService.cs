@@ -3,6 +3,7 @@ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 
@@ -15,7 +16,7 @@ public class RouteService(
 {
     public const decimal MinUsdAmount = 0.69m;
 
-    public async Task<IEnumerable<NetworkWithTokensDto>?> GetSourcesAsync(string? networkName, string? token)
+    public async Task<IEnumerable<DetailedNetworkDto>?> GetSourcesAsync(string? networkName, string? token)
     {
         return await GetReachablePointsAsync(
             fromSrcToDest: true,
@@ -23,7 +24,7 @@ public class RouteService(
             asset: token);
     }
 
-    public async Task<IEnumerable<NetworkWithTokensDto>?> GetDestinationsAsync(string? networkName, string? token)
+    public async Task<IEnumerable<DetailedNetworkDto>?> GetDestinationsAsync(string? networkName, string? token)
     {
         return await GetReachablePointsAsync(
            fromSrcToDest: true,
@@ -31,7 +32,7 @@ public class RouteService(
            asset: token);
     }
 
-    private async Task<IEnumerable<NetworkWithTokensDto>?> GetReachablePointsAsync(
+    private async Task<IEnumerable<DetailedNetworkDto>?> GetReachablePointsAsync(
         bool fromSrcToDest,
         string? networkName,
         string? asset)
@@ -71,7 +72,7 @@ public class RouteService(
             .Select(x =>
             {
                 var network = x.First().Network;
-                var networkWithTokens = new NetworkWithTokensDto
+                var networkWithTokens = new DetailedNetworkDto
                 {
                     Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
                     Name = x.Key,
@@ -83,51 +84,20 @@ public class RouteService(
                     DisplayName = network.DisplayName,
                     FeeType = network.FeeType,
                     ListingDate = network.CreatedDate,
-                    Contracts = network.Contracts.Select(c => new ContractDto
-                    {
-                        Address = c.Address,
-                        Type = c.Type,
-                    }),
-                    Tokens = x.Select(t => new TokenDto
-                    {
-                        ListingDate = t.CreatedDate,
-                        Contract = t.TokenContract,
-                        Decimals = t.Decimals,
-                        Symbol = t.Asset,
-                        Precision = t.Precision,
-                        PriceInUsd = t.TokenPrice.PriceInUsd,
-                        Logo = LogoHelpers.BuildGithubLogoUrl(t.Logo),
-                    }),
-                    ManagedAccounts = network.ManagedAccounts.Select(m => new ManagedAccountDto
-                    {
-                        Address = m.Address,
-                        Type = m.Type,
-                    }),
-                    Nodes = network.Nodes.Where(x => x.Type == NodeType.Public).Select(n => new NodeDto
-                    {
-                        Url = n.Url,
-                        Type = n.Type,
-                    })
+                    Contracts = network.Contracts.Select(x => x.ToDto()),
+                    Tokens = x.Select(x => x.ToDetailedDto()),
+                    ManagedAccounts = network.ManagedAccounts.Select(x => x.ToDto()),
+                    Nodes = network.Nodes.Where(x=>x.Type == NodeType.Public).Select(x=> x.ToDto()),
                 };
 
                 if (network.NativeToken != null)
                 {
-                    networkWithTokens.NativeToken = new TokenDto
-                    {
-                        ListingDate = network.NativeToken.CreatedDate,
-                        Contract = network.NativeToken.TokenContract,
-                        Decimals = network.NativeToken.Decimals,
-                        Symbol = network.NativeToken.Asset,
-                        Precision = network.NativeToken.Precision,
-                        PriceInUsd = network.NativeToken.TokenPrice.PriceInUsd,
-                        Logo = LogoHelpers.BuildGithubLogoUrl(network.NativeToken.Logo),
-                    };
+                    networkWithTokens.NativeToken = network.NativeToken.ToDetailedDto();
                 }
 
                 return networkWithTokens;
 
             });
-        // Build
 
         return networksWithAmounts;
     }
@@ -145,27 +115,24 @@ public class RouteService(
     public virtual Task<QuoteDto?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
 
-    private static LimitDto GetLimit(RouteWithFeesModel route)
+    private static LimitDto GetLimit(RouteWithFeesDto route)
     {
-        var minBufferAmount = MinUsdAmount / route.Source.UsdPrice;
-
-        var fixedFee = route.ExpenseInSource + route.ServiceFeeInSource;
-        var percentageFee = (minBufferAmount + fixedFee) * route.ServiceFeePercentage / 100m;
-        var totalFee = fixedFee + percentageFee;
+        var minBufferAmount = MinUsdAmount / route.Source.PriceInUsd;
+        var totalFee = CalculateTotalFee(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
 
         return new LimitDto
         {
             MinAmount = minAmount.Truncate(route.Source.Precision),
-            MinAmountInUsd = (minAmount * route.Source.UsdPrice).Truncate(2),
+            MinAmountInUsd = (minAmount * route.Source.PriceInUsd).Truncate(2),
             MaxAmount = route.MaxAmountInSource.Truncate(route.Source.Precision),
-            MaxAmountInUsd = (route.MaxAmountInSource * route.Source.UsdPrice).Truncate(2),
+            MaxAmountInUsd = (route.MaxAmountInSource * route.Source.PriceInUsd).Truncate(2),
         };
     }
 
     private async Task<QuoteDto?> GetQuoteAsync(
         QuoteRequest request,
-        Func<RouteWithFeesModel, LimitDto>? validatelimit)
+        Func<RouteWithFeesDto, LimitDto>? validatelimit)
     {
         var shouldValidateLimit = validatelimit is not null;
 
@@ -195,22 +162,41 @@ public class RouteService(
             }
         }
 
-        var fixedFee = route.ExpenseInSource + route.ServiceFeeInSource;
-        var percentageFee = request.Amount * route.ServiceFeePercentage / 100m;
-        var totalFee = fixedFee + percentageFee;
+        var totalFee = CalculateTotalFee(route, request.Amount);
         var receiveAmount = request.Amount - totalFee;
 
         var quote = new QuoteDto
         {
             ReceiveAmount = receiveAmount.Truncate(route.Destionation.Precision),
             TotalFee = totalFee,
-            TotalFeeInUsd = totalFee * route.Source.UsdPrice,
+            TotalFeeInUsd = totalFee * route.Source.PriceInUsd,
         };
 
         return quote;
     }
 
-    private async Task<RouteWithFeesModel?> GetActiveRouteAsync(
+    private static decimal CalculateTotalFee(RouteWithFeesDto route, decimal amount)
+    {
+        decimal fixedFee = default;
+        decimal percentageFee = default;
+
+        if (route.Expenses is not null)
+        {
+            fixedFee += route.Expenses.ExpenseFeeInSource;
+        }
+
+        if (route.ServiceFee is not null)
+        {
+            fixedFee += route.ServiceFee.ServiceFeeInSource;
+            percentageFee = amount * route.ServiceFee.ServiceFeePercentage / 100m;
+        }
+
+        var totalFee = fixedFee + percentageFee;
+
+        return totalFee.Truncate(route.Source.Precision);
+    }
+
+    private async Task<RouteWithFeesDto?> GetActiveRouteAsync(
         SourceDestinationRequest request,
         decimal? amount)
     {
@@ -226,55 +212,38 @@ public class RouteService(
             return null;
         }
 
-        var mappedRoute = new RouteWithFeesModel()
-        {
-            Id = route.Id,
-            MaxAmountInSource = route.MaxAmountInSource,
-            Status = route.Status,
-            Source = new TokenModel
-            {
-                Id = route.SourceToken.Id,
-                NetworkName = route.SourceToken.Network.Name,
-                Asset = route.SourceToken.Asset,
-                Precision = route.SourceToken.Precision,
-                IsNative = route.SourceToken.IsNative,
-                UsdPrice = route.SourceToken.TokenPrice.PriceInUsd,
-            },
-            Destionation = new TokenModel
-            {
-                Id = route.DestinationToken.Id,
-                NetworkName = route.DestinationToken.Network.Name,
-                Asset = route.DestinationToken.Asset,
-                Precision = route.DestinationToken.Precision,
-                IsNative = route.DestinationToken.IsNative,
-                UsdPrice = route.DestinationToken.TokenPrice.PriceInUsd,
-            }
-        };
+        var mappedRoute = route.ToWithFeesDto();
 
         var expenseFee = await CalculateExpenseFeeAsync(route);
 
         if (expenseFee is not null)
         {
-            mappedRoute.ExpenseInSource = expenseFee.ExpenseFeeInSource;
+            mappedRoute.Expenses = new ExpenseFeeDto
+            {
+                ExpenseFeeInSource = expenseFee.ExpenseFeeInSource,
+            };
         }
 
         var serviceFee = await CalculateServiceFeeAsync(route);
 
         if (serviceFee is not null)
         {
-            mappedRoute.ServiceFeeInSource = serviceFee.ServiceFeeInSource;
-            mappedRoute.ServiceFeePercentage = serviceFee.ServiceFeePercentage;
+            mappedRoute.ServiceFee = new ServiceFeeDto
+            {
+                ServiceFeeInSource = serviceFee.ServiceFeeInSource,
+                ServiceFeePercentage = serviceFee.ServiceFeePercentage,
+            };
         }
 
         return mappedRoute;
     }
 
-    private async Task<ServiceFeeModel> CalculateServiceFeeAsync(
+    private async Task<ServiceFeeDto> CalculateServiceFeeAsync(
         Route route)
     {
         var serviceFees = await feeRepository.GetServiceFeesAsync();
 
-        var fee = new ServiceFeeModel();
+        var fee = new ServiceFeeDto();
 
         if (serviceFees.Any())
         {

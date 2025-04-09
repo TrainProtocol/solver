@@ -1,6 +1,6 @@
 ﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class ServiceFeeModel
+public class ServiceFeeDto
 {
     public decimal ServiceFeePercentage { get; set; }
 
