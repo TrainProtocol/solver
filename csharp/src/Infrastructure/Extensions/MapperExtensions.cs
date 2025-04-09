@@ -90,7 +90,7 @@ public static class MapperExtensions
     {
         var dto = new DetailedTokenDto();
         MapBaseTokenFields(token, dto);
-        dto.Logo = LogoHelpers.BuildGithubLogoUrl(token.Asset);
+        dto.Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo);
         dto.ListingDate = token.CreatedDate; 
         return dto;
     }
