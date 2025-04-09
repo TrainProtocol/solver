@@ -11,6 +11,34 @@ namespace Train.Solver.Infrastructure.Extensions;
 
 public static class MapperExtensions
 {
+    public static SwapDto ToDto(this Swap swap)
+    {
+        return new SwapDto
+        {
+            CommitId = swap.Id,
+            SourceNetwork = swap.SourceToken.Network.Name,
+            SourceToken = swap.SourceToken.Asset,
+            SourceAmount = swap.SourceAmount,
+            SourceAddress = swap.SourceAddress,
+            DestinationNetwork = swap.DestinationToken.Network.Name,
+            DestinationToken = swap.DestinationToken.Asset,
+            DestinationAmount = swap.DestinationAmount,
+            DestinationAddress = swap.DestinationAddress,
+            FeeAmount = swap.FeeAmount,
+            Transactions = swap.Transactions.Select(t => t.ToDto()).ToList()
+        };
+    }
+
+    public static TransactionDto ToDto(this Transaction tx)
+    {
+        return new TransactionDto
+        {
+            Type = tx.Type,
+            Hash = tx.TransactionId ?? string.Empty,
+            Network = tx.NetworkName
+        };
+    }
+
     public static ContractDto ToDto(this Contract contract)
     {
         return new ContractDto

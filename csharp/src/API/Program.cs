@@ -41,11 +41,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-builder.Services.AddAutoMapper(mc =>
-{
-    mc.AddProfile<MapperProfile>();
-});
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("solver", new() { Title = "Train Solver API", Version = "v1" });

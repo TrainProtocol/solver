@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
 using Train.Solver.API.Models;
 using Train.Solver.Blockchain.Abstractions.Models;
@@ -9,6 +8,7 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.API.Endpoints;
 
@@ -104,7 +104,6 @@ public static class SolverEndpoints
     private static async Task<IResult> GetSwapAsync(
         ITemporalClient temporalClient,
         ISwapRepository swapRepository,
-        IMapper mapper,
         [FromRoute] string commitId)
     {
         var swap = await swapRepository.GetAsync(commitId);
@@ -121,13 +120,11 @@ public static class SolverEndpoints
             });
         }
 
-        var mappedSwap = mapper.Map<SwapDto>(swap);
-        return Results.Ok(new ApiResponse<SwapDto> { Data = mappedSwap });
+        return Results.Ok(new ApiResponse<SwapDto> { Data = swap.ToDto() });
     }
 
     private static async Task<IResult> GetAllSwapsAsync(
         ISwapRepository swapRepository,
-        IMapper mapper,
         [FromQuery] string[]? addresses,
         [FromQuery] uint? page)
     {
@@ -152,11 +149,12 @@ public static class SolverEndpoints
             return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = [] });
         }
 
-        return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = mapper.Map<List<SwapDto>>(swaps) });
+        var mappedSwaps = swaps.Select(x => x.ToDto());
+
+        return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = mappedSwaps });
     }
 
     private static async Task<IResult> GetSwapRouteLimitsAsync(
-        IMapper mapper,
         HttpContext httpContext,
         IRouteService routeService,
         [AsParameters] GetRouteLimitsQueryParams queryParams)
@@ -187,25 +185,25 @@ public static class SolverEndpoints
 
     private static async Task<IResult> GetNetworksAsync(
         HttpContext httpContext,
-        INetworkRepository networkRepository,
-        IMapper mapper)
+        INetworkRepository networkRepository)
     {
         var networks = await networkRepository.GetAllAsync();
 
-        var mappedNetworks = mapper.Map<List<DetailedNetworkDto>>(networks);
-
-        mappedNetworks.ToList().ForEach(x =>
+        networks.ToList().ForEach(x =>
         {
             x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
         });
 
-        return Results.Ok(new ApiResponse<List<DetailedNetworkDto>> { Data = mappedNetworks });
+        var mappedNetworks = networks.Select(x=>x.ToDetailedDto());
+
+       
+
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = mappedNetworks });
     }
 
     private static async Task<IResult> GetAllSourcesAsync(
         IRouteService routeService,
         INetworkRepository networkRepository,
-        IMapper mapper,
         [FromQuery] string? destinationNetwork,
         [FromQuery] string? destinationToken)
     {
@@ -231,7 +229,6 @@ public static class SolverEndpoints
     private static async Task<IResult> GetAllDestinationsAsync(
         IRouteService routeService,
         INetworkRepository networkRepository,
-        IMapper mapper,
         [FromQuery] string? sourceNetwork,
         [FromQuery] string? sourceToken)
     {
@@ -256,7 +253,6 @@ public static class SolverEndpoints
 
     private static async Task<IResult> GetQuoteAsync(
         IRouteService routeService,
-        IMapper mapper,
         HttpContext httpContext,
         [AsParameters] GetQuoteQueryParams queryParams)
     {
