@@ -18,7 +18,7 @@ public class RouteService(
     public async Task<IEnumerable<DetailedNetworkDto>?> GetSourcesAsync(string? networkName, string? token)
     {
         return await GetReachablePointsAsync(
-            fromSrcToDest: true,
+            fromSrcToDest: false,
             networkName: networkName,
             asset: token);
     }
