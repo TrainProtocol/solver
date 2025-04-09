@@ -22,5 +22,5 @@ public class SwapDto
 
     public decimal FeeAmount { get; set; }
 
-    public List<TransactionDto> Transactions { get; set; } = [];
+    public IEnumerable<TransactionDto> Transactions { get; set; } = [];
 }

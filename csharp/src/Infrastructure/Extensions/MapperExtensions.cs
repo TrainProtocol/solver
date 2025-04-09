@@ -1,5 +1,6 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -19,7 +20,7 @@ public static class MapperExtensions
             DestinationAmount = swap.DestinationAmount,
             DestinationAddress = swap.DestinationAddress,
             FeeAmount = swap.FeeAmount,
-            Transactions = swap.Transactions.Select(t => t.ToDto()).ToList()
+            Transactions = swap.Transactions.Select(t => t.ToDto())
         };
     }
 
@@ -89,7 +90,7 @@ public static class MapperExtensions
     {
         var dto = new DetailedTokenDto();
         MapBaseTokenFields(token, dto);
-        dto.Logo = token.Logo;
+        dto.Logo = LogoHelpers.BuildGithubLogoUrl(token.Asset);
         dto.ListingDate = token.CreatedDate; 
         return dto;
     }
