@@ -10,7 +10,6 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
-using Train.Solver.API.Models;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 

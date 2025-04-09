@@ -5,8 +5,6 @@ using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
-using Train.Solver.Blockchain.Common.Extensions;
-using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;

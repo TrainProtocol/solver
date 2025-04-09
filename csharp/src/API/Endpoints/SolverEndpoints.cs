@@ -6,7 +6,6 @@ using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Util.Extensions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Extensions;
 

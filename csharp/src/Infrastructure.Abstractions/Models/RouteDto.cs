@@ -1,5 +1,4 @@
-﻿using Train.Solver.API.Models;
-using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Infrastructure.Abstractions.Models;
 

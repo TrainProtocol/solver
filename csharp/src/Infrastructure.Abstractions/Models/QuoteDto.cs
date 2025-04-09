@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.API.Models;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class QuoteDto
 {

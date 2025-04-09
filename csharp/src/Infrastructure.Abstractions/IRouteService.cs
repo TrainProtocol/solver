@@ -1,6 +1,4 @@
-﻿using Train.Solver.API.Models;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Infrastructure.Abstractions.Models;
+﻿using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.Abstractions;
 public interface IRouteService
