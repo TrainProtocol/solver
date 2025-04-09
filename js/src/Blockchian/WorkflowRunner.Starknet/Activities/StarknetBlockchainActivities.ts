@@ -17,7 +17,6 @@ import { InvalidTimelockException } from "../../../Exceptions/InvalidTimelockExc
 import { PrivateKeyRepository } from "../../../lib/PrivateKeyRepository";
 import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
-import { StarknetTransactionBuilder } from "./Helper/StarknetTransactionBuilder";
 import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
 import { Fee, FixedFeeData } from "../../../CoreAbstraction/Models/FeesModels/Fee";
 import { IStarknetBlockchainActivities } from "./IStarknetBlockchainActivities";
@@ -31,7 +30,6 @@ import { EventRequest } from "../../../CoreAbstraction/Models/EventRequest";
 import { HTLCBlockEventResponse } from "../../../CoreAbstraction/Models/EventModels/HTLCBlockEventResposne";
 import { NextNonceRequest } from "../../../CoreAbstraction/Models/NextNonceRequest";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
-import { StarknetTransactionStatusValidator } from "./Helper/StarknetTransactionStatusValidator";
 import { TransactionStatus } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionStatus";
 import { TransactionFailedException } from "../../../Exceptions/TransactionFailedException";
 import { Networks } from "../../../Data/Entities/Networks";
@@ -40,6 +38,8 @@ import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAcco
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
+import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
+import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {constructor(
@@ -111,7 +111,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         const { finality_status, execution_status } = statusResponse;
 
-        const transactionStatus = StarknetTransactionStatusValidator.validateTransactionStatus(finality_status, execution_status);
+        const transactionStatus = validateTransactionStatus(finality_status, execution_status);
 
         if (transactionStatus === TransactionStatus.Failed) {
             throw new TransactionFailedException(`Transaction ${transactionHash} failed with status: ${execution_status}`);
@@ -311,17 +311,17 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
             switch (request.TransactionType) {
                 case TransactionType.HTLCLock:
-                    return StarknetTransactionBuilder.CreateLockCallData(network, request.Args);
+                    return CreateLockCallData(network, request.Args);
                 case TransactionType.HTLCRedeem:
-                    return StarknetTransactionBuilder.CreateRedeemCallData(network, request.Args);
+                    return CreateRedeemCallData(network, request.Args);
                 case TransactionType.HTLCRefund:
-                    return StarknetTransactionBuilder.CreateRefundCallData(network, request.Args);
+                    return CreateRefundCallData(network, request.Args);
                 case TransactionType.HTLCAddLockSig:
-                    return StarknetTransactionBuilder.CreateAddLockSigCallData(network, request.Args);
+                    return CreateAddLockSigCallData(network, request.Args);
                 case TransactionType.Approve:
-                    return StarknetTransactionBuilder.CreateApproveCallData(network, request.Args);
+                    return CreateApproveCallData(network, request.Args);
                 case TransactionType.Transfer:
-                    return StarknetTransactionBuilder.CreateTransferCallData(network, request.Args);
+                    return CreateTransferCallData(network, request.Args);
                 default:
                     throw new Error(`Unknown function name ${request.TransactionType}`);
             }
