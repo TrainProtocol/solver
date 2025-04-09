@@ -1,4 +1,4 @@
-import { Abi, Account, cairo, Call, CallData, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256 } from "starknet";
+import { Abi, Account, cairo, Call, CallData, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding } from "starknet";
 import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
 import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
@@ -35,8 +35,8 @@ import { TransactionStatus } from "../../../CoreAbstraction/Models/TransacitonMo
 import { TransactionFailedException } from "../../../Exceptions/TransactionFailedException";
 import { Networks } from "../../../Data/Entities/Networks";
 import { TransactionNotComfirmedException } from "../../../Exceptions/TransactionNotComfirmedException";
-import { StarknetEventTracker } from "./Helper/StarknetEventTracker";
 import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
+import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(private dbContext: SolverContext) { }
@@ -68,7 +68,6 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         return transaction;
     }
-
 
     public async GetTransactionAsync(request: GetTransactionRequest): Promise<TransactionResponse> {
         const network = await this.dbContext.Networks
@@ -209,7 +208,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             nodeUrl: node.url
         });
 
-        return StarknetEventTracker.TrackBlockEventsAsync(
+        return TrackBlockEventsAsync(
             network.name,
             provider,
             tokens,
@@ -609,3 +608,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 }
+
+export function formatAddress(address: string): string {
+    return addAddressPadding(address).toLowerCase();
+  }
+  

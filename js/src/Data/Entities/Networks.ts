@@ -23,8 +23,8 @@ export class Networks {
   @Column("text", { name: "DisplayName" })
   displayName: string;
 
-  @Column("integer", { name: "Group" })
-  group: number;
+  @Column("integer", { name: "Type" })
+  type: number;
 
   @Column("text", { name: "ChainId", nullable: true })
   chainId: string | null;
