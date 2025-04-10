@@ -56,11 +56,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_build", "_build", "{8EC462
 		..\build\.env = ..\build\.env
 		..\.github\workflows\api.yml = ..\.github\workflows\api.yml
 		..\build\docker-compose.yml = ..\build\docker-compose.yml
-		..\.github\workflows\workflow-runner-evm.yml = ..\.github\workflows\workflow-runner-evm.yml
-		..\.github\workflows\workflow-runner-solana.yml = ..\.github\workflows\workflow-runner-solana.yml
-		..\.github\workflows\workflow-runner-starknet-js.yml = ..\.github\workflows\workflow-runner-starknet-js.yml
-		..\.github\workflows\workflow-runner-starknet.yml = ..\.github\workflows\workflow-runner-starknet.yml
-		..\.github\workflows\workflow-runner-swap.yml = ..\.github\workflows\workflow-runner-swap.yml
+		..\.github\workflows\evm.yml = ..\.github\workflows\evm.yml
+		..\.github\workflows\js.yml = ..\.github\workflows\js.yml
+		..\.github\workflows\solana.yml = ..\.github\workflows\solana.yml
+		..\.github\workflows\swap.yml = ..\.github\workflows\swap.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{408D96B3-44EC-4053-AC45-FD9DFD2F176D}"
