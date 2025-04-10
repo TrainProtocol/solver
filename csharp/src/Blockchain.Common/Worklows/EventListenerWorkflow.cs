@@ -72,7 +72,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 }
 
                 var blockRanges = await ExecuteLocalActivityAsync(
-                   (IUtilityActivities x) => x.GenerateBlockRanges(
+                   (UtilityActivities x) => x.GenerateBlockRanges(
                        _lastProcessedBlockNumber.Value - 15,
                        blockNumberWithHash.BlockNumber,
                        blockBatchSize),
@@ -140,7 +140,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             }
 
             await ExecuteActivityAsync(
-                (IWorkflowActivities x) => x.StartSwapWorkflowAsync(commitMessage),
+                (WorkflowActivities x) => x.StartSwapWorkflowAsync(commitMessage),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         }
 

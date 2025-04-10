@@ -17,7 +17,7 @@ public class SolanaTransactionProcessor
     public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
     {
         var preparedTransaction = await ExecuteActivityAsync(
-            (ISolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest
+            (SolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest
                 {
                     NetworkName = request.NetworkName,
                     Args = request.PrepareArgs,
@@ -29,7 +29,7 @@ public class SolanaTransactionProcessor
         if (context.Fee == null)
         {
             var fee = await ExecuteActivityAsync(
-                (ISolanaBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
+                (SolanaBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
                     {
                         NetworkName = request.NetworkName,
                         FromAddress = request.FromAddress!,
@@ -50,7 +50,7 @@ public class SolanaTransactionProcessor
         }
 
         var lastValidBLockHash = await ExecuteActivityAsync(
-            (ISolanaBlockchainActivities x) => x.GetNextNonceAsync(
+            (SolanaBlockchainActivities x) => x.GetNextNonceAsync(
                 new NextNonceRequest()
                 {
                     Address = request.NetworkName,
@@ -59,7 +59,7 @@ public class SolanaTransactionProcessor
             TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
         var rawTx = await ExecuteActivityAsync(
-            (ISolanaBlockchainActivities x) => x.ComposeSolanaTranscationAsync(new SolanaComposeTransactionRequest()
+            (SolanaBlockchainActivities x) => x.ComposeSolanaTranscationAsync(new SolanaComposeTransactionRequest()
                 {
                     Fee = context.Fee,
                     FromAddress = request.FromAddress,
@@ -74,7 +74,7 @@ public class SolanaTransactionProcessor
         {
             //Simulate transaction
             await ExecuteActivityAsync(
-                (ISolanaBlockchainActivities x) => x.SimulateTransactionAsync(
+                (SolanaBlockchainActivities x) => x.SimulateTransactionAsync(
                     new SolanaPublishTransactionRequest()
                         {
                             RawTx = rawTx,
@@ -85,7 +85,7 @@ public class SolanaTransactionProcessor
             //Send transaction
 
             var transactionId = await ExecuteActivityAsync(
-                (ISolanaBlockchainActivities x) => x.PublishTransactionAsync(
+                (SolanaBlockchainActivities x) => x.PublishTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
                         RawTx = rawTx,
@@ -96,7 +96,7 @@ public class SolanaTransactionProcessor
             //Wait for transaction receipt
 
             confirmedTransaction = await ExecuteActivityAsync(
-                (ISolanaBlockchainActivities x) => x.GetTransactionAsync(
+                (SolanaBlockchainActivities x) => x.GetTransactionAsync(
                     new GetTransactionRequest()
                     {
                         NetworkName = request.NetworkName,

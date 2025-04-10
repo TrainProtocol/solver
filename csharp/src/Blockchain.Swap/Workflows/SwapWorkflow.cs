@@ -50,7 +50,7 @@ public class SwapWorkflow : ISwapWorkflow
         }
 
         var solverAddresses = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressesAsync(
+            (SwapActivities x) => x.GetSolverAddressesAsync(
                 _htlcCommitMessage.SourceNetwork, _htlcCommitMessage.DestinationNetwork),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
@@ -59,7 +59,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Validate limit
         var limit = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetLimitAsync(new()
+            (SwapActivities x) => x.GetLimitAsync(new()
             {
                 SourceToken = _htlcCommitMessage.SourceAsset,
                 SourceNetwork = _htlcCommitMessage.SourceNetwork,
@@ -86,7 +86,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Get quote
         var quote = await ExecuteActivityAsync(
-           (ISwapActivities x) => x.GetQuoteAsync(new()
+           (SwapActivities x) => x.GetQuoteAsync(new()
            {
                SourceToken = _htlcCommitMessage.SourceAsset,
                SourceNetwork = _htlcCommitMessage.SourceNetwork,
@@ -112,7 +112,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Create swap 
         _swapId = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
+            (SwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
                 DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
@@ -321,12 +321,12 @@ public class SwapWorkflow : ISwapWorkflow
             });
 
         await ExecuteActivityAsync(
-            (ISwapActivities x) =>
+            (SwapActivities x) =>
                 x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
-            (ISwapActivities x) => x.UpdateExpensesAsync(
+            (SwapActivities x) => x.UpdateExpensesAsync(
                 confirmedTransaction.NetworkName,
                 confirmedTransaction.FeeAsset,
                 confirmedTransaction.FeeAmount,

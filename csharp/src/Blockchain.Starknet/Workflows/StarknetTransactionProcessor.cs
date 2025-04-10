@@ -27,7 +27,7 @@ public class StarknetTransactionProcessor
         }
 
         var preparedTransaction = await ExecuteActivityAsync(
-            (IStarknetBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest()
+            (StarknetBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest()
             {
                 NetworkName = request.NetworkName,
                 Args = request.PrepareArgs,
@@ -48,7 +48,7 @@ public class StarknetTransactionProcessor
             if (string.IsNullOrEmpty(context.Nonce))
             {
                 context.Nonce = await ExecuteActivityAsync(
-                    (IStarknetBlockchainActivities x) => x.GetNextNonceAsync(new NextNonceRequest()
+                    (StarknetBlockchainActivities x) => x.GetNextNonceAsync(new NextNonceRequest()
                     {
                         NetworkName = request.NetworkName,
                         Address = request.FromAddress!,
@@ -56,35 +56,39 @@ public class StarknetTransactionProcessor
                     TemporalHelper.DefaultActivityOptions(request.NetworkType));
             }
 
-            var calculatedTxId = await ExecuteActivityAsync((IStarknetBlockchainActivities x) => x.SimulateTransactionAsync(new StarknetPublishTransactionRequest()
-            {
-                NetworkName = request.NetworkName,
-                FromAddress = request.FromAddress,
-                Nonce = context.Nonce,
-                CallData = preparedTransaction.Data,
-                Fee = context.Fee
-            }),
-            new()
-            {
-                ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-                StartToCloseTimeout = TimeSpan.FromHours(1),
-                TaskQueue = JS_TASK_QUEUE,
-                RetryPolicy = new()
-                {
-                    NonRetryableErrorTypes = new[]
+            var calculatedTxId = await ExecuteActivityAsync<string>(
+                $"{request.NetworkType}{nameof(IStarknetBlockchainActivities.SimulateTransactionAsync)}",
+                [
+                    new StarknetPublishTransactionRequest()
                     {
-                        typeof(InvalidTimelockException).Name,
-                        typeof(HashlockAlreadySetException).Name,
-                        typeof(HTLCAlreadyExistsException).Name,
-                        typeof(AlreadyClaimedExceptions).Name,
+                        NetworkName = request.NetworkName,
+                        FromAddress = request.FromAddress,
+                        Nonce = context.Nonce,
+                        CallData = preparedTransaction.Data,
+                        Fee = context.Fee
                     }
-                }
-            });
+                ],
+                new()
+                {
+                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                    StartToCloseTimeout = TimeSpan.FromHours(1),
+                    TaskQueue = JS_TASK_QUEUE,
+                    RetryPolicy = new()
+                    {
+                        NonRetryableErrorTypes = new[]
+                        {
+                            typeof(InvalidTimelockException).Name,
+                            typeof(HashlockAlreadySetException).Name,
+                            typeof(HTLCAlreadyExistsException).Name,
+                            typeof(AlreadyClaimedExceptions).Name,
+                        }
+                    }
+                });
 
             context.PublishedTransactionIds.Add(calculatedTxId);
 
             var txId = await ExecuteActivityAsync(
-                (IStarknetBlockchainActivities x) => x.PublishTransactionAsync(new StarknetPublishTransactionRequest()
+                (StarknetBlockchainActivities x) => x.PublishTransactionAsync(new StarknetPublishTransactionRequest()
                 {
                     NetworkName = request.NetworkName,
                     FromAddress = request.FromAddress,
@@ -124,7 +128,7 @@ public class StarknetTransactionProcessor
                             }, (JsonSerializerOptions?)null),
                             Type = TransactionType.Transfer,
                             SwapId = request.SwapId,
-                        },
+                        }, 
                         new TransactionExecutionContext
                         {
                             Nonce = context.Nonce,
@@ -140,31 +144,35 @@ public class StarknetTransactionProcessor
         TransactionRequest context,
         PrepareTransactionResponse preparedTransaction)
     {
-        return ExecuteActivityAsync((IStarknetBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
-        {
-            FromAddress = context.FromAddress!,
-            ToAddress = preparedTransaction.ToAddress!,
-            Asset = preparedTransaction.Asset!,
-            Amount = preparedTransaction.Amount,
-            CallData = preparedTransaction.Data,
-            NetworkName = context.NetworkName,
-        }),
-        new()
-        {
-            ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-            StartToCloseTimeout = TimeSpan.FromHours(1),
-            TaskQueue = JS_TASK_QUEUE,
-            RetryPolicy = new()
-            {
-                NonRetryableErrorTypes = new[]
+        return ExecuteActivityAsync<Fee>(
+                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.EstimateFeeAsync)}",
+                [
+                    new EstimateFeeRequest
+                    {
+                        FromAddress = context.FromAddress!,
+                        ToAddress = preparedTransaction.ToAddress!,
+                        Asset = preparedTransaction.Asset!,
+                        Amount = preparedTransaction.Amount,
+                        CallData = preparedTransaction.Data,
+                        NetworkName = context.NetworkName,
+                    }
+                ],
+                new()
                 {
-                    typeof(InvalidTimelockException).Name,
-                    typeof(HashlockAlreadySetException).Name,
-                    typeof(HTLCAlreadyExistsException).Name,
-                    typeof(AlreadyClaimedExceptions).Name,
-                }
-            }
-        });
+                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                    StartToCloseTimeout = TimeSpan.FromHours(1),
+                    TaskQueue = JS_TASK_QUEUE,
+                    RetryPolicy = new()
+                    {
+                        NonRetryableErrorTypes = new[]
+                        {
+                            typeof(InvalidTimelockException).Name,
+                            typeof(HashlockAlreadySetException).Name,
+                            typeof(HTLCAlreadyExistsException).Name,
+                            typeof(AlreadyClaimedExceptions).Name,
+                        }
+                    }
+                });
     }
 
     private async Task CheckAllowanceAsync(
@@ -178,17 +186,22 @@ public class StarknetTransactionProcessor
         }
 
         // Check allowance
-        var allowance = await ExecuteActivityAsync((IStarknetBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
-        {
-            NetworkName = lockRequest.SourceNetwork,
-            OwnerAddress = context.FromAddress,
-            Asset = lockRequest.SourceAsset
-        }), new()
-        {
-            ScheduleToCloseTimeout = TimeSpan.FromDays(2),
-            StartToCloseTimeout = TimeSpan.FromHours(1),
-            TaskQueue = JS_TASK_QUEUE,
-        });
+        var allowance = await ExecuteActivityAsync<decimal>(
+                $"{context.NetworkType}{nameof(IStarknetBlockchainActivities.GetSpenderAllowanceAsync)}",
+                [
+                    new AllowanceRequest()
+                    {
+                        NetworkName = lockRequest.SourceNetwork,
+                        OwnerAddress = context.FromAddress,
+                        Asset = lockRequest.SourceAsset
+                    }
+                ],
+                new()
+                {
+                    ScheduleToCloseTimeout = TimeSpan.FromDays(2),
+                    StartToCloseTimeout = TimeSpan.FromHours(1),
+                    TaskQueue = JS_TASK_QUEUE,
+                });
 
         if (lockRequest.Amount > allowance)
         {
@@ -214,7 +227,7 @@ public class StarknetTransactionProcessor
         try
         {
             return await ExecuteActivityAsync(
-            (IStarknetBlockchainActivities x) => x.GetBatchTransactionAsync(
+            (StarknetBlockchainActivities x) => x.GetBatchTransactionAsync(
                 new GetBatchTransactionRequest()
                 {
                     NetworkName = request.NetworkName,
