@@ -1,11 +1,8 @@
-﻿using System.Text.Json;
-using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Blockchain.Common.Activities;
-using Train.Solver.Blockchain.EVM.Extensions;
+﻿using Train.Solver.Blockchain.EVM.Extensions;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Blockchain.EVM.Activities;
+using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -18,6 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services
             .AddTrainSolver(hostContext.Configuration)
+            .WithOpenTelemetryLogging("EVM Runner")
             .WithNpgsqlRepositories()
             .WithAzureKeyVault()
             .WithEVMWorkflows();

@@ -1,6 +1,6 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
 
-namespace Train.Solver.API.Models;
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class ContractDto
 {

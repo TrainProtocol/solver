@@ -1,6 +1,5 @@
 ﻿using Temporalio.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Blockchain.Abstractions.Activities;
 

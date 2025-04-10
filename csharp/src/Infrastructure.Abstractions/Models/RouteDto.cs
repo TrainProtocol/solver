@@ -2,13 +2,13 @@
 
 namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class RouteModel
+public class RouteDto
 {
     public int Id { get; set; }
 
-    public TokenModel Source { get; set; } = null!;
+    public TokenWithNetworkDto Source { get; set; } = null!;
 
-    public TokenModel Destionation { get; set; } = null!;
+    public TokenWithNetworkDto Destionation { get; set; } = null!;
 
     public decimal MaxAmountInSource { get; set; }
 

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
 using Train.Solver.API.Models;
 using Train.Solver.Blockchain.Abstractions.Models;
@@ -7,8 +6,8 @@ using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Util.Extensions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.API.Endpoints;
 
@@ -19,13 +18,13 @@ public static class SolverEndpoints
     public static RouteGroupBuilder MapEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<NetworkWithTokensDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();
@@ -104,7 +103,6 @@ public static class SolverEndpoints
     private static async Task<IResult> GetSwapAsync(
         ITemporalClient temporalClient,
         ISwapRepository swapRepository,
-        IMapper mapper,
         [FromRoute] string commitId)
     {
         var swap = await swapRepository.GetAsync(commitId);
@@ -121,13 +119,11 @@ public static class SolverEndpoints
             });
         }
 
-        var mappedSwap = mapper.Map<SwapDto>(swap);
-        return Results.Ok(new ApiResponse<SwapDto> { Data = mappedSwap });
+        return Results.Ok(new ApiResponse<SwapDto> { Data = swap.ToDto() });
     }
 
     private static async Task<IResult> GetAllSwapsAsync(
         ISwapRepository swapRepository,
-        IMapper mapper,
         [FromQuery] string[]? addresses,
         [FromQuery] uint? page)
     {
@@ -152,16 +148,17 @@ public static class SolverEndpoints
             return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = [] });
         }
 
-        return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = mapper.Map<List<SwapDto>>(swaps) });
+        var mappedSwaps = swaps.Select(x => x.ToDto());
+
+        return Results.Ok(new ApiResponse<IEnumerable<SwapDto>> { Data = mappedSwaps });
     }
 
     private static async Task<IResult> GetSwapRouteLimitsAsync(
-        IMapper mapper,
         HttpContext httpContext,
         IRouteService routeService,
         [AsParameters] GetRouteLimitsQueryParams queryParams)
     {
-        var limitResult = await routeService.GetLimitAsync(
+        var limit = await routeService.GetLimitAsync(
             new()
             {
                 SourceNetwork = queryParams.SourceNetwork!,
@@ -170,7 +167,7 @@ public static class SolverEndpoints
                 DestinationToken = queryParams.DestinationToken!,
             });
 
-        if (limitResult == null)
+        if (limit == null)
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -182,45 +179,38 @@ public static class SolverEndpoints
             });
         }
 
-        var route = limitResult.Route;
-        var mappedLimit = mapper.Map<LimitDto>(limitResult);
-
-        mappedLimit.MaxAmountInUsd = (mappedLimit.MaxAmount * route.Source.UsdPrice).Truncate(UsdPrecision);
-        mappedLimit.MinAmountInUsd = (mappedLimit.MinAmount * route.Source.UsdPrice).Truncate(UsdPrecision);
-
-        return Results.Ok(new ApiResponse<LimitDto> { Data = mappedLimit });
+        return Results.Ok(new ApiResponse<LimitDto> { Data = limit });
     }
 
     private static async Task<IResult> GetNetworksAsync(
         HttpContext httpContext,
-        INetworkRepository networkRepository,
-        IMapper mapper)
+        INetworkRepository networkRepository)
     {
         var networks = await networkRepository.GetAllAsync();
 
-        var mappedNetworks = mapper.Map<List<NetworkWithTokensDto>>(networks);
-
-        mappedNetworks.ToList().ForEach(x =>
+        networks.ToList().ForEach(x =>
         {
             x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
         });
 
-        return Results.Ok(new ApiResponse<List<NetworkWithTokensDto>> { Data = mappedNetworks });
+        var mappedNetworks = networks.Select(x=>x.ToDetailedDto());
+
+       
+
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = mappedNetworks });
     }
 
     private static async Task<IResult> GetAllSourcesAsync(
         IRouteService routeService,
         INetworkRepository networkRepository,
-        IMapper mapper,
         [FromQuery] string? destinationNetwork,
         [FromQuery] string? destinationToken)
     {
-        var reachablePointsResult = await routeService.GetReachablePointsAsync(
-            fromSrcToDest: false,
+        var sources = await routeService.GetSourcesAsync(
             networkName: destinationNetwork,
             token: destinationToken);
 
-        if (reachablePointsResult == null || !reachablePointsResult.Any())
+        if (sources == null || !sources.Any())
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -232,25 +222,20 @@ public static class SolverEndpoints
             });
         }
 
-        var networkNames = reachablePointsResult.Select(x => x.Network.Name).Distinct().ToArray();
-        var nativeTokens = await networkRepository.GetNativeTokensAsync(networkNames);
-
-        return MapToNetworkWithTokens(mapper, reachablePointsResult, nativeTokens);
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = sources });
     }
 
     private static async Task<IResult> GetAllDestinationsAsync(
         IRouteService routeService,
         INetworkRepository networkRepository,
-        IMapper mapper,
         [FromQuery] string? sourceNetwork,
         [FromQuery] string? sourceToken)
     {
-        var reachablePointsResult = await routeService.GetReachablePointsAsync(
-            fromSrcToDest: true,
+        var destinations = await routeService.GetDestinationsAsync(
             networkName: sourceNetwork,
             token: sourceToken);
 
-        if (reachablePointsResult == null || !reachablePointsResult.Any())
+        if (destinations == null || !destinations.Any())
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -262,15 +247,11 @@ public static class SolverEndpoints
             });
         }
 
-        var networkNames = reachablePointsResult.Select(x => x.Network.Name).Distinct().ToArray();
-        var nativeTokens = await networkRepository.GetNativeTokensAsync(networkNames);
-
-        return MapToNetworkWithTokens(mapper, reachablePointsResult, nativeTokens);
+        return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = destinations });
     }
 
     private static async Task<IResult> GetQuoteAsync(
         IRouteService routeService,
-        IMapper mapper,
         HttpContext httpContext,
         [AsParameters] GetQuoteQueryParams queryParams)
     {
@@ -283,9 +264,9 @@ public static class SolverEndpoints
             Amount = queryParams.Amount!.Value,
         };
 
-        var rateResult = await routeService.GetValidatedQuoteAsync(quoteRequest);
+        var quote = await routeService.GetValidatedQuoteAsync(quoteRequest);
 
-        if (rateResult == null)
+        if (quote == null)
         {
             return Results.NotFound(new ApiResponse()
             {
@@ -297,41 +278,6 @@ public static class SolverEndpoints
             });
         }
 
-        var route = rateResult.Route;
-        var mappedQuote = mapper.Map<QuoteDto>(rateResult);
-
-        mappedQuote.TotalFeeInUsd = (mappedQuote.TotalFee * route.Source.UsdPrice).Truncate(UsdPrecision);
-
-        return Results.Ok(new ApiResponse<QuoteDto> { Data = mappedQuote });
-    }
-
-    private static IResult MapToNetworkWithTokens(
-        IMapper mapper,
-        IEnumerable<Token> reachablePointsResult,
-        IDictionary<string, Token> nativeTokens)
-    {
-        var mappedNetworks = new List<NetworkWithTokensDto>();
-        var groupingsByNetwork = reachablePointsResult.GroupBy(x => x.Network);
-
-        foreach (var grouping in groupingsByNetwork)
-        {
-            var network = grouping.Key;
-            network.Tokens = grouping.ToList();
-            var mappedNetwork = mapper.Map<NetworkWithTokensDto>(network);
-
-            if (mappedNetwork.NativeToken == null)
-            {
-                mappedNetwork.NativeToken = mapper.Map<TokenDto>(nativeTokens[network.Name]);
-            }
-
-            mappedNetworks.Add(mappedNetwork);
-        }
-
-        mappedNetworks.ToList().ForEach(x =>
-        {
-            x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
-        });
-
-        return Results.Ok(new ApiResponse<List<NetworkWithTokensDto>> { Data = mappedNetworks });
+        return Results.Ok(new ApiResponse<QuoteDto> { Data = quote });
     }
 }

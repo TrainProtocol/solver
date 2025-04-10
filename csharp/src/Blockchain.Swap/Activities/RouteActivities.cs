@@ -3,45 +3,19 @@ using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class RouteActivities(IRouteRepository routeRepository) : IRouteActivities
 {
     [Activity]
-    public async Task<List<RouteModel>> GetAllRoutesAsync()
+    public async Task<List<RouteDto>> GetAllRoutesAsync()
     {
         var routes = await routeRepository.GetAllAsync([RouteStatus.Active, RouteStatus.Inactive]);
 
         return routes
-            .Select(r => new RouteModel
-            {
-                Id = r.Id,
-                Status = r.Status,
-                MaxAmountInSource = r.MaxAmountInSource,
-
-                Source = new TokenModel
-                {
-                    Id = r.SourceToken.Id,
-                    NetworkName = r.SourceToken.Network.Name,
-                    Asset = r.SourceToken.Asset,
-                    Precision = r.SourceToken.Precision,
-                    IsTestnet = r.SourceToken.Network.IsTestnet,
-                    NetworkId = r.DestinationToken.NetworkId,
-                    NetworkType = r.SourceToken.Network.Type
-                },
-
-                Destionation = new TokenModel
-                {
-                    Id = r.DestinationToken.Id,
-                    NetworkName = r.DestinationToken.Network.Name,
-                    Asset = r.DestinationToken.Asset,
-                    Precision = r.DestinationToken.Precision,
-                    IsTestnet = r.DestinationToken.Network.IsTestnet,
-                    NetworkId = r.DestinationToken.NetworkId,
-                    NetworkType = r.DestinationToken.Network.Type
-                }
-            })
+            .Select(r => r.ToDto())
             .ToList();
     }
 

@@ -16,13 +16,13 @@ public interface ISwapActivities
     Task<HashlockModel> GenerateHashlockAsync();
 
     [Activity]
-    Task<LimitModel> GetLimitAsync(SourceDestinationRequest request);
+    Task<LimitDto> GetLimitAsync(SourceDestinationRequest request);
 
     [Activity]
     Task<List<string>> GetNonRefundedSwapIdsAsync();
 
     [Activity]
-    Task<QuoteModel> GetQuoteAsync(QuoteRequest request);
+    Task<QuoteDto> GetQuoteAsync(QuoteRequest request);
 
     [Activity]
     Task<Dictionary<string, string>> GetSolverAddressesAsync(params string[] networkNames);

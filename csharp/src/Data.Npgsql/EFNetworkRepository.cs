@@ -61,6 +61,18 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ToListAsync();
     }
 
+    public Task<List<Token>> GetTokensAsync(int[] ids)
+    {
+        return dbContext.Tokens
+            .Include(x => x.Network.ManagedAccounts)
+            .Include(x => x.Network.Nodes)
+            //.Include(x => x.Network.NativeToken)
+            .Include(x => x.Network.Contracts)
+            .Include(x => x.TokenPrice)
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync();
+    }
+
     public async Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices)
     {
         var externalIds = prices.Keys.ToArray();

@@ -26,6 +26,7 @@ using Train.Solver.Blockchain.EVM.Helpers;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Common.Helpers;
+using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 
@@ -469,7 +470,6 @@ public class EVMBlockchainActivities(
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
 
         var signer = new Eip712TypedDataSigner();
-
         var typedData = GetAddLockMessageTypedDefinition(
             long.Parse(network.ChainId!),
             htlcContractAddress);
@@ -481,17 +481,49 @@ public class EVMBlockchainActivities(
             Timelock = (ulong)request.Timelock
         };
 
-        var signature = EthECDSASignatureFactory.FromComponents(
-            request.R.HexToByteArray(),
-            request.S.HexToByteArray(),
-            byte.Parse(request.V)
-        );
+        var code = await GetDataFromNodesAsync(network.Nodes,
+            async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
 
-        var sign = EthECDSASignature.CreateStringSignature(signature);
+        // TODO, make sure this is compatibly with Pectra update
+        // https://ithaca.xyz/updates/exp-0001
 
-        var addressRecovered = signer.RecoverFromSignatureV4(addLockMsg, typedData, sign);
+        // EOA
+        if (string.IsNullOrEmpty(code) || code == "0x")
+        {
+            var signature = EthECDSASignatureFactory.FromComponents(
+                request.R.HexToByteArray(),
+                request.S.HexToByteArray(),
+                byte.Parse(request.V)
+            );
 
-        return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
+            var sign = EthECDSASignature.CreateStringSignature(signature);
+            var addressRecovered = signer.RecoverFromSignatureV4(addLockMsg, typedData, sign);
+
+            return string.Equals(addressRecovered, request.SignerAddress, StringComparison.OrdinalIgnoreCase);
+
+            // Assume https://eips.ethereum.org/EIPS/eip-1271
+        }
+        else
+        {
+            var isValidSignatureFunction = new IsValidSignatureFunction
+            {
+                Hash = Sha3Keccack.Current.CalculateHash(signer.EncodeTypedData(addLockMsg, typedData)),
+                Signature = request.Signature.HexToByteArray()
+            };
+
+            var isValidSignatureHandler = await GetDataFromNodesAsync(network.Nodes,
+                async url => await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
+
+            if (isValidSignatureHandler == null)
+            {
+                throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {network.Name}");
+            }
+
+            var isValidSignatureMagicValue = (await isValidSignatureHandler.QueryAsync<byte[]>(request.SignerAddress, isValidSignatureFunction)).ToHex();
+
+            // magic value: https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/external/IERC1271
+            return string.Equals(isValidSignatureMagicValue, "1626ba7e", StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [Activity]

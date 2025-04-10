@@ -50,6 +50,14 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .WithOne(x => x.Swap)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Network>(entity =>
+        {
+            entity.HasOne(n => n.NativeToken)
+                .WithMany()
+                .HasForeignKey(n => n.NativeTokenId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
         modelBuilder.Entity<Network>()
             .HasIndex(x => x.Name)
             .IsUnique();
@@ -59,8 +67,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasEnumComment();
 
         modelBuilder.Entity<Contract>()
-        .Property(b => b.Type)
-        .HasEnumComment();
+            .Property(b => b.Type)
+            .HasEnumComment();
 
         modelBuilder.Entity<Node>()
             .Property(b => b.Type)
@@ -71,7 +79,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .IsUnique();
 
         modelBuilder.Entity<ManagedAccount>()
-          .HasIndex(x => x.Address);
+            .HasIndex(x => x.Address);
 
         modelBuilder.Entity<ManagedAccount>()
             .Property(b => b.Type)
@@ -100,11 +108,15 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasIndex(x => x.Type);
 
         modelBuilder.Entity<Transaction>()
-            .HasIndex(x => x.Status);
+            .HasIndex(x => x.Status)
+            .IsUnique(unique: false);
 
         modelBuilder.Entity<Token>()
            .HasIndex(x => new { x.NetworkId, x.Asset })
            .IsUnique();
+
+        modelBuilder.Entity<Token>()
+           .HasIndex(x => x.Asset);       
 
         modelBuilder.Entity<Swap>()
             .HasIndex(x => x.SourceAddress);

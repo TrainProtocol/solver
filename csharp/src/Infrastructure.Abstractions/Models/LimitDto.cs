@@ -1,10 +1,12 @@
 ﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class LimitModel
+public class LimitDto
 {
-    public RouteModel Route { get; set; } = null!;
+    public decimal MinAmountInUsd { get; set; }
 
     public decimal MinAmount { get; set; }
+
+    public decimal MaxAmountInUsd { get; set; }
 
     public decimal MaxAmount { get; set; }
 }

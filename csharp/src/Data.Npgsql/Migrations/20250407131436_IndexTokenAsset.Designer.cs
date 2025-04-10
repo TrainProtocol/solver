@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Train.Solver.Data.Npgsql;
@@ -11,9 +12,11 @@ using Train.Solver.Data.Npgsql;
 namespace Train.Solver.Data.EF.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    partial class SolverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250407131436_IndexTokenAsset")]
+    partial class IndexTokenAsset
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -192,9 +195,6 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("NativeTokenId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("ReplacementFeePercentage")
                         .HasColumnType("integer");
 
@@ -216,8 +216,6 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.HasIndex("Name")
                         .IsUnique();
-
-                    b.HasIndex("NativeTokenId");
 
                     b.ToTable("Networks");
                 });
@@ -616,15 +614,6 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired();
 
                     b.Navigation("Network");
-                });
-
-            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Network", b =>
-                {
-                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "NativeToken")
-                        .WithMany()
-                        .HasForeignKey("NativeTokenId");
-
-                    b.Navigation("NativeToken");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Node", b =>

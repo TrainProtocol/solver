@@ -21,7 +21,6 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'release'
     
     steps:
       - name: Checkout repository
@@ -37,6 +36,12 @@ jobs:
           version=$commitHash-$ts
           echo "VERSION=$version" >> $GITHUB_ENV
 
+      - name: Sanitize branch name
+        id: sanitize_branch_name
+        run: |
+          sanitized_ref_name=$(echo "${GITHUB_REF_NAME}" | sed 's/[\/.]/-/g')
+          echo "SANITIZED_REF_NAME=$sanitized_ref_name" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -51,9 +56,9 @@ jobs:
         with:
           context: .
           file: csharp/src/Blockchain.EVM/Dockerfile
-          push: true
+          push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
           tags: |
-            ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ env.VERSION }}
-            ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
+            ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}-${{ env.VERSION }}
+            ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}

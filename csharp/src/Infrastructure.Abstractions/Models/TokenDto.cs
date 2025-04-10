@@ -1,10 +1,8 @@
-﻿namespace Train.Solver.API.Models;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class TokenDto
 {
     public string Symbol { get; set; } = null!;
-
-    public string Logo { get; set; } = null!;
 
     public string? Contract { get; set; }
 
@@ -12,7 +10,5 @@ public class TokenDto
 
     public int Precision { get; set; }
 
-    public decimal PriceInUsd { get; set; }
-
-    public DateTimeOffset ListingDate { get; set; }
+    public decimal PriceInUsd { get; set; }  
 }

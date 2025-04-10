@@ -65,7 +65,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<LimitModel> GetLimitAsync(SourceDestinationRequest request)
+    public virtual async Task<LimitDto> GetLimitAsync(SourceDestinationRequest request)
     {
         var limitResult = await routeService.GetLimitAsync(request);
 
@@ -78,7 +78,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<QuoteModel> GetQuoteAsync(QuoteRequest request)
+    public virtual async Task<QuoteDto> GetQuoteAsync(QuoteRequest request)
     {
         var quoteResult = await routeService.GetQuoteAsync(request);
 

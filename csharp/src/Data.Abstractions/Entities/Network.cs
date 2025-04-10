@@ -45,14 +45,18 @@ public class Network : EntityBase<int>
 
     public bool IsExternal { get; set; }
 
-    public string Logo { get; set; }
+    public string Logo { get; set; } = null!;
+
+    public int? NativeTokenId { get; set; }
+
+    public virtual Token? NativeToken { get; set; }
 
     public virtual List<ManagedAccount> ManagedAccounts { get; set; } = new();
 
     public virtual List<Token> Tokens { get; set; } = new();
 
     public virtual List<Node> Nodes { get; set; } = new();
-    
+
     public virtual List<Contract> Contracts { get; set; } = new();
 
 }

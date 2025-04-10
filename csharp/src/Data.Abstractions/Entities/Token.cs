@@ -22,5 +22,5 @@ public class Token : EntityBase<int>
 
     public int TokenPriceId { get; set; }
 
-    public virtual TokenPrice TokenPrice { get; set; }
+    public virtual TokenPrice TokenPrice { get; set; } = null!;
 }

@@ -2,6 +2,7 @@
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Data.Npgsql.Extensions;
+using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -14,6 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services
             .AddTrainSolver(hostContext.Configuration)
+            .WithOpenTelemetryLogging("Starknet Runner")
             .WithNpgsqlRepositories()
             .WithAzureKeyVault()
             .WithStarknetWorkflows();
