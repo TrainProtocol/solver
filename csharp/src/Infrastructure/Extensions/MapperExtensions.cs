@@ -66,7 +66,6 @@ public static class MapperExtensions
         return new NetworkDto
         {
             Name = network.Name,
-            DisplayName = network.DisplayName,
             ChainId = network.ChainId,
             FeeType = network.FeeType,
             Type = network.Type,

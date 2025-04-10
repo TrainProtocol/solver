@@ -20,18 +20,13 @@ public class RouteActivities(IRouteRepository routeRepository) : IRouteActivitie
     }
 
     [Activity]
-    public async Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync()
+    public async Task<List<NetworkDto>> GetActiveSolverRouteSourceNetworksAsync()
     {
         var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
 
         return routes
-            .Where(x => x.Status == RouteStatus.Active)
-            .Select(x => new NetworkModel
-            {
-                Name = x.SourceToken.Network.Name,
-                Type = x.SourceToken.Network.Type
-            })
-            .Distinct()
+            .Select(x => x.SourceToken.Network.ToDto())
+            .DistinctBy(x => x.Name)
             .ToList();
     }
 

@@ -6,8 +6,6 @@ public class NetworkDto
 {
     public string Name { get; set; } = null!;
 
-    public string DisplayName { get; set; } = null!;
-
     public string? ChainId { get; set; }
 
     public TransactionFeeType FeeType { get; set; }

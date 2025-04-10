@@ -2,6 +2,8 @@
 
 public class DetailedNetworkDto : NetworkDto
 {
+    public string DisplayName { get; set; } = null!;
+
     public string Logo { get; set; } = null!;
 
     public string TransactionExplorerTemplate { get; set; } = null!;
