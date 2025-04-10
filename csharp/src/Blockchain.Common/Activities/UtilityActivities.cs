@@ -20,7 +20,11 @@ public class UtilityActivities : IUtilityActivities
         while (currentStart <= end)
         {
             ulong currentEnd = Math.Min(currentStart + chunkSize - 1, end);
-            result.Add(new BlockRangeModel(currentStart, currentEnd));
+            result.Add(new BlockRangeModel
+            {
+                From = currentStart,
+                To = currentEnd,
+            });
             currentStart = currentEnd + 1;
         }
 

@@ -102,7 +102,7 @@ public class SwapActivities(
 
         var hashHex = firstHash.ToHex(prefix: true);
 
-        return await Task.FromResult(new HashlockModel(secret, hashHex));
+        return await Task.FromResult(new HashlockModel { Hash = hashHex, Secret = secret });
     }
 
     [Activity]
