@@ -1,3 +1,13 @@
-﻿namespace Train.Solver.Blockchain.Abstractions.Models;
+﻿using ProtoBuf;
 
-public record HashlockModel(string Secret, string Hash);
+namespace Train.Solver.Blockchain.Abstractions.Models;
+
+[ProtoContract]
+public class HashlockModel
+{
+    [ProtoMember(1)]
+    public required string Secret { get; set; } = null!;
+
+    [ProtoMember(2)]
+    public required string Hash { get; set; } = null!;
+}

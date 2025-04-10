@@ -1,4 +1,222 @@
 syntax = "proto3";
+import "protobuf-net/bcl.proto"; // schema for protobuf-net's handling of core .NET types
 
-package shared;
-
+message AddLockSigTransactionPrepareRequest {
+   string Id = 1;
+   string Hashlock = 2;
+   int64 Timelock = 3;
+   string R = 4;
+   string S = 5;
+   string V = 6;
+   string Signature = 7;
+   string Asset = 8;
+   repeated string SignatureArray = 9;
+}
+message AddLockSignatureModel {
+   string R = 1;
+   string S = 2;
+   string V = 3;
+   string Signature = 4;
+   repeated string SignatureArray = 5;
+   int64 Timelock = 6;
+   oneof subtype {
+      AddLockSignatureRequest AddLockSignatureRequest = 1000;
+   }
+}
+message AddLockSignatureRequest {
+   string Id = 1;
+   string Hashlock = 2;
+   string SignerAddress = 3;
+   string Asset = 4;
+   string NetworkName = 5;
+}
+message AllowanceRequest {
+   string OwnerAddress = 1;
+   string Asset = 2;
+}
+message ApprovePrepareRequest {
+   string Asset = 1;
+   .bcl.Decimal Amount = 2;
+}
+message BalanceRequest {
+   string Address = 1;
+   string Asset = 2;
+}
+message BalanceResponse {
+   string AmountInWei = 1;
+   .bcl.Decimal Amount = 2;
+   int32 Decimals = 3;
+}
+message BaseRequest {
+   string NetworkName = 1;
+   oneof subtype {
+      AllowanceRequest AllowanceRequest = 1000;
+      BalanceRequest BalanceRequest = 2000;
+      EventRequest EventRequest = 4000;
+      GetBatchTransactionRequest GetBatchTransactionRequest = 5000;
+      TransactionRequest TransactionRequest = 6000;
+      TransactionBuilderRequest TransactionBuilderRequest = 7000;
+      SpenderAddressRequest SpenderAddressRequest = 8000;
+      NextNonceRequest NextNonceRequest = 9000;
+   }
+}
+message BlockNumberResponse {
+   uint64 BlockNumber = 1;
+   string BlockHash = 2;
+}
+message BlockRangeModel {
+   uint64 From = 1;
+   uint64 To = 2;
+}
+message DateTimeOffset {
+}
+message EventRequest {
+   uint64 FromBlock = 1;
+   uint64 ToBlock = 2;
+}
+message Fee {
+}
+message GetBatchTransactionRequest {
+   repeated string TransactionHashes = 1;
+}
+message GetTransactionRequest {
+   string TransactionHash = 1;
+}
+message HTLCBlockEventResponse {
+   repeated HTLCCommitEventMessage HTLCCommitEventMessages = 1;
+   repeated HTLCLockEventMessage HTLCLockEventMessages = 2;
+}
+message HTLCCommitEventMessage {
+   string TxId = 1;
+   string Id = 2;
+   .bcl.Decimal Amount = 3;
+   string AmountInWei = 4;
+   string ReceiverAddress = 5;
+   string SourceNetwork = 6;
+   string SenderAddress = 7;
+   string SourceAsset = 8;
+   string DestinationAddress = 9;
+   string DestinationNetwork = 10;
+   string DestinationAsset = 11;
+   int64 TimeLock = 12;
+   NetworkType DestinationNetworkType = 13;
+   NetworkType SourceNetworkType = 14;
+}
+message HTLCCommitTransactionPrepareRequest {
+   string Receiever = 1;
+   repeated string HopChains = 2;
+   repeated string HopAssets = 3;
+   repeated string HopAddresses = 4;
+   string DestinationChain = 5;
+   string DestinationAsset = 6;
+   string DestinationAddress = 7;
+   string SourceAsset = 8;
+   int64 Timelock = 9;
+   .bcl.Decimal Amount = 10;
+}
+message HTLCLockEventMessage {
+   string TxId = 1;
+   string Id = 2;
+   string HashLock = 3;
+   int64 TimeLock = 4;
+}
+message HTLCLockTransactionPrepareRequest {
+   string Receiver = 1;
+   string Hashlock = 2;
+   int64 Timelock = 3;
+   string SourceAsset = 4;
+   string SourceNetwork = 5;
+   string DestinationNetwork = 6;
+   string DestinationAddress = 7;
+   string DestinationAsset = 8;
+   string Id = 9;
+   .bcl.Decimal Amount = 10;
+   .bcl.Decimal Reward = 11;
+   int64 RewardTimelock = 12;
+}
+message HTLCRedeemTransactionPrepareRequest {
+   string Id = 1;
+   string Secret = 2;
+   string Asset = 3;
+   string DestinationAddress = 4;
+   string SenderAddress = 5;
+}
+message HTLCRefundTransactionPrepareRequest {
+   string Id = 1;
+   string Asset = 2;
+   string DestinationAddress = 3;
+}
+message HashlockModel {
+   string Secret = 1;
+   string Hash = 2;
+}
+enum NetworkType {
+   EVM = 0;
+   Solana = 1;
+   Starknet = 2;
+}
+message NextNonceRequest {
+   string Address = 1;
+}
+message PrepareTransactionResponse {
+   string ToAddress = 1;
+   string Data = 2;
+   .bcl.Decimal Amount = 3;
+   string Asset = 4;
+   string AmountInWei = 5;
+   string CallDataAsset = 6;
+   string CallDataAmountInWei = 7;
+   .bcl.Decimal CallDataAmount = 8;
+}
+message SpenderAddressRequest {
+   string Asset = 1;
+}
+message TransactionBuilderRequest {
+   TransactionType Type = 1;
+   string Args = 2;
+}
+message TransactionExecutionContext {
+   int32 Attempts = 1;
+   Fee Fee = 2;
+   string Nonce = 3;
+   repeated string PublishedTransactionIds = 4;
+}
+message TransactionRequest {
+   string PrepareArgs = 1;
+   TransactionType Type = 2;
+   NetworkType NetworkType = 3;
+   string FromAddress = 4;
+   string SwapId = 5;
+}
+message TransactionResponse {
+   .bcl.Decimal Amount = 1;
+   string Asset = 2;
+   string NetworkName = 3;
+   string TransactionHash = 4;
+   int32 Confirmations = 5;
+   DateTimeOffset Timestamp = 6;
+   .bcl.Decimal FeeAmount = 7;
+   string FeeAsset = 8;
+   TransactionStatus Status = 9;
+}
+enum TransactionStatus {
+   Completed = 0;
+   Initiated = 1;
+   Failed = 2;
+}
+enum TransactionType {
+   Transfer = 0;
+   Approve = 1;
+   HTLCCommit = 2;
+   HTLCLock = 3;
+   HTLCRedeem = 4;
+   HTLCRefund = 5;
+   HTLCAddLockSig = 6;
+}
+message TransferPrepareRequest {
+   string ToAddress = 1;
+   string Asset = 2;
+   .bcl.Decimal Amount = 3;
+   string Memo = 4;
+   string FromAddress = 5;
+}

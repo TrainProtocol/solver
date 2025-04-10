@@ -18,3 +18,16 @@ var protoPath = Path.GetFullPath(
 
 Directory.CreateDirectory(Path.GetDirectoryName(protoPath)!);
 File.WriteAllText(protoPath, schema);
+
+public interface klir<T> {
+    void Estimate(T a);
+
+}
+
+public class klirimpl : klir<string>
+{
+    public void Estimate(string a)
+    {
+        throw new NotImplementedException();
+    }
+}
