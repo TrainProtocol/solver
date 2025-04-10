@@ -1,4 +1,5 @@
 ﻿using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Helpers;
@@ -26,11 +27,11 @@ public class TokenPriceUpdaterWorkflow : IScheduledWorkflow
         try
         {
             var tokenMarketPrices = await ExecuteActivityAsync(
-                (TokenPriceActivities x) => x.GetTokensPricesAsync(),
+                (ITokenPriceActivities x) => x.GetTokensPricesAsync(),
                 GetMarketPriceActivityOptions);
 
             await ExecuteActivityAsync(
-                (TokenPriceActivities x) => x.UpdateTokenPricesAsync(tokenMarketPrices),
+                (ITokenPriceActivities x) => x.UpdateTokenPricesAsync(tokenMarketPrices),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         }
         catch (Exception ex)
@@ -38,7 +39,7 @@ public class TokenPriceUpdaterWorkflow : IScheduledWorkflow
         }
 
         await ExecuteActivityAsync(
-            (TokenPriceActivities x) => x.CheckStaledTokensAsync(),
+            (ITokenPriceActivities x) => x.CheckStaledTokensAsync(),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
     }
 }

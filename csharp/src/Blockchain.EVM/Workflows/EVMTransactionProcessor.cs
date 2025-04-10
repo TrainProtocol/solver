@@ -29,7 +29,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
         // Prepare transaction
         var preparedTransaction = await ExecuteActivityAsync(
-            (EVMBlockchainActivities x) => x.BuildTransactionAsync(
+            (IEVMBlockchainActivities x) => x.BuildTransactionAsync(
                 new TransactionBuilderRequest()
                 {
                     NetworkName = request.NetworkName,
@@ -48,7 +48,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         if (string.IsNullOrEmpty(context.Nonce))
         {
             context.Nonce = await ExecuteActivityAsync(
-                (EVMBlockchainActivities x) => x.GetNextNonceAsync(new()
+                (IEVMBlockchainActivities x) => x.GetNextNonceAsync(new()
                 {
                     NetworkName = request.NetworkName,
                     Address = request.FromAddress!,
@@ -57,7 +57,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         }
 
         var rawTransaction = await ExecuteActivityAsync(
-            (EVMBlockchainActivities x) => x.ComposeSignedRawTransactionAsync(new EVMComposeTransactionRequest()
+            (IEVMBlockchainActivities x) => x.ComposeSignedRawTransactionAsync(new EVMComposeTransactionRequest()
             {
                 NetworkName = request.NetworkName,
                 FromAddress = request.FromAddress,
@@ -73,7 +73,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         try
         {
             var txId = await ExecuteActivityAsync(
-                (EVMBlockchainActivities x) => x.PublishRawTransactionAsync(
+                (IEVMBlockchainActivities x) => x.PublishRawTransactionAsync(
                     new EVMPublishTransactionRequest()
                     {
                         NetworkName = request.NetworkName,
@@ -136,7 +136,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         try
         {
             var fee = await ExecuteActivityAsync(
-                (EVMBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
+                (IEVMBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
                 {
                     NetworkName = request.NetworkName,
                     FromAddress = request.FromAddress!,
@@ -234,7 +234,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
         // Check allowance
         var allowance = await ExecuteActivityAsync(
-            (EVMBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
+            (IEVMBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
             {
                 NetworkName = lockRequest.SourceNetwork,
                 OwnerAddress = context.FromAddress,
@@ -269,7 +269,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         try
         {
             return await ExecuteActivityAsync(
-               (EVMBlockchainActivities x) => x.GetBatchTransactionAsync(new GetBatchTransactionRequest()
+               (IEVMBlockchainActivities x) => x.GetBatchTransactionAsync(new GetBatchTransactionRequest()
                {
                    NetworkName = request.NetworkName,
                    TransactionHashes = context.PublishedTransactionIds.ToArray()

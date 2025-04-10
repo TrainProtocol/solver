@@ -27,7 +27,7 @@ namespace Train.Solver.Blockchain.Solana.Activities;
 public class SolanaBlockchainActivities(
     INetworkRepository networkRepository,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase, ISolanaBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : ISolanaBlockchainActivities, IBlockchainActivities
 {
     private const int MaxConcurrentTaskCount = 4;
     private const int LamportsPerSignature = 5000;
@@ -35,45 +35,7 @@ public class SolanaBlockchainActivities(
     private const int BlockhashNotFoundErrorCode = -32002;
 
     [Activity]
-    public async Task<TransactionResponse> GetSolanaTransactionReceiptAsync(SolanaGetTransactionRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if(network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        TransactionResponse transactionReceipt;
-
-        try
-        {
-            transactionReceipt = await GetTransactionAsync(request);
-        }
-        catch
-        {
-            await CheckBlockHeightAsync(network, request.FromAddress);
-            throw;
-        }
-
-        var transaction = new TransactionResponse
-        {
-            NetworkName = request.NetworkName,
-            Status = TransactionStatus.Completed,
-            TransactionHash = transactionReceipt.TransactionHash,
-            FeeAmount = transactionReceipt.FeeAmount,
-            FeeAsset = transactionReceipt.FeeAsset,
-            Timestamp = transactionReceipt.Timestamp != default
-            ? transactionReceipt.Timestamp
-                : DateTimeOffset.UtcNow,
-            Confirmations = transactionReceipt.Confirmations,
-        };
-
-        return transaction;
-    }
-
-    [Activity]
-    public override async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
+    public virtual async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -106,7 +68,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
+    public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
         var result = new Dictionary<string, Fee>();
 
@@ -231,7 +193,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
+    public virtual async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -302,7 +264,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
+    public virtual async Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -358,7 +320,7 @@ public class SolanaBlockchainActivities(
     }    
 
     [Activity]
-    public override async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
+    public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -408,7 +370,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
+    public virtual async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -450,7 +412,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<string> GetNextNonceAsync(NextNonceRequest request)
+    public virtual async Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -485,7 +447,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public override Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public virtual Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
         throw new NotImplementedException();
     }
@@ -615,7 +577,7 @@ public class SolanaBlockchainActivities(
         return CalculateTransactionHash(request.RawTx);
     }
 
-    protected override bool ValidateAddress(string address)
+    private static bool ValidateAddress(string address)
         => PublicKey.IsValid(address);
 
     private async Task<byte[]> SignSolanaTransactionAsync(
@@ -715,7 +677,7 @@ public class SolanaBlockchainActivities(
         }
     }
 
-    private async Task<TransactionResponse> GetTransactionAsync(
+    private static async Task<TransactionResponse> GetTransactionAsync(
         string transactionId,
         Network network,
         EpochInfo epochInfo,
@@ -747,5 +709,5 @@ public class SolanaBlockchainActivities(
         return result;
     }
 
-    protected override string FormatAddress(string address) => address;
+    private static string FormatAddress(string address) => address;
 }

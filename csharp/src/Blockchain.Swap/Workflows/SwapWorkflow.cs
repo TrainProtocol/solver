@@ -50,7 +50,7 @@ public class SwapWorkflow : ISwapWorkflow
         }
 
         var solverAddresses = await ExecuteActivityAsync(
-            (SwapActivities x) => x.GetSolverAddressesAsync(
+            (ISwapActivities x) => x.GetSolverAddressesAsync(
                 _htlcCommitMessage.SourceNetwork, _htlcCommitMessage.DestinationNetwork),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
@@ -59,7 +59,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Validate limit
         var limit = await ExecuteActivityAsync(
-            (SwapActivities x) => x.GetLimitAsync(new()
+            (ISwapActivities x) => x.GetLimitAsync(new()
             {
                 SourceToken = _htlcCommitMessage.SourceAsset,
                 SourceNetwork = _htlcCommitMessage.SourceNetwork,
@@ -86,7 +86,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Get quote
         var quote = await ExecuteActivityAsync(
-           (SwapActivities x) => x.GetQuoteAsync(new()
+           (ISwapActivities x) => x.GetQuoteAsync(new()
            {
                SourceToken = _htlcCommitMessage.SourceAsset,
                SourceNetwork = _htlcCommitMessage.SourceNetwork,
@@ -102,7 +102,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Generate hashlock       
         var hashlock = await ExecuteLocalActivityAsync(
-            (SwapActivities x) =>
+            (ISwapActivities x) =>
                 x.GenerateHashlockAsync(),
                 new()
                 {
@@ -112,7 +112,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Create swap 
         _swapId = await ExecuteActivityAsync(
-            (SwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
+            (ISwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
                 DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
@@ -321,12 +321,12 @@ public class SwapWorkflow : ISwapWorkflow
             });
 
         await ExecuteActivityAsync(
-            (SwapActivities x) =>
+            (ISwapActivities x) =>
                 x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
-            (SwapActivities x) => x.UpdateExpensesAsync(
+            (ISwapActivities x) => x.UpdateExpensesAsync(
                 confirmedTransaction.NetworkName,
                 confirmedTransaction.FeeAsset,
                 confirmedTransaction.FeeAmount,

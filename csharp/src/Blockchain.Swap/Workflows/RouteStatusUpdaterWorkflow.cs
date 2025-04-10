@@ -31,7 +31,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
         var networkNames = groupedByNetworkAndAsset.Select(x => x.Key.Name).Distinct().ToArray();
 
         var managedAddressesByNetwork = await ExecuteActivityAsync(
-            (SwapActivities x) => x.GetSolverAddressesAsync(networkNames),
+            (ISwapActivities x) => x.GetSolverAddressesAsync(networkNames),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
 
@@ -69,7 +69,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             if (routesToDisable.Any())
             {
                 await ExecuteActivityAsync(
-                    (RouteActivities x) => x.UpdateRoutesStatusAsync(
+                    (IRouteActivities x) => x.UpdateRoutesStatusAsync(
                         group.Select(route => route.Id).ToArray(),
                         RouteStatus.Inactive),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
@@ -82,7 +82,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             if (routesToEnable.Any())
             {
                 await ExecuteActivityAsync(
-                    (RouteActivities x) => x.UpdateRoutesStatusAsync(
+                    (IRouteActivities x) => x.UpdateRoutesStatusAsync(
                         group.Select(route => route.Id).ToArray(),
                         RouteStatus.Active),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
