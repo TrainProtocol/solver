@@ -8,7 +8,7 @@ namespace Train.Solver.Blockchain.Solana.Activities;
 public interface ISolanaBlockchainActivities
 {
     [Activity]
-    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
+    Task<SolanaFeeModel> EstimateFeeAsync(EstimateFeeRequest request);
 
     [Activity]
     Task<string> GetNextNonceAsync(NextNonceRequest request);

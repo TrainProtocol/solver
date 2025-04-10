@@ -22,7 +22,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
         return (receipt.L1Fee ?? BigInteger.Zero) + receipt.EffectiveGasPrice.Value * receipt.GasUsed.Value;
     }
 
-    public override async Task<Fee> EstimateAsync(
+    public override async Task<EVMFeeModel> EstimateAsync(
         Network network,
         EstimateFeeRequest request)
     {
@@ -88,14 +88,16 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 request.CallData));
 
 
-        return new Fee(
-            nativeToken.Asset,
-            nativeToken.Decimals,
-            new EIP1559Data(
+        return new EVMFeeModel
+        {
+            Asset = nativeToken.Asset,
+            Decimals = nativeToken.Decimals,
+            Eip1559FeeData = new EIP1559Data(
                 priorityFee.Value.ToString(),
                 baseFee.ToString(),
                 gasLimit.ToString(),
-                l1FeeInWei.PercentageIncrease(100).ToString()));
+                l1FeeInWei.PercentageIncrease(100).ToString())
+        };
     }
 
     private static async Task<BigInteger> GetL1FeeAsync(

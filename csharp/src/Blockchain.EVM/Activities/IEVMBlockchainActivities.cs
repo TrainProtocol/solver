@@ -8,7 +8,7 @@ namespace Train.Solver.Blockchain.EVM.Activities;
 public interface IEVMBlockchainActivities
 {
     [Activity]
-    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
+    Task<EVMFeeModel> EstimateFeeAsync(EstimateFeeRequest request);
 
     [Activity]
     Task<string> GetNextNonceAsync(NextNonceRequest request);
@@ -17,7 +17,7 @@ public interface IEVMBlockchainActivities
     Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
 
     [Activity]
-    Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request);
+    Task<EVMFeeModel> IncreaseFeeAsync(EVMFeeIncreaseRequest request);
 
     [Activity]
     Task<string> PublishRawTransactionAsync(EVMPublishTransactionRequest request);

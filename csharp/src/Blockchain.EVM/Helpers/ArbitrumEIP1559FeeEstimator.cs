@@ -13,7 +13,7 @@ public class ArbitrumEIP1559FeeEstimator : EthereumEIP1559FeeEstimator
         return receipt.GasUsed.Value * receipt.EffectiveGasPrice;
     }
 
-    public override async Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request)
+    public override async Task<EVMFeeModel> EstimateAsync(Network network, EstimateFeeRequest request)
     {
         var fee = await base.EstimateAsync(network, request);
 
@@ -27,6 +27,3 @@ public class ArbitrumEIP1559FeeEstimator : EthereumEIP1559FeeEstimator
         return fee;
     }
 }
-
-//protected override BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt)
-//        => receipt.GasUsed.Value * receipt.EffectiveGasPrice;

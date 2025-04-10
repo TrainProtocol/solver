@@ -16,7 +16,7 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
         return receipt.GasUsed * transaction.GasPrice.Value;
     }
 
-    public override async Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request)
+    public override async Task<EVMFeeModel> EstimateAsync(Network network, EstimateFeeRequest request)
     {
         var nodes = network.Nodes;
 
@@ -48,13 +48,13 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
             gasPrice = BigInteger.Max(fixedGasPriceInWei, currentGasPriceResult.Value.PercentageIncrease(20));
         }
 
-        return new Fee(
-            feeCurrency.Asset,
-            feeCurrency.Decimals,
-            new LegacyData(gasPrice.ToString(), gasLimitResult.ToString()));
+        return new EVMFeeModel{
+            Asset = feeCurrency.Asset,
+            Decimals = feeCurrency.Decimals,
+            LegacyFeeData = new LegacyData(gasPrice.ToString(), gasLimitResult.ToString()) };
     }
 
-    public override void Increase(Fee fee, int percentage)
+    public override void Increase(EVMFeeModel fee, int percentage)
     {
         if (fee.LegacyFeeData is null)
         {
@@ -67,7 +67,3 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
                 .ToString();
     }
 }
-
-    //protected override BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction, EVMTransactionReceipt receipt)
-    //    => receipt.GasUsed.Value * receipt.EffectiveGasPrice;
-

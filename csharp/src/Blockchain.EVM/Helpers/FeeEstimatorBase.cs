@@ -11,13 +11,16 @@ using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Data.Abstractions.Entities;
 using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
+using Nethereum.Util;
+using System;
+using NBitcoin.Secp256k1;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public abstract class FeeEstimatorBase : IFeeEstimator
 {
-    public abstract Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request);
-    public abstract void Increase(Fee fee, int percentage);
+    public abstract Task<EVMFeeModel> EstimateAsync(Network network, EstimateFeeRequest request);
+    public abstract void Increase(EVMFeeModel fee, int percentage);
 
     private static readonly string[] _invalidTimelockError = ["0xf8d10e82",];
 

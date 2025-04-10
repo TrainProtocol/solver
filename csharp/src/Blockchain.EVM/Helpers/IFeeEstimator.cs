@@ -8,11 +8,11 @@ namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public interface IFeeEstimator
 {
-    Task<Fee> EstimateAsync(
+    Task<EVMFeeModel> EstimateAsync(
         Network network,
         EstimateFeeRequest request);
 
-    void Increase(Fee fee, int percentage);
+    void Increase(EVMFeeModel fee, int percentage);
 
     BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction,
         EVMTransactionReceipt receipt);

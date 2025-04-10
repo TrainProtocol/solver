@@ -68,10 +68,8 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
+    public virtual async Task<SolanaFeeModel> EstimateFeeAsync(EstimateFeeRequest request)
     {
-        var result = new Dictionary<string, Fee>();
-
         var network = await networkRepository.GetAsync(request.NetworkName);
 
         if (network is null)
@@ -167,13 +165,14 @@ public class SolanaBlockchainActivities(
 
         computeUnitsUsed = computeUnitsUsed.PercentageIncrease(200);
 
-        var fee = new Fee(
-                nativeCurrency.Asset,
-                nativeCurrency.Decimals,
-                new SolanaFeeData(
-                    computeUnitPrice.ToString(),
-                    computeUnitsUsed.ToString(),
-                    baseFeeInLamports.ToString()));
+        var fee = new SolanaFeeModel
+        {
+            Asset = nativeCurrency.Asset,
+            Decimals = nativeCurrency.Decimals,
+            ComputeUnitPrice = computeUnitPrice,
+            ComputeUnitLimit = computeUnitsUsed,
+            BaseFee = baseFeeInLamports,
+        };
 
         var balance = await GetBalanceAsync(new BalanceRequest
         {

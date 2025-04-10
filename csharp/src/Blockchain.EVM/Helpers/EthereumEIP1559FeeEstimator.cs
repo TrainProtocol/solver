@@ -21,7 +21,7 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
         return receipt.GasUsed * (block.BaseFeePerGas + transaction.MaxPriorityFeePerGas.Value);
     }
 
-    public override async Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request)
+    public override async Task<EVMFeeModel> EstimateAsync(Network network, EstimateFeeRequest request)
     {
         var nodes = network.Nodes;
 
@@ -51,7 +51,7 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
 
         return fee;
 
-        async Task<Fee> GetFeeAmountAsync(
+        async Task<EVMFeeModel> GetFeeAmountAsync(
             IWeb3 web3,
             Token feeCurrency,
             BigInteger gasLimit,
@@ -66,15 +66,20 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
             suggestedFees.MaxPriorityFeePerGas =
                 suggestedFees.MaxPriorityFeePerGas.Value.PercentageIncrease(feeCurrency.Network.FeePercentageIncrease);
 
-            return new Fee(
-                feeCurrency.Asset,
-                feeCurrency.Decimals,
-                new EIP1559Data(suggestedFees.MaxPriorityFeePerGas.ToString(), increasedBaseFee.ToString(),
-                    gasLimit.ToString()));
+            var feeData = new EIP1559Data(
+                suggestedFees.MaxPriorityFeePerGas.ToString(), increasedBaseFee.ToString(),
+                gasLimit.ToString());
+
+            return new EVMFeeModel
+            {
+                Asset = feeCurrency.Asset,
+                Decimals = feeCurrency.Decimals,
+                Eip1559FeeData = feeData,
+            };
         }
     }
 
-    public override void Increase(Fee fee, int percentage)
+    public override void Increase(EVMFeeModel fee, int percentage)
     {
         if (fee.Eip1559FeeData == null)
         {

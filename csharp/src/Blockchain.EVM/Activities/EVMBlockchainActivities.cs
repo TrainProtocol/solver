@@ -57,7 +57,7 @@ public class EVMBlockchainActivities(
     ];
 
     [Activity]
-    public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
+    public virtual async Task<EVMFeeModel> EstimateFeeAsync(EstimateFeeRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -87,7 +87,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public async Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request)
+    public async Task<EVMFeeModel> IncreaseFeeAsync(EVMFeeIncreaseRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
