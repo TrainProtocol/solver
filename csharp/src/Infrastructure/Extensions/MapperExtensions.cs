@@ -112,7 +112,7 @@ public static class MapperExtensions
             FeeType = network.FeeType,
             Type = network.Type,
             IsTestnet = network.IsTestnet,
-            Logo = network.Logo,
+            Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
             TransactionExplorerTemplate = network.TransactionExplorerTemplate,
             AccountExplorerTemplate = network.AccountExplorerTemplate,
             ListingDate = network.CreatedDate, 
