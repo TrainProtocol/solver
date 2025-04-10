@@ -7,7 +7,7 @@ namespace Train.Solver.Blockchain.Abstractions.Activities;
 public interface IRouteActivities
 {
     [Activity]
-    Task<List<NetworkModel>> GetActiveSolverRouteSourceNetworksAsync();
+    Task<List<NetworkDto>> GetActiveSolverRouteSourceNetworksAsync();
 
     [Activity]
     Task<List<RouteDto>> GetAllRoutesAsync();

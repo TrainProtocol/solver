@@ -66,7 +66,6 @@ public static class MapperExtensions
         return new NetworkDto
         {
             Name = network.Name,
-            DisplayName = network.DisplayName,
             ChainId = network.ChainId,
             FeeType = network.FeeType,
             Type = network.Type,
@@ -113,7 +112,7 @@ public static class MapperExtensions
             FeeType = network.FeeType,
             Type = network.Type,
             IsTestnet = network.IsTestnet,
-            Logo = network.Logo,
+            Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
             TransactionExplorerTemplate = network.TransactionExplorerTemplate,
             AccountExplorerTemplate = network.AccountExplorerTemplate,
             ListingDate = network.CreatedDate, 

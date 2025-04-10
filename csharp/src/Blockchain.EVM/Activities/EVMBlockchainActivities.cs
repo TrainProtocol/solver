@@ -34,7 +34,7 @@ public class EVMBlockchainActivities(
     INetworkRepository networkRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : BlockchainActivitiesBase, IEVMBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
 {
     private readonly string[] _nonRetriableErrors =
     [
@@ -57,7 +57,7 @@ public class EVMBlockchainActivities(
     ];
 
     [Activity]
-    public override async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
+    public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -100,27 +100,7 @@ public class EVMBlockchainActivities(
         feeEstimator.Increase(request.Fee, network.FeePercentageIncrease);
 
         return request.Fee;
-    }
-
-    [Activity]
-    public override async Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
-    {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var transaction = await GetTransactionAsync(network, request.TransactionHash);
-
-        if (transaction == null)
-        {
-            throw new TransactionNotComfirmedException("Transaction not found");
-        }
-
-        return transaction;
-    }
+    }   
 
     [Activity]
     public virtual async Task<TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request)
@@ -148,7 +128,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
+    public virtual async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -197,7 +177,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
+    public virtual async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -244,7 +224,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
+    public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
     {
         var result = new HTLCBlockEventResponse();
 
@@ -382,7 +362,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
+    public virtual async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -454,7 +434,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public virtual async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -527,7 +507,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<string> GetNextNonceAsync(NextNonceRequest request)
+    public virtual async Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -683,9 +663,9 @@ public class EVMBlockchainActivities(
         return SignTransaction(account, transactionInput);
     }
 
-    protected override string FormatAddress(string address) => address.ToLower();
+    private static string FormatAddress(string address) => address.ToLower();
 
-    protected override bool ValidateAddress(string address)
+    private static bool ValidateAddress(string address)
     {
         return AddressUtil.Current.IsValidEthereumAddressHexFormat(
             FormatAddress(address));
@@ -708,7 +688,7 @@ public class EVMBlockchainActivities(
         };
     }
 
-    private SignedTransaction SignTransaction(
+    private static SignedTransaction SignTransaction(
        Account account,
        TransactionInput transaction)
     {
@@ -778,6 +758,7 @@ public class EVMBlockchainActivities(
             };
         }
     }
+
     private async Task<TransactionResponse> GetTransactionAsync(Network network, string transactionId)
     {
         var nodes = network.Nodes;

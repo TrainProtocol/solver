@@ -1,4 +1,5 @@
 using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
@@ -15,13 +16,13 @@ public class RefundWorkflow : IScheduledWorkflow
     public async Task RunAsync()
     {
         var nonRefundedSwapIds = await ExecuteActivityAsync(
-            (SwapActivities x) => x.GetNonRefundedSwapIdsAsync(),
+            (ISwapActivities x) => x.GetNonRefundedSwapIdsAsync(),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         foreach (var nonRefundedId in nonRefundedSwapIds)
         {
             await ExecuteActivityAsync(
-                (WorkflowActivities x) => x.StartRefundWorkflowAsync(nonRefundedId),
+                (IWorkflowActivities x) => x.StartRefundWorkflowAsync(nonRefundedId),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         }
     }

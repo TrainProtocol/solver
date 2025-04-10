@@ -25,18 +25,18 @@ public class StarknetBlockchainActivities(
     INetworkRepository networkRepository,
     IHttpClientFactory httpClientFactory,
     IDatabase cache,
-    IDistributedLockFactory distributedLockFactory) : BlockchainActivitiesBase, IStarknetBlockchainActivities
+    IDistributedLockFactory distributedLockFactory) : IStarknetBlockchainActivities
 {
     private static readonly BigInteger BigIntTwo = new BigInteger(2);
     private static readonly BigInteger Mask221 = BigInteger.Pow(BigIntTwo, 221);
     private static readonly BigInteger Mask251 = BigInteger.Pow(BigIntTwo, 251);
 
-    public override Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
+    public virtual Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
         throw new TaskQueueMismatchException();
     }
 
-    public override Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
+    public virtual Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
         throw new TaskQueueMismatchException();
     }
@@ -56,13 +56,13 @@ public class StarknetBlockchainActivities(
         throw new TaskQueueMismatchException();
     }
 
-    public override Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public virtual Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
         throw new TaskQueueMismatchException();
     }
    
     [Activity]
-    public override async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
+    public virtual async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -101,7 +101,7 @@ public class StarknetBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
+    public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -131,7 +131,7 @@ public class StarknetBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
+    public virtual async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -199,7 +199,7 @@ public class StarknetBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<Abstractions.Models.TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
+    public virtual async Task<Abstractions.Models.TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -219,7 +219,7 @@ public class StarknetBlockchainActivities(
     }
 
     [Activity]
-    public override async Task<string> GetNextNonceAsync(NextNonceRequest request)
+    public virtual async Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -279,9 +279,9 @@ public class StarknetBlockchainActivities(
         return currentNonce.ToString();
     }
 
-    protected override string FormatAddress(string address) => address.AddAddressPadding().ToLowerInvariant();
+    protected virtual string FormatAddress(string address) => address.AddAddressPadding().ToLowerInvariant();
 
-    protected override bool ValidateAddress(string address)
+    protected virtual bool ValidateAddress(string address)
     {
         bool result = false;
 

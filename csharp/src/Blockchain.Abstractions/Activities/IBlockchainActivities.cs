@@ -12,20 +12,8 @@ public interface IBlockchainActivities
     Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
 
     [Activity]
-    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
-
-    [Activity]
     Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
 
     [Activity]
     Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
-
-    [Activity]
-    Task<string> GetNextNonceAsync(NextNonceRequest request);
-
-    [Activity]
-    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
-
-    [Activity]
-    Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
 }

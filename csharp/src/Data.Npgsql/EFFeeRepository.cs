@@ -9,8 +9,8 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
     public async Task<List<Expense>> GetExpensesAsync()
     {
         return await dbContext.Expenses
-            .Include(x=>x.FeeToken)
-            .Include(x=>x.Token)
+            .Include(x => x.FeeToken.TokenPrice)
+            .Include(x => x.Token.TokenPrice)
             .ToListAsync();
     }
 
