@@ -1,4 +1,5 @@
 using Temporalio.Workflows;
+using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
@@ -16,11 +17,11 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
     public async Task RunAsync()
     {
         var activeNetworks = await ExecuteActivityAsync(
-            (RouteActivities x) => x.GetActiveSolverRouteSourceNetworksAsync(),
+            (IRouteActivities x) => x.GetActiveSolverRouteSourceNetworksAsync(),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         var activeEventListenerWorkflowIds = await ExecuteActivityAsync(
-            (WorkflowActivities x) => x.GetRunningWorkflowIdsAsync(nameof(EventListenerWorkflow)),
+            (IWorkflowActivities x) => x.GetRunningWorkflowIdsAsync(nameof(EventListenerWorkflow)),
             TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         foreach (var network in activeNetworks)
@@ -28,7 +29,7 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
             if (!activeEventListenerWorkflowIds.Any(x => x == TemporalHelper.BuildEventListenerId(network.Name)))
             {
                 await ExecuteActivityAsync(
-                    (WorkflowActivities x) => x.RunEventListeningWorkflowAsync(
+                    (IWorkflowActivities x) => x.RunEventListeningWorkflowAsync(
                         network.Name,
                         network.Type,
                         20,
@@ -45,7 +46,7 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
         foreach (var eventListenerId in mustBeStoppedEventListenersIds)
         {
             await ExecuteActivityAsync(
-                (WorkflowActivities x) => x.TerminateWorkflowAsync(eventListenerId),
+                (IWorkflowActivities x) => x.TerminateWorkflowAsync(eventListenerId),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
         }
     }
