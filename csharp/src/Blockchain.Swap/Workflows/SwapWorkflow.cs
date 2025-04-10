@@ -278,6 +278,11 @@ public class SwapWorkflow : ISwapWorkflow
     [WorkflowUpdate]
     public async Task<bool> SetAddLockSigAsync(AddLockSignatureRequest addLockSig)
     {
+        if (_htlcAddLockSigMessage != null)
+        {
+            return true;
+        }
+
         try
         {
             var isValid = await ExecuteActivityAsync(
@@ -302,7 +307,11 @@ public class SwapWorkflow : ISwapWorkflow
     [WorkflowSignal]
     public Task LockCommitedAsync(HTLCLockEventMessage message)
     {
-        _htlcLockMessage = message;
+        if (_htlcLockMessage == null)
+        {
+            _htlcLockMessage = message;
+        }
+
         return Task.CompletedTask;
     }
 
