@@ -1,8 +1,8 @@
 import { Fee } from "../FeesModels/Fee";
 
 export interface TransactionExecutionContext {
-    Attempts: number;
+    Attempts?: number;
     Fee?: Fee;
     Nonce?: string;
-    PublishedTransactionIds: string[];
+    PublishedTransactionIds?: string[];
 }

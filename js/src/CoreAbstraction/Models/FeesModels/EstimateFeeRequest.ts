@@ -1,5 +1,6 @@
-export interface EstimateFeeRequest {
-    NetworkName: string,
+import { BaseRequest } from "../BaseRequest";
+
+export interface EstimateFeeRequest extends BaseRequest {
     ToAddress: string,
     Amount: number,
     FromAddress: string,

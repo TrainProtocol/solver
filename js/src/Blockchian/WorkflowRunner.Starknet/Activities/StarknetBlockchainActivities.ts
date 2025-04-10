@@ -13,7 +13,7 @@ import { PrepareTransactionResponse } from "../../../CoreAbstraction/Models/Tran
 import { ContractType } from "../../../Data/Entities/Contracts";
 import { NodeType } from "../../../Data/Entities/Nodes";
 import { SolverContext } from "../../../Data/SolverContext";
-import { InvalidTimelockException } from "../../../Exceptions/InvalidTimelockException";
+import { InvalidTimelockException } from "../../../CoreAbstraction/Exceptions/InvalidTimelockException";
 import { PrivateKeyRepository } from "../../../lib/PrivateKeyRepository";
 import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
@@ -31,9 +31,9 @@ import { HTLCBlockEventResponse } from "../../../CoreAbstraction/Models/EventMod
 import { NextNonceRequest } from "../../../CoreAbstraction/Models/NextNonceRequest";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 import { TransactionStatus } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionStatus";
-import { TransactionFailedException } from "../../../Exceptions/TransactionFailedException";
+import { TransactionFailedException } from "../../../CoreAbstraction/Exceptions/TransactionFailedException";
 import { Networks } from "../../../Data/Entities/Networks";
-import { TransactionNotComfirmedException } from "../../../Exceptions/TransactionNotComfirmedException";
+import { TransactionNotComfirmedException } from "../../../CoreAbstraction/Exceptions/TransactionNotComfirmedException";
 import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
@@ -289,34 +289,34 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.networkName })
+            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
             .getOneOrFail();
 
         const node = network.nodes.find(n => n.type === NodeType.Primary);
 
         if (!node) {
-            throw new Error(`Primary node not found for network ${request.networkName}`);
+            throw new Error(`Primary node not found for network ${request.NetworkName}`);
         }
 
-        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
+        const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
 
         const provider = new RpcProvider({
             nodeUrl: node.url
         });
 
-        const account = new Account(provider, request.fromAddress, privateKey, '1');
+        const account = new Account(provider, request.FromAddress, privateKey, '1');
 
-        var transferCall: Call = JSON.parse(request.callData);
+        var transferCall: Call = JSON.parse(request.CallData);
 
         const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
 
         const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.fromAddress,
+            senderAddress: request.FromAddress,
             version: ETransactionVersion2.V1,
             compiledCalldata: compiledCallData,
-            maxFee: request.fee.FixedFeeData.FeeInWei,
+            maxFee: request.Fee.FixedFeeData.FeeInWei,
             chainId: network.chainId as constants.StarknetChainId,
-            nonce: request.nonce
+            nonce: request.Nonce
         };
 
         const calcualtedTxHash = await hash.calculateInvokeTransactionHash(args);
@@ -327,8 +327,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 [transferCall],
                 undefined,
                 {
-                    maxFee: request.fee.FixedFeeData.FeeInWei,
-                    nonce: request.nonce
+                    maxFee: request.Fee.FixedFeeData.FeeInWei,
+                    nonce: request.Nonce
                 },
             );
 
@@ -432,34 +432,34 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.networkName })
+            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
             .getOneOrFail();
 
         const node = network.nodes.find(n => n.type === NodeType.Primary);
 
         if (!node) {
-            throw new Error(`Primary node not found for network ${request.networkName}`);
+            throw new Error(`Primary node not found for network ${request.NetworkName}`);
         }
 
-        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
+        const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
 
         const provider = new RpcProvider({
             nodeUrl: node.url
         });
 
-        const account = new Account(provider, request.fromAddress, privateKey, '1');
+        const account = new Account(provider, request.FromAddress, privateKey, '1');
 
-        var transferCall: Call = JSON.parse(request.callData);
+        var transferCall: Call = JSON.parse(request.CallData);
 
         const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
 
         const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.fromAddress,
+            senderAddress: request.FromAddress,
             version: ETransactionVersion2.V1,
             compiledCalldata: compiledCallData,
-            maxFee: request.fee.FixedFeeData.FeeInWei,
+            maxFee: request.Fee.FixedFeeData.FeeInWei,
             chainId: network.chainId as constants.StarknetChainId,
-            nonce: request.nonce
+            nonce: request.Nonce
         };
 
         const calcualtedTxHash = await hash.calculateInvokeTransactionHash(args);
@@ -473,7 +473,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     }
                 ],
                 {
-                    nonce: request.nonce
+                    nonce: request.Nonce
                 });
 
             return calcualtedTxHash;

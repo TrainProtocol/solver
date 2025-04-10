@@ -9,7 +9,7 @@ import { PrepareTransactionResponse } from "../../../../CoreAbstraction/Models/T
 import { TransferPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 import { ContractType } from "../../../../Data/Entities/Contracts";
 import { Networks } from "../../../../Data/Entities/Networks";
-import { decodeJson } from "../../../../Extensions/StringExtensions";
+import { decodeJson } from "../../../../CoreAbstraction/Extensions/StringExtensions";
 
 export function CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
 

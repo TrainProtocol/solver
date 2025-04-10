@@ -1,10 +1,10 @@
 export interface PrepareTransactionResponse {
     ToAddress: string;
     Data?: string;
-    Amount: Number;
+    Amount: number;
     Asset?: string;
     AmountInWei: string;
     CallDataAsset: string;
     CallDataAmountInWei: string;
-    CallDataAmount: Number;
+    CallDataAmount: number;
 }
