@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-blockchain-solana
+  labels:
+    app: {{ .Chart.Name }}-blockchain-solana
+spec:
+  replicas: {{ .Values.blockchainSolana.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-blockchain-solana
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-blockchain-solana
+    spec:
+      containers:
+        - name: blockchain-solana
+          image: "ghcr.io/your-org/train-solver-blockchain-solana:${{ env.SANITIZED_REF_NAME }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-env-config

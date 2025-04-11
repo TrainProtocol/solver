@@ -1,0 +1,16 @@
+apiVersion: v2
+name: train-solver
+description: Helm chart for deploying train-solver services and dependencies
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - name: postgresql
+    version: 12.1.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: redis
+    version: 17.3.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: temporal
+    version: 0.1.0
+    repository: https://charts.temporal.io
