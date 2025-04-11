@@ -1,21 +1,21 @@
-name: Starknet JS Workflow runner
+name: Starknet Workflow runner
 
 on:
   push:
     branches: [ main, dev ]
     paths:
       - 'js/**'
-      - '.github/workflows/js.yml'
+      - '.github/workflows/starknet.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'js/**'
-      - '.github/workflows/js.yml'
+      - '.github/workflows/starknet.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/solver-starknet-js
+  DOCKER_IMAGE: trainprotocol/solver-starknet
 
 jobs:
   build-and-push:
@@ -55,6 +55,8 @@ jobs:
           context: .
           file: js/Dockerfile
           push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
+          build-args: |
+            NETWORK=starknet
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}-${{ env.VERSION }}
             ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}

@@ -81,13 +81,13 @@ services:
     networks:
       - app-network
       
-  solver.starknet-js:
+  solver.starknet:
     build:
       context: ..
       dockerfile: js/Dockerfile
       args:
-        DOTNET_VERSION: ${DOTNET_VERSION}
-    container_name: solver.starknet-js
+        NETWORK: network
+    container_name: solver.starknet
     environment:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}

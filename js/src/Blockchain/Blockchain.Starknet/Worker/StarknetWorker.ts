@@ -7,7 +7,7 @@ import { NetworkType } from '../../../Data/Entities/Networks';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
 
-async function run() {
+export default async function run() {
   dotenv.config();
 
   try {
@@ -35,8 +35,3 @@ async function run() {
     return;
   }
 }
-
-run().catch((err) => {
-  console.error('Error starting worker:', err);
-  process.exit(1);
-});

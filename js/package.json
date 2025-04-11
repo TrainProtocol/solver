@@ -4,8 +4,7 @@
   "main": "",
   "scripts": {
     "build": "tsc",
-    "start:starknet": "node dist/src/Blockchain/Blockchain.Starknet/Worker/StarknetWorker.js",
-    "dev:starknet": "ts-node src/Blockchain/Blockchain.Starknet/Worker/StarknetWorker.ts"
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
