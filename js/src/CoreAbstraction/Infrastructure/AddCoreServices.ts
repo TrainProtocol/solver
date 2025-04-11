@@ -6,8 +6,7 @@ import { container } from 'tsyringe';
 import { ConvertToRedisUrl } from './RedisHelper/RedisFactory';
 
 export async function AddCoreServices(): Promise<void> {
-    const dbContext = new SolverContext(process.env.TrainSolver__DatabaseConnectionString);
-
+    const dbContext = new SolverContext(process.env.TrainSolver__DatabaseConnectionString); 
 
     const redisUrl = ConvertToRedisUrl(process.env.TrainSolver__RedisConnectionString);
     const redis = new Redis(redisUrl);
