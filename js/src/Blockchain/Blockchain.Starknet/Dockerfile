@@ -14,4 +14,4 @@ COPY --from=builder /app .
 
 RUN npm ci --only=production
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "start:starknet"]
