@@ -1,12 +1,11 @@
 {
   "name": "js",
   "version": "1.0.0",
-  "main": "dist/src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.js",
+  "main": "",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.js",
-    "dev": "ts-node src/Blockchian/WorkflowRunner.Starknet/Worker/StarknetWorker.ts",
-    "test": "jest --verbose"
+    "start:starknet": "node dist/src/Blockchain/Blockchain.Starknet/Worker/StarknetWorker.js",
+    "dev:starknet": "ts-node src/Blockchain/Blockchain.Starknet/Worker/StarknetWorker.ts"
   },
   "keywords": [],
   "author": "",

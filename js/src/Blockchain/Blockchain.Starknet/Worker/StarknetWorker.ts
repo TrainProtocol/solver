@@ -23,7 +23,7 @@ async function run() {
     const worker = await Worker.create({
       namespace: 'atomic',
       taskQueue: NetworkType.Starknet.toString(),
-      workflowsPath: require.resolve('../Workflows/StarknetWorkflow'),
+      workflowsPath: require.resolve('../Workflows'),
       activities: activities,
       connection,
     });
