@@ -1,19 +1,19 @@
 import { proxyActivities, executeChild } from '@temporalio/workflow';
 import { IStarknetBlockchainActivities } from '../Activities/IStarknetBlockchainActivities';
-import { TransactionRequest } from '../../../CoreAbstraction/Models/TransacitonModels/TransactionRequest';
-import { TransactionExecutionContext } from '../../../CoreAbstraction/Models/TransacitonModels/TransactionExecutionContext';
-import { TransactionResponse } from '../../../CoreAbstraction/Models/ReceiptModels/TransactionResponse';
-import { HTLCLockTransactionPrepareRequest } from '../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
-import { decodeJson } from '../../../CoreAbstraction/Extensions/StringExtensions';
-import { TransactionType } from '../../../CoreAbstraction/Models/TransacitonModels/TransactionType';
-import { AllowanceRequest } from '../../../CoreAbstraction/Models/AllowanceRequest';
 import { buildProcessorId } from '../../TemporalHelper/TemporalHelper';
-import { InvalidTimelockException } from '../../../CoreAbstraction/Exceptions/InvalidTimelockException';
-import { TransferPrepareRequest } from '../../../CoreAbstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
-import { HashlockAlreadySetException } from '../../../CoreAbstraction/Exceptions/HashlockAlreadySetException';
-import { AlreadyClaimedExceptions } from '../../../CoreAbstraction/Exceptions/AlreadyClaimedExceptions';
-import { HTLCAlreadyExistsException } from '../../../CoreAbstraction/Exceptions/HTLCAlreadyExistsException';
-import { TransactionFailedException } from '../../../CoreAbstraction/Exceptions/TransactionFailedException';
+import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
+import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
+import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exceptions/AlreadyClaimedExceptions';
+import { HTLCAlreadyExistsException } from '../../Blockchain.Abstraction/Exceptions/HTLCAlreadyExistsException';
+import { TransactionFailedException } from '../../Blockchain.Abstraction/Exceptions/TransactionFailedException';
+import { decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
+import { AllowanceRequest } from '../../Blockchain.Abstraction/Models/AllowanceRequest';
+import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
+import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
+import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
+import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
+import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
+import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',

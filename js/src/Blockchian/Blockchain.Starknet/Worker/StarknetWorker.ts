@@ -4,8 +4,8 @@ import 'reflect-metadata';
 import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainActivities';
 import { extractActivities as ExtractActivities } from '../../TemporalHelper/ActivityParser';
 import { NetworkType } from '../../../Data/Entities/Networks';
-import { AddCoreServices } from '../../../CoreAbstraction/Infrastructure/AddCoreServices';
 import { container } from 'tsyringe';
+import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
 
 async function run() {
   dotenv.config();
@@ -13,7 +13,7 @@ async function run() {
   try {
 
     await AddCoreServices();
-    
+
     const activities = ExtractActivities(container.resolve(StarknetBlockchainActivities));
 
     const connection = await NativeConnection.connect({
@@ -23,6 +23,7 @@ async function run() {
     const worker = await Worker.create({
       namespace: 'atomic',
       taskQueue: NetworkType.Starknet.toString(),
+      workflowsPath: require.resolve('../Workflows/StarknetWorkflow'),
       activities: activities,
       connection,
     });

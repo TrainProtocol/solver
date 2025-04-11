@@ -1,4 +1,4 @@
-import { NetworkType } from "../../../Data/Entities/Networks";
+import { NetworkType } from "../../../../Data/Entities/Networks";
 
 export interface HTLCBlockEventResponse {
     HTLCCommitEventMessages: HTLCCommitEventMessage[];

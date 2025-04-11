@@ -1,4 +1,4 @@
-import { TransactionType } from "../../../CoreAbstraction/Models/TransacitonModels/TransactionType";
+import { TransactionType } from "../TransacitonModels/TransactionType";
 
 export interface TransactionBuilderRequest {
     TransactionType: TransactionType;

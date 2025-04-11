@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import Redis from 'ioredis';
 import Redlock from 'redlock';
-import { SolverContext } from '../../Data/SolverContext';
 import { container } from 'tsyringe';
 import { ConvertToRedisUrl } from './RedisHelper/RedisFactory';
+import { SolverContext } from '../../../Data/SolverContext';
 
 export async function AddCoreServices(): Promise<void> {
     const dbContext = new SolverContext(process.env.TrainSolver__DatabaseConnectionString); 

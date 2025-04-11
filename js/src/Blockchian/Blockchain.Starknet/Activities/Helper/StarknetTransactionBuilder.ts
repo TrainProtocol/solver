@@ -1,15 +1,15 @@
 import { utils } from "ethers";
 import { cairo, Call, shortString, byteArray } from "starknet";
-import { ApprovePrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
-import { HTLCAddLockSigTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
-import { HTLCLockTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
-import { HTLCRedeemTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
-import { HTLCRefundTransactionPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
-import { PrepareTransactionResponse } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { TransferPrepareRequest } from "../../../../CoreAbstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 import { ContractType } from "../../../../Data/Entities/Contracts";
 import { Networks } from "../../../../Data/Entities/Networks";
-import { decodeJson } from "../../../../CoreAbstraction/Extensions/StringExtensions";
+import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { ApprovePrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
+import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
+import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
+import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
+import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
+import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
+import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 
 export function CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
 

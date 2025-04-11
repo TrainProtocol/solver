@@ -1,5 +1,5 @@
-import { BaseRequest } from "../../../CoreAbstraction/Models/BaseRequest";
-import { Fee } from "../../../CoreAbstraction/Models/FeesModels/Fee";
+import { BaseRequest } from "../../Blockchain.Abstraction/Models/BaseRequest";
+import { Fee } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 
 export interface StarknetPublishTransactionRequest extends BaseRequest {
     FromAddress: string;

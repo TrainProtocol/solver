@@ -1,4 +1,4 @@
-import { TransactionStatus } from "../../../../CoreAbstraction/Models/TransacitonModels/TransactionStatus";
+import { TransactionStatus } from "../../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus";
 
 const TransferStatuses = {
     Confirmed: ["ACCEPTED_ON_L1", "ACCEPTED_ON_L2"],

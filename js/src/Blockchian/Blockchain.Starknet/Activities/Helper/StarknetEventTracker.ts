@@ -1,12 +1,12 @@
 import { CallData, Contract, hash, num, Provider } from "starknet";
 import { Tokens } from "../../../../Data/Entities/Tokens";
-import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../../CoreAbstraction/Models/EventModels/HTLCBlockEventResposne";
 import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../../Models/StarknetTokenLockedEvent";
 import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
 import { TokenCommittedEvent as TokenCommittedEvent } from "../../Models/StarknetTokenCommittedEvent";
 import { formatAddress } from "../StarknetBlockchainActivities";
 import { formatUnits } from "ethers/lib/utils";
+import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 
 
 export async function TrackBlockEventsAsync(

@@ -1,13 +1,14 @@
-import { IBlockchainActivities } from "../../../CoreAbstraction/IBlockchainActivities";
-import { AllowanceRequest } from "../../../CoreAbstraction/Models/AllowanceRequest";
-import { EstimateFeeRequest } from "../../../CoreAbstraction/Models/FeesModels/EstimateFeeRequest";
-import { Fee } from "../../../CoreAbstraction/Models/FeesModels/Fee";
-import { GetBatchTransactionRequest } from "../../../CoreAbstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../../CoreAbstraction/Models/NextNonceRequest";
-import { GetTransactionRequest } from "../../../CoreAbstraction/Models/ReceiptModels/GetTransactionRequest";
-import { TransactionResponse } from "../../../CoreAbstraction/Models/ReceiptModels/TransactionResponse";
-import { TransactionBuilderRequest } from "../../../CoreAbstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
-import { PrepareTransactionResponse } from "../../../CoreAbstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
+
+import { IBlockchainActivities } from "../../Blockchain.Abstraction/Interfaces/IBlockchainActivities";
+import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
+import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
+import { Fee } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
+import { GetBatchTransactionRequest } from "../../Blockchain.Abstraction/Models/GetBatchTransactionRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NextNonceRequest";
+import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
+import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
+import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
+import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 
 export interface IStarknetBlockchainActivities extends IBlockchainActivities {
