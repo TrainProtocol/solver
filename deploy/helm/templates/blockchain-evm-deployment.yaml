@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-blockchain-evm
+  labels:
+    app: {{ .Chart.Name }}-blockchain-evm
+spec:
+  replicas: {{ .Values.blockchainEVM.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-blockchain-evm
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-blockchain-evm
+    spec:
+      containers:
+        - name: blockchain-evm
+          image: "ghcr.io/your-org/train-solver-blockchain-evm:${{ env.SANITIZED_REF_NAME }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-env-config

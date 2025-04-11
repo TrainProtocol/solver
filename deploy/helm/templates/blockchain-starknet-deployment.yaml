@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-starknet-js
+  labels:
+    app: {{ .Chart.Name }}-starknet-js
+spec:
+  replicas: {{ .Values.starknetJs.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-starknet-js
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-starknet-js
+    spec:
+      containers:
+        - name: starknet-js
+          image: "ghcr.io/your-org/train-solver-starknet-js:${{ env.SANITIZED_REF_NAME }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-env-config

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-blockchain-swap
+  labels:
+    app: {{ .Chart.Name }}-blockchain-swap
+spec:
+  replicas: {{ .Values.blockchainSwap.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-blockchain-swap
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-blockchain-swap
+    spec:
+      containers:
+        - name: blockchain-swap
+          image: "ghcr.io/your-org/train-solver-blockchain-swap:${{ env.SANITIZED_REF_NAME }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-env-config

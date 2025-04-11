@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Chart.Name }}-api
+  annotations:
+    {{- range $key, $value := .Values.api.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    {{- range .Values.api.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $.Chart.Name }}-api
+                port:
+                  number: 8080
+          {{- end }}
+    {{- end }}
+  tls:
+    {{- range .Values.api.ingress.tls }}
+    - hosts:
+        - {{ .hosts }}
+      secretName: {{ .secretName }}
+    {{- end }}

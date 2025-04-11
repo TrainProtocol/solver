@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-env-config
+  labels:
+    app: {{ .Chart.Name }}
+data:
+  TrainSolver__TemporalServerHost: "{{ .Values.temporal.server.host }}"
+  TrainSolver__DatabaseConnectionString: "{{ .Values.postgresql.auth.connectionString }}"
+  TrainSolver__RedisConnectionString: "{{ .Values.redis.auth.connectionString }}"
+  TrainSolver__AzureKeyVaultUri: "{{ .Values.azure.keyVaultUri }}"

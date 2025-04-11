@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-api
+  labels:
+    app: {{ .Chart.Name }}-api
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-api
+    spec:
+      containers:
+        - name: api
+          image: "ghcr.io/your-org/train-solver-api:${{ env.SANITIZED_REF_NAME }}"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-env-config
