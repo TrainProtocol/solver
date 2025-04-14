@@ -550,7 +550,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
 
             if (BigNumber.from(balanceResponse.AmountInWei) < amount) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse}, Fee: ${amount}`);
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.AmountInWei}, Fee: ${amount}`);
             }
 
             return result;
