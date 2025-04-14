@@ -34,7 +34,7 @@ const nonRetryableActivities = proxyActivities<IStarknetBlockchainActivities>({
     },
 });
 
-export async function StarknetTransactionProcessorWorkflow(
+export async function StarknetTransactionProcessor(
     request: TransactionRequest,
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
@@ -107,7 +107,7 @@ export async function StarknetTransactionProcessorWorkflow(
                 ToAddress: request.FromAddress,
             };
 
-            await executeChild(StarknetTransactionProcessorWorkflow,
+            await executeChild(StarknetTransactionProcessor,
                 {
                     args: [
                         {
@@ -153,7 +153,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
 
         const childContext: TransactionExecutionContext = {};
 
-        await executeChild(StarknetTransactionProcessorWorkflow,
+        await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],
                 workflowId: buildProcessorId(context.NetworkName, context.TransactionType),
