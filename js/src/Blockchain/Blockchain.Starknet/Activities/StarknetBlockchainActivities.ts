@@ -129,7 +129,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             return null;
         }
 
-        const feeInWei = confrimedTransaction.actual_fee;
+        const feeInWei = confrimedTransaction.actual_fee.amount;
 
         const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
 
