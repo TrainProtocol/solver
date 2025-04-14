@@ -546,10 +546,10 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 Asset: this.FeeSymbol
             });
 
-            var amount = feeInWei;
+            let amount = feeInWei;
             amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
 
-            if (BigNumber.from(balanceResponse.AmountInWei) < amount) {
+            if (BigNumber.from(balanceResponse.AmountInWei).lt(amount)) {
                 throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.AmountInWei}, Fee: ${amount}`);
             }
 
