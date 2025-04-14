@@ -40,7 +40,7 @@ export async function EventListenerWorkflow(
     networkName: string,
     networkType: string,
     blockBatchSize: number,
-    waitInterval: string,
+    waitIntervalInSeconds: number,
     initialLastProcessedBlock?: number
 ): Promise<void> {
     lastProcessedBlockNumber = initialLastProcessedBlock;
@@ -55,7 +55,7 @@ export async function EventListenerWorkflow(
                 networkName,
                 networkType,
                 blockBatchSize,
-                waitInterval,
+                waitIntervalInSeconds,
                 lastProcessedBlockNumber
             );
         }
@@ -67,7 +67,7 @@ export async function EventListenerWorkflow(
         }
 
         if (lastProcessedBlockNumber >= blockData.BlockNumber) {
-            await sleep(TimeSpan.FromSeconds(Number(waitInterval)));
+            await sleep(TimeSpan.FromSeconds(waitIntervalInSeconds));
             iteration++;
             continue;
         }
