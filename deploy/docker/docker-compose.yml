@@ -1,7 +1,7 @@
 services:
   solver.api:
     build:
-      context: ..
+      context: ../..
       dockerfile: csharp/src/API/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
@@ -23,7 +23,7 @@ services:
 
   solver.swap:
     build:
-      context: ..
+      context: ../..
       dockerfile: csharp/src/Blockchain.Swap/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
@@ -43,7 +43,7 @@ services:
 
   solver.evm:
     build:
-      context: ..
+      context: ../..
       dockerfile: csharp/src/Blockchain.EVM/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
@@ -63,7 +63,7 @@ services:
 
   solver.solana:
     build:
-      context: ..
+      context: ../..
       dockerfile: csharp/src/Blockchain.Solana/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
@@ -81,13 +81,13 @@ services:
     networks:
       - app-network
       
-  solver.starknet-js:
+  solver.starknet:
     build:
-      context: ..
+      context: ../..
       dockerfile: js/Dockerfile
       args:
-        DOTNET_VERSION: ${DOTNET_VERSION}
-    container_name: solver.starknet-js
+        NETWORK: starknet
+    container_name: solver.starknet
     environment:
       NODE_ENV: production
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}

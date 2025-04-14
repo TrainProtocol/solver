@@ -23,8 +23,8 @@ export class Networks {
   @Column("text", { name: "DisplayName" })
   displayName: string;
 
-  @Column("integer", { name: "Group" })
-  group: number;
+  @Column("integer", { name: "Type" })
+  type: number;
 
   @Column("text", { name: "ChainId", nullable: true })
   chainId: string | null;
@@ -76,4 +76,11 @@ export class Networks {
 
   @OneToMany(() => Tokens, (tokens) => tokens.network)
   tokens: Tokens[];
+}
+
+export enum NetworkType
+{
+    EVM,
+    Solana,
+    Starknet,
 }
