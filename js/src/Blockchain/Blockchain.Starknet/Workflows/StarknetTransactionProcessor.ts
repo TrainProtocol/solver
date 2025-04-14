@@ -39,14 +39,14 @@ export async function StarknetTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    if (request.TransactionType === TransactionType.HTLCLock) {
+    if (request.Type === TransactionType.HTLCLock) {
         await checkAllowance(request);
     }
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
         NetworkName: request.NetworkName,
         Args: request.PrepareArgs,
-        TransactionType: request.TransactionType,
+        TransactionType: request.Type,
     });
     try {
 
@@ -115,7 +115,7 @@ export async function StarknetTransactionProcessor(
                             FromAddress: request.FromAddress,
                             NetworkType: request.NetworkType,
                             PrepareArgs: JSON.stringify(transferArgs),
-                            TransactionType: TransactionType.Transfer,
+                            Type: TransactionType.Transfer,
                             SwapId: request.SwapId,
                         },
                         { Nonce: context.Nonce }
@@ -144,7 +144,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
                 Amount: 1000000000,
                 Asset: lockRequest.SourceAsset,
             }),
-            TransactionType: TransactionType.Approve,
+            Type: TransactionType.Approve,
             FromAddress: context.FromAddress,
             NetworkName: lockRequest.SourceNetwork,
             NetworkType: context.NetworkType,
@@ -156,7 +156,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
         await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],
-                workflowId: buildProcessorId(context.NetworkName, context.TransactionType),
+                workflowId: buildProcessorId(context.NetworkName, context.Type),
             });
     }
 }
