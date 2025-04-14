@@ -43,7 +43,7 @@ export async function StarknetTransactionProcessorWorkflow(
         await checkAllowance(request);
     }
 
-    const preparedTransaction = await defaultActivities.BuildTransactionAsync({
+    const preparedTransaction = await defaultActivities.BuildTransaction({
         NetworkName: request.NetworkName,
         Args: request.PrepareArgs,
         TransactionType: request.TransactionType,
@@ -51,7 +51,7 @@ export async function StarknetTransactionProcessorWorkflow(
     try {
 
         if (!context.Fee) {
-            context.Fee = await nonRetryableActivities.EstimateFeeAsync({
+            context.Fee = await nonRetryableActivities.EstimateFee({
                 NetworkName: request.NetworkName,
                 ToAddress: preparedTransaction.ToAddress,
                 Amount: preparedTransaction.Amount,
@@ -62,13 +62,13 @@ export async function StarknetTransactionProcessorWorkflow(
         }
 
         if (!context.Nonce) {
-            context.Nonce = await defaultActivities.GetNextNonceAsync({
+            context.Nonce = await defaultActivities.GetNextNonce({
                 NetworkName: request.NetworkName,
                 Address: request.FromAddress,
             });
         }
 
-        const simulationTxId = await nonRetryableActivities.SimulateTransactionAsync({
+        const simulationTxId = await nonRetryableActivities.SimulateTransaction({
             NetworkName: request.NetworkName,
             FromAddress: request.FromAddress,
             Nonce: context.Nonce,
@@ -78,7 +78,7 @@ export async function StarknetTransactionProcessorWorkflow(
 
         context.PublishedTransactionIds.push(simulationTxId);
 
-        const txId = await nonRetryableActivities.PublishTransactionAsync({
+        const txId = await nonRetryableActivities.PublishTransaction({
             NetworkName: request.NetworkName,
             FromAddress: request.FromAddress,
             Nonce: context.Nonce,
@@ -88,7 +88,7 @@ export async function StarknetTransactionProcessorWorkflow(
 
         context.PublishedTransactionIds.push(txId);
 
-        const confirmed = await nonRetryableActivities.GetBatchTransactionAsync({
+        const confirmed = await nonRetryableActivities.GetBatchTransaction({
             NetworkName: request.NetworkName,
             TransactionHashes: context.PublishedTransactionIds,
         });
@@ -131,7 +131,7 @@ export async function StarknetTransactionProcessorWorkflow(
 export async function checkAllowance(context: TransactionRequest): Promise<void> {
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
 
-    const allowance = await defaultActivities.GetSpenderAllowanceAsync(
+    const allowance = await defaultActivities.GetSpenderAllowance(
         {
             NetworkName: lockRequest.SourceNetwork,
             OwnerAddress: context.FromAddress!,

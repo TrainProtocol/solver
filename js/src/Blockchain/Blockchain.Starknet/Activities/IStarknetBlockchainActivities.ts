@@ -12,19 +12,19 @@ import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 
 export interface IStarknetBlockchainActivities extends IBlockchainActivities {
-    SimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string>;
+    SimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string>;
   
-    GetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number>;
+    GetSpenderAllowance(request: AllowanceRequest): Promise<number>;
   
-    PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string>;
+    PublishTransaction(request: StarknetPublishTransactionRequest): Promise<string>;
   
-    GetBatchTransactionAsync(request: GetBatchTransactionRequest): Promise<TransactionResponse>;
+    GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse>;
     
-    EstimateFeeAsync(request: EstimateFeeRequest): Promise<Fee>;
+    EstimateFee(request: EstimateFeeRequest): Promise<Fee>;
     
-    GetNextNonceAsync(request: NextNonceRequest): Promise<string>;
+    GetNextNonce(request: NextNonceRequest): Promise<string>;
   
-    BuildTransactionAsync(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
+    BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
   
-    GetTransactionAsync(request: GetTransactionRequest): Promise<TransactionResponse>;
+    GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
   }
