@@ -6,6 +6,8 @@ import { extractActivities as ExtractActivities } from '../../TemporalHelper/Act
 import { NetworkType } from '../../../Data/Entities/Networks';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
+import * as UtilityActivities from '../../Blockchain.Abstraction/Activities/UtilityActivities';
+
 
 export default async function run() {
   dotenv.config();
@@ -14,7 +16,12 @@ export default async function run() {
 
     await AddCoreServices();
 
-    const activities = ExtractActivities(container.resolve(StarknetBlockchainActivities));
+    const blockchainActivities = ExtractActivities(container.resolve(StarknetBlockchainActivities));
+
+    const activities = {
+      ...blockchainActivities,
+      ...UtilityActivities,
+    };
 
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
@@ -22,7 +29,7 @@ export default async function run() {
 
     const worker = await Worker.create({
       namespace: 'atomic',
-      taskQueue: NetworkType.Starknet.toString(),
+      taskQueue: NetworkType[NetworkType.Starknet],
       workflowsPath: require.resolve('../Workflows'),
       activities: activities,
       connection,

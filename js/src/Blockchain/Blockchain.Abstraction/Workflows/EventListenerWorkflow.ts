@@ -12,6 +12,7 @@ import { BlockRangeModel } from '../Models/BlockRangeModel';
 import { lockCommitedSignal } from '../Interfaces/ISwapWorkflow';
 import { IWorkflowActivities } from '../Interfaces/IWorkflowActivities';
 import { TimeSpan } from '../Infrastructure/RedisHelper/TimeSpanConverter';
+import { CoreTaskQueue } from '../Constants';
 
 const blockchainActivities = proxyActivities<IBlockchainActivities>({
     startToCloseTimeout: '20s',
@@ -26,6 +27,7 @@ const utilityActivities = proxyActivities<IUtilityActivities>({
 const workflowActivities = proxyActivities<IWorkflowActivities>({
     startToCloseTimeout: '20s',
     scheduleToCloseTimeout: '20m',
+    taskQueue: CoreTaskQueue
 });
 
 let lastProcessedBlockNumber: number | undefined = undefined;
@@ -58,7 +60,7 @@ export async function EventListenerWorkflow(
             );
         }
 
-        const blockData = await blockchainActivities.GetLastConfirmedBlockNumberAsync({ NetworkName: networkName });
+        const blockData = await blockchainActivities.GetLastConfirmedBlockNumber({ NetworkName: networkName });
 
         if (lastProcessedBlockNumber == null) {
             lastProcessedBlockNumber = blockData.BlockNumber - blockBatchSize;
@@ -92,7 +94,7 @@ async function processBlockRange(
     networkName: string,
     blockRange: BlockRangeModel
 ): Promise<void> {
-    const result = await blockchainActivities.GetEventsAsync({
+    const result = await blockchainActivities.GetEvents({
         NetworkName: networkName,
         FromBlock: blockRange.From,
         ToBlock: blockRange.To,
