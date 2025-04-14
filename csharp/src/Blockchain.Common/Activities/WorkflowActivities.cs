@@ -41,7 +41,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
         string networkName,
         NetworkType networkType,
         uint blockBatchSize,
-        TimeSpan waitInterval)
+        int waitInterval)
     {
         await temporalClient.StartWorkflowAsync(
             (IEventListenerWorkflow x) =>

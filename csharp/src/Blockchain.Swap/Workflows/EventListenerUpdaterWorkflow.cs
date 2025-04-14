@@ -5,7 +5,6 @@ using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Common.Worklows;
-using Train.Solver.Blockchain.Swap.Activities;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Blockchain.Swap.Workflows;
@@ -13,6 +12,9 @@ namespace Train.Solver.Blockchain.Swap.Workflows;
 [Workflow]
 public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 {
+    private const int _waitIntervalInSeconds = 5;
+    private const uint _blockBachSize = 20;
+
     [WorkflowRun]
     public async Task RunAsync()
     {
@@ -32,8 +34,8 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
                     (WorkflowActivities x) => x.RunEventListeningWorkflowAsync(
                         network.Name,
                         network.Type,
-                        20,
-                        TimeSpan.FromSeconds(5)),
+                        _blockBachSize,
+                        _waitIntervalInSeconds),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
             }
         }
