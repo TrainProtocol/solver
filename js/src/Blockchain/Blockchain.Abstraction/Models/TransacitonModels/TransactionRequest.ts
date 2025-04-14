@@ -4,7 +4,7 @@ import { TransactionType } from "./TransactionType";
 
 export interface TransactionRequest extends BaseRequest {
     PrepareArgs: string;
-    TransactionType: TransactionType;
+    Type: TransactionType;
     NetworkType: NetworkType;
     FromAddress: string;
     SwapId: string;
