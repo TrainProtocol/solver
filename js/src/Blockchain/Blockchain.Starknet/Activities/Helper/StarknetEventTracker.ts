@@ -62,7 +62,7 @@ export async function TrackBlockEventsAsync(
             if (!sourceToken || !destToken) continue;
 
             const commitMsg: HTLCCommitEventMessage = {
-                TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
+                TxId: parsed.transaction_hash,
                 Id: ToHex(data.Id),
                 Amount: Number(formatUnits(data.amount, 18)),
                 AmountInWei: data.amount.toString(),
@@ -80,12 +80,11 @@ export async function TrackBlockEventsAsync(
 
             response.HTLCCommitEventMessages.push(commitMsg);
         }
-
         else if (eventName.endsWith("TokenLockAdded")) {
             const data = eventData as unknown as TokenLockAddedEvent;
 
             const lockMsg: HTLCLockEventMessage = {
-                TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
+                TxId: parsed.transaction_hash,
                 Id: ToHex(data.Id),
                 HashLock: ToHex(data.hashlock),
                 TimeLock: Number(data.timelock),
