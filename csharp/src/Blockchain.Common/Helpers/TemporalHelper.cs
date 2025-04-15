@@ -53,9 +53,8 @@ public static class TemporalHelper
         {
             case NetworkType.EVM:
             case NetworkType.Solana:
-                return type.ToString();
             case NetworkType.Starknet:
-                return $"{type}JS"; // Todo: temp workaround until starknet integration moves to JS
+                return type.ToString();
             default:
                 throw new("Unsupported network type");
         }
