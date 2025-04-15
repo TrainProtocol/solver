@@ -1,4 +1,4 @@
-import { IBlockchainActivities } from "../Blockchain.Abstraction/Interfaces/IBlockchainActivities";
+import { IBlockchainActivities } from "../Blockchain/Blockchain.Abstraction/Interfaces/IBlockchainActivities";
 
 export function extractActivities<T extends IBlockchainActivities>(instance: T): Record<keyof T, any> {
   const activities = {} as Record<keyof T, any>;

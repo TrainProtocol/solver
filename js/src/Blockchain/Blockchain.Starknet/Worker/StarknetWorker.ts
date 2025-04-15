@@ -2,7 +2,7 @@ import { Worker, NativeConnection } from '@temporalio/worker';
 import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainActivities';
-import { extractActivities as ExtractActivities } from '../../TemporalHelper/ActivityParser';
+import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
 import { NetworkType } from '../../../Data/Entities/Networks';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';

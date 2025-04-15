@@ -1,6 +1,5 @@
 import { proxyActivities, executeChild } from '@temporalio/workflow';
 import { IStarknetBlockchainActivities } from '../Activities/IStarknetBlockchainActivities';
-import { buildProcessorId } from '../../TemporalHelper/TemporalHelper';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
 import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exceptions/AlreadyClaimedExceptions';
@@ -14,6 +13,7 @@ import { TransactionRequest } from '../../Blockchain.Abstraction/Models/Transaci
 import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
+import { buildProcessorId } from '../../../TemporalHelper/TemporalHelper';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
