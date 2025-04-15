@@ -1,4 +1,4 @@
-import { CallData, Contract, hash, num, Provider } from "starknet";
+import { CallData, hash, num, Provider } from "starknet";
 import { Tokens } from "../../../../Data/Entities/Tokens";
 import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../../Models/StarknetTokenLockedEvent";
 import { events } from 'starknet';
@@ -7,7 +7,6 @@ import { TokenCommittedEvent as TokenCommittedEvent } from "../../Models/Starkne
 import { formatAddress as FormatAddress } from "../StarknetBlockchainActivities";
 import { formatUnits } from "ethers/lib/utils";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { NetworkType } from "../../../../Data/Entities/Networks";
 import { BigIntToAscii, ToHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 
 
@@ -87,7 +86,7 @@ export async function TrackBlockEventsAsync(
 
             const lockMsg: HTLCLockEventMessage = {
                 TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
-                Id: ToHex(data.id),
+                Id: ToHex(data.Id),
                 HashLock: ToHex(data.hashlock),
                 TimeLock: Number(data.timelock),
             };
