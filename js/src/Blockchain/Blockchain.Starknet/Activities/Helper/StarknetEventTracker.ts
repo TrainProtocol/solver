@@ -45,7 +45,7 @@ export async function TrackBlockEventsAsync(
     const parsedEvents = events.parseEvents(rawEvents, abiEvents, abiStructs, abiEnums);
 
     for (const parsed of parsedEvents) {
-        
+
         const keys = Object.keys(parsed);
         const eventName = keys[0];
         const eventData = parsed[eventName];
@@ -56,6 +56,11 @@ export async function TrackBlockEventsAsync(
             if (FormatAddress(ToHex(data.srcReceiver)) !== FormatAddress(solverAddress)) {
                 continue;
             }
+
+            const sourceToken = tokens.find(t => t.asset === BigIntToAscii(data.srcAsset) && t.network.name === networkName);
+            const destToken = tokens.find(t => t.asset === BigIntToAscii(data.dstAsset) && t.network.name === BigIntToAscii(data.dstChain));
+
+            if (!sourceToken || !destToken) continue;
 
             const commitMsg: HTLCCommitEventMessage = {
                 TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
@@ -70,8 +75,8 @@ export async function TrackBlockEventsAsync(
                 DestinationNetwork: BigIntToAscii(data.dstChain),
                 DestinationAsset: BigIntToAscii(data.dstAsset),
                 TimeLock: Number(data.timelock),
-                DestinationNetworkType: NetworkType.Solana,
-                SourceNetworkType: NetworkType.Starknet,
+                DestinationNetworkType: destToken.network.type,
+                SourceNetworkType: sourceToken.network.type,
             };
 
             response.HTLCCommitEventMessages.push(commitMsg);
