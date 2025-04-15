@@ -1,6 +1,6 @@
 export interface TokenLockedEvent {
-    Hashlock: bigint;
-    Timelock: bigint;
+    hashlock: bigint;
+    timelock: bigint;
     Id: bigint;
   }
   

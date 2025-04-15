@@ -2,7 +2,6 @@
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
-using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Data.Abstractions.Entities;
 using static Temporalio.Workflows.Workflow;
@@ -22,7 +21,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
         string networkName,
         NetworkType networkType,
         uint blockBatchSize,
-        TimeSpan waitInterval,
+        int waitInterval,
         ulong? lastProcessedBlockNumber = null)
     {
         _lastProcessedBlockNumber = lastProcessedBlockNumber;
@@ -66,7 +65,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
                 if (_lastProcessedBlockNumber >= blockNumberWithHash.BlockNumber)
                 {
-                    await DelayAsync(waitInterval);
+                    await DelayAsync(TimeSpan.FromSeconds(waitInterval));
                     iteration++;
                     continue;
                 }

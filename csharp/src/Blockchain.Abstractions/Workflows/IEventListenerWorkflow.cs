@@ -13,5 +13,5 @@ public interface IEventListenerWorkflow
     HashSet<string> ProcessedTransactionHashes();
 
     [WorkflowRun]
-    Task RunAsync(string networkName, NetworkType networkType, uint blockBatchSize, TimeSpan waitInterval, ulong? lastProcessedBlockNumber = null);
+    Task RunAsync(string networkName, NetworkType networkType, uint blockBatchSize, int waitInterval, ulong? lastProcessedBlockNumber = null);
 }

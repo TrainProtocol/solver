@@ -17,6 +17,7 @@ import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAcco
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
+import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
@@ -43,7 +44,6 @@ import { TransactionType } from "../../Blockchain.Abstraction/Models/Transaciton
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
 
-
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
@@ -56,7 +56,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
-    public async GetBatchTransactionAsync(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
+    public async GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
@@ -80,7 +80,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         return transaction;
     }
 
-    public async GetTransactionAsync(request: GetTransactionRequest): Promise<TransactionResponse> {
+    public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
@@ -129,7 +129,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             return null;
         }
 
-        const feeInWei = confrimedTransaction.actual_fee;
+        const feeInWei = confrimedTransaction.actual_fee.amount;
 
         const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
 
@@ -155,7 +155,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         return transactionModel;
     }
 
-    public async GetLastConfirmedBlockNumberAsync(request: BaseRequest): Promise<BlockNumberResponse> {
+    public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
@@ -187,7 +187,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         };
     }
 
-    public async GetEventsAsync(request: EventRequest): Promise<HTLCBlockEventResponse> {
+    public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -230,7 +230,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         );
     }
 
-    public async GetNextNonceAsync(request: NextNonceRequest): Promise<string> {
+    public async GetNextNonce(request: NextNonceRequest): Promise<string> {
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
             .leftJoinAndSelect("network.nodes", "n")
@@ -284,7 +284,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async PublishTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async PublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
         const network = await this.dbContext.Networks
@@ -352,7 +352,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async BuildTransactionAsync(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
+    public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -385,7 +385,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async GetBalanceAsync(request: BalanceRequest): Promise<BalanceResponse> {
+    public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
         try {
 
             const network = await this.dbContext.Networks
@@ -428,7 +428,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async SimulateTransactionAsync(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async SimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
 
         const network = await this.dbContext.Networks
             .createQueryBuilder("network")
@@ -496,7 +496,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async EstimateFeeAsync(feeRequest: EstimateFeeRequest): Promise<Fee> {
+    public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee> {
         try {
             const network = await this.dbContext.Networks
                 .createQueryBuilder("network")
@@ -540,17 +540,17 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 Decimals: this.FeeDecimals
             }
 
-            const balanceResponse = await this.GetBalanceAsync({
+            const balanceResponse = await this.GetBalance({
                 Address: feeRequest.FromAddress,
                 NetworkName: feeRequest.NetworkName,
                 Asset: this.FeeSymbol
             });
 
-            var amount = feeInWei;
+            let amount = feeInWei;
             amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
 
-            if (BigNumber.from(balanceResponse.AmountInWei) < amount) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse}, Fee: ${amount}`);
+            if (BigNumber.from(balanceResponse.AmountInWei).lt(amount)) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.AmountInWei}, Fee: ${amount}`);
             }
 
             return result;
@@ -563,7 +563,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async ValidateAddLockSignatureAsync(request: AddLockSignatureRequest): Promise<boolean> {
+    public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const network = await this.dbContext.Networks
@@ -629,7 +629,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async GetSpenderAllowanceAsync(request: AllowanceRequest): Promise<number> {
+    public async GetSpenderAllowance(request: AllowanceRequest): Promise<number> {
 
         try {
 

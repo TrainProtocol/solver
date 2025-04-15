@@ -18,6 +18,7 @@ public static class TrainSolverBuilderExtensions
             .AddTransientActivities<SwapActivities>()
             .AddTransientActivities<TokenPriceActivities>()
             .AddTransientActivities<WorkflowActivities>()
+            .AddTransientActivities<NetworkActivities>()
             .AddWorkflow<SwapWorkflow>()
             .AddWorkflow<TokenPriceUpdaterWorkflow>()
             .AddWorkflow<RouteStatusUpdaterWorkflow>()

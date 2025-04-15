@@ -1,6 +1,6 @@
 import { ActivityOptions } from "@temporalio/workflow";
 import { v4 as uuidv4 } from 'uuid';
-import { TransactionType } from "../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
+import { TransactionType } from "../Blockchain/Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 
 export function defaultActivityOptions(taskQueue?: string): ActivityOptions {
   return {

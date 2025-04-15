@@ -2,18 +2,18 @@ import { NetworkType } from '../../../Data/Entities/Networks';
 import { HTLCCommitEventMessage } from '../Models/EventModels/HTLCBlockEventResposne';
 
 export interface IWorkflowActivities {
-  GetRunningWorkflowIdsAsync(workflowType: string): Promise<string[]>;
+  GetRunningWorkflowIds(workflowType: string): Promise<string[]>;
 
-  RunEventListeningWorkflowAsync(
+  RunEventListeningWorkflow(
     networkName: string,
     networkType: NetworkType,
     blockBatchSize: number,
     waitInterval: string
   ): Promise<void>;
 
-  StartRefundWorkflowAsync(swapId: string): Promise<void>;
+  StartRefundWorkflow(swapId: string): Promise<void>;
 
-  StartSwapWorkflowAsync(signal: HTLCCommitEventMessage): Promise<string>;
+  StartSwapWorkflow(signal: HTLCCommitEventMessage): Promise<string>;
 
-  TerminateWorkflowAsync(workflowId: string): Promise<void>;
+  TerminateWorkflow(workflowId: string): Promise<void>;
 }
