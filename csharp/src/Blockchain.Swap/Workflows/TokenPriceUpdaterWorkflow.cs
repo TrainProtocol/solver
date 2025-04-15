@@ -26,6 +26,8 @@ public class TokenPriceUpdaterWorkflow : IScheduledWorkflow
     {
         try
         {
+            Logger.LogInformation("TokenPriceUpdaterWorkflow started");
+
             var tokenMarketPrices = await ExecuteActivityAsync(
                 (ITokenPriceActivities x) => x.GetTokensPricesAsync(),
                 GetMarketPriceActivityOptions);

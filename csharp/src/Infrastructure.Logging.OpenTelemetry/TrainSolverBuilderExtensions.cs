@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Reflection.PortableExecutable;
 using Train.Solver.Infrastructure.DependencyInjection;
 
 namespace Train.Solver.Infrastructure.Logging.OpenTelemetry;
@@ -30,36 +32,40 @@ public static class TrainSolverBuilderExtensions
 
         configureOptions?.Invoke(options);
 
-        var otelResources = ResourceBuilder.CreateEmpty()
-            .AddTelemetrySdk()
-            .AddEnvironmentVariableDetector()
-            .AddContainerDetector()
-            .AddService(serviceName);
+        // Configure OTLP options class which is shared by logging, metrics, and tracing
+        builder.Services.Configure<OtlpExporterOptions>(ot =>
+        {
+            ot.Endpoint = options.OpenTelemetryUrl;
+
+            if (!string.IsNullOrEmpty(options.SignozIngestionKey))
+            {
+                ot.Headers = $"{options.SignozIngestionHeaderKey}={options.SignozIngestionKey}";
+            }
+        });
+
+        builder.Services.AddLogging(builder =>
+        {
+            builder
+                .ClearProviders()
+                .AddFilter("Microsoft", LogLevel.None)
+                .AddFilter("System", LogLevel.None)
+                .AddOpenTelemetry(logging =>
+                {
+                    logging.AddOtlpExporter();
+                });
+        });
 
         builder.Services.AddOpenTelemetry()
-            .ConfigureResource(resource =>
-                resource
-                    .AddTelemetrySdk()
-                    .AddEnvironmentVariableDetector()
-                    .AddContainerDetector()
-                    .AddService(serviceName: serviceName))
+            .ConfigureResource(
+                resource => resource.AddTelemetrySdk()
+                   .AddEnvironmentVariableDetector()
+                   .AddContainerDetector()
+                   .AddService(serviceName))
             .WithTracing(tracing => tracing
                 .AddAspNetCoreInstrumentation(oi => {
                     oi.RecordException = true;
                 })
-                .AddOtlpExporter(ot =>
-                    {
-                        ot.Endpoint = options.OpenTelemetryUrl;
-                        ot.Protocol = OtlpExportProtocol.Grpc;
-                        
-                        if (!string.IsNullOrEmpty(options.SignozIngestionKey))
-                        {
-                            string headerKey = "signoz-ingestion-key";
-                            string headerValue = options.SignozIngestionKey;
-                            string formattedHeader = $"{headerKey}={headerValue}";
-                            ot.Headers = formattedHeader;
-                        }
-                    }));
+                .AddOtlpExporter());
 
         return builder;
     }
