@@ -14,7 +14,9 @@ export function hexToBigInt(hex: string): bigint {
   return BigInt("0x" + removeHexPrefix(hex));
 }
 
-export function hexToAscii(hex: string): string {
+export function BigIntToAscii(bigint: bigint): string {
+
+  const hex = ToHex(bigint)
   let str = '';
   for (let i = 0; i < hex.length; i += 2) {
     const code = parseInt(hex.substr(i, 2), 16);
@@ -27,11 +29,6 @@ export function parseHexToUTF8(hex: string): string {
   return Buffer.from(removeHexPrefix(hex), 'hex').toString('utf8');
 }
 
-export function tryParseU256(firstHex: string, secondHex: string): bigint | undefined {
-  try {
-    const combined = concatHexes(firstHex, secondHex);
-    return hexToBigInt(combined);
-  } catch {
-    return undefined;
-  }
+export function ToHex(value: bigint): string {
+  return '0x' + value.toString(16);
 }

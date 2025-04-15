@@ -17,6 +17,7 @@ import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAcco
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
+import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
@@ -42,7 +43,6 @@ import { TransactionStatus } from "../../Blockchain.Abstraction/Models/Transacit
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
-
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {

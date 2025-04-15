@@ -4,9 +4,11 @@ import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../..
 import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
 import { TokenCommittedEvent as TokenCommittedEvent } from "../../Models/StarknetTokenCommittedEvent";
-import { formatAddress } from "../StarknetBlockchainActivities";
+import { formatAddress as FormatAddress } from "../StarknetBlockchainActivities";
 import { formatUnits } from "ethers/lib/utils";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
+import { NetworkType } from "../../../../Data/Entities/Networks";
+import { BigIntToAscii, ToHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 
 
 export async function TrackBlockEventsAsync(
@@ -43,46 +45,46 @@ export async function TrackBlockEventsAsync(
     const parsedEvents = events.parseEvents(rawEvents, abiEvents, abiStructs, abiEnums);
 
     for (const parsed of parsedEvents) {
-        if ("TokenCommitted" in parsed) {
-            const data = (parsed as unknown as { TokenCommitted: TokenCommittedEvent }).TokenCommitted;
+        
+        const keys = Object.keys(parsed);
+        const eventName = keys[0];
+        const eventData = parsed[eventName];
 
-            if (formatAddress(data.SourceReciever) !== formatAddress(solverAddress)) {
+        if (eventName.endsWith("TokenCommitted")) {
+            const data = eventData as unknown as TokenCommittedEvent;
+
+            if (FormatAddress(ToHex(data.srcReceiver)) !== FormatAddress(solverAddress)) {
                 continue;
             }
 
-            const sourceToken = tokens.find(t => t.asset === data.SourceAsset && t.network.name === networkName);
-            const destToken = tokens.find(t => t.asset === data.DestinationAsset && t.network.name === data.DestinationNetwork);
-
-            if (!sourceToken || !destToken) continue;
-
             const commitMsg: HTLCCommitEventMessage = {
-                TxId: rawEvents.find(e => e.keys[1] === data.Id.toString())?.transaction_hash ?? "",
-                Id: "0x" + data.Id.toString(16),
-                Amount: Number(formatUnits(data.AmountInBaseUnits, sourceToken.decimals)),
-                AmountInWei: data.AmountInBaseUnits,
+                TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
+                Id: ToHex(data.Id),
+                Amount: Number(formatUnits(data.amount, 18)),
+                AmountInWei: data.amount.toString(),
                 ReceiverAddress: solverAddress,
                 SourceNetwork: networkName,
-                SenderAddress: formatAddress(data.SenderAddress),
-                SourceAsset: data.SourceAsset,
-                DestinationAddress: data.DestinationAddress,
-                DestinationNetwork: data.DestinationNetwork,
-                DestinationAsset: data.DestinationAsset,
-                TimeLock: Number(data.Timelock),
-                DestinationNetworkType: destToken.network.type,
-                SourceNetworkType: sourceToken.network.type,
+                SenderAddress: FormatAddress(ToHex(data.sender)),
+                SourceAsset: BigIntToAscii(data.srcAsset),
+                DestinationAddress: data.dstAddress,
+                DestinationNetwork: BigIntToAscii(data.dstChain),
+                DestinationAsset: BigIntToAscii(data.dstAsset),
+                TimeLock: Number(data.timelock),
+                DestinationNetworkType: NetworkType.Solana,
+                SourceNetworkType: NetworkType.Starknet,
             };
 
             response.HTLCCommitEventMessages.push(commitMsg);
         }
 
-        else if ("TokenLockAdded" in parsed) {
+        else if (eventName.endsWith("TokenLockAdded")) {
             const data = (parsed as unknown as { TokenLockAdded: TokenLockAddedEvent }).TokenLockAdded;
 
             const lockMsg: HTLCLockEventMessage = {
-                TxId: rawEvents.find(e => e.keys[1] === data.Id.toString())?.transaction_hash ?? "",
-                Id: "0x" + data.Id.toString(16),
-                HashLock: "0x" + data.Hashlock.toString(16),
-                TimeLock: Number(data.Timelock),
+                TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
+                Id: ToHex(data.id),
+                HashLock: ToHex(data.hashlock),
+                TimeLock: Number(data.timelock),
             };
 
             response.HTLCLockEventMessages.push(lockMsg);
