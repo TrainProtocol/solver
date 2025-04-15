@@ -82,7 +82,7 @@ export async function TrackBlockEventsAsync(
         }
 
         else if (eventName.endsWith("TokenLockAdded")) {
-            const data = (parsed as unknown as { TokenLockAdded: TokenLockAddedEvent }).TokenLockAdded;
+            const data = eventData as unknown as TokenLockAddedEvent;
 
             const lockMsg: HTLCLockEventMessage = {
                 TxId: rawEvents.find(e => e.keys[0])?.transaction_hash,
