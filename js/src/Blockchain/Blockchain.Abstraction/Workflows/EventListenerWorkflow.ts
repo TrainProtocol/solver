@@ -103,7 +103,7 @@ async function processBlockRange(
     for (const commit of result.HTLCCommitEventMessages) {
         if (!processedTransactionHashes.has(commit.TxId)) {
             processedTransactionHashes.add(commit.TxId);
-            await workflowActivities.StartSwapWorkflowAsync(commit);
+            await workflowActivities.StartSwapWorkflow(commit);
         }
     }
 
