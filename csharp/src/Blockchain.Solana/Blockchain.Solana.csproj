@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchain.Solana</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchain.Solana</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Nethereum.Web3Lite" Version="4.29.0" />
+		<PackageReference Include="Solnet.Extensions" Version="6.1.0" />
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
+	</ItemGroup>
+	
+  <ItemGroup>
+		<ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
+		<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
+		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+    	<ProjectReference Include="..\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />
+  </ItemGroup>
+
+</Project>

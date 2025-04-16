@@ -1,0 +1,57 @@
+# Global configurations
+global:
+  imagePullSecrets: []
+  nodeSelector: {}
+  tolerations: []
+
+# Temporal configuration
+temporal:
+  server:
+    config:
+      persistence:
+        default:
+          sql:
+            user: ${POSTGRES_USER}
+            password: ${POSTGRES_PASSWORD}
+            database: ${TEMPORAL_DB_NAME}
+            host: db
+            port: ${POSTGRES_PORT}
+
+# Postgres configuration
+postgresql:
+  auth:
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    database: ${POSTGRES_DB}
+
+# Redis configuration
+redis:
+  auth:
+    password: ""
+
+# Core services
+api:
+  replicas: 1
+  ingress:
+    enabled: true
+    annotations: {}
+    hosts:
+      - host: api.example.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+
+Swap:
+  replicas: 1
+
+EVM:
+  enabled: true
+
+Solana:
+  replicas: 1
+  enabled: true
+
+Starknet:
+  replicas: 1
+  enabled: true

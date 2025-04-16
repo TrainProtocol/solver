@@ -1,0 +1,154 @@
+services:
+  solver.api:
+    build:
+      context: ../..
+      dockerfile: csharp/src/API/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.api
+    ports:
+      - "8080:8080"
+    environment:
+      TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
+      TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+      ASPNETCORE_URLS: http://+:8080
+    depends_on:
+      - temporal
+      - db
+      - redis
+    networks:
+      - app-network
+
+  solver.swap:
+    build:
+      context: ../..
+      dockerfile: csharp/src/Blockchain.Swap/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.swap
+    environment:
+      TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
+      TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+    depends_on:
+      - temporal
+      - db
+      - redis
+      - solver.api
+    networks:
+      - app-network
+
+  solver.evm:
+    build:
+      context: ../..
+      dockerfile: csharp/src/Blockchain.EVM/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.evm
+    environment:
+      TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
+      TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+    depends_on:
+      - temporal
+      - db
+      - redis
+      - solver.api
+    networks:
+      - app-network
+
+  solver.solana:
+    build:
+      context: ../..
+      dockerfile: csharp/src/Blockchain.Solana/Dockerfile
+      args:
+        DOTNET_VERSION: ${DOTNET_VERSION}
+    container_name: solver.solana
+    environment:
+      TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
+      TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+    depends_on:
+      - temporal
+      - db
+      - redis
+      - solver.api
+    networks:
+      - app-network
+      
+  solver.starknet:
+    build:
+      context: ../..
+      dockerfile: js/Dockerfile
+      args:
+        NETWORK: starknet
+    container_name: solver.starknet
+    environment:
+      NODE_ENV: production
+      TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
+      TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
+      TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
+      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+    depends_on:
+      - temporal
+      - db
+      - redis
+      - solver.api
+    networks:
+      - app-network
+
+  # Temporal.io server service
+  temporal:
+    image: "temporalio/auto-setup:latest"
+    container_name: temporal.server
+    environment:
+      DB: "postgres12"
+      DB_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD}
+      POSTGRES_SEEDS: "db"
+      DBNAME: ${TEMPORAL_DB_NAME}
+      VISIBILITY_DBNAME: ${TEMPORAL_VISIBILITY_DB_NAME}
+    ports:
+      - "7233:7233"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: "postgres:16"
+    container_name: postgresql.db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Redis service
+  redis:
+    image: "redis:latest"
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+    
+volumes:
+  postgres_data:
+    name: postgres_data

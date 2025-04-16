@@ -1,86 +1,188 @@
+
+
+
 # 🚄 Train.Solver
 
-Train.Solver is a **cross-chain liquidity provider application** that facilitates **atomic swaps** between blockchain networks. It ensures secure, efficient, and trustless asset transfers across multiple chains.
+**TrainSolver** is a modular and extensible application built on [Temporal.io](https://temporal.io), implementing the [TRAIN Protocol](https://train.xyz). It provides a trustless, permissionless, and scalable framework for cross-chain asset swaps across multiple blockchain networks, such as Ethereum-compatible chains (EVM), Starknet, Solana, Fuel, TON, Aptos & any altVM.
+
+
+| Component | Dockerfile Location | Image Badge |
+|-----------|---------------------|-------------|
+| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Runner (Swap) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
+| Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
+| Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
 
 ---
 
-## 🔍 How It Works
+## 📚 Table of Contents
 
-Train.Solver continuously monitors events across all configured blockchains and waits for a **user funds lock event**. Once detected, the following steps occur:
-
-1. The application locks an equivalent amount, minus fees, on the **destination chain**.
-2. After the user **confirms the quote**, the app **releases the funds** in the destination chain.
-3. Finally, Train.Solver **claims the funds** from the source chain.
-
-This mechanism guarantees a **secure and atomic** cross-chain transaction process, ensuring seamless liquidity provision.
-
----
-
-## 🛠 Technologies Used
-
-Train.Solver leverages the following technologies to ensure efficient and secure operations:
-
-- **Temporal.io** - Used for managing workflows and transaction execution.
-- **PostgreSQL** - Stores network configurations, routing information, and archived swap data.
-- **Azure KeyVault** - Securely stores private keys for transaction signing.
-- **Redis** - Implements distributed locks to ensure consistency across multiple instances.
-- **C#** - Primary language for core components, with support for additional network integrations in any language supported by Temporal.io.
+- [Overview](#overview)
+- [Protocol Design](#protocol-design)
+- [Project Structure](#project-structure)
+- [Core Components](#core-components)
+  - [Temporal Workflows](#temporal-workflows)
+  - [Blockchain Activity Interface](#blockchain-activity-interface)
+  - [System Workflows](#system-workflows)
+- [Configuration](#configuration)
+- [Infrastructure](#infrastructure)
+- [Deployment](#deployment)
+- [Extending the System](#extending-the-system)
 
 ---
 
-## 🏗 System Components
+## 🧭 Overview
 
-Train.Solver consists of **three core components**:
+TrainSolver enables secure, atomic, and permissionless cross-chain asset transfers by coordinating on-chain events through Temporal workflows. Users retain full control of their assets at all times, while new blockchain networks can onboard seamlessly via a shared security and workflow abstraction.
 
-### 🏦 Core
+The architecture ensures:
 
-The Core module manages blockchain-related operations, including:
-
-- Retrieving balances
-- Fetching transactions
-- Publishing transactions
-- Signing and verifying transactions
-
-### 🌐 API
-
-The API provides external access for:
-
-- Retrieving available blockchain networks
-- Fetching liquidity quotes
-- Checking swap limits
-- Querying active swaps
-
-### 🔄 Temporal.io Workflow Runner
-
-The Workflow Runner automates swap execution by managing:
-
-- Transaction monitoring
-- Workflow execution for swaps
-- Failure handling and recovery mechanisms
+- **Trustless Transfers** — assets are only moved under user-approved conditions.
+- **Permissionless Integration** — no central approval is required for adding new blockchains.
+- **Scalable Design** — supports horizontal onboarding of new chains and workflows.
 
 ---
 
-## 🔗 Integrating a New Network
+## 🚆 Protocol Design
 
-To integrate a new blockchain network into Train.Solver, follow these steps:
+The **TRAIN Protocol** leverages an *intent-and-solver* model secured by **Atomic Swaps** and **Local Verification** mechanisms (such as light clients in browsers). It defines a universal workflow-based interface for performing cross-chain transfers that includes:
 
-### ⚡ Create Workflow Execution Logic
+- **Intent Creation** — user signals desire to move assets across chains.
+- **Lock Mechanism** — assets are locked on the source chain.
+- **Verification & Confirmation** — the swap is validated locally and cryptographically.
+- **Destination Unlocking** — funds are released upon confirmation on the destination chain.
 
-Develop a corresponding **transaction handler** in Temporal workflows to execute the necessary transaction steps:
+This ensures a uniform and secure experience regardless of the underlying blockchain.
 
-- Define workflow logic for swap execution.
-- Handle fund locking, unlocking, and failure recovery.
+---
 
-### ⚙️ Implement Core Services
+## 🧱 Project Structure
 
-Ensure required **Core services** are implemented to be callable from workflow activities:
+```plaintext
+TrainSolver.sln
+└── src/
+    ├── API/                             # Entry point / HTTP Interface
+    ├── Blockchain/
+    │   ├── Blockchain.Abstractions/    # Workflow & Activity interfaces
+    │   ├── Blockchain.Common/          # Shared blockchain logic
+    │   ├── Blockchain.EVM/             # EVM implementation
+    │   ├── Blockchain.Starknet/        # Starknet implementation
+    │   ├── Blockchain.Solana/          # Solana implementation
+    │   ├── Blockchain.Swap/            # Core swap workflow
+    │   └── Blockchain.Helpers/
+    ├── Data/
+    │   ├── Data.Abstractions/          # Repository interfaces
+    │   └── Data.Npgsql/                # PostgreSQL + EF Core
+    ├── Infrastructure/
+    │   ├── Infrastructure.Abstractions/
+    │   ├── Infrastructure.DependencyInjection/
+    │   ├── Infrastructure.Logging.OpenTelemetry/
+    │   ├── Infrastructure.Secret.AzureKeyVault/
+    │   └── Infrastructure.TokenPrice.Coingecko/
+    └── Shared/
+        └── Util/                       # Shared utilities
+```
 
-- Interaction with blockchain nodes
-- Execution of swap transactions
-- Status monitoring
+---
 
-### 🗄 Configure Database
-Store essential network details such as chain ID, network name, logo, RPC nodes, routes, and other metadata.
+## ⚙️ Core Components
 
+### Temporal Workflows
 
-Once these steps are completed, the network will be fully integrated into Train.Solver, ensuring seamless cross-chain swaps.
+Each blockchain integration must implement two Temporal workflows:
+
+- **`TransactionProcessorWorkflow`**  
+  Responsible for building and submitting transactions, handling nonces, fees, and confirmations. This workflow is *mandatory* for all integrations.
+
+- **`EventListenerWorkflow`**  
+  Continuously scans blockchain blocks for relevant smart contract events (e.g., `UserLock`). Upon detecting an event, it triggers the core `SwapWorkflow`.
+
+The central `SwapWorkflow` (provided) orchestrates:
+1. Locking destination funds by calling `TransactionProcessorWorkflow`.
+2. Awaiting user confirmation.
+3. Releasing funds upon approval.
+
+> These workflows can be implemented in **any Temporal-supported language** (e.g., Go, TypeScript, Java) and registered as long as the Temporal Worker is configured properly.
+
+---
+
+### Blockchain Activity Interface
+
+All blockchain interactions are defined in the `IBlockchainActivities` interface:
+
+```csharp
+public interface IBlockchainActivities
+{
+    Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
+    Task<string> GetSpenderAddressAsync(SpenderAddressRequest request);
+    Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
+    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
+    Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
+    Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
+    Task<string> GetNextNonceAsync(NextNonceRequest request);
+    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
+    Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
+}
+```
+
+Default implementations are provided, but developers may customize and extend as needed for their specific chain logic.
+
+---
+
+### System Workflows
+
+The following **scheduled workflows** handle critical background tasks:
+
+- **`RouteStatusUpdater`**  
+  Monitors hot wallet balances and toggles the availability of transfer routes.
+
+- **`EventListenerUpdater`**  
+  Starts or stops `EventListenerWorkflow` instances depending on route availability.
+
+- **`TokenPriceUpdater`**  
+  Periodically fetches token price data (default: Coingecko) and updates the database.
+
+---
+
+## 🛠 Configuration
+
+Chain and route metadata is defined dynamically via a PostgreSQL database. Configuration includes:
+
+- Registered blockchain networks
+- Contract addresses
+- Node URLs
+- Token definitions
+- Swap routing information
+
+> The system dynamically interacts with blockchain integrations based on the configuration stored in the database.
+
+---
+
+## 🧩 Infrastructure
+
+- **Database**: PostgreSQL with Entity Framework Core  
+- **Secrets Management**: Azure Key Vault (for private key storage)  
+- **Observability**: OpenTelemetry instrumentation with SigNoz as the backend  
+- **Price Feeds**: Coingecko-based token pricing service  
+
+---
+
+## 🚀 Deployment
+
+TrainSolver supports Docker-based deployments for local development or production. A `docker-compose.yml` is provided to start up the full stack, including Temporal services, API, and required infrastructure components.
+
+---
+
+## 🔌 Extending the System
+
+To integrate a new blockchain:
+
+1. Implement `TransactionProcessorWorkflow` and `EventListenerWorkflow`.
+2. Implement `IBlockchainActivities` with required logic.
+3. Register chain configuration in the database.
+4. Build and deploy a Temporal worker that registers your workflows and activities.
+
+> 🧠 These implementations can be done in any language supported by Temporal.io.
+
+> 📦 Final step: Package your worker as a Docker image to run alongside the system.

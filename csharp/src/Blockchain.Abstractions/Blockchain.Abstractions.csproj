@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Blockchain.Abstractions</AssemblyName>
+		<RootNamespace>Train.Solver.Blockchain.Abstractions</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Temporalio.Extensions.Hosting" Version="1.5.0" />
+		<PackageReference Include="protobuf-net.Core" Version="3.2.46" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
+	  <ProjectReference Include="..\Infrastructure.Abstractions\Infrastructure.Abstractions.csproj" />
+	</ItemGroup>
+
+</Project>

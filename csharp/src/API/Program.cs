@@ -1,22 +1,20 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using Train.Solver.API;
 using Train.Solver.API.Endpoints;
 using Train.Solver.API.Extensions;
 using Train.Solver.API.MIddlewares;
-using Train.Solver.Core.DependencyInjection;
-using Train.Solver.Core.Extensions;
-using Train.Solver.Core.Services.Secret.AzureKeyVault;
-using Train.Solver.Core.Services.TokenPrice.Coingecko;
+using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Infrastructure.Logging.OpenTelemetry;
+using Train.Solver.Data.Npgsql.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-
 
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.Local.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
 builder.Services.AddRateLimiter(options =>
@@ -31,18 +29,15 @@ builder.Services.AddRateLimiter(options =>
         }));
 });
 
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-
-builder.Services.AddAutoMapper(mc =>
-{
-    mc.AddProfile<MapperProfile>();
 });
 
 builder.Services.AddSwaggerGen(c =>
@@ -56,9 +51,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
-    .AddTrainSolver(builder.Configuration, opts => opts.MigrateDatabase = true)
-    .WithAzureKeyVault()
-    .WithCoingeckoPrices();
+    .AddTrainSolver(builder.Configuration)
+    .WithOpenTelemetryLogging("Solver API")
+    .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
 
 builder.Services.AddCors(options =>
 {

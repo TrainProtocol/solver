@@ -1,0 +1,5 @@
+{
+  "TrainSolver": {
+    "DatabaseConnectionString": "<DB_CONNECTION_STRING>"
+  }
+}
