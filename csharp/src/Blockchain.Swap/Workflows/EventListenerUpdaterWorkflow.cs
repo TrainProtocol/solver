@@ -28,7 +28,9 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 
         foreach (var network in activeNetworks)
         {
-            if (!activeEventListenerWorkflowIds.Any(x => x == TemporalHelper.BuildEventListenerId(network.Name)))
+            var eventListnerId = TemporalHelper.BuildEventListenerId(network.Name);
+
+            if (!activeEventListenerWorkflowIds.Any(x => x == eventListnerId))
             {
                 await ExecuteActivityAsync(
                     (WorkflowActivities x) => x.RunEventListeningWorkflowAsync(
@@ -37,19 +39,22 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
                         _blockBachSize,
                         _waitIntervalInSeconds),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+
+                Logger.EventListeningStarted(eventListnerId);
             }
         }
 
         var mustBeStoppedEventListenersIds = activeEventListenerWorkflowIds
-            .Where(workflowId =>
-                !activeNetworks.Any(x => workflowId == TemporalHelper.BuildEventListenerId(x.Name)))
-            .ToList();
+            .Where(workflowId => !activeNetworks.Any(
+                x => workflowId == TemporalHelper.BuildEventListenerId(x.Name)));
 
         foreach (var eventListenerId in mustBeStoppedEventListenersIds)
         {
             await ExecuteActivityAsync(
                 (IWorkflowActivities x) => x.TerminateWorkflowAsync(eventListenerId),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+
+            Logger.EventListeningTerminated(eventListenerId);
         }
     }
 }

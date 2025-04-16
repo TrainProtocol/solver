@@ -49,6 +49,7 @@ public static class TrainSolverBuilderExtensions
                 .ClearProviders()
                 .AddFilter("Microsoft", LogLevel.None)
                 .AddFilter("System", LogLevel.None)
+                .AddFilter("Azure", LogLevel.None)
                 .AddOpenTelemetry(logging =>
                 {
                     logging.AddOtlpExporter();
