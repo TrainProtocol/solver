@@ -42,13 +42,13 @@ public class RouteService(
             throw new Exception($"{(fromSrcToDest ? "Source" : "Destination")} network and token should be provided");
         }
 
-        Token? reuqestedPoint = null;
+        Token? requestedPoint = null;
 
         if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(networkName))
         {
-            reuqestedPoint = await networkRepository.GetTokenAsync(networkName, asset);
+            requestedPoint = await networkRepository.GetTokenAsync(networkName, asset);
 
-            if (reuqestedPoint == null)
+            if (requestedPoint == null)
             {
                 return null;
             }
@@ -57,7 +57,7 @@ public class RouteService(
         var reachablePoints = await routeRepository.GetReachablePointsAsync(
             [RouteStatus.Active],
             fromSrcToDest,
-            reuqestedPoint?.Id);
+            requestedPoint?.Id);
 
         if (reachablePoints == null || !reachablePoints.Any())
         {

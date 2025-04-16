@@ -8,7 +8,7 @@ public class RouteDto
 
     public TokenWithNetworkDto Source { get; set; } = null!;
 
-    public TokenWithNetworkDto Destionation { get; set; } = null!;
+    public TokenWithNetworkDto Destination { get; set; } = null!;
 
     public decimal MaxAmountInSource { get; set; }
 
