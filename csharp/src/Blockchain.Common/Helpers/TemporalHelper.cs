@@ -46,18 +46,4 @@ public static class TemporalHelper
         => $"{nameof(EventListenerWorkflow)}-{networkName.ToUpper()}";
 
     public static string BuildProcessorId(string networkName, TransactionType type, Guid uniqueId) => $"{networkName}-{type}-{uniqueId}";
-
-    public static string ResolveBlockchainActivityTaskQueue(NetworkType type)
-    {
-        switch (type)
-        {
-            case NetworkType.EVM:
-            case NetworkType.Solana:
-            case NetworkType.Starknet:
-                return type.ToString();
-            default:
-                throw new("Unsupported network type");
-        }
-    }
-
 }

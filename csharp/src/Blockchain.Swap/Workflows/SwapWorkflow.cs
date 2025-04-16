@@ -287,9 +287,7 @@ public class SwapWorkflow : ISwapWorkflow
         {
             var isValid = await ExecuteActivityAsync(
                 (IBlockchainActivities x) => x.ValidateAddLockSignatureAsync(addLockSig),
-                DefaultActivityOptions(
-                    ResolveBlockchainActivityTaskQueue(
-                        _htlcCommitMessage!.SourceNetworkType))); // Todo: temp workaround
+                DefaultActivityOptions(_htlcCommitMessage!.SourceNetworkType));
 
             if (isValid)
             {
