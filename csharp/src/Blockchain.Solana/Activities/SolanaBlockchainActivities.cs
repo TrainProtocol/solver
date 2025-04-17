@@ -21,6 +21,12 @@ using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Models;
 using Train.Solver.Blockchain.Solana.Programs;
 using Train.Solver.Blockchain.Common.Helpers;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using System.Buffers.Binary;
+using System.Buffers;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Train.Solver.Blockchain.Solana.Activities;
 
@@ -317,7 +323,7 @@ public class SolanaBlockchainActivities(
         }
 
         return transaction;
-    }    
+    }
 
     [Activity]
     public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
@@ -447,9 +453,87 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public virtual Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
-        throw new NotImplementedException();
+        var network = await networkRepository.GetAsync(request.NetworkName);
+
+        if (network is null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
+        }
+
+        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+
+        if (currency is null)
+        {
+            throw new ArgumentNullException(nameof(currency), $"Currency {request.Asset} for {request.NetworkName} is missing");
+        }
+
+        if (request.Signature is null)
+        {
+            throw new ArgumentNullException(nameof(request.Signature), "Signature is required");
+        }
+
+        var idBytes = Convert.FromHexString(request.Id);
+        var hashlockBytes = Convert.FromHexString(request.Hashlock);
+
+        var timelockLe = new byte[8];
+        BinaryPrimitives.WriteUInt64LittleEndian(timelockLe, (ulong)request.Timelock);
+
+        byte[] msg;
+        using (var sha = SHA256.Create())
+        {
+            sha.TransformBlock(idBytes, 0, idBytes.Length, null, 0);
+            sha.TransformBlock(hashlockBytes, 0, hashlockBytes.Length, null, 0);
+            sha.TransformFinalBlock(timelockLe, 0, timelockLe.Length);
+            msg = sha.Hash!;
+        }
+
+        var signingDomain = new byte[] { 0xFF }
+         .Concat(Encoding.ASCII.GetBytes("solana offchain"))
+         .ToArray();
+
+        var headerVersion = new byte[] { 0x00 };
+        var applicationDomain = new byte[32];
+        Encoding.ASCII.GetBytes("Train", applicationDomain);
+        var messageFormat = new byte[] { 0x00 };
+        var signerCount = new byte[] { 0x01 };
+
+        var signerPublicKey = new PublicKey(request.SignerAddress).KeyBytes;
+
+        var messageLengthLe = BitConverter.GetBytes((ushort)msg.Length);
+
+        var parts = new List<byte[]>
+        {
+            signingDomain,
+            headerVersion,
+            applicationDomain,
+            messageFormat,
+            signerCount,
+            signerPublicKey,
+            messageLengthLe,
+            msg
+        };
+
+        var totalLength = 0;
+        foreach (var p in parts) totalLength += p.Length;
+
+        var finalMessage = new byte[totalLength];
+        var offset = 0;
+        foreach (var p in parts)
+        {
+            Buffer.BlockCopy(p, 0, finalMessage, offset, p.Length);
+            offset += p.Length;
+        }
+
+        var signatureBytes = Convert.FromBase64String(request.Signature);
+
+        var verifier = new Ed25519Signer();
+        verifier.Init(false, new Ed25519PublicKeyParameters(signerPublicKey, 0));
+        verifier.BlockUpdate(finalMessage, 0, finalMessage.Length);
+        var isValid = verifier.VerifySignature(signatureBytes);
+
+        return isValid;
     }
 
     [Activity]
