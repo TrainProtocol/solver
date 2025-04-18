@@ -11,6 +11,4 @@ public class NetworkDto
     public TransactionFeeType FeeType { get; set; }
 
     public NetworkType Type { get; set; }
-
-    public bool IsTestnet { get; set; }
 }

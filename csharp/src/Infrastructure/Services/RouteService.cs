@@ -78,7 +78,6 @@ public class RouteService(
                     Type = network.Type,
                     AccountExplorerTemplate = network.AccountExplorerTemplate,
                     TransactionExplorerTemplate = network.TransactionExplorerTemplate,
-                    IsTestnet = network.IsTestnet,
                     ChainId = network.ChainId,
                     DisplayName = network.DisplayName,
                     FeeType = network.FeeType,

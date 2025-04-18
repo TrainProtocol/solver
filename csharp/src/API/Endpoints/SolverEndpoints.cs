@@ -18,13 +18,20 @@ public static class SolverEndpoints
     public static RouteGroupBuilder MapEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
+
+        group.MapGet("/routes", GetRoutesAsync)
+           .Produces<ApiResponse<List<RouteDto>>>()
+           .CacheOutput();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();
@@ -198,6 +205,16 @@ public static class SolverEndpoints
        
 
         return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = mappedNetworks });
+    }
+
+    private static async Task<IResult> GetRoutesAsync(
+        HttpContext httpContext,
+        IRouteRepository routeRepository)
+    {
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
+        var mappedRoutes = routes.Select(x => x.ToDto());
+
+        return Results.Ok(new ApiResponse<IEnumerable<RouteDto>> { Data = mappedRoutes });
     }
 
     private static async Task<IResult> GetAllSourcesAsync(

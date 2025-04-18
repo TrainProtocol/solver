@@ -69,7 +69,6 @@ public static class MapperExtensions
             ChainId = network.ChainId,
             FeeType = network.FeeType,
             Type = network.Type,
-            IsTestnet = network.IsTestnet
         };
     }
 
@@ -111,7 +110,6 @@ public static class MapperExtensions
             ChainId = network.ChainId,
             FeeType = network.FeeType,
             Type = network.Type,
-            IsTestnet = network.IsTestnet,
             Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
             TransactionExplorerTemplate = network.TransactionExplorerTemplate,
             AccountExplorerTemplate = network.AccountExplorerTemplate,
