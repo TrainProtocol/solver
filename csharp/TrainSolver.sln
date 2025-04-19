@@ -66,7 +66,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{408D96B3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtoGenerator", "tools\ProtoGenerator\ProtoGenerator.csproj", "{F122706F-7858-4A1C-84C2-21FE9B27A432}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Secret.HashcorpKeyVault", "src\Infrastructure.Secret.HashcorpKeyVault\Infrastructure.Secret.HashcorpKeyVault.csproj", "{EF01FD26-7CF3-4CB7-88AF-78199E40091E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Secret.HashicorpKeyVault", "src\Infrastructure.Secret.HashicorpKeyVault\Infrastructure.Secret.HashicorpKeyVault.csproj", "{EF01FD26-7CF3-4CB7-88AF-78199E40091E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -6,7 +6,7 @@ namespace Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
 
 public class HashicorpKeyVaultPrivateKeyProvider(
     IVaultClient secretClient,
-    IOptions<HashcorpKeyVaultOptions> options) : IPrivateKeyProvider
+    IOptions<HashicorpKeyVaultOptions> options) : IPrivateKeyProvider
 {
     private const string _pkKey = "private_key";
 

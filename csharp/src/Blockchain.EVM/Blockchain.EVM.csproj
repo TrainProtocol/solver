@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
 	<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
     <ProjectReference Include="..\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />
-	<ProjectReference Include="..\Infrastructure.Secret.HashcorpKeyVault\Infrastructure.Secret.HashcorpKeyVault.csproj" />
+	<ProjectReference Include="..\Infrastructure.Secret.HashicorpKeyVault\Infrastructure.Secret.HashicorpKeyVault.csproj" />
   </ItemGroup>
 	
 </Project>

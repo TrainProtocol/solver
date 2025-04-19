@@ -14,9 +14,9 @@ public static class TrainSolverBuilderExtensions
 
     private static TrainSolverBuilder WithHashicorpKeyVault(
         this TrainSolverBuilder builder,
-        Action<HashcorpKeyVaultOptions>? configureOptions)
+        Action<HashicorpKeyVaultOptions>? configureOptions)
     {
-        var options = new HashcorpKeyVaultOptions();
+        var options = new HashicorpKeyVaultOptions();
         builder.Configuration.GetSection(TrainSolverOptions.SectionName).Bind(options);
 
         if(options.HashcorpKeyVaultUri == null)
