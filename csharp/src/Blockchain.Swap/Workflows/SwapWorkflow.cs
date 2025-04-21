@@ -175,7 +175,8 @@ public class SwapWorkflow : ISwapWorkflow
                         R = _htlcAddLockSigMessage.R,
                         S = _htlcAddLockSigMessage.S,
                         V = _htlcAddLockSigMessage.V,
-                        Asset = _htlcCommitMessage.SourceAsset
+                        Asset = _htlcCommitMessage.SourceAsset,
+                        SignerAddress = _htlcAddLockSigMessage.SignerAddress,
                     }),
                     Type = TransactionType.HTLCAddLockSig,
                     NetworkName = _htlcCommitMessage.SourceNetwork,
