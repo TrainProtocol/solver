@@ -23,6 +23,7 @@ using Train.Solver.Blockchain.Common.Helpers;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using System.Buffers;
+using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace Train.Solver.Blockchain.Solana.Activities;
 
@@ -475,10 +476,10 @@ public class SolanaBlockchainActivities(
 
         var message = SolanaTransactionBuilder.CreateAddLockSigMessage(new()
         {
-            Hashlock = request.Hashlock,
+            Hashlock = request.Hashlock.HexToByteArray(),
+            Id = request.Id.HexToByteArray(),
             Timelock = request.Timelock,
-            Id = request.Id,
-            SignerAddress = request.SignerAddress,
+            SignerPublicKey = new PublicKey(request.SignerAddress),
         });
 
         var signatureBytes = Convert.FromBase64String(request.Signature);

@@ -450,25 +450,24 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(managedAccount.Address));
 
-        var addLockSigMessage = CreateAddLockSigMessage(new SolanaAddLockSigMessage
+        var messageRequest = new SolanaAddLockSigMessageRequest
         {
-            Id = request.Id,
-            Hashlock = request.Hashlock,
+            Id = request.Id.HexToByteArray(),
+            Hashlock = request.Hashlock.HexToByteArray(),
             Timelock = request.Timelock,
-            SignerAddress = request.SignerAddress,
-        });
+            SignerPublicKey = new PublicKey(request.SignerAddress),
+        };
+
+        var addLockSigMessage = CreateAddLockSigMessage(messageRequest);
 
         builder.SetAddLockSigInstruction(
             new PublicKey(htlcContractAddress),
             new HTLCAddlocksigRequest
             {
-                Id = request.Id.HexToByteArray(),
-                Hashlock = request.Hashlock.HexToByteArray(),
-                Timelock = new BigInteger(request.Timelock),
+                AddLockSigMessageRequest = messageRequest,
                 Signature = Convert.FromBase64String(request.Signature!),
                 Message = addLockSigMessage,
                 SenderPublicKey = new PublicKey(managedAccount.Address),
-                SignerPublicKey = new PublicKey(request.SignerAddress),
             });
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -600,19 +599,16 @@ public static class SolanaTransactionBuilder
         }
     }
 
-    public static byte[] CreateAddLockSigMessage(SolanaAddLockSigMessage messageRequest)
+    public static byte[] CreateAddLockSigMessage(SolanaAddLockSigMessageRequest messageRequest)
     {
-        var idBytes = Convert.FromHexString(messageRequest.Id);
-        var hashlockBytes = Convert.FromHexString(messageRequest.Hashlock);
-
         var timelockLe = new byte[8];
         BinaryPrimitives.WriteUInt64LittleEndian(timelockLe, (ulong)messageRequest.Timelock);
 
         byte[] msg;
         using (var sha = SHA256.Create())
         {
-            sha.TransformBlock(idBytes, 0, idBytes.Length, null, 0);
-            sha.TransformBlock(hashlockBytes, 0, hashlockBytes.Length, null, 0);
+            sha.TransformBlock(messageRequest.Id, 0, messageRequest.Id.Length, null, 0);
+            sha.TransformBlock(messageRequest.Hashlock, 0, messageRequest.Hashlock.Length, null, 0);
             sha.TransformFinalBlock(timelockLe, 0, timelockLe.Length);
             msg = sha.Hash!;
         }
@@ -627,7 +623,7 @@ public static class SolanaTransactionBuilder
         var messageFormat = new byte[] { 0x00 };
         var signerCount = new byte[] { 0x01 };
 
-        var signerPublicKey = new PublicKey(messageRequest.SignerAddress).KeyBytes;
+        var signerPublicKeyBytes = messageRequest.SignerPublicKey.KeyBytes;
 
         var messageLengthLe = BitConverter.GetBytes((ushort)msg.Length);
 
@@ -638,13 +634,12 @@ public static class SolanaTransactionBuilder
             applicationDomain,
             messageFormat,
             signerCount,
-            signerPublicKey,
+            signerPublicKeyBytes,
             messageLengthLe,
             msg
         };
 
-        var totalLength = 0;
-        foreach (var p in parts) totalLength += p.Length;
+        var totalLength = parts.Sum(p => p.Length);
 
         var finalMessage = new byte[totalLength];
         var offset = 0;

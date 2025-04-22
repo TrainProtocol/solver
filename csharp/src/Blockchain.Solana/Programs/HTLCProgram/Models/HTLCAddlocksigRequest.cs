@@ -1,21 +1,15 @@
 ﻿using Solnet.Wallet;
-using System.Numerics;
+using Train.Solver.Blockchain.Solana.Models;
 
 namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 
 public class HTLCAddlocksigRequest
 {
-    public byte[] Id { get; set; } = null!;
-
-    public byte[] Hashlock { get; set; } = null!;
-
-    public BigInteger Timelock { get; set; }
+    public SolanaAddLockSigMessageRequest AddLockSigMessageRequest { get; set; } = null!;
 
     public byte[] Signature { get; set; } = null!;
 
     public byte[] Message { get; set; } = null!;
 
     public PublicKey SenderPublicKey { get; set; } = null!;
-
-    public PublicKey SignerPublicKey { get; set; } = null!;
 }
