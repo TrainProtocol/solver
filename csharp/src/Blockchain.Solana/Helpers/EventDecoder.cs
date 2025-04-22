@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Web3;
-using Solnet.Programs.Utilities;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
@@ -9,6 +8,7 @@ using Solnet.Wallet;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Blockchain.Solana.Models;
+using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
@@ -161,19 +161,13 @@ public static class EventDecoder
                 $"Solver address for network: {network.Name} is not configured");
         }
 
-        if (!SolanaConstants.GetDetailsDescriminator.TryGetValue(network.Name, out var getDetailsDescriminator))
-        {
-            throw new ArgumentNullException("Get Details Descriminator",
-                $"Lock Discriminator is not configured for network: {network.Name} is not configured");
-        }
-
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount!.Address));
 
-        builder = SetDetailsInstruction(
-            builder,
-            network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address,
-            getDetailsDescriminator,
+        var htlcContractAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+
+        builder.SetGetDetailsInstruction(
+            new PublicKey(htlcContractAddress),
             commitId.HexToByteArray());
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -226,19 +220,13 @@ public static class EventDecoder
                     $"Solver address for network: {network.Name} is not configured");
             }
 
-            if (!SolanaConstants.GetDetailsDescriminator.TryGetValue(network.Name, out var getDetailsDescriminator))
-            {
-                throw new ArgumentNullException("Get Details Descriminator",
-                    $"Lock Descriminator is not configured for network: {network.Name} is not configured");
-            }
-
             var builder = new TransactionBuilder()
                 .SetFeePayer(new PublicKey(solverAccount!.Address));
 
-            builder = SetDetailsInstruction(
-                builder,
-                network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address,
-                getDetailsDescriminator,
+            var htlcContractAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+
+            builder.SetGetDetailsInstruction(
+                new PublicKey(htlcContractAddress),
                 id.HexToByteArray());
 
             var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -288,67 +276,6 @@ public static class EventDecoder
         {
             return null;
         }
-    }
-
-
-    private static TransactionBuilder SetDetailsInstruction(
-        TransactionBuilder builder,
-        string htlcProgramIdKey,
-        byte[] getDetailsDescriminator,
-        byte[] id)
-    {
-        var htlc = PublicKey.TryFindProgramAddress(
-            new List<byte[]>()
-            {
-                id,
-            },
-            new PublicKey(htlcProgramIdKey),
-            out PublicKey htlcPubKey,
-            out byte htlcBump);
-
-        var fields = new List<FieldEncoder.Field>
-        {
-            new FieldEncoder.Field
-            {
-                Span = id.Length,
-                Property = "id",
-                EncoderFunc = (value, buffer, offset) =>
-                {
-                    var byteArray = (byte[])value;
-                    FieldEncoder.EncodeByteArray(byteArray, buffer, ref offset);
-                }
-            },
-            new FieldEncoder.Field
-            {
-                Span = 1,
-                Property = "bump",
-                EncoderFunc = (value, buffer, offset) =>
-                {
-                    var byteValue = (byte)value;
-                    buffer.WriteU8(byteValue, offset);
-                }
-            }
-        };
-
-        var src = new Dictionary<string, object>
-        {
-            { "id", id },
-            { "bump", htlcBump }
-        };
-
-        var keys = new List<AccountMeta>
-        {
-            AccountMeta.ReadOnly(publicKey: htlcPubKey, isSigner: false)
-        };
-
-        builder.AddInstruction(new()
-        {
-            ProgramId = new PublicKey(htlcProgramIdKey).KeyBytes,
-            Keys = keys,
-            Data = FieldEncoder.Encode(fields, src, getDetailsDescriminator)
-        });
-
-        return builder;
     }
 
     private static SolanaHTLCCommitEventModel GetHTLCCommitEventMessage(List<string> commitLogs)
