@@ -474,7 +474,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(request.Signature), "Signature is required");
         }
 
-        var message = SolanaTransactionBuilder.CreateAddLockSigMessage(new()
+        var message = Ed25519Program.CreateAddLockSigMessage(new()
         {
             Hashlock = request.Hashlock.HexToByteArray(),
             Id = request.Id.HexToByteArray(),

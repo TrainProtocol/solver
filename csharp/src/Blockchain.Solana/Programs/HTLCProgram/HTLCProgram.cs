@@ -80,7 +80,13 @@ public static class HTLCProgram
         HTLCAddlocksigRequest htlcAddlocksigRequest)
     {
         var pdaParams = GetHtlcPdaParams(htlcAddlocksigRequest.AddLockSigMessageRequest.Id, htlcProgramIdKey);
+        var message = Ed25519Program.CreateAddLockSigMessage(htlcAddlocksigRequest.AddLockSigMessageRequest);
         var addLockSigData = new HtlcInstructionDataBuilder().CreateAddLockSigData(htlcAddlocksigRequest, pdaParams);
+
+        builder.CreateEd25519Instruction(
+            htlcAddlocksigRequest.AddLockSigMessageRequest.SignerPublicKey,
+            message,
+            htlcAddlocksigRequest.Signature);
 
         builder.AddInstruction(new()
         {
@@ -88,11 +94,6 @@ public static class HTLCProgram
             Keys = HtlcInstructionKeyProvider.CreateAddLockSigAccountKeys(htlcAddlocksigRequest, pdaParams),
             Data = addLockSigData
         });
-
-        builder.CreateEd25519Instruction(
-            htlcAddlocksigRequest.AddLockSigMessageRequest.SignerPublicKey,
-            htlcAddlocksigRequest.Message,
-            htlcAddlocksigRequest.Signature);
 
         return builder;
     }

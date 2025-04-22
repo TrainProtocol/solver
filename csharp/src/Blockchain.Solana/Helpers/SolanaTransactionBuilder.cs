@@ -13,10 +13,6 @@ using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
-using Train.Solver.Blockchain.Solana.Models;
-using System.Buffers.Binary;
-using System.Text;
-using System.Security.Cryptography;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 
@@ -450,23 +446,18 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(managedAccount.Address));
 
-        var messageRequest = new SolanaAddLockSigMessageRequest
-        {
-            Id = request.Id.HexToByteArray(),
-            Hashlock = request.Hashlock.HexToByteArray(),
-            Timelock = request.Timelock,
-            SignerPublicKey = new PublicKey(request.SignerAddress),
-        };
-
-        var addLockSigMessage = CreateAddLockSigMessage(messageRequest);
-
         builder.SetAddLockSigInstruction(
             new PublicKey(htlcContractAddress),
             new HTLCAddlocksigRequest
             {
-                AddLockSigMessageRequest = messageRequest,
+                AddLockSigMessageRequest = new()
+                {
+                    Id = request.Id.HexToByteArray(),
+                    Hashlock = request.Hashlock.HexToByteArray(),
+                    Timelock = request.Timelock,
+                    SignerPublicKey = new PublicKey(request.SignerAddress),
+                },
                 Signature = Convert.FromBase64String(request.Signature!),
-                Message = addLockSigMessage,
                 SenderPublicKey = new PublicKey(managedAccount.Address),
             });
 
@@ -597,58 +588,5 @@ public static class SolanaTransactionBuilder
         {
             throw new Exception("Failed to load token wallet", ex);
         }
-    }
-
-    public static byte[] CreateAddLockSigMessage(SolanaAddLockSigMessageRequest messageRequest)
-    {
-        var timelockLe = new byte[8];
-        BinaryPrimitives.WriteUInt64LittleEndian(timelockLe, (ulong)messageRequest.Timelock);
-
-        byte[] msg;
-        using (var sha = SHA256.Create())
-        {
-            sha.TransformBlock(messageRequest.Id, 0, messageRequest.Id.Length, null, 0);
-            sha.TransformBlock(messageRequest.Hashlock, 0, messageRequest.Hashlock.Length, null, 0);
-            sha.TransformFinalBlock(timelockLe, 0, timelockLe.Length);
-            msg = sha.Hash!;
-        }
-
-        var signingDomain = new byte[] { 0xFF }
-            .Concat(Encoding.ASCII.GetBytes("solana offchain"))
-            .ToArray();
-
-        var headerVersion = new byte[] { 0x00 };
-        var applicationDomain = new byte[32];
-        Encoding.ASCII.GetBytes("Train", applicationDomain);
-        var messageFormat = new byte[] { 0x00 };
-        var signerCount = new byte[] { 0x01 };
-
-        var signerPublicKeyBytes = messageRequest.SignerPublicKey.KeyBytes;
-
-        var messageLengthLe = BitConverter.GetBytes((ushort)msg.Length);
-
-        var parts = new List<byte[]>
-        {
-            signingDomain,
-            headerVersion,
-            applicationDomain,
-            messageFormat,
-            signerCount,
-            signerPublicKeyBytes,
-            messageLengthLe,
-            msg
-        };
-
-        var totalLength = parts.Sum(p => p.Length);
-
-        var finalMessage = new byte[totalLength];
-        var offset = 0;
-        foreach (var p in parts)
-        {
-            Buffer.BlockCopy(p, 0, finalMessage, offset, p.Length);
-            offset += p.Length;
-        }
-
-        return finalMessage;
-    }
+    }    
 }

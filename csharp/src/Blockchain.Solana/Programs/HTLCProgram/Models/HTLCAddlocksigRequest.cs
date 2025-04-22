@@ -9,7 +9,5 @@ public class HTLCAddlocksigRequest
 
     public byte[] Signature { get; set; } = null!;
 
-    public byte[] Message { get; set; } = null!;
-
     public PublicKey SenderPublicKey { get; set; } = null!;
 }
