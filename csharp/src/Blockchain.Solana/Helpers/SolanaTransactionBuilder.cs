@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Text.Json;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
@@ -11,17 +10,15 @@ using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Blockchain.Solana.Programs;
 using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Blockchain.Solana.Programs.Models;
+using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
+using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 
 public static class SolanaTransactionBuilder
 {
-    public static async Task<PrepareTransactionResponse> BuildHTLCLockTransactionAsync(
-        Network network,
-        string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCLockTransactionAsync(Network network, string args)
     {
         var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
 
@@ -63,18 +60,6 @@ public static class SolanaTransactionBuilder
             ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
 
-        if (!SolanaConstants.LockDescriminator.TryGetValue(network.Name, out var lockDescriminator))
-        {
-            throw new ArgumentNullException("Lock Discriminator",
-                $"Lock Descriminator nor configured for network: {network.Name} is not configured");
-        }
-
-        if (!SolanaConstants.LockRewardDescriminator.TryGetValue(network.Name, out var lockRewardDescriminator))
-        {
-            throw new ArgumentNullException("Lock Discriminator",
-                $"Lock Descriminator nor configured for network: {network.Name} is not configured");
-        }
-
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
@@ -88,8 +73,6 @@ public static class SolanaTransactionBuilder
             new PublicKey(managedAccount.Address));
 
         builder.SetLockTransactionInstruction(
-            lockRewardDescriminator,
-            lockDescriminator,
             new PublicKey(htlcContractAddress),
             new HTLCLockRequest
             {
@@ -189,12 +172,6 @@ public static class SolanaTransactionBuilder
             ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
 
-        if (!SolanaConstants.RedeemDescriminator.TryGetValue(network.Name, out var redeemDescriminator))
-        {
-            throw new ArgumentNullException("Redeem Descriminator",
-                $"Redeem Descriminator nor configured for network: {network.Name} is not configured");
-        }
-
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
@@ -208,7 +185,6 @@ public static class SolanaTransactionBuilder
             new PublicKey(managedAccount.Address));
 
         builder.SetRedeemTransactionInstruction(
-            redeemDescriminator,
             new PublicKey(htlcContractAddress),
             new HTLCRedeemRequest
             {
@@ -245,8 +221,7 @@ public static class SolanaTransactionBuilder
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(Network network,
-        string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(Network network, string args)
     {
         var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
 
@@ -292,12 +267,6 @@ public static class SolanaTransactionBuilder
             ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
             : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
 
-        if (!SolanaConstants.RefundDescriminator.TryGetValue(network.Name, out var refundDescriminator))
-        {
-            throw new ArgumentNullException("Refund Descriminator",
-                $"Refund Descriminator nor configured for network: {network.Name} is not configured");
-        }
-
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
@@ -311,7 +280,6 @@ public static class SolanaTransactionBuilder
             new PublicKey(managedAddress.Address));
 
         builder.SetRefundTransactionInstruction(
-            refundDescriminator,
             new PublicKey(htlcContractAddress),
             new HTLCRefundRequest
             {
@@ -421,6 +389,103 @@ public static class SolanaTransactionBuilder
         return response;
     }
 
+    public static async Task<PrepareTransactionResponse> BuildHTLCAddlockSigTransactionAsync(Network network, string args)
+    {
+        var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
+
+        if (request is null)
+        {
+            throw new Exception($"Occured exception during deserializing {args}");
+        }
+
+        if (string.IsNullOrEmpty(request.Signature))
+        {
+            throw new ArgumentNullException(nameof(request.Signature), "Signature is required");
+        }
+
+        if (string.IsNullOrEmpty(request.SignerAddress))
+        {
+            throw new ArgumentNullException(nameof(request.SignerAddress), "Sender address is required");
+        }
+
+        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.LP);
+
+        if (managedAccount == null)
+        {
+            throw new ArgumentNullException(nameof(managedAccount), $"Managed address for {network.Name} is not setup");
+        }
+
+        var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+
+        if (currency is null)
+        {
+            throw new ArgumentNullException(nameof(currency),
+                $"Currency {request.Asset} for {network.Name} is missing");
+        }
+
+        var nativeCurrency = network.Tokens.FirstOrDefault(x => x.TokenContract is null);
+
+        if (nativeCurrency == null)
+        {
+            throw new ArgumentNullException(nameof(nativeCurrency), $"Native currency for {network.Name} is not setup");
+        }
+
+        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+
+        if (node is null)
+        {
+            throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
+        }
+
+        var htlcContractAddress = currency.IsNative
+            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
+            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+
+        var rpcClient = ClientFactory.GetClient(node.Url);
+
+        var builder = new TransactionBuilder()
+            .SetFeePayer(new PublicKey(managedAccount.Address));
+
+        builder.SetAddLockSigInstruction(
+            new PublicKey(htlcContractAddress),
+            new HTLCAddlocksigRequest
+            {
+                AddLockSigMessageRequest = new()
+                {
+                    Id = request.Id.HexToByteArray(),
+                    Hashlock = request.Hashlock.HexToByteArray(),
+                    Timelock = request.Timelock,
+                    SignerPublicKey = new PublicKey(request.SignerAddress),
+                },
+                Signature = Convert.FromBase64String(request.Signature!),
+                SenderPublicKey = new PublicKey(managedAccount.Address),
+            });
+
+        var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
+
+        if (!latestBlockHashResponse.WasSuccessful)
+        {
+            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+        }
+
+        builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
+
+        var serializedTx = Convert.ToBase64String(builder.Serialize());
+        var response = new PrepareTransactionResponse
+        {
+            Data = serializedTx,
+            ToAddress = htlcContractAddress,
+            Amount = 0,
+            Asset = nativeCurrency.Asset,
+            AmountInWei = "0",
+            CallDataAsset = currency.Asset,
+            CallDataAmountInWei = "0",
+            CallDataAmount = 0,
+        };
+
+        return response;
+    }
+
     public static async Task<TransactionBuilder> CreateTransactionInstructionAsync(
         this TransactionBuilder builder,
         Token currency,
@@ -494,38 +559,6 @@ public static class SolanaTransactionBuilder
         return builder;
     }
 
-    public static PublicKey ToSolanaPublicKey(this string address)
-    {
-        if (address.StartsWith("0x"))
-        {
-            address = address.Substring(2);
-        }
-
-        address = address.PadLeft(64, '0');
-
-        var numberChars = address.Length;
-        var bytes = new byte[numberChars / 2];
-        for (int i = 0; i < numberChars; i += 2)
-        {
-            bytes[i / 2] = Convert.ToByte(address.Substring(i, 2), 16);
-        }
-
-        return new PublicKey(bytes);
-    }
-
-    public static BigInteger DecodeEventNonceFromMessage(this string messageHex)
-    {
-        var nonceIndex = 12;
-        var nonceBytesLength = 8;
-
-        var messageBytes = messageHex.HexToByteArray();
-        var eventNonceBytes = new byte[nonceBytesLength];
-        Array.Copy(messageBytes, nonceIndex, eventNonceBytes, 0, nonceBytesLength);
-
-        var eventNonceHex = BitConverter.ToString(eventNonceBytes).Replace("-", string.Empty).ToLower();
-        return BigInteger.Parse("0" + eventNonceHex, NumberStyles.HexNumber);
-    }
-
     public async static Task GetOrCreateAssociatedTokenAccount(
         IRpcClient rpcClient,
         TransactionBuilder builder,
@@ -555,5 +588,5 @@ public static class SolanaTransactionBuilder
         {
             throw new Exception("Failed to load token wallet", ex);
         }
-    }
+    }    
 }

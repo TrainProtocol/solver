@@ -54,27 +54,3 @@ public class InstructionDataConverter : JsonConverter<Instruction>
         throw new NotImplementedException();
     }
 }
-
-
-public class ParsedBlockInstructionDataConverter : JsonConverter<ParsedInstructionData>
-{
-    public override ParsedInstructionData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        using var jsonDoc = JsonDocument.ParseValue(ref reader);
-        var root = jsonDoc.RootElement;
-
-        if (root.ValueKind == JsonValueKind.Object &&
-            root.TryGetProperty("type", out JsonElement typeElement) &&
-            SolanaConstants.transferTypes.Contains(typeElement.GetString()))
-        {
-            return JsonSerializer.Deserialize<ParsedInstructionData>(root.GetRawText())!;
-        }
-
-        return null;
-    }
-
-    public override void Write(Utf8JsonWriter writer, ParsedInstructionData value, JsonSerializerOptions options)
-    {
-        throw new NotImplementedException();
-    }
-}

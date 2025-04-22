@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Blockchain.Solana.Helpers;
+﻿using System.Security.Cryptography;
+
+namespace Train.Solver.Blockchain.Solana.Helpers;
 
 public static class FieldEncoder
 {
@@ -49,5 +51,12 @@ public static class FieldEncoder
     {
         Array.Copy(byteArray, 0, buffer, offset, byteArray.Length);
         offset += byteArray.Length;
-    }    
+    }
+
+    public static byte[] Sighash(string input)
+    {
+        using var sha256 = SHA256.Create();
+        var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+        return hash.Take(8).ToArray();
+    }
 }
