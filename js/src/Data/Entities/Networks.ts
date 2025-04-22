@@ -38,9 +38,6 @@ export class Networks {
   @Column("text", { name: "AccountExplorerTemplate" })
   accountExplorerTemplate: string;
 
-  @Column("boolean", { name: "IsExternal" })
-  isExternal: boolean;
-
   @Column("timestamp with time zone", {
     name: "CreatedDate",
     default: () => "now()",
