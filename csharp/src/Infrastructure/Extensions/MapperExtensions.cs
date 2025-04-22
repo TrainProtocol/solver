@@ -92,7 +92,6 @@ public static class MapperExtensions
             Decimals = token.Decimals,
             Precision = token.Precision,
             Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo),
-            ListingDate = token.CreatedDate
         };
 
         return dto;
@@ -121,7 +120,6 @@ public static class MapperExtensions
             Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
             TransactionExplorerTemplate = network.TransactionExplorerTemplate,
             AccountExplorerTemplate = network.AccountExplorerTemplate,
-            ListingDate = network.CreatedDate, 
             NativeToken = network.NativeToken?.ToDetailedDto(),
             Tokens = network.Tokens.Select(t => t.ToDetailedDto()),
             Nodes = network.Nodes.Select(n => n.ToDto()),

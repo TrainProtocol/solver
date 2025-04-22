@@ -81,7 +81,6 @@ public class RouteService(
                     ChainId = network.ChainId,
                     DisplayName = network.DisplayName,
                     FeeType = network.FeeType,
-                    ListingDate = network.CreatedDate,
                     Contracts = network.Contracts.Select(x => x.ToDto()),
                     Tokens = x.Select(x => x.ToDetailedDto()),
                     ManagedAccounts = network.ManagedAccounts.Select(x => x.ToDto()),
