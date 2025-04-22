@@ -14,5 +14,5 @@ public interface INetworkActivities
     Task<DetailedNetworkDto> GetNetworkAsync(string networkName);
 
     [Activity]
-    Task<List<TokenWithNetworkDto>> GetAvailableTokensAsync();
+    Task<List<TokenNetworkDto>> GetAvailableTokensAsync();
 }

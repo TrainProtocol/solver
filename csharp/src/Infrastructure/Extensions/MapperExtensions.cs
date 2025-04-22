@@ -85,18 +85,27 @@ public static class MapperExtensions
 
     public static DetailedTokenDto ToDetailedDto(this Token token)
     {
-        var dto = new DetailedTokenDto();
-        MapBaseTokenFields(token, dto);
-        dto.Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo);
-        dto.ListingDate = token.CreatedDate; 
+        var dto = new DetailedTokenDto
+        {
+            Symbol = token.Asset,
+            Contract = token.TokenContract,
+            Decimals = token.Decimals,
+            Precision = token.Precision,
+            Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo),
+            ListingDate = token.CreatedDate
+        };
+
         return dto;
     }
 
-    public static TokenWithNetworkDto ToWithNetworkDto(this Token token)
+    public static TokenNetworkDto ToWithNetworkDto(this Token token)
     {
-        var dto = new TokenWithNetworkDto();
-        MapBaseTokenFields(token, dto);
-        dto.Network = token.Network.ToDto();
+        var dto = new TokenNetworkDto
+        {
+            Network = token.Network.ToDto(),
+            Token = token.ToDto()
+        };
+
         return dto;
     }
 
@@ -133,13 +142,5 @@ public static class MapperExtensions
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status
         };
-    }
-
-    private static void MapBaseTokenFields(Token token, TokenDto dto)
-    {
-        dto.Symbol = token.Asset;
-        dto.Contract = token.TokenContract;
-        dto.Decimals = token.Decimals;
-        dto.Precision = token.Precision;
     }
 }

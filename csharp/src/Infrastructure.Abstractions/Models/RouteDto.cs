@@ -6,9 +6,9 @@ public class RouteDto
 {
     public int Id { get; set; }
 
-    public TokenWithNetworkDto Source { get; set; } = null!;
+    public TokenNetworkDto Source { get; set; } = null!;
 
-    public TokenWithNetworkDto Destionation { get; set; } = null!;
+    public TokenNetworkDto Destionation { get; set; } = null!;
 
     public decimal MaxAmountInSource { get; set; }
 
