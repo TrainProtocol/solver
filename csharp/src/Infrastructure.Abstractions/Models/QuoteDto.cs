@@ -7,4 +7,6 @@ public class QuoteDto
     public decimal TotalFeeInUsd { get; set; }
 
     public decimal ReceiveAmount { get; set; }
+
+    public decimal ReceiveAmountInUsd { get; set; }
 }
