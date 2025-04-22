@@ -67,7 +67,6 @@ public static class MapperExtensions
         {
             Name = network.Name,
             ChainId = network.ChainId,
-            FeeType = network.FeeType,
             Type = network.Type,
         };
     }
@@ -115,7 +114,6 @@ public static class MapperExtensions
             Name = network.Name,
             DisplayName = network.DisplayName,
             ChainId = network.ChainId,
-            FeeType = network.FeeType,
             Type = network.Type,
             Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
             TransactionExplorerTemplate = network.TransactionExplorerTemplate,

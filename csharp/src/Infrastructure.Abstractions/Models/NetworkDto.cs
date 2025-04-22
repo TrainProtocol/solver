@@ -8,7 +8,5 @@ public class NetworkDto
 
     public string? ChainId { get; set; }
 
-    public TransactionFeeType FeeType { get; set; }
-
     public NetworkType Type { get; set; }
 }

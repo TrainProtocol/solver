@@ -80,7 +80,6 @@ public class RouteService(
                     TransactionExplorerTemplate = network.TransactionExplorerTemplate,
                     ChainId = network.ChainId,
                     DisplayName = network.DisplayName,
-                    FeeType = network.FeeType,
                     Contracts = network.Contracts.Select(x => x.ToDto()),
                     Tokens = x.Select(x => x.ToDetailedDto()),
                     ManagedAccounts = network.ManagedAccounts.Select(x => x.ToDto()),
