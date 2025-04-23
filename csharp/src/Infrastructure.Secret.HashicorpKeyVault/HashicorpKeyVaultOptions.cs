@@ -6,5 +6,5 @@ public class HashicorpKeyVaultOptions
 
     public string HashcorpKeyVaultToken { get; set; }
 
-    public string MountPath { get; set; } = "secret";
+    public string HashcorpKeyVaultMountPath { get; set; } = "secret";
 }

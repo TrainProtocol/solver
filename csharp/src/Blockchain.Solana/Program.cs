@@ -1,6 +1,5 @@
 ﻿using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
