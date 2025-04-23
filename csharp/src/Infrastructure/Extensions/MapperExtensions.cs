@@ -80,7 +80,6 @@ public static class MapperExtensions
             Contract = token.TokenContract,
             Decimals = token.Decimals,
             Precision = token.Precision,
-            PriceInUsd = token.TokenPrice.PriceInUsd
         };
     }
 
@@ -136,26 +135,11 @@ public static class MapperExtensions
         };
     }
 
-    public static RouteWithFeesDto ToWithFeesDto(this Route route)
-    {
-        return new RouteWithFeesDto
-        {
-            Id = route.Id,
-            Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
-            MaxAmountInSource = route.MaxAmountInSource,
-            Status = route.Status
-        };
-    }
-
-
     private static void MapBaseTokenFields(Token token, TokenDto dto)
     {
         dto.Symbol = token.Asset;
         dto.Contract = token.TokenContract;
         dto.Decimals = token.Decimals;
         dto.Precision = token.Precision;
-        dto.PriceInUsd = token.TokenPrice.PriceInUsd;
     }
-
 }
