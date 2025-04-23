@@ -1,9 +1,9 @@
 ﻿using Train.Solver.Blockchain.Swap.Extensions;
 using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
+using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -19,7 +19,7 @@ IHost host = Host.CreateDefaultBuilder(args)
             .WithOpenTelemetryLogging("Swap Core Runner")
             .WithNpgsqlRepositories()
             .WithCoreWorkflows()
-            .WithAzureKeyVault()
+            .WithHashicorpKeyVault()
             .WithCoingeckoPrices();
     })
     .Build();

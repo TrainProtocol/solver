@@ -3,6 +3,7 @@ using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Secret.AzureKeyVault;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
+using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -17,7 +18,7 @@ IHost host = Host.CreateDefaultBuilder(args)
             .AddTrainSolver(hostContext.Configuration)
             .WithOpenTelemetryLogging("Solana Runner")
             .WithNpgsqlRepositories()
-            .WithAzureKeyVault()
+            .WithHashicorpKeyVault()
             .WithSolanaWorkflows();
     })
     .Build();

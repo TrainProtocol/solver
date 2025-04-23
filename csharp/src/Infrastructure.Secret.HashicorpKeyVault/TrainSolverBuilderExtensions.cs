@@ -26,7 +26,7 @@ public static class TrainSolverBuilderExtensions
 
         configureOptions?.Invoke(options);
 
-        // TODO: change auth method after deployment
+        // TODO: change auth method for k8s service account auth after deployment
         builder.Services.AddSingleton<IVaultClient>(sp => 
             new VaultClient(new VaultClientSettings(
                     options.HashcorpKeyVaultUri.ToString(),
