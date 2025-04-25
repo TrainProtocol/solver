@@ -1,0 +1,14 @@
+{
+    "name": "starknet",
+    "version": "1.0.0",
+    "main": "",
+    "scripts": {
+      "clean": "rimraf dist",
+      "build": "npm run clean && tsc --build tsconfig.json",
+      "dev": "ts-node index.ts",
+      "start": "node dist/index.js"
+    },
+    "dependencies": {
+      "starknet": "^6.23.1"
+    }
+}  

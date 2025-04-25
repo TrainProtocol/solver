@@ -1,0 +1,30 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./src/Common"
+    },
+    {
+      "path": "./src/Blockchain/Blockchain.Starknet"
+    }
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "dist",
+    "sourceMap": true,
+    "strict": false,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "allowJs": true,
+    "composite": false,
+    "baseUrl": ".",
+  },
+  "exclude": ["**/.*/", "**/build", "**/dist", "node_modules"]
+}
