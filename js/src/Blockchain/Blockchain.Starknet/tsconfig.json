@@ -3,10 +3,12 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@blockchain/common": ["../../Common/dist"],
+      "@blockchain/common": ["../../packages/Common/dist"],
     }
   },
   "include": [

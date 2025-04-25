@@ -1,18 +1,11 @@
-import { Abi, Account, cairo, Call, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding } from "starknet";
+import { Abi, Account, cairo, Call, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding} from "starknet";
 import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
 import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 import { BigNumber, utils } from "ethers";
-import { ContractType } from "../../../../Common/src/Data/Entities/Contracts";
-import { NodeType } from "../../../../Common/src/Data/Entities/Nodes";
-import { SolverContext } from "../../../../Common/src/Data/SolverContext";
-import { InvalidTimelockException } from "../../../../Common/Abstraction/Exceptions/InvalidTimelockException";
 import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
-import { TransactionFailedException } from "../../../../Common/Abstraction/Exceptions/TransactionFailedException";
-import { Networks } from "../../../../Common/src/Data/Entities/Networks";
-import { AccountType, ManagedAccounts } from "../../../../Common/src/Data/Entities/ManagedAccounts";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
@@ -20,29 +13,8 @@ import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
-import { TransactionNotComfirmedException } from "../../../../Common/Abstraction/Exceptions/TransactionNotComfirmedException";
-import { BuildLockKey, BuildNonceKey } from "../../../../Common/Abstraction/Infrastructure/RedisHelper/RedisHelper";
-import { TimeSpan } from "../../../../Common/Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
-import { AllowanceRequest } from "../../../../Common/Abstraction/Models/AllowanceRequest";
-import { BalanceRequest } from "../../../../Common/Abstraction/Models/BalanceRequestModels/BalanceRequest";
-import { BalanceResponse } from "../../../../Common/Abstraction/Models/BalanceRequestModels/BalanceResponse";
-import { BaseRequest } from "../../../../Common/Abstraction/Models/BaseRequest";
-import { BlockNumberResponse } from "../../../../Common/Abstraction/Models/BlockNumberResponse";
-import { HTLCBlockEventResponse } from "../../../../Common/Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { EventRequest } from "../../../../Common/Abstraction/Models/EventRequest";
-import { EstimateFeeRequest } from "../../../../Common/Abstraction/Models/FeesModels/EstimateFeeRequest";
-import { Fee, FixedFeeData } from "../../../../Common/Abstraction/Models/FeesModels/Fee";
-import { GetBatchTransactionRequest } from "../../../../Common/Abstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../../../Common/Abstraction/Models/NextNonceRequest";
-import { GetTransactionRequest } from "../../../../Common/Abstraction/Models/ReceiptModels/GetTransactionRequest";
-import { TransactionResponse } from "../../../../Common/Abstraction/Models/ReceiptModels/TransactionResponse";
-import { AddLockSignatureRequest } from "../../../../Common/Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
-import { TransactionBuilderRequest } from "../../../../Common/Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
-import { PrepareTransactionResponse } from "../../../../Common/Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { PrivateKeyRepository } from "../../../../Common/Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { IStarknetBlockchainActivities } from "./IStarknetBlockchainActivities";
-import { TransactionStatus } from "../../../../Common/Abstraction/Models/TransacitonModels/TransactionStatus";
-import { TransactionType } from "../../../../Common/Abstraction/Models/TransacitonModels/TransactionType";
+import { AccountType, AddLockSignatureRequest, AllowanceRequest, BalanceRequest, BalanceResponse, BaseRequest, BlockNumberResponse, BuildLockKey, BuildNonceKey, ContractType, EstimateFeeRequest, EventRequest, Fee, FixedFeeData, GetBatchTransactionRequest, GetTransactionRequest, HTLCBlockEventResponse, InvalidTimelockException, Networks, NextNonceRequest, NodeType, PrepareTransactionResponse, PrivateKeyRepository, SolverContext, TimeSpan, TransactionBuilderRequest, TransactionFailedException, TransactionNotComfirmedException, TransactionResponse, TransactionStatus, TransactionType } from "@blockchain/common";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {

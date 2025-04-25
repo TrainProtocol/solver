@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/src/index.js"
+    "build": "npm run build --workspaces",
+    "build:common": "npm run build --workspace=@blockchain/common",
+    "build:starknet": "npm run build --workspace=@blockchain/starknet"
   },
   "keywords": [],
   "author": "",
@@ -26,13 +27,14 @@
     "web3-provider-engine": "^17.0.1"
   },
   "devDependencies": {
+    "@types/node": "^22.15.2",
     "jest": "^28.1.1",
     "ts-jest": "^28.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   },
-  "workspaces": [ 
+  "workspaces": [
     "src/packages/*",
-    "src/Blockchain/exp"
+    "src/Blockchain/Blockchain.Starknet"
   ]
 }

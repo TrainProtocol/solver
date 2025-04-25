@@ -1,2 +1,2 @@
 export { StarknetTransactionProcessor } from './StarknetTransactionProcessor';
-export { EventListenerWorkflow } from '../../../../Common/Abstraction/Workflows/EventListenerWorkflow';
+export { EventListenerWorkflow } from '@blockchain/common';

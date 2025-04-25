@@ -1,15 +1,6 @@
 import { utils } from "ethers";
+import { ApprovePrepareRequest, ContractType, decodeJson, HTLCAddLockSigTransactionPrepareRequest, HTLCLockTransactionPrepareRequest, HTLCRedeemTransactionPrepareRequest, HTLCRefundTransactionPrepareRequest, Networks, PrepareTransactionResponse, TransferPrepareRequest } from "@blockchain/common";
 import { cairo, Call, shortString, byteArray } from "starknet";
-import { ContractType } from "../../../../../Common/src/Data/Entities/Contracts";
-import { Networks } from "../../../../../Common/src/Data/Entities/Networks";
-import { decodeJson } from "../../../../../Common/Abstraction/Extensions/StringExtensions";
-import { ApprovePrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
-import { HTLCAddLockSigTransactionPrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
-import { HTLCLockTransactionPrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
-import { HTLCRedeemTransactionPrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
-import { HTLCRefundTransactionPrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
-import { PrepareTransactionResponse } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { TransferPrepareRequest } from "../../../../../Common/Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 
 export function CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
 

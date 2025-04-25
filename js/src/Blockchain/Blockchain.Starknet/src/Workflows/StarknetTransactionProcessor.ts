@@ -1,19 +1,6 @@
 import { proxyActivities, executeChild } from '@temporalio/workflow';
 import { IStarknetBlockchainActivities } from '../Activities/IStarknetBlockchainActivities';
-import { InvalidTimelockException } from '../../../../Common/Abstraction/Exceptions/InvalidTimelockException';
-import { HashlockAlreadySetException } from '@blockchain/common/Abstraction/Exceptions/HashlockAlreadySetException';
-import { AlreadyClaimedExceptions } from '../../../../Common/Abstraction/Exceptions/AlreadyClaimedExceptions';
-import { HTLCAlreadyExistsException } from '../../../../Common/Abstraction/Exceptions/HTLCAlreadyExistsException';
-import { TransactionFailedException } from '../../../../Common/Abstraction/Exceptions/TransactionFailedException';
-import { decodeJson } from '../../../../Common/Abstraction/Extensions/StringExtensions';
-import { buildProcessorId } from '../../../../Common/src/TemporalHelper/TemporalHelper';
-import { AllowanceRequest } from '../../../../Common/Abstraction/Models/AllowanceRequest';
-import { TransactionResponse } from '../../../../Common/Abstraction/Models/ReceiptModels/TransactionResponse';
-import { TransactionExecutionContext } from '../../../../Common/Abstraction/Models/TransacitonModels/TransactionExecutionContext';
-import { TransactionRequest } from '../../../../Common/Abstraction/Models/TransacitonModels/TransactionRequest';
-import { HTLCLockTransactionPrepareRequest } from '../../../../Common/Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
-import { TransferPrepareRequest } from '../../../../Common/Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
-import { TransactionType } from '../../../../Common/Abstraction/Models/TransacitonModels/TransactionType';
+import { TransactionExecutionContext, InvalidTimelockException, HashlockAlreadySetException, AlreadyClaimedExceptions, HTLCAlreadyExistsException, TransactionFailedException, decodeJson, TransactionType, AllowanceRequest, buildProcessorId, HTLCLockTransactionPrepareRequest, TransactionRequest, TransactionResponse, TransferPrepareRequest } from '@blockchain/common'
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
