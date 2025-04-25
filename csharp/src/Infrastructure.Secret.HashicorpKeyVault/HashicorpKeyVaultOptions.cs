@@ -6,5 +6,13 @@ public class HashicorpKeyVaultOptions
 
     public string HashcorpKeyVaultToken { get; set; }
 
+    // Only for K8s auth method
+    public string? HashcorpKeyVaultK8sAppRole { get; set; }
+
+    // Only for K8s auth method
+    public string? HashcorpKeyVaultK8sJWT{ get; set; }
+
     public string HashcorpKeyVaultMountPath { get; set; } = "secret";
+
+    public bool EnableKubernetesAuth { get; set; }
 }
