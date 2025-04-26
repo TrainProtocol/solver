@@ -16,7 +16,7 @@ public class HashicorpKeyVaultPrivateKeyProvider(
         {
             var secret = await secretClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(
                     path: publicKey,
-                    mountPoint: options.Value.HashcorpKeyVaultMountPath);
+                    mountPoint: options.Value.HashicorpKeyVaultMountPath);
 
             var privateKey = secret.Data.Data[_pkKey].ToString();
 
@@ -40,7 +40,7 @@ public class HashicorpKeyVaultPrivateKeyProvider(
             await secretClient.V1.Secrets.KeyValue.V2.WriteSecretAsync(
                 path: publicKey,
                 data: new Dictionary<string, object> { { _pkKey, privateKey } },
-                mountPoint: options.Value.HashcorpKeyVaultMountPath);
+                mountPoint: options.Value.HashicorpKeyVaultMountPath);
 
             return publicKey;
         }
