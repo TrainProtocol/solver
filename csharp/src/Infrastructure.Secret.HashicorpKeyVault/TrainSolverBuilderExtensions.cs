@@ -20,7 +20,7 @@ public static class TrainSolverBuilderExtensions
         var options = new HashicorpKeyVaultOptions();
         builder.Configuration.GetSection(TrainSolverOptions.SectionName).Bind(options);
 
-        if(options.HashcorpKeyVaultUri == null)
+        if(options.HashicorpKeyVaultUri == null)
         {
             throw new InvalidOperationException("Hashicorp Key Vault URI is not set.");
         }
@@ -29,24 +29,24 @@ public static class TrainSolverBuilderExtensions
 
         if (options.EnableKubernetesAuth)
         {
-            if (string.IsNullOrEmpty(options.HashcorpKeyVaultK8sTokenPath))
+            if (string.IsNullOrEmpty(options.HashicorpKeyVaultK8sTokenPath))
             {
                 throw new("Hashicorp Key Vault K8s token path is not set.");
             }
-            if (!File.Exists(options.HashcorpKeyVaultK8sTokenPath))
+            if (!File.Exists(options.HashicorpKeyVaultK8sTokenPath))
             {
                 throw new FileNotFoundException(
-                    $"Hashicorp Key Vault K8s token file not found at path: {options.HashcorpKeyVaultK8sTokenPath}");
+                    $"Hashicorp Key Vault K8s token file not found at path: {options.HashicorpKeyVaultK8sTokenPath}");
             }
 
             builder.Services.AddTransient<IVaultClient>(sp => {
                 // Always read fresh rotated token from file path
-                string jwt = File.ReadAllText(options.HashcorpKeyVaultK8sTokenPath);
+                string jwt = File.ReadAllText(options.HashicorpKeyVaultK8sTokenPath);
 
                 return new VaultClient(new VaultClientSettings(
-                    options.HashcorpKeyVaultUri.ToString(),
+                    options.HashicorpKeyVaultUri.ToString(),
                     new KubernetesAuthMethodInfo(
-                        options.HashcorpKeyVaultK8sAppRole,
+                        options.HashicorpKeyVaultK8sAppRole,
                         jwt)));
             });
         }
@@ -54,8 +54,8 @@ public static class TrainSolverBuilderExtensions
         {
             builder.Services.AddSingleton<IVaultClient>(sp =>
                 new VaultClient(new VaultClientSettings(
-                        options.HashcorpKeyVaultUri.ToString(),
-                        new TokenAuthMethodInfo(options.HashcorpKeyVaultToken))));
+                        options.HashicorpKeyVaultUri.ToString(),
+                        new TokenAuthMethodInfo(options.HashicorpKeyVaultToken))));
         }
          
         builder.Services.AddTransient<IPrivateKeyProvider, HashicorpKeyVaultPrivateKeyProvider>();
