@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
-using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods.Kubernetes;
+using VaultSharp.V1.AuthMethods.UserPass;
 
 namespace Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
 
@@ -27,7 +27,7 @@ public static class TrainSolverBuilderExtensions
 
         configureOptions?.Invoke(options);
 
-        if (options.EnableKubernetesAuth)
+        if (options.HashicorpEnableKubernetesAuth)
         {
             if (string.IsNullOrEmpty(options.HashicorpKeyVaultK8sTokenPath))
             {
@@ -55,7 +55,9 @@ public static class TrainSolverBuilderExtensions
             builder.Services.AddSingleton<IVaultClient>(sp =>
                 new VaultClient(new VaultClientSettings(
                         options.HashicorpKeyVaultUri.ToString(),
-                        new TokenAuthMethodInfo(options.HashicorpKeyVaultToken))));
+                        new UserPassAuthMethodInfo(
+                            options.HashicorpKeyVaultUsername, 
+                            options.HashicorpKeyVaultPassword))));
         }
          
         builder.Services.AddTransient<IPrivateKeyProvider, HashicorpKeyVaultPrivateKeyProvider>();

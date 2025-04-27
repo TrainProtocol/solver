@@ -2,15 +2,19 @@
 
 public class HashicorpKeyVaultOptions
 {
-    public Uri HashicorpKeyVaultUri { get; set; }
+    public Uri HashicorpKeyVaultUri { get; set; } = null!;
 
-    public string HashicorpKeyVaultToken { get; set; }
+    // For UserPass auth method when HashicorpEnableKubernetesAuth is false
+    public string? HashicorpKeyVaultUsername { get; set; }
 
-    // Only for K8s auth method
+    // For UserPass auth method when HashicorpEnableKubernetesAuth is false
+    public string? HashicorpKeyVaultPassword { get; set; }
+
+    // For K8s auth method when HashicorpEnableKubernetesAuth is true
     public string? HashicorpKeyVaultK8sAppRole { get; set; }
 
-    // Only for K8s auth method
-    public string? HashicorpKeyVaultK8sTokenPath{ get; set; }
+    // For K8s auth method when HashicorpEnableKubernetesAuth is true
+    public string? HashicorpKeyVaultK8sTokenPath { get; set; }
 
     public string HashicorpKeyVaultMountPath { get; set; } = "secret";
 
