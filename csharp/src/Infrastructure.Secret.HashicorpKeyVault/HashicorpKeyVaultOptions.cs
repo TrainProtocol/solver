@@ -13,9 +13,6 @@ public class HashicorpKeyVaultOptions
     // For K8s auth method when HashicorpEnableKubernetesAuth is true
     public string? HashicorpKeyVaultK8sAppRole { get; set; }
 
-    // For K8s auth method when HashicorpEnableKubernetesAuth is true
-    public string? HashicorpKeyVaultK8sTokenPath { get; set; }
-
     public string HashicorpKeyVaultMountPath { get; set; } = "secret";
 
     public bool HashicorpEnableKubernetesAuth { get; set; }

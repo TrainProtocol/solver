@@ -78,7 +78,7 @@ TrainSolver.sln
     │   ├── Infrastructure.Abstractions/
     │   ├── Infrastructure.DependencyInjection/
     │   ├── Infrastructure.Logging.OpenTelemetry/
-    │   ├── Infrastructure.Secret.AzureKeyVault/
+    │   ├── Infrastructure.Secret.HashicorpKeyVault/
     │   └── Infrastructure.TokenPrice.Coingecko/
     └── Shared/
         └── Util/                       # Shared utilities
@@ -162,7 +162,7 @@ Chain and route metadata is defined dynamically via a PostgreSQL database. Confi
 ## 🧩 Infrastructure
 
 - **Database**: PostgreSQL with Entity Framework Core  
-- **Secrets Management**: Azure Key Vault (for private key storage)  
+- **Secrets Management**: Hashicorp Key Vault (for private key storage)  
 - **Observability**: OpenTelemetry instrumentation with SigNoz as the backend  
 - **Price Feeds**: Coingecko-based token pricing service  
 
