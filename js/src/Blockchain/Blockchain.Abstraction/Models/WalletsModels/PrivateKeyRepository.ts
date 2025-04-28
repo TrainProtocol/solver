@@ -35,7 +35,7 @@ export class PrivateKeyRepository {
                 var k8sRole = process.env.TrainSolver__HashicorpKeyVaultK8sAppRole;
                 const k8sJWT = await fs.readFile(k8sJWTPath, 'utf8');
 
-                await this.vault.kubernetesLogin({role: 'train-reader' , jwt: k8sJWT, mount_point: "kubernetes"});
+                await this.vault.kubernetesLogin({role: k8sRole , jwt: k8sJWT, mount_point: "kubernetes"});
             }
             : async () => {
                 const userName = process.env.TrainSolver__HashicorpKeyVaultUsername;
