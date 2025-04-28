@@ -48,7 +48,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("solver", new() { Title = "Train Solver API", Version = "v1" });
+    c.SwaggerDoc("latest", new() { Title = "Train Solver Latest API", Version = "latest" });
+    c.SwaggerDoc("v1", new() { Title = "Train Solver API v1", Version = "v1" });
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
@@ -75,15 +76,27 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.MapGroup("/api")
-   .MapEndpoints()
+    .MapGet("/health", () => Results.Ok())
+    .WithTags("System")
+    .Produces(StatusCodes.Status200OK);
+
+app.MapGroup("/api")
+   .MapV1Endpoints()
    .RequireRateLimiting("Fixed")
-   .WithGroupName("solver")
+   .WithGroupName("latest")
+   .WithTags("Endpoints");
+
+app.MapGroup("/api/v1")
+   .MapV1Endpoints()
+   .RequireRateLimiting("Fixed")
+   .WithGroupName("v1")
    .WithTags("Endpoints");
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/solver/swagger.json", "solver");
+    c.SwaggerEndpoint("/swagger/latest/swagger.json", "Train Solver Latest API");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver API v1");
     c.DisplayRequestDuration();
 });
 

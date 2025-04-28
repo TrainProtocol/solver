@@ -9,7 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Infra
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_config", "_config", "{E67A8BE0-0795-4F3B-A9BB-BD37C9CBD916}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
 		..\.gitignore = ..\.gitignore
 		Directory.Build.props = Directory.Build.props
 		nuget.config = nuget.config
