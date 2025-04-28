@@ -1,29 +1,24 @@
-import Vault from 'hashi-vault-js';
 import { promises as fs } from 'fs';
+import nodeVault, { client } from 'node-vault'
 
 export class PrivateKeyRepository {
-    private _vaultClient: Vault;
     private pkKey: string = 'private_key';
-    private getTokenAsync!: () => Promise<string>;
+    private vault: client;
+    private getTokenAsync!: () => Promise<void>;
 
-    constructor() {
-        this._vaultClient = new Vault( {
-            baseUrl: process.env.TrainSolver__HashcorpKeyVaultUri,
-            rootPath: process.env.TrainSolver__HashcorpKeyVaultMountPath,
-            timeout: 2000,
-            proxy: false,            
+    constructor() { 
+        this.vault = nodeVault({
+            endpoint: process.env.TrainSolver__HashcorpKeyVaultUri
         });
 
         this.initLogin();
     }   
 
     public async getAsync(address: string): Promise<string> {
-        const token = await this.getTokenAsync();
-        const {data} = await this._vaultClient.readKVSecret(
-            token, 
-            address);
-
-        return data[this.pkKey];
+        await this.getTokenAsync();
+        const keyVaultMount = process.env.TrainSolver__HashicorpKeyVaultMountPath;
+        const {data} = await this.vault.read(`${keyVaultMount}/data/${address}`);
+        return  data.data[this.pkKey];
     }
     
     public async getStarkPKAsync(address: string, network: string): Promise<string> {
@@ -40,14 +35,18 @@ export class PrivateKeyRepository {
                 var k8sRole = process.env.TrainSolver__HashicorpKeyVaultK8sAppRole;
                 const k8sJWT = await fs.readFile(k8sJWTPath, 'utf8');
 
-                const { client_token } = await this._vaultClient.loginWithK8s(k8sRole, k8sJWT);
-                return client_token;
+                await this.vault.kubernetesLogin({role: 'train-reader' , jwt: k8sJWT, mount_point: "kubernetes"});
             }
             : async () => {
-                const { client_token } = await this._vaultClient.loginWithUserpass(
-                    process.env.TrainSolver__HashicorpKeyVaultUsername, 
-                    process.env.TrainSolver__HashicorpKeyVaultPassword);
-                return client_token;
+                const userName = process.env.TrainSolver__HashicorpKeyVaultUsername;
+                const password = process.env.TrainSolver__HashicorpKeyVaultPassword;
+
+                await this.vault
+                    .userpassLogin({
+                        username: userName,
+                        password: password,
+                        mount_point: 'userpass',
+                    })
             };
         }
 }
