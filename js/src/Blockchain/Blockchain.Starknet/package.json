@@ -1,14 +1,16 @@
 {
-    "name": "starknet",
-    "version": "1.0.0",
-    "main": "",
-    "scripts": {
-      "clean": "rimraf dist",
-      "build": "npm run clean && tsc --build tsconfig.json",
-      "dev": "ts-node index.ts",
-      "start": "node dist/index.js"
-    },
-    "dependencies": {
-      "starknet": "^6.23.1"
-    }
-}  
+  "name": "@blockchain/starknet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc --build",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@blockchain/common": "*",
+    "starknet": "^6.23.1"
+  }
+}
+

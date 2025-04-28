@@ -120,3 +120,6 @@ __azurite_db*__.json
 
 # Zip
 **.zip
+
+# Ignore TurboRepo cache
+.turbo/

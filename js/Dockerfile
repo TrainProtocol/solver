@@ -3,8 +3,9 @@ FROM node:20 AS builder
 
 WORKDIR /app
 COPY js/ .
-RUN npm ci --only=production
-RUN npm run build
+
+RUN npm i --workspace=@blockchain/common
+RUN npm run build --workspace=@blockchain/common
 
 # Final production image
 FROM node:20 AS final
@@ -15,4 +16,6 @@ COPY --from=builder /app .
 ARG NETWORK
 ENV NETWORK=${NETWORK}
 
-CMD ["sh", "-c", "npm run start -- ${NETWORK}"]
+RUN npm run build --workspace=@blockchain/${NETWORK}
+RUN npm run build --workspace=@blockchain/${NETWORK}
+CMD ["sh", "-c", "npm run start --workspace=@blockchain/${NETWORK}"]

@@ -5,10 +5,13 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@blockchain/common": ["../../packages/Common/dist"],
+      "@blockchain/common": [
+        "../../packages/Common/src"
+      ],
     }
   },
   "include": [

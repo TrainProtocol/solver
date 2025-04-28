@@ -2,11 +2,7 @@
   "name": "js",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "build": "npm run build --workspaces",
-    "build:common": "npm run build --workspace=@blockchain/common",
-    "build:starknet": "npm run build --workspace=@blockchain/starknet"
-  },
+  "packageManager": "npm@10.5.0",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -27,10 +23,10 @@
     "web3-provider-engine": "^17.0.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.2",
     "jest": "^28.1.1",
     "ts-jest": "^28.0.5",
     "ts-node": "^10.9.2",
+    "turbo": "^2.5.2",
     "typescript": "^5.7.3"
   },
   "workspaces": [
