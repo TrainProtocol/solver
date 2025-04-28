@@ -128,15 +128,24 @@ public static class MapperExtensions
         return dto;
     }
 
-    public static RouteDto ToDto(this Route route)
+    public static RouteDetailedDto ToDetailedDto(this Route route)
     {
-        return new RouteDto
+        return new RouteDetailedDto
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
             Destionation = route.DestinationToken.ToWithNetworkDto(),
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status
+        };
+    }
+
+    public static RouteDto ToDto(this Route route)
+    {
+        return new RouteDto
+        {
+            Source = route.SourceToken.ToWithNetworkDto(),
+            Destionation = route.DestinationToken.ToWithNetworkDto(),
         };
     }
 }
