@@ -12,12 +12,15 @@ services:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
-      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
       ASPNETCORE_URLS: http://+:8080
+      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
+      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
+      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
       - redis
+      - vault
     networks:
       - app-network
 
@@ -32,12 +35,15 @@ services:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
-      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
+      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
+      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
       - redis
       - solver.api
+      - vault
     networks:
       - app-network
 
@@ -52,12 +58,15 @@ services:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
-      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
+      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
+      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
       - redis
       - solver.api
+      - vault
     networks:
       - app-network
 
@@ -72,12 +81,15 @@ services:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
-      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
+      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
+      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
       - redis
       - solver.api
+      - vault
     networks:
       - app-network
       
@@ -93,12 +105,15 @@ services:
       TrainSolver__TemporalServerHost: ${TEMPORAL_SERVER_HOST}
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
-      TrainSolver__AzureKeyVaultUri: ${AZURE_KEYVAULT_URI}
+      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
+      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
+      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
       - redis
       - solver.api
+      - vault
     networks:
       - app-network
 
@@ -144,6 +159,38 @@ services:
     networks:
       - app-network
 
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    ports:
+      - "${HASHICORP_KEYVAULT_PORT}:8200"
+    env_file:
+    - ./.env  
+    environment:
+      VAULT_LOCAL_CONFIG: |
+        ui = true
+        listener "tcp" {
+          address = "0.0.0.0:${HASHICORP_KEYVAULT_PORT}"
+          tls_disable = 1
+        }
+        storage "file" {
+          path = "/vault/data"
+        }
+        disable_mlock = true
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault_data:/vault/data
+      - vault_config:/vault/config
+      - ./vault/docker-entrypoint.sh:/vault/docker-entrypoint.sh
+      - ./vault/:/vault/keys
+      - vault_env:/vault/env
+      - ./vault:/vault/user
+      - ./.env:/vault/.env
+    command: sh /vault/docker-entrypoint.sh
+    networks:
+      - app-network
+
 networks:
   app-network:
     name: app-network
@@ -152,3 +199,9 @@ networks:
 volumes:
   postgres_data:
     name: postgres_data
+  vault_data:
+    name: vault_data
+  vault_config:
+    name: vault_config
+  vault_env:
+    name: vault_env

@@ -147,13 +147,17 @@ The following **scheduled workflows** handle critical background tasks:
 
 ## 🛠 Configuration
 
-Chain and route metadata is defined dynamically via a PostgreSQL database. Configuration includes:
+Chain and route metadata is defined dynamically via a PostgreSQL database and Hashicorp Key vault. Configuration includes:
 
+Postgres:
 - Registered blockchain networks
 - Contract addresses
 - Node URLs
 - Token definitions
 - Swap routing information
+
+Key Vault:
+- Private key's corresponding to the managed account addresses
 
 > The system dynamically interacts with blockchain integrations based on the configuration stored in the database.
 
