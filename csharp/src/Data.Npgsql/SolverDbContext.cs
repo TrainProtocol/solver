@@ -133,6 +133,13 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
            .HasForeignKey(t => t.TokenPriceId)
            .OnDelete(DeleteBehavior.NoAction);
 
+        modelBuilder.Entity<Token>()
+           .HasOne(t => t.TokenGroup)
+           .WithMany()
+           .HasForeignKey(t => t.TokenGroupId)
+           .OnDelete(DeleteBehavior.NoAction)
+           .IsRequired(false);
+
         modelBuilder.Entity<Expense>()
             .HasIndex(x => new
             {

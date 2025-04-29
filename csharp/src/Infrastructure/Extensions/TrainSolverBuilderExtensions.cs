@@ -46,6 +46,7 @@ public static class TrainSolverBuilderExtensions
             new(ConnectionMultiplexer.Connect(options.RedisConnectionString))
         }));
 
+        services.AddTransient<IRateService, RateService>();
         services.AddTransient<IRouteService, RouteService>();
         services.AddTemporalWorkerClient(options.TemporalServerHost, options.TemporalNamespace);
 

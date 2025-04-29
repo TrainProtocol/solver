@@ -11,7 +11,8 @@ namespace Train.Solver.Infrastructure.Services;
 public class RouteService(
     IRouteRepository routeRepository,
     INetworkRepository networkRepository,
-    IFeeRepository feeRepository) : IRouteService
+    IFeeRepository feeRepository,
+    IRateService rateService) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
@@ -166,8 +167,10 @@ public class RouteService(
             }
         }
 
+        var swapRate = await rateService.GetRateAsync(route);
         var totalFee = await CalculateTotalFeeAsync(route, request.Amount);
-        var receiveAmount = request.Amount - totalFee;
+        var actualAmountToSwap = request.Amount - totalFee;
+        var receiveAmount = actualAmountToSwap * swapRate;
 
         var quote = new QuoteWithSolverDto
         {
