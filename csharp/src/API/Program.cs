@@ -64,16 +64,20 @@ builder.Services
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        builder =>
-        {
-            builder.AllowAnyHeader();
-            builder.AllowAnyMethod();
-            builder.AllowAnyOrigin();
-        });
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyHeader();
+        policy.AllowAnyMethod();
+        policy.AllowAnyOrigin();
+    });
 });
 
 var app = builder.Build();
+
+app.UseRateLimiter();
+app.UseCors();
+app.UseOutputCache();
+
 
 app.MapGroup("/api")
     .MapGet("/health", () => Results.Ok())
@@ -100,9 +104,6 @@ app.UseSwaggerUI(c =>
     c.DisplayRequestDuration();
 });
 
-app.UseOutputCache();
-app.UseRateLimiter();
-app.UseCors();
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 await app.RunAsync();
