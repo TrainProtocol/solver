@@ -8,7 +8,7 @@ export class PrivateKeyRepository {
 
     constructor() { 
         this.vault = nodeVault({
-            endpoint: process.env.TrainSolver__HashcorpKeyVaultUri
+            endpoint: process.env.TrainSolver__HashicorpKeyVaultUri
         });
 
         this.initLogin();
@@ -16,7 +16,7 @@ export class PrivateKeyRepository {
 
     public async getAsync(address: string): Promise<string> {
         await this.getTokenAsync();
-        const keyVaultMount = process.env.TrainSolver__HashicorpKeyVaultMountPath;
+        const keyVaultMount = process.env.TrainSolver__HashicorpKeyVaultMountPath ?? 'secret';
         const {data} = await this.vault.read(`${keyVaultMount}/data/${address}`);
         return  data.data[this.pkKey];
     }
