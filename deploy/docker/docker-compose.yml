@@ -13,9 +13,6 @@ services:
       TrainSolver__DatabaseConnectionString: ${TRAIN_SOLVER_DB_CONNECTION_STRING}
       TrainSolver__RedisConnectionString: ${TRAIN_SOLVER_REDIS_CONNECTION_STRING}
       ASPNETCORE_URLS: http://+:8080
-      TrainSolver__HashicorpKeyVaultUsername: ${HASHICORP_KEYVAULT_USER}
-      TrainSolver__HashicorpKeyVaultPassword: ${HASHICORP_KEYVAULT_PASSWORD}
-      TrainSolver__HashicorpKeyVaultUri: ${TRAIN_SOLVER_HASHICORP_KEYVAULT_CONNECTION_STRING}
     depends_on:
       - temporal
       - db
