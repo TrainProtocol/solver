@@ -65,6 +65,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{408D96B3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtoGenerator", "tools\ProtoGenerator\ProtoGenerator.csproj", "{F122706F-7858-4A1C-84C2-21FE9B27A432}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Secret.HashicorpKeyVault", "src\Infrastructure.Secret.HashicorpKeyVault\Infrastructure.Secret.HashicorpKeyVault.csproj", "{EF01FD26-7CF3-4CB7-88AF-78199E40091E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{F122706F-7858-4A1C-84C2-21FE9B27A432}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F122706F-7858-4A1C-84C2-21FE9B27A432}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F122706F-7858-4A1C-84C2-21FE9B27A432}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF01FD26-7CF3-4CB7-88AF-78199E40091E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF01FD26-7CF3-4CB7-88AF-78199E40091E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF01FD26-7CF3-4CB7-88AF-78199E40091E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF01FD26-7CF3-4CB7-88AF-78199E40091E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -160,6 +166,7 @@ Global
 		{417046CB-2C35-43D3-B887-98E708339594} = {9D441E87-E87F-4A21-92F0-45AEBA1397D4}
 		{BED56D0D-6DB0-4124-93EC-97E39150F03F} = {417046CB-2C35-43D3-B887-98E708339594}
 		{F122706F-7858-4A1C-84C2-21FE9B27A432} = {408D96B3-44EC-4053-AC45-FD9DFD2F176D}
+		{EF01FD26-7CF3-4CB7-88AF-78199E40091E} = {A8361F6F-72AD-4A91-A331-F209132B514B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9194A24-3EC3-4F7F-BD7F-8DE45515A2E3}
