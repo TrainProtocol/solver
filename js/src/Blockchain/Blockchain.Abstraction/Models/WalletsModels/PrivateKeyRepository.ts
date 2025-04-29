@@ -8,7 +8,7 @@ export class PrivateKeyRepository {
 
     constructor() { 
         this.vault = nodeVault({
-            endpoint: process.env.TrainSolver__HashcorpKeyVaultUri
+            endpoint: process.env.TrainSolver__HashicorpKeyVaultUri
         });
 
         this.initLogin();
