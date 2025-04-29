@@ -292,6 +292,6 @@ public static class SolverV1Endpoints
             });
         }
 
-        return Results.Ok(new ApiResponse<QuoteDto> { Data = quote });
+        return Results.Ok(new ApiResponse<QuoteWithSolverDto> { Data = quote });
     }
 }

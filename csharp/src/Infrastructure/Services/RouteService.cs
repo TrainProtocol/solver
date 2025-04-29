@@ -110,10 +110,10 @@ public class RouteService(
         return route is not null ? await GetLimitAsync(route) : null;
     }
 
-    public virtual Task<QuoteDto?> GetValidatedQuoteAsync(
+    public virtual Task<QuoteWithSolverDto?> GetValidatedQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, GetLimitAsync);
 
-    public virtual Task<QuoteDto?> GetQuoteAsync(
+    public virtual Task<QuoteWithSolverDto?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
 
     private async Task<LimitDto> GetLimitAsync(Route route)
@@ -131,7 +131,7 @@ public class RouteService(
         };
     }
 
-    private async Task<QuoteDto?> GetQuoteAsync(
+    private async Task<QuoteWithSolverDto?> GetQuoteAsync(
         QuoteRequest request,
         Func<Route, Task<LimitDto>>? validatelimit)
     {
@@ -169,12 +169,15 @@ public class RouteService(
         var totalFee = await CalculateTotalFeeAsync(route, request.Amount);
         var receiveAmount = request.Amount - totalFee;
 
-        var quote = new QuoteDto
+        var quote = new QuoteWithSolverDto
         {
             ReceiveAmount = receiveAmount.Truncate(route.DestinationToken.Precision),
             ReceiveAmountInUsd = receiveAmount * route.DestinationToken.TokenPrice.PriceInUsd,
             TotalFee = totalFee,
             TotalFeeInUsd = totalFee * route.SourceToken.TokenPrice.PriceInUsd,
+            SolverAddressInSource = route.SourceToken.Network.ManagedAccounts.FirstOrDefault()?.Address ?? string.Empty,
+            NativeContractAddressInSource = route.SourceToken.Network.Contracts.FirstOrDefault(x=>x.Type == ContarctType.HTLCNativeContractAddress)?.Address ?? string.Empty,
+            TokenContractAddressInSource = route.SourceToken.Network.Contracts.FirstOrDefault(x=>x.Type == ContarctType.HTLCTokenContractAddress)?.Address ?? string.Empty,
         };
 
         return quote;
