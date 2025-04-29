@@ -131,7 +131,7 @@ public class HtlcInstructionDataBuilder
         var instructionExecutionOrder = new Dictionary<string, object>
         {
             { "id",  id },
-            { "htlcBump", hTLCPdaResponse.HtlcPublicKey }
+            { "htlcBump", hTLCPdaResponse.HtlcBump }
         };
 
         return BuildInstructionData(
