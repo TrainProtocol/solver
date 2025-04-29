@@ -1,4 +1,5 @@
-﻿using Solnet.Rpc.Builders;
+﻿using Nethereum.Hex.HexConvertors.Extensions;
+using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
 using System.Buffers.Binary;
