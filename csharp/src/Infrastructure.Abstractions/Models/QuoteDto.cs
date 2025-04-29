@@ -9,4 +9,8 @@ public class QuoteDto
     public decimal ReceiveAmount { get; set; }
 
     public decimal ReceiveAmountInUsd { get; set; }
+
+    public required decimal SourceAmount { get; set; }
+
+    public required decimal SourceAmountInUsd { get; set; }
 }

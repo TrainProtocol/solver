@@ -171,6 +171,8 @@ public class RouteService(
 
         var quote = new QuoteWithSolverDto
         {
+            SourceAmount = request.Amount.Truncate(route.SourceToken.Precision),
+            SourceAmountInUsd = request.Amount * route.SourceToken.TokenPrice.PriceInUsd,
             ReceiveAmount = receiveAmount.Truncate(route.DestinationToken.Precision),
             ReceiveAmountInUsd = receiveAmount * route.DestinationToken.TokenPrice.PriceInUsd,
             TotalFee = totalFee,

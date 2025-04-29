@@ -14,10 +14,12 @@ public static class MapperExtensions
             SourceNetwork = swap.SourceToken.Network.Name,
             SourceToken = swap.SourceToken.Asset,
             SourceAmount = swap.SourceAmount,
+            SourceAmountInUsd = swap.SourceTokenPrice * swap.SourceAmount,
             SourceAddress = swap.SourceAddress,
             DestinationNetwork = swap.DestinationToken.Network.Name,
             DestinationToken = swap.DestinationToken.Asset,
             DestinationAmount = swap.DestinationAmount,
+            DestinationAmountInUsd = swap.DestinationTokenPrice * swap.DestinationAmount,
             DestinationAddress = swap.DestinationAddress,
             FeeAmount = swap.FeeAmount,
             Transactions = swap.Transactions.Select(t => t.ToDto())
