@@ -17,7 +17,6 @@
     "pg": "^8.14.1",
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
-    "starknet": "^6.23.1",
     "tsyringe": "^4.9.1",
     "typeorm": "^0.3.21",
     "web3-provider-engine": "^17.0.1"

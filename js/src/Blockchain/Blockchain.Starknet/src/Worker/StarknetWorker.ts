@@ -27,7 +27,27 @@ export default async function run() {
       namespace: 'atomic',
       taskQueue: NetworkType[NetworkType.Starknet],
       workflowsPath: require.resolve('../Workflows'),
-      activities: activities,
+    activities: activities,
+    bundlerOptions:
+      {
+        ignoreModules: [
+          'crypto',
+          'events',
+          'buffer',
+          'buffer/',
+          'stream',
+          'net',
+          'tls',
+          'dns',
+          'http',
+          'https',
+          'zlib',
+          'string_decoder',
+          'fs',
+          'querystring',
+          'path'
+        ]
+      },
       connection,
     });
 

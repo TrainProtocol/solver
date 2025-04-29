@@ -4,8 +4,7 @@ FROM node:20 AS builder
 WORKDIR /app
 COPY js/ .
 
-RUN npm i --workspace=@blockchain/common
-RUN npm run build --workspace=@blockchain/common
+RUN npm ci
 
 # Final production image
 FROM node:20 AS final
@@ -15,6 +14,7 @@ COPY --from=builder /app .
 
 ARG NETWORK
 ENV NETWORK=${NETWORK}
+RUN npx turbo run build --filter=@blockchain/${NETWORK}
 
 RUN npm run build --workspace=@blockchain/${NETWORK}
 RUN npm run build --workspace=@blockchain/${NETWORK}
