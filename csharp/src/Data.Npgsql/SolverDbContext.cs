@@ -15,6 +15,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<TokenPrice> TokenPrices { get; set; }
 
+    public DbSet<TokenGroup> TokenGroups { get; set; }
+
     public DbSet<ManagedAccount> ManagedAccounts { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
@@ -131,6 +133,12 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
            .HasOne(t => t.TokenPrice)
            .WithMany()
            .HasForeignKey(t => t.TokenPriceId)
+           .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Token>()
+           .HasOne(t => t.TokenGroup)
+           .WithMany()
+           .HasForeignKey(t => t.TokenGroupId)
            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Expense>()

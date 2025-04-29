@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Train.Solver.Data.Npgsql;
@@ -11,9 +12,11 @@ using Train.Solver.Data.Npgsql;
 namespace Train.Solver.Data.EF.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    partial class SolverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250429151722_AddTokenGroup")]
+    partial class AddTokenGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -357,9 +360,6 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("DestinationTokenId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("DestinationTokenPrice")
-                        .HasColumnType("numeric");
-
                     b.Property<decimal>("FeeAmount")
                         .HasColumnType("numeric");
 
@@ -376,9 +376,6 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.Property<int>("SourceTokenId")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("SourceTokenPrice")
-                        .HasColumnType("numeric");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
