@@ -96,6 +96,9 @@ public static class Ed25519Program
             offset += p.Length;
         }
 
-        return finalMessage;
+        var finalMessageHex = finalMessage.ToHex();
+        var finalMessageBytes = finalMessageHex.HexToByteArray();
+
+        return finalMessageBytes;
     }
 }
