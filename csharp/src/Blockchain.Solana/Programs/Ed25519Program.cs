@@ -19,25 +19,33 @@ public static class Ed25519Program
         byte[] message,
         byte[] signature)
     {
-        const ushort CURRENT_IX = ushort.MaxValue;
+        const ushort ixIdx = ushort.MaxValue;
 
-        var offsets = new byte[14];
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(0), (ushort)(1 + offsets.Length));
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(2), CURRENT_IX);
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(4), (ushort)(1 + offsets.Length + 64));
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(6), CURRENT_IX);
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(8), (ushort)(1 + offsets.Length + 64 + 32));
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(10), (ushort)message.Length);
-        BinaryPrimitives.WriteUInt16LittleEndian(offsets.AsSpan(12), CURRENT_IX);
+        const int prefix = 2;   
+        const int offsLen = 14; 
 
-        var data = new byte[1 + offsets.Length + 64 + 32 + message.Length];
-        data[0] = 1;
-        offsets.CopyTo(data.AsSpan(1));
-        signature.CopyTo(data.AsSpan(1 + offsets.Length));
-        signerPublicKey.KeyBytes.CopyTo(data.AsSpan(1 + offsets.Length + 64));
-        message.CopyTo(data.AsSpan(1 + offsets.Length + 64 + 32));
+        var pkOffset = (ushort)(prefix + offsLen);      
+        var sigOffset = (ushort)(pkOffset + 32);        
+        var msgOffset = (ushort)(sigOffset + 64);       
+        var msgSize = (ushort)message.Length;
 
-        builder.AddInstruction(new()
+        var data = new byte[prefix + offsLen + 32 + 64 + message.Length];
+        data[0] = 1;                                    
+        data[1] = 0;                                     
+
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(2), sigOffset);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(4), ixIdx);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(6), pkOffset);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(8), ixIdx);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(10), msgOffset);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(12), msgSize);
+        BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(14), ixIdx);
+
+        signerPublicKey.KeyBytes.CopyTo(data.AsSpan(pkOffset));
+        signature.CopyTo(data.AsSpan(sigOffset));
+        message.CopyTo(data.AsSpan(msgOffset));
+
+        builder.AddInstruction(new TransactionInstruction
         {
             ProgramId = ProgramIdKey,
             Keys = new List<AccountMeta>(),
@@ -46,6 +54,7 @@ public static class Ed25519Program
 
         return builder;
     }
+
 
     public static byte[] CreateAddLockSigMessage(SolanaAddLockSigMessageRequest messageRequest)
     {
