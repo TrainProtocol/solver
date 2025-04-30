@@ -27,14 +27,39 @@ public class RateService : IRateService
             return 1;
         }
 
-        var tradingSymbol = await GetTradingSymbol(route.SourceToken.Asset, route.DestinationToken.Asset) ?? throw new Exception($"No trading symbol found for {route.SourceToken.Asset} and {route.DestinationToken.Asset}");
-        var isBuying = IsBuyTrade(tradingSymbol, route.SourceToken.Asset, route.DestinationToken.Asset);
+        var tradingSymbol = await GetTradingSymbol(route.SourceToken.Asset, route.DestinationToken.Asset);
 
-        var prices = await FetchPrices(tradingSymbol);
-        decimal stdev = CalculateStandardDeviation(prices);
-        decimal currentPrice = prices.Last();
+        // direct traiding pair found
+        if (tradingSymbol != null)
+        {
+            // Direct trading pair exists
+            var isBuying = IsBuyTrade(tradingSymbol, route.SourceToken.Asset, route.DestinationToken.Asset);
+            var prices = await FetchPrices(tradingSymbol);
+            decimal stdev = CalculateStandardDeviation(prices);
+            decimal currentPrice = prices.Last();
 
-        return isBuying ? currentPrice - stdev : 1 / (currentPrice + stdev);
+            return isBuying ? currentPrice - stdev : 1 / (currentPrice + stdev);
+        }
+
+        // Use USDT as an intermediary
+        var sourceToUsdtPair = await GetTradingSymbol(route.SourceToken.Asset, "USDT");
+        var destinationToUsdtPair = await GetTradingSymbol(route.DestinationToken.Asset, "USDT");
+
+        if (sourceToUsdtPair == null || destinationToUsdtPair == null)
+        {
+            throw new Exception($"No valid trading pairs found for {route.SourceToken.Asset} or {route.DestinationToken.Asset} with USDT.");
+        }
+
+        var sourceToUsdtPrices = await FetchPrices(sourceToUsdtPair);
+        var destinationToUsdtPrices = await FetchPrices(destinationToUsdtPair);
+
+        decimal sourceToUsdtStdev = CalculateStandardDeviation(sourceToUsdtPrices);
+        decimal destinationToUsdtStdev = CalculateStandardDeviation(destinationToUsdtPrices);
+
+        var sourceToUsdtPrice = sourceToUsdtPrices.Last() - sourceToUsdtStdev;
+        var destinationToUsdtPrice = destinationToUsdtPrices.Last() + destinationToUsdtStdev;
+
+        return sourceToUsdtPrice / destinationToUsdtPrice;
     }
 
     static decimal CalculateStandardDeviation(List<decimal> prices)
@@ -56,7 +81,7 @@ public class RateService : IRateService
             return cachedData.Prices;
         }
 
-        var klines = await _binanceClient.SpotApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.ThirtyMinutes, limit: 5000);
+        var klines = await _binanceClient.SpotApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.ThirtyMinutes, limit: 1500);
         if (!klines.Success || klines.Data == null)
         {
             throw new Exception($"Failed to fetch prices for symbol {symbol}");
