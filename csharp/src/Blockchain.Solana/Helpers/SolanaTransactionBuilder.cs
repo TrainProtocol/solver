@@ -87,6 +87,8 @@ public static class SolanaTransactionBuilder
                 SourceAddress = request.DestinationAddress,
                 DestinationAsset = request.DestinationAsset,
                 SourceTokenPublicKey = new PublicKey(currency.TokenContract),
+                Reward = Web3.Convert.ToWei(request.Reward, currency.Decimals),
+                RewardTimelock = new BigInteger(request.RewardTimelock),
             });
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
