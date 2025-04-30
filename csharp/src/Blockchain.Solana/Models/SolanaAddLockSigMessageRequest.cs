@@ -1,4 +1,5 @@
 ﻿using Solnet.Wallet;
+using System.Numerics;
 
 namespace Train.Solver.Blockchain.Solana.Models;
 
@@ -10,5 +11,5 @@ public class SolanaAddLockSigMessageRequest
 
     public PublicKey SignerPublicKey { get; set; } = null!;
 
-    public long Timelock { get; set; }
+    public BigInteger Timelock { get; set; }
 }
