@@ -147,7 +147,6 @@ public class HtlcInstructionDataBuilder
         SetFieldData("hashlock", addLockSigRequest.AddLockSigMessageRequest.Hashlock.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("timelock", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
         SetFieldData("secret", addLockSigRequest.Signature.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
-        SetFieldData("htlcBump", 1, (v, buf, off) => buf.WriteU8((byte)v, off));
 
         var instructionExecutionOrder = new Dictionary<string, object>
         {
@@ -155,7 +154,6 @@ public class HtlcInstructionDataBuilder
             { "hashlock", addLockSigRequest.AddLockSigMessageRequest.Hashlock},
             { "timelock", addLockSigRequest.AddLockSigMessageRequest.Timelock},
             { "secret", addLockSigRequest.Signature},
-            { "htlcBump", htlcPdaResponse.HtlcBump }
         };
 
         return BuildInstructionData(
