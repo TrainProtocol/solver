@@ -106,7 +106,7 @@ public static class HtlcInstructionKeyProvider
         {
             AccountMeta.Writable(publicKey: hTLCAddlocksigRequest.SenderPublicKey, isSigner: true),
             AccountMeta.Writable(publicKey: htlcPdaResponse.HtlcPublicKey, isSigner: false),
-            AccountMeta.Writable(publicKey: new PublicKey(SolanaConstants.SysVarInstructionAddress), isSigner: false),
+            AccountMeta.ReadOnly(publicKey: new PublicKey(SolanaConstants.SysVarInstructionAddress), isSigner: false),
             AccountMeta.ReadOnly(publicKey: SystemProgram.ProgramIdKey, isSigner: false),
             AccountMeta.ReadOnly(publicKey: SysVars.RentKey, isSigner: false),
         };
