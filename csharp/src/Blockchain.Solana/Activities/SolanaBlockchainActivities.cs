@@ -24,6 +24,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using System.Buffers;
 using Nethereum.Hex.HexConvertors.Extensions;
+using System.Text;
 
 namespace Train.Solver.Blockchain.Solana.Activities;
 
@@ -482,12 +483,15 @@ public class SolanaBlockchainActivities(
             SignerPublicKey = new PublicKey(request.SignerAddress),
         });
 
+        var finalMessagText = Encoders.Base58.EncodeData(message);
+        var finalMessageBytes = Encoding.UTF8.GetBytes(finalMessagText);
+
         var signatureBytes = Convert.FromBase64String(request.Signature);
         var signerPublicKey = new PublicKey(request.SignerAddress).KeyBytes;
 
         var verifier = new Ed25519Signer();
         verifier.Init(false, new Ed25519PublicKeyParameters(signerPublicKey, 0));
-        verifier.BlockUpdate(message, 0, message.Length);
+        verifier.BlockUpdate(finalMessageBytes, 0, finalMessageBytes.Length);
         var isValid = verifier.VerifySignature(signatureBytes);
 
         return isValid;
