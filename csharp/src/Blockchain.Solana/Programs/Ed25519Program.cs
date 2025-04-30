@@ -1,11 +1,11 @@
-﻿using Nethereum.Hex.HexConvertors.Extensions;
-using Solnet.Rpc.Builders;
+﻿using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using Train.Solver.Blockchain.Solana.Models;
+using Solnet.Wallet.Utilities;
 
 namespace Train.Solver.Blockchain.Solana.Programs;
 
@@ -97,8 +97,8 @@ public static class Ed25519Program
             offset += p.Length;
         }
 
-        var finalMessageHex = finalMessage.ToHex();
-        var finalMessageBytes = finalMessageHex.HexToByteArray();
+        var finalMessagText = Encoders.Base58.EncodeData(finalMessage);
+        var finalMessageBytes = Encoding.UTF8.GetBytes(finalMessagText);
 
         return finalMessageBytes;
     }
