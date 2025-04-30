@@ -83,10 +83,10 @@ public static class HTLCProgram
         var message = Ed25519Program.CreateAddLockSigMessage(htlcAddlocksigRequest.AddLockSigMessageRequest);
         var addLockSigData = new HtlcInstructionDataBuilder().CreateAddLockSigData(htlcAddlocksigRequest, pdaParams);
 
-        //builder.CreateEd25519Instruction(
-        //    htlcAddlocksigRequest.AddLockSigMessageRequest.SignerPublicKey,
-        //    message,
-        //    htlcAddlocksigRequest.Signature);
+        builder.CreateEd25519Instruction(
+            htlcAddlocksigRequest.AddLockSigMessageRequest.SignerPublicKey,
+            message,
+            htlcAddlocksigRequest.Signature);
 
         builder.AddInstruction(new()
         {
