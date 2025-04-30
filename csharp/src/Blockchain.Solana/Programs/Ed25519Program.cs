@@ -105,10 +105,7 @@ public static class Ed25519Program
             Buffer.BlockCopy(p, 0, finalMessage, offset, p.Length);
             offset += p.Length;
         }
-
-        var finalMessagText = Encoders.Base58.EncodeData(finalMessage);
-        var finalMessageBytes = Encoding.UTF8.GetBytes(finalMessagText);
-
-        return finalMessageBytes;
+        
+        return finalMessage;
     }
 }
