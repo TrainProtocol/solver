@@ -9,6 +9,7 @@ public static class TrainSolverBuilderExtensions
     public static TrainSolverBuilder WithMarketMaker(
         this TrainSolverBuilder builder)
     {
+        builder.Services.AddTransient<IRouteService, RouteService>();
         builder.Services.AddSingleton<IRateService, RateService>();
         return builder;
     }

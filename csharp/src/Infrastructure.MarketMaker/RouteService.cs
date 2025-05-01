@@ -6,7 +6,7 @@ using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 
-namespace Train.Solver.Infrastructure.Services;
+namespace Train.Solver.Infrastructure.MarketMaker;
 
 public class RouteService(
     IRouteRepository routeRepository,
