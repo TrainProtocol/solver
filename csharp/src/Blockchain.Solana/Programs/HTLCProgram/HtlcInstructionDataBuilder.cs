@@ -146,14 +146,14 @@ public class HtlcInstructionDataBuilder
         SetFieldData("id", addLockSigRequest.AddLockSigMessageRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("hashlock", addLockSigRequest.AddLockSigMessageRequest.Hashlock.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("timelock", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
-        SetFieldData("secret", addLockSigRequest.Signature.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
+        SetFieldData("signature", addLockSigRequest.Signature.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
 
         var instructionExecutionOrder = new Dictionary<string, object>
         {
             { "id",  addLockSigRequest.AddLockSigMessageRequest.Id },
             { "hashlock", addLockSigRequest.AddLockSigMessageRequest.Hashlock},
             { "timelock", addLockSigRequest.AddLockSigMessageRequest.Timelock},
-            { "secret", addLockSigRequest.Signature},
+            { "signature", addLockSigRequest.Signature},
         };
 
         return BuildInstructionData(
