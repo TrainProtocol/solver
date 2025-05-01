@@ -81,7 +81,7 @@ public class RateService : IRateService
             return cachedData.Prices;
         }
 
-        var klines = await _binanceClient.SpotApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.ThirtyMinutes, limit: 1500);
+        var klines = await _binanceClient.SpotApi.ExchangeData.GetKlinesAsync(symbol, Binance.Net.Enums.KlineInterval.OneMinute, limit: 20);
         if (!klines.Success || klines.Data == null)
         {
             throw new Exception($"Failed to fetch prices for symbol {symbol}");
