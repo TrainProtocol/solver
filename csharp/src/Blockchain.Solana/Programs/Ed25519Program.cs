@@ -45,7 +45,7 @@ public static class Ed25519Program
         signature.CopyTo(data.AsSpan(sigOffset));
         message.CopyTo(data.AsSpan(msgOffset));
 
-        builder.AddInstruction(new TransactionInstruction
+        builder.AddInstruction(new()
         {
             ProgramId = ProgramIdKey,
             Keys = new List<AccountMeta>(),
