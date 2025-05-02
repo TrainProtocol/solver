@@ -231,7 +231,7 @@ public class SwapWorkflow : ISwapWorkflow
                     Asset = _htlcCommitMessage.SourceAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _solverManagedAccountInSource,
-                    SenderAddress = _htlcCommitMessage.SenderAddress
+                    SenderAddress = _solverManagedAccountInSource
                 }),
                 Type = TransactionType.HTLCRedeem,
                 NetworkName = _htlcCommitMessage.SourceNetwork,
