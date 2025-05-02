@@ -196,6 +196,9 @@ public static class SolanaTransactionBuilder
                 SignerPublicKey = new PublicKey(managedAccount.Address),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress),
                 SenderPublicKey = new PublicKey(request.SenderAddress),
+                RewardPublicKey = request.DestinationAddress == managedAccount.Address?
+                    new PublicKey(request.DestinationAddress) :
+                    new PublicKey(request.SenderAddress),
             });
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();

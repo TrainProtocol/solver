@@ -15,4 +15,6 @@ public class HTLCRedeemRequest
     public PublicKey SignerPublicKey { get; set; } = null!;
 
     public PublicKey SenderPublicKey { get; set; } = null!;
+
+    public PublicKey RewardPublicKey { get; set; } = null!;
 }
