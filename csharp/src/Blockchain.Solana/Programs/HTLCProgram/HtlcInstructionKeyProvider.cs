@@ -78,7 +78,7 @@ public static class HtlcInstructionKeyProvider
             AccountMeta.Writable(publicKey: htlcPdaResponse.HtlcTokenAccount, isSigner: false),
             AccountMeta.Writable(publicKey: AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(htlcRedeemRequest.SenderPublicKey, htlcRedeemRequest.SourceTokenPublicKey), isSigner: false),
             AccountMeta.Writable(publicKey: AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(htlcRedeemRequest.ReceiverPublicKey, htlcRedeemRequest.SourceTokenPublicKey), isSigner: false),
-            AccountMeta.Writable(publicKey: AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(htlcRedeemRequest.SenderPublicKey, htlcRedeemRequest.SourceTokenPublicKey), isSigner: false),
+            AccountMeta.Writable(publicKey: AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(htlcRedeemRequest.RewardPublicKey, htlcRedeemRequest.SourceTokenPublicKey), isSigner: false),
             AccountMeta.ReadOnly(publicKey: SystemProgram.ProgramIdKey, isSigner: false),
             AccountMeta.ReadOnly(publicKey: TokenProgram.ProgramIdKey, isSigner: false),
             AccountMeta.ReadOnly(publicKey: AssociatedTokenAccountProgram.ProgramIdKey, isSigner: false),
