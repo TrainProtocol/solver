@@ -1,4 +1,5 @@
 import starknetWorker from './Blockchain/Blockchain.Starknet/Worker/StarknetWorker';
+import fuelWorker from './Blockchain/Blockchain.Fuel/Worker/FuelWorker';
 
 // Parse the console argument
 const args = process.argv.slice(2);
@@ -13,6 +14,9 @@ const network = args[0].toLowerCase();
 switch (network) {
     case 'starknet':
         starknetWorker();
+        break;
+    case 'fuel':
+        fuelWorker();
         break;
     default:
         console.error(`Unknown network: ${network}. Supported networks are: starknet.`);
