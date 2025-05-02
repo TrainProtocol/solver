@@ -10,8 +10,6 @@ public class DetailedNetworkDto : NetworkDto
 
     public string AccountExplorerTemplate { get; set; } = null!;
 
-    public DateTimeOffset ListingDate { get; set; }
-
     public DetailedTokenDto? NativeToken { get; set; } = null!;
 
     public IEnumerable<DetailedTokenDto> Tokens { get; set; } = [];

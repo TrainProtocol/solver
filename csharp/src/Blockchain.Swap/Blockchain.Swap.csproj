@@ -8,8 +8,9 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
 		<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
-		<ProjectReference Include="..\Infrastructure.Secret.AzureKeyVault\Infrastructure.Secret.AzureKeyVault.csproj" />
 		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+		<ProjectReference Include="..\Infrastructure.Secret.HashicorpKeyVault\Infrastructure.Secret.HashicorpKeyVault.csproj" />
 	  	<ProjectReference Include="..\Infrastructure.TokenPrice.Coingecko\Infrastructure.TokenPrice.Coingecko.csproj" />
+		<ProjectReference Include="..\Infrastructure.MarketMaker\Infrastructure.MarketMaker.csproj" />
 	</ItemGroup>
 </Project>

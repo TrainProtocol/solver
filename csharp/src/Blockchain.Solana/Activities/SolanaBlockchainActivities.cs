@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
@@ -21,6 +20,11 @@ using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Models;
 using Train.Solver.Blockchain.Solana.Programs;
 using Train.Solver.Blockchain.Common.Helpers;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using System.Buffers;
+using Nethereum.Hex.HexConvertors.Extensions;
+using System.Text;
 
 namespace Train.Solver.Blockchain.Solana.Activities;
 
@@ -59,6 +63,9 @@ public class SolanaBlockchainActivities(
                 break;
             case TransactionType.HTLCRefund:
                 result = await SolanaTransactionBuilder.BuildHTLCRefundTransactionAsync(network, request.Args);
+                break;
+            case TransactionType.HTLCAddLockSig:
+                result = await SolanaTransactionBuilder.BuildHTLCAddlockSigTransactionAsync(network, request.Args);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request.Type), $"Not supported transaction type {request.Type} for network {request.NetworkName}");
@@ -110,7 +117,7 @@ public class SolanaBlockchainActivities(
 
         var signers = new List<Account> { solanaAccount };
 
-        var transaction = Convert.FromBase64String(request.CallData);
+        var transaction = Convert.FromBase64String(request.CallData!);
         var tx = Solnet.Rpc.Models.Transaction.Deserialize(transaction);
 
         foreach (var instruction in tx.Instructions)
@@ -317,7 +324,7 @@ public class SolanaBlockchainActivities(
         }
 
         return transaction;
-    }    
+    }
 
     [Activity]
     public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
@@ -447,9 +454,47 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public virtual Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
-        throw new NotImplementedException();
+        var network = await networkRepository.GetAsync(request.NetworkName);
+
+        if (network is null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
+        }
+
+        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+
+        if (currency is null)
+        {
+            throw new ArgumentNullException(nameof(currency), $"Currency {request.Asset} for {request.NetworkName} is missing");
+        }
+
+        if (request.Signature is null)
+        {
+            throw new ArgumentNullException(nameof(request.Signature), "Signature is required");
+        }
+
+        var message = Ed25519Program.CreateAddLockSigMessage(new()
+        {
+            Hashlock = request.Hashlock.HexToByteArray(),
+            Id = request.Id.HexToByteArray(),
+            Timelock = request.Timelock,
+            SignerPublicKey = new PublicKey(request.SignerAddress),
+        });
+
+        var finalMessagText = Encoders.Base58.EncodeData(message);
+        var finalMessageBytes = Encoding.UTF8.GetBytes(finalMessagText);
+
+        var signatureBytes = Convert.FromBase64String(request.Signature);
+        var signerPublicKey = new PublicKey(request.SignerAddress).KeyBytes;
+
+        var verifier = new Ed25519Signer();
+        verifier.Init(false, new Ed25519PublicKeyParameters(signerPublicKey, 0));
+        verifier.BlockUpdate(finalMessageBytes, 0, finalMessageBytes.Length);
+        var isValid = verifier.VerifySignature(signatureBytes);
+
+        return isValid;
     }
 
     [Activity]
@@ -597,23 +642,6 @@ public class SolanaBlockchainActivities(
         return builder.Build(signers);
     }
 
-    private static async Task<bool> IsAssociatedTokenAccountInitialized(
-        IRpcClient rpcClient,
-        PublicKey mintAddress,
-        PublicKey solAddress)
-    {
-        var splAddress = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(solAddress, mintAddress);
-        var accountInfoResult = await rpcClient.GetAccountInfoAsync(splAddress);
-
-        if (accountInfoResult.WasSuccessful && accountInfoResult.Result.Value != null)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
     private static BigInteger ComputeRentFee(
        string networkName,
        List<TransactionInstruction> instructions)
@@ -622,11 +650,9 @@ public class SolanaBlockchainActivities(
 
         foreach (var instruction in instructions)
         {
-            if (instruction.ProgramId.SequenceEqual(AssociatedTokenAccountProgram.ProgramIdKey.KeyBytes) && instruction.Data.Length == 0)
-            {
-                accountCreationCount++;
-            }
-            if (SolanaConstants.LockDescriminator.TryGetValue(networkName, out var lockDescriminator) && instruction.Data.Take(8).SequenceEqual(lockDescriminator))
+            var lockDescriminator = FieldEncoder.Sighash(SolanaConstants.LockSighash);
+
+            if (instruction.Data.Take(8).SequenceEqual(lockDescriminator))
             {
                 accountCreationCount++;
             }
@@ -634,6 +660,7 @@ public class SolanaBlockchainActivities(
 
         return accountCreationCount * LamportsPerRent;
     }
+
     private static string CalculateTransactionHash(byte[] rawTransactionBytes)
     {
         var tx = Solnet.Rpc.Models.Transaction.Deserialize(rawTransactionBytes);
@@ -646,8 +673,8 @@ public class SolanaBlockchainActivities(
     }
 
     private async Task CheckBlockHeightAsync(
-     Network network,
-     string fromAddress)
+        Network network,
+        string fromAddress)
     {
         var primaryNode = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
 

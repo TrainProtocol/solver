@@ -22,7 +22,7 @@ public class NetworkActivities(INetworkRepository networkRepository) : INetworkA
     }
 
     [Activity]
-    public async Task<List<TokenWithNetworkDto>> GetAvailableTokensAsync()
+    public async Task<List<TokenNetworkDto>> GetAvailableTokensAsync()
     {
         var tokens = await networkRepository.GetTokensAsync();
         
