@@ -483,15 +483,12 @@ public class SolanaBlockchainActivities(
             SignerPublicKey = new PublicKey(request.SignerAddress),
         });
 
-        var finalMessagText = Encoders.Base58.EncodeData(message);
-        var finalMessageBytes = Encoding.UTF8.GetBytes(finalMessagText);
-
         var signatureBytes = Convert.FromBase64String(request.Signature);
         var signerPublicKey = new PublicKey(request.SignerAddress).KeyBytes;
 
         var verifier = new Ed25519Signer();
         verifier.Init(false, new Ed25519PublicKeyParameters(signerPublicKey, 0));
-        verifier.BlockUpdate(finalMessageBytes, 0, finalMessageBytes.Length);
+        verifier.BlockUpdate(message, 0, message.Length);
         var isValid = verifier.VerifySignature(signatureBytes);
 
         return isValid;
