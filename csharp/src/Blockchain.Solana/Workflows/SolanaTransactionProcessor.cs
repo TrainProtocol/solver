@@ -17,7 +17,7 @@ public class SolanaTransactionProcessor
     public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
     {
         var preparedTransaction = await ExecuteActivityAsync(
-            (ISolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest
+            (ISolanaBlockchainActivities x) => x.BuildTransactionAsync(new TransactionBuilderRequest 
                 {
                     NetworkName = request.NetworkName,
                     Args = request.PrepareArgs,
