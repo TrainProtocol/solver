@@ -105,7 +105,10 @@ public static class Ed25519Program
             Buffer.BlockCopy(p, 0, finalMessage, offset, p.Length);
             offset += p.Length;
         }
-        
-        return finalMessage;
+
+        var finalMessageHex = Convert.ToHexString(finalMessage).ToLower();
+        var messageBytes = Encoding.UTF8.GetBytes(finalMessageHex);
+
+        return messageBytes;
     }
 }
