@@ -9,7 +9,7 @@
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
 | API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
-| Runner (Swap) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Runner (Swap Core) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
 | Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
 | Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
 | Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
