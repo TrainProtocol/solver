@@ -13,6 +13,7 @@
 | Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
 | Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
 | Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
+| Runner (Fuel) | `js/Dockerfile ARG fuel` | [![Fuel](https://img.shields.io/docker/v/trainprotocol/solver-fuel?label=Fuel&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-Fuel) |
 
 ---
 
