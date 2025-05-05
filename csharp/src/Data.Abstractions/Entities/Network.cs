@@ -7,6 +7,7 @@ public enum NetworkType
     EVM,
     Solana,
     Starknet,
+    Fuel,
 }
 
 public enum TransactionFeeType
