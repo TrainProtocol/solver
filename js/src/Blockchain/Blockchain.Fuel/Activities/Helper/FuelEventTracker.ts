@@ -43,6 +43,8 @@ export default async function TrackBlockEventsAsync(
       }
     `;
 
+    if (fromBlock == toBlock) fromBlock = fromBlock - 1;
+    
     const variables = {
       first: toBlock - fromBlock,
       after: fromBlock.toString(),
@@ -95,13 +97,13 @@ export default async function TrackBlockEventsAsync(
 
         const data = decodedData[0] as TokenCommittedEvent;
 
-        const sourceToken = tokens.find(t => t.asset === BigIntToAscii(decodedData.srcAsset) && t.network.name === networkName);
-        const destToken = tokens.find(t => t.asset === BigIntToAscii(decodedData.dstAsset) && t.network.name === BigIntToAscii(decodedData.dstChain));
+        const sourceToken = tokens.find(t => t.asset === data.srcAsset.trim() && t.network.name === networkName);
+        const destToken = tokens.find(t => t.asset === data.dstAsset.trim() && t.network.name === data.dstChain.trim());
 
         const commitMsg: HTLCCommitEventMessage = {
           TxId: transaction.id,
           Id: data.Id.toString(),
-          Amount: Number(formatUnits(data.amount, destToken.decimals)),
+          Amount: Number(formatUnits(data.amount, sourceToken.decimals)),
           AmountInWei: data.amount.toString(),
           ReceiverAddress: solverAddress,
           SourceNetwork: networkName,
@@ -137,9 +139,7 @@ export default async function TrackBlockEventsAsync(
         response.HTLCLockEventMessages.push(lockMsg);
 
       }
-      else {
-        throw new Error(`Unknown selector: ${transactionSelector}`);
-      }
+      
     }
 
     return response;
