@@ -66,7 +66,7 @@ export default async function TrackBlockEventsAsync(
     const blocks = blockResponseJson?.data?.blocks?.nodes ?? [];
 
     if (!blocks || blocks.length === 0) {
-      return null;
+      throw new Error(`No blocks found between ${fromBlock} and ${toBlock}`);
     }
 
     const filteredTransactions = blocks.flatMap(b => b.transactions).filter(tx =>
@@ -101,7 +101,7 @@ export default async function TrackBlockEventsAsync(
         const commitMsg: HTLCCommitEventMessage = {
           TxId: transaction.id,
           Id: data.Id.toString(),
-          Amount: Number(formatUnits(data.amount, 9)),
+          Amount: Number(formatUnits(data.amount, destToken.decimals)),
           AmountInWei: data.amount.toString(),
           ReceiverAddress: solverAddress,
           SourceNetwork: networkName,
