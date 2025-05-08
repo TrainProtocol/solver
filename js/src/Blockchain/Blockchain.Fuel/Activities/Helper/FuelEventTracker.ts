@@ -1,11 +1,10 @@
 
-import { Contract, formatUnits, Provider, ReceiptType } from "fuels";
+import { bn, Contract, DateTime, formatUnits, Provider, ReceiptType } from "fuels";
 import abi from '../ABIs/ERC20.json';
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
 import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";
 import { Tokens } from "../../../../Data/Entities/Tokens";
-import { BigIntToAscii } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 
 export default async function TrackBlockEventsAsync(
   networkName: string,
@@ -44,7 +43,7 @@ export default async function TrackBlockEventsAsync(
     `;
 
     if (fromBlock == toBlock) fromBlock = fromBlock - 1;
-    
+
     const variables = {
       first: toBlock - fromBlock,
       after: fromBlock.toString(),
@@ -96,23 +95,24 @@ export default async function TrackBlockEventsAsync(
         );
 
         const data = decodedData[0] as TokenCommittedEvent;
-
         const sourceToken = tokens.find(t => t.asset === data.srcAsset.trim() && t.network.name === networkName);
         const destToken = tokens.find(t => t.asset === data.dstAsset.trim() && t.network.name === data.dstChain.trim());
-
+        const timelock = DateTime.fromTai64(data.timelock);
+        const commitId = bn(data.Id).toHex();
+        
         const commitMsg: HTLCCommitEventMessage = {
           TxId: transaction.id,
-          Id: data.Id.toString(),
+          Id: commitId,
           Amount: Number(formatUnits(data.amount, sourceToken.decimals)),
           AmountInWei: data.amount.toString(),
           ReceiverAddress: solverAddress,
           SourceNetwork: networkName,
           SenderAddress: data.sender.bits,
-          SourceAsset: data.srcAsset,
-          DestinationAddress: data.dstAddress,
-          DestinationNetwork: data.dstChain,
-          DestinationAsset: data.dstAsset,
-          TimeLock: Number(data.timelock),
+          SourceAsset: data.srcAsset.trim(),
+          DestinationAddress: data.dstAddress.trim(),
+          DestinationNetwork: data.dstChain.trim(),
+          DestinationAsset: data.dstAsset.trim(),
+          TimeLock: timelock.toUnixSeconds(),
           DestinationNetworkType: destToken.network.type,
           SourceNetworkType: sourceToken.network.type,
         };
@@ -129,17 +129,19 @@ export default async function TrackBlockEventsAsync(
 
         const data = decodedData[0] as TokenLockedEvent;
 
+        const timelock = DateTime.fromTai64(data.timelock);
+        const hashlock = bn(data.hashlock).toHex();
+        const commitId = bn(data.Id).toHex();
+
         const lockMsg: HTLCLockEventMessage = {
           TxId: transaction.id,
-          Id: data.Id.toString(),
-          HashLock: data.hashlock.toString(),
-          TimeLock: Number(data.timelock),
+          Id: commitId,
+          HashLock: hashlock,
+          TimeLock: timelock.toUnixSeconds(),
         };
 
         response.HTLCLockEventMessages.push(lockMsg);
-
       }
-      
     }
 
     return response;
