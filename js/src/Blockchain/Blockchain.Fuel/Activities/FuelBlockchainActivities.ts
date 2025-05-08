@@ -11,7 +11,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256 } from "fuels";
+import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime } from "fuels";
 import abi from './ABIs/ERC20.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
@@ -220,7 +220,9 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     const u256 = new BigNumberCoder('u256');
 
-    const timelockHex = hexlify(u256.encode(request.Timelock));
+    const timelockTai = DateTime.fromUnixSeconds(request.Timelock).toTai64();
+
+    const timelockHex = hexlify(timelockTai);
 
     const IdHex = hexlify(u256.encode(request.Id));
 
@@ -234,7 +236,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     const signerAddress = Wallet.fromAddress(request.SignerAddress, provider).address;
 
-    const isValid = signerAddress.toB256() == Signer.recoverAddress(sha256(msgBytes), request.Signature).toB256();
+    const isValid = hexlify(signerAddress.toB256()) == hexlify(Signer.recoverAddress(sha256(msgBytes), request.Signature).toB256());
 
     return isValid;
   }
