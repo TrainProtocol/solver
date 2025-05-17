@@ -25,7 +25,9 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             SourceAddress = senderAddress,
             DestinationAddress = destinationAddress,
             SourceAmount = sourceAmount,
+            SourceTokenPrice = sourceToken.TokenPrice.PriceInUsd,
             DestinationAmount = destinationAmount,
+            DestinationTokenPrice = destinationToken.TokenPrice.PriceInUsd,
             Hashlock = hashlock,
             FeeAmount = feeAmount,
         };

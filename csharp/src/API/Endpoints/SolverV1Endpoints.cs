@@ -11,20 +11,27 @@ using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.API.Endpoints;
 
-public static class SolverEndpoints
+public static class SolverV1Endpoints
 {
     public const int UsdPrecision = 6;
 
-    public static RouteGroupBuilder MapEndpoints(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapV1Endpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
+
+        group.MapGet("/routes", GetRoutesAsync)
+           .Produces<ApiResponse<List<RouteDto>>>()
+           .CacheOutput();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
+            .CacheOutput();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();
@@ -40,9 +47,6 @@ public static class SolverEndpoints
 
         group.MapPost("/swaps/{commitId}/addLockSig", AddLockSigAsync)
             .Produces<ApiResponse>();
-
-        group.MapGet("/health", () => Results.Ok())
-            .Produces(StatusCodes.Status200OK);
 
         return group;
     }
@@ -200,6 +204,16 @@ public static class SolverEndpoints
         return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = mappedNetworks });
     }
 
+    private static async Task<IResult> GetRoutesAsync(
+        HttpContext httpContext,
+        IRouteRepository routeRepository)
+    {
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
+        var mappedRoutes = routes.Select(x => x.ToDto());
+
+        return Results.Ok(new ApiResponse<IEnumerable<RouteDto>> { Data = mappedRoutes });
+    }
+
     private static async Task<IResult> GetAllSourcesAsync(
         IRouteService routeService,
         INetworkRepository networkRepository,
@@ -278,6 +292,6 @@ public static class SolverEndpoints
             });
         }
 
-        return Results.Ok(new ApiResponse<QuoteDto> { Data = quote });
+        return Results.Ok(new ApiResponse<QuoteWithSolverDto> { Data = quote });
     }
 }

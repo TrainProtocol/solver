@@ -9,6 +9,4 @@ public class TokenDto
     public int Decimals { get; set; }
 
     public int Precision { get; set; }
-
-    public decimal PriceInUsd { get; set; }  
 }

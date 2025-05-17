@@ -19,7 +19,6 @@ public static class TransactionLogExtension
                 {
                     totalUnitsUsed += unitsUsed;
                 }
-
             }
         }
 

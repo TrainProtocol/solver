@@ -7,7 +7,6 @@ namespace Train.Solver.Blockchain.Solana.Programs;
 public static class ComputeBudgetProgram
 {
     public static readonly PublicKey ProgramIdKey = new("ComputeBudget111111111111111111111111111111");
-    private const string ProgramName = "Compute Budget";
 
     public static TransactionInstruction SetComputeUnitLimit(uint units)
     {

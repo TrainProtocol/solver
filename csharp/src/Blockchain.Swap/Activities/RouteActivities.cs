@@ -10,12 +10,12 @@ namespace Train.Solver.Blockchain.Swap.Activities;
 public class RouteActivities(IRouteRepository routeRepository) : IRouteActivities
 {
     [Activity]
-    public async Task<List<RouteDto>> GetAllRoutesAsync()
+    public async Task<List<RouteDetailedDto>> GetAllRoutesAsync()
     {
         var routes = await routeRepository.GetAllAsync([RouteStatus.Active, RouteStatus.Inactive]);
 
         return routes
-            .Select(r => r.ToDto())
+            .Select(r => r.ToDetailedDto())
             .ToList();
     }
 

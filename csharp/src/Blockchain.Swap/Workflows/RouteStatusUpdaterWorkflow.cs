@@ -25,7 +25,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             {
                 route.Destionation.Network.Name,
                 route.Destionation.Network.Type,
-                route.Destionation.Symbol
+                route.Destionation.Token.Symbol
             });
 
         var networkNames = groupedByNetworkAndAsset.Select(x => x.Key.Name).Distinct().ToArray();

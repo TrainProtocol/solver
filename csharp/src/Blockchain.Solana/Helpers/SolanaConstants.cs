@@ -16,40 +16,16 @@ public static class SolanaConstants
 
     public const int MicroLamportsDecimal = 6;
     public const int BaseLimit = 25000;
-    public const int MaxComputeLimit = 1400000;
-
-    public const string depositForBurnSighash = "global:deposit_for_burn";
-    public const string reclaimSighash = "global:reclaim_event_account";
-    public const string receiveMessageSighash = "global:receive_message";
-    public const string nonceSighash = "global:get_nonce_pda";
 
     public const string memoType = "spl-memo";
-    public static string[] transferTypes = { "transfer", "transferChecked" };
 
-    public static readonly Dictionary<string, byte[]> LockDescriminator = new()
-    {
-        { "SOLANA_DEVNET", [ 21, 19, 208, 43, 237, 62, 255, 87 ] },
-    };
-
-    public static readonly Dictionary<string, byte[]> LockRewardDescriminator = new()
-    {
-        { "SOLANA_DEVNET", [ 66, 69, 228, 16, 76, 50, 65, 157 ] },
-    };
-
-    public static readonly Dictionary<string, byte[]> RefundDescriminator = new()
-    {
-        { "SOLANA_DEVNET", [ 2, 96, 183, 251, 63, 208, 46, 46 ] },
-    };
-
-    public static readonly Dictionary<string, byte[]> RedeemDescriminator = new()
-    {
-        { "SOLANA_DEVNET", [ 184, 12, 86, 149, 70, 196, 97, 225 ] },
-    };
-
-    public static readonly Dictionary<string, byte[]> GetDetailsDescriminator = new()
-    {
-        { "SOLANA_DEVNET", [ 185, 254, 236, 165, 213, 30, 224, 250 ] },
-    };
+    public const string LockSighash = "global:lock";
+    public const string LockRewardSighash = "global:lock_reward";
+    public const string RefundSighash = "global:refund";
+    public const string RedeemSighash = "global:redeem";
+    public const string GetDetailsSighash = "global:getDetails";
+    public const string AddLockSigSighash = "global:add_lock_sig";
+    public const string SysVarInstructionAddress = "Sysvar1nstructions1111111111111111111111111";
 
     public static class HtlcConstants
     {

@@ -17,4 +17,5 @@
 	  <ProjectReference Include="..\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
 	  <ProjectReference Include="..\Util\Util.csproj" />
 	</ItemGroup>
+	
 </Project>

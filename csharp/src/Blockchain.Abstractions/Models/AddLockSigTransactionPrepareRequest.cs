@@ -19,4 +19,6 @@ public class AddLockSigTransactionPrepareRequest
     public string Asset { get; set; } = null!;
 
     public string[]? SignatureArray { get; set; }
+
+    public string? SignerAddress { get; set; }
 }

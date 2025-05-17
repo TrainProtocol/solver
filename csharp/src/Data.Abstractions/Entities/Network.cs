@@ -7,6 +7,7 @@ public enum NetworkType
     EVM,
     Solana,
     Starknet,
+    Fuel,
 }
 
 public enum TransactionFeeType
@@ -31,19 +32,9 @@ public class Network : EntityBase<int>
 
     public int FeePercentageIncrease { get; set; }
 
-    public int? GasLimitPercentageIncrease { get; set; }
-
-    public string? FixedGasPriceInGwei { get; set; }
-
     public string TransactionExplorerTemplate { get; set; } = null!;
 
     public string AccountExplorerTemplate { get; set; } = null!;
-
-    public bool IsTestnet { get; set; }
-
-    public int ReplacementFeePercentage { get; set; }
-
-    public bool IsExternal { get; set; }
 
     public string Logo { get; set; } = null!;
 

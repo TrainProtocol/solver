@@ -330,7 +330,7 @@ public class EVMBlockchainActivities(
                     SourceAsset = sourceCurrency.Asset,
                     SenderAddress = commitedEvent.Sender,
                     SourceNetwork = request.NetworkName,
-                    DestinationAddress = FormatAddress(commitedEvent.DestinationAddress),
+                    DestinationAddress = commitedEvent.DestinationAddress,
                     DestinationNetwork = destinationCurrency.Network.Name,
                     DestinationAsset = destinationCurrency.Asset,
                     TimeLock = (long)commitedEvent.Timelock,

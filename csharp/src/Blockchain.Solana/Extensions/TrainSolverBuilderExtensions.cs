@@ -11,7 +11,7 @@ namespace Train.Solver.Blockchain.Solana.Extensions;
 public static class TrainSolverBuilderExtensions
 {
     public static TrainSolverBuilder WithSolanaWorkflows(
-     this TrainSolverBuilder builder)
+        this TrainSolverBuilder builder)
     {
         var temporalBuilder = builder.Services
             .AddHostedTemporalWorker(nameof(NetworkType.Solana))

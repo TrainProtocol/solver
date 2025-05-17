@@ -41,13 +41,6 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
 
         var gasPrice = currentGasPriceResult.Value.PercentageIncrease(network.FeePercentageIncrease);
 
-        if (network.FixedGasPriceInGwei != null &&
-            BigInteger.TryParse(network.FixedGasPriceInGwei, out var fixedGasPriceInGwei))
-        {
-            var fixedGasPriceInWei = Web3.Convert.ToWei(fixedGasPriceInGwei, UnitConversion.EthUnit.Gwei);
-            gasPrice = BigInteger.Max(fixedGasPriceInWei, currentGasPriceResult.Value.PercentageIncrease(20));
-        }
-
         return new Fee(
             feeCurrency.Asset,
             feeCurrency.Decimals,

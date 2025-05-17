@@ -17,6 +17,7 @@
 	  <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
 	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 	  <ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+	  <ProjectReference Include="..\Infrastructure.MarketMaker\Infrastructure.MarketMaker.csproj" />
 	  <ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
 	</ItemGroup>
 

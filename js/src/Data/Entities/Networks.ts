@@ -31,27 +31,12 @@ export class Networks {
 
   @Column("integer", { name: "FeePercentageIncrease" })
   feePercentageIncrease: number;
-
-  @Column("integer", { name: "GasLimitPercentageIncrease", nullable: true })
-  gasLimitPercentageIncrease: number | null;
-
-  @Column("text", { name: "FixedGasPriceInGwei", nullable: true })
-  fixedGasPriceInGwei: string | null;
-
+ 
   @Column("text", { name: "TransactionExplorerTemplate" })
   transactionExplorerTemplate: string;
 
   @Column("text", { name: "AccountExplorerTemplate" })
   accountExplorerTemplate: string;
-
-  @Column("boolean", { name: "IsTestnet" })
-  isTestnet: boolean;
-
-  @Column("integer", { name: "ReplacementFeePercentage" })
-  replacementFeePercentage: number;
-
-  @Column("boolean", { name: "IsExternal" })
-  isExternal: boolean;
 
   @Column("timestamp with time zone", {
     name: "CreatedDate",
@@ -83,4 +68,5 @@ export enum NetworkType
     EVM,
     Solana,
     Starknet,
+    Fuel,
 }

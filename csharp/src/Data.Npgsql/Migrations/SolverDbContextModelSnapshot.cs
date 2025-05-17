@@ -172,18 +172,6 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("FeeType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("FixedGasPriceInGwei")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("GasLimitPercentageIncrease")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsExternal")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsTestnet")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Logo")
                         .IsRequired()
                         .HasColumnType("text");
@@ -195,16 +183,13 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int?>("NativeTokenId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ReplacementFeePercentage")
-                        .HasColumnType("integer");
-
                     b.Property<string>("TransactionExplorerTemplate")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")
-                        .HasComment("EVM=0,Solana=1,Starknet=2");
+                        .HasComment("EVM=0,Solana=1,Starknet=2,Fuel=3");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -372,6 +357,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("DestinationTokenId")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("DestinationTokenPrice")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("FeeAmount")
                         .HasColumnType("numeric");
 
@@ -388,6 +376,9 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.Property<int>("SourceTokenId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("SourceTokenPrice")
+                        .HasColumnType("numeric");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -446,6 +437,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<string>("TokenContract")
                         .HasColumnType("text");
 
+                    b.Property<int?>("TokenGroupId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("TokenPriceId")
                         .HasColumnType("integer");
 
@@ -459,12 +453,42 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.HasIndex("Asset");
 
+                    b.HasIndex("TokenGroupId");
+
                     b.HasIndex("TokenPriceId");
 
                     b.HasIndex("NetworkId", "Asset")
                         .IsUnique();
 
                     b.ToTable("Tokens");
+                });
+
+            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.TokenGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Asset")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TokenGroups");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.TokenPrice", b =>
@@ -684,6 +708,11 @@ namespace Train.Solver.Data.EF.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.TokenGroup", "TokenGroup")
+                        .WithMany()
+                        .HasForeignKey("TokenGroupId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.TokenPrice", "TokenPrice")
                         .WithMany()
                         .HasForeignKey("TokenPriceId")
@@ -691,6 +720,8 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired();
 
                     b.Navigation("Network");
+
+                    b.Navigation("TokenGroup");
 
                     b.Navigation("TokenPrice");
                 });
