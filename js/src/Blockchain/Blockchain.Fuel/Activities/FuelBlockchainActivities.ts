@@ -11,7 +11,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime } from "fuels";
+import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address } from "fuels";
 import abi from './ABIs/ERC20.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
@@ -217,26 +217,17 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
 
     const provider = new Provider(node.url);
-
-    const u256 = new BigNumberCoder('u256');
-
-    const timelockTai = DateTime.fromUnixSeconds(request.Timelock).toTai64();
-
-    const timelockHex = hexlify(timelockTai);
-
-    const IdHex = hexlify(u256.encode(request.Id));
-
-    const hashlockHex = hexlify(u256.encode(request.Hashlock));
-
-    const msg = [IdHex, hashlockHex, timelockHex];
-
-    const msgBytes = Uint8Array.from(
-      msg.flatMap(hexStr => Array.from(arrayify(hexStr)))
-    );
-
     const signerAddress = Wallet.fromAddress(request.SignerAddress, provider).address;
 
-    const isValid = hexlify(signerAddress.toB256()) == hexlify(Signer.recoverAddress(sha256(msgBytes), request.Signature).toB256());
+    const idBytes = new BigNumberCoder('u256').encode(request.Id);
+    const hashlockBytes = new B256Coder().encode(request.Hashlock);
+    const timelockBytes = new BigNumberCoder('u64').encode(bn(request.Timelock));
+
+    const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
+    const message = sha256(rawData);
+    const messageHash = hashMessage(message);
+    const recoveredAddress: Address = Signer.recoverAddress(messageHash, request.Signature);
+    const isValid = recoveredAddress.toString() === signerAddress.toString();
 
     return isValid;
   }
