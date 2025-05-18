@@ -162,14 +162,14 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
       if (functionName == "lock") {
 
-        transactionCost = await contractInstance.functions[functionName](...requestData.func.args)
+        transactionCost = await contractInstance.functions[functionName](...requestData.args)
           .callParams({
             forward: [requestData.func.forward.amount, requestData.func.forward.assetId],
           }).getTransactionCost();
       }
       else {
 
-        transactionCost = await contractInstance.functions[functionName](...requestData.func.args).getTransactionCost();
+        transactionCost = await contractInstance.functions[functionName](...requestData.args).getTransactionCost();
       }
 
       const fixedfeeData: FixedFeeData = {
@@ -216,12 +216,13 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
     }
 
+    const timelock = DateTime.fromUnixSeconds(request.Timelock).toTai64();
     const provider = new Provider(node.url);
     const signerAddress = Wallet.fromAddress(request.SignerAddress, provider).address;
 
     const idBytes = new BigNumberCoder('u256').encode(request.Id);
     const hashlockBytes = new B256Coder().encode(request.Hashlock);
-    const timelockBytes = new BigNumberCoder('u64').encode(bn(request.Timelock));
+    const timelockBytes = new BigNumberCoder('u64').encode(bn(timelock));
 
     const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
     const message = sha256(rawData);

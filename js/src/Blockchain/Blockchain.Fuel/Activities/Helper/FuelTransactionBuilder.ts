@@ -168,10 +168,10 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
 
     const callConfig = contractInstance.functions
         .add_lock_sig(
+            addLockSigRequest.Signature,
             addLockSigRequest.Id,
             addLockSigRequest.Hashlock,
-            DateTime.fromUnixSeconds(addLockSigRequest.Timelock).toTai64(),
-            addLockSigRequest.Signature
+            DateTime.fromUnixSeconds(addLockSigRequest.Timelock).toTai64()
         )
         .getCallConfig();
 
