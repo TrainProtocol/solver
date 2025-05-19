@@ -27,6 +27,7 @@ import { CreateAddLockSigCallData, CreateRefundCallData, CreateLockCallData, Cre
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
+import { mapFuelStatusToInternal } from "./Helper/FuelTransactionStatusMapper";
 
 @injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
@@ -271,6 +272,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     let transactionResponse: TransactionResponse;
     const network = await this.dbContext.Networks
       .createQueryBuilder("network")
+      .leftJoinAndSelect("network.tokens", "t")
       .leftJoinAndSelect("network.nodes", "n")
       .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
       .getOne();
@@ -286,38 +288,28 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       );
     }
 
+    const nativeToken = network.tokens.find(t => t.isNative === true);
+
     const provider = new Provider(node.url);
-
     const transaction = await (await provider.getTransactionResponse(request.TransactionHash)).getTransactionSummary();
-
-    const transactionStatus = transaction.status === "success" ? TransactionStatus.Completed : TransactionStatus.Failed;
+    const transactionStatus = mapFuelStatusToInternal(transaction.status)
 
     if (transactionStatus == TransactionStatus.Failed) {
       throw new TransactionFailedException(`Transaction ${request.TransactionHash} failed on network ${network.name}`);
     }
 
-    const statusMap: Record<string, TransactionStatus> = {
-      success: TransactionStatus.Completed,
-      submitted: TransactionStatus.Initiated,
-    }
-
-    transactionResponse.Status = statusMap[transaction.status] ?? TransactionStatus.Failed;
-
     const txReceipt = transaction.receipts.find(r => r.type === ReceiptType.Call);
     const latestblock = await provider.getBlockNumber();
     const txBlock = await provider.getBlock(transaction.blockId);
-    const asset = getAsset(txReceipt.assetId, Number(network.chainId));
     const confirmations = latestblock.toNumber() - txBlock.height.toNumber();
 
     transactionResponse = {
-      Amount: Number(txReceipt.amount),
-      Asset: asset.symbol,
       NetworkName: network.name,
       TransactionHash: request.TransactionHash,
       Confirmations: confirmations,
       Timestamp: transaction.date,
       FeeAmount: Number(transaction.fee),
-      FeeAsset: asset.symbol,
+      FeeAsset: nativeToken.asset,
       Status: transactionStatus,
     }
 
@@ -332,6 +324,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       const network = await this.dbContext.Networks
         .createQueryBuilder("network")
         .leftJoinAndSelect("network.nodes", "n")
+        .leftJoinAndSelect("network.contracts", "c")
         .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
         .getOneOrFail();
 
@@ -347,7 +340,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
       const wallet = Wallet.fromPrivateKey(privateKey, provider);
 
-      const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress).address;
+      const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
 
       const contractInstance = new Contract(htlcContractAddress, abi, wallet);
 

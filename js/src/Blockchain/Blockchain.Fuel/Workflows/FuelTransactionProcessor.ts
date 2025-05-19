@@ -62,5 +62,8 @@ export async function FuelTransactionProcessor(
         TransactionHash: publishedTransaction,
     });
 
+    transactionResponse.Asset = preparedTransaction.CallDataAsset;
+    transactionResponse.Amount = preparedTransaction.CallDataAmount;
+    
     return transactionResponse;
 }
