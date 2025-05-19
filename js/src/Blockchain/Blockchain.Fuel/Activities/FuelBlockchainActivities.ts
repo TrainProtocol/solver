@@ -308,7 +308,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       TransactionHash: request.TransactionHash,
       Confirmations: confirmations,
       Timestamp: transaction.date,
-      FeeAmount: Number(transaction.fee),
+      FeeAmount: Number(utils.formatUnits(transaction.fee.toString(), nativeToken.decimals)),
       FeeAsset: nativeToken.asset,
       Status: transactionStatus,
     }
