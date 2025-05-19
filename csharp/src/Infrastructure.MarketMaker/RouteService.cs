@@ -1,4 +1,4 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -6,12 +6,13 @@ using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 
-namespace Train.Solver.Infrastructure.Services;
+namespace Train.Solver.Infrastructure.MarketMaker;
 
 public class RouteService(
     IRouteRepository routeRepository,
     INetworkRepository networkRepository,
-    IFeeRepository feeRepository) : IRouteService
+    IFeeRepository feeRepository,
+    IRateService rateService) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
@@ -78,11 +79,8 @@ public class RouteService(
                     Type = network.Type,
                     AccountExplorerTemplate = network.AccountExplorerTemplate,
                     TransactionExplorerTemplate = network.TransactionExplorerTemplate,
-                    IsTestnet = network.IsTestnet,
                     ChainId = network.ChainId,
                     DisplayName = network.DisplayName,
-                    FeeType = network.FeeType,
-                    ListingDate = network.CreatedDate,
                     Contracts = network.Contracts.Select(x => x.ToDto()),
                     Tokens = x.Select(x => x.ToDetailedDto()),
                     ManagedAccounts = network.ManagedAccounts.Select(x => x.ToDto()),
@@ -103,41 +101,49 @@ public class RouteService(
 
     public virtual async Task<LimitDto?> GetLimitAsync(SourceDestinationRequest request)
     {
-        var routeResult = await GetActiveRouteAsync(request, amount: null);
+        var route = await routeRepository.GetAsync(
+            request.SourceNetwork,
+            request.SourceToken,
+            request.DestinationNetwork,
+            request.DestinationToken,
+            null);
 
-        return routeResult is not null ? GetLimit(routeResult) : null;
+        return route is not null ? await GetLimitAsync(route) : null;
     }
 
-    public virtual Task<QuoteDto?> GetValidatedQuoteAsync(
-        QuoteRequest request) => GetQuoteAsync(request, GetLimit);
+    public virtual Task<QuoteWithSolverDto?> GetValidatedQuoteAsync(
+        QuoteRequest request) => GetQuoteAsync(request, GetLimitAsync);
 
-    public virtual Task<QuoteDto?> GetQuoteAsync(
+    public virtual Task<QuoteWithSolverDto?> GetQuoteAsync(
         QuoteRequest request) => GetQuoteAsync(request, validatelimit: null);
 
-    private static LimitDto GetLimit(RouteWithFeesDto route)
+    private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = MinUsdAmount / route.Source.PriceInUsd;
-        var totalFee = CalculateTotalFee(route, minBufferAmount);
+        var minBufferAmount = MinUsdAmount / route.SourceToken.TokenPrice.PriceInUsd;
+        var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
 
         return new LimitDto
         {
-            MinAmount = minAmount.Truncate(route.Source.Precision),
-            MinAmountInUsd = (minAmount * route.Source.PriceInUsd).Truncate(2),
-            MaxAmount = route.MaxAmountInSource.Truncate(route.Source.Precision),
-            MaxAmountInUsd = (route.MaxAmountInSource * route.Source.PriceInUsd).Truncate(2),
+            MinAmount = minAmount.Truncate(route.SourceToken.Precision),
+            MinAmountInUsd = (minAmount * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
+            MaxAmount = route.MaxAmountInSource.Truncate(route.SourceToken.Precision),
+            MaxAmountInUsd = (route.MaxAmountInSource * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
         };
     }
 
-    private async Task<QuoteDto?> GetQuoteAsync(
+    private async Task<QuoteWithSolverDto?> GetQuoteAsync(
         QuoteRequest request,
-        Func<RouteWithFeesDto, LimitDto>? validatelimit)
+        Func<Route, Task<LimitDto>>? validatelimit)
     {
         var shouldValidateLimit = validatelimit is not null;
 
-        var route = await GetActiveRouteAsync(
-            request,
-            amount: shouldValidateLimit ? request.Amount : null);
+        var route = await routeRepository.GetAsync(
+            request.SourceNetwork,
+            request.SourceToken,
+            request.DestinationNetwork,
+            request.DestinationToken,
+            shouldValidateLimit ? request.Amount : null);
 
         if (route is null)
         {
@@ -146,7 +152,7 @@ public class RouteService(
 
         if (shouldValidateLimit)
         {
-            var limit = validatelimit!(route);
+            var limit = await validatelimit!(route);
 
             if (request.Amount < limit.MinAmount)
             {
@@ -161,80 +167,50 @@ public class RouteService(
             }
         }
 
-        var totalFee = CalculateTotalFee(route, request.Amount);
-        var receiveAmount = request.Amount - totalFee;
+        var swapRate = await rateService.GetRateAsync(route);
+        var totalFee = await CalculateTotalFeeAsync(route, request.Amount);
+        var actualAmountToSwap = request.Amount - totalFee;
+        var receiveAmount = actualAmountToSwap * swapRate;
 
-        var quote = new QuoteDto
+        var quote = new QuoteWithSolverDto
         {
-            ReceiveAmount = receiveAmount.Truncate(route.Destionation.Precision),
+            SourceAmount = request.Amount.Truncate(route.SourceToken.Precision),
+            SourceAmountInUsd = request.Amount * route.SourceToken.TokenPrice.PriceInUsd,
+            ReceiveAmount = receiveAmount.Truncate(route.DestinationToken.Precision),
+            ReceiveAmountInUsd = receiveAmount * route.DestinationToken.TokenPrice.PriceInUsd,
             TotalFee = totalFee,
-            TotalFeeInUsd = totalFee * route.Source.PriceInUsd,
+            TotalFeeInUsd = totalFee * route.SourceToken.TokenPrice.PriceInUsd,
+            SolverAddressInSource = route.SourceToken.Network.ManagedAccounts.FirstOrDefault()?.Address ?? string.Empty,
+            NativeContractAddressInSource = route.SourceToken.Network.Contracts.FirstOrDefault(x=>x.Type == ContarctType.HTLCNativeContractAddress)?.Address ?? string.Empty,
+            TokenContractAddressInSource = route.SourceToken.Network.Contracts.FirstOrDefault(x=>x.Type == ContarctType.HTLCTokenContractAddress)?.Address ?? string.Empty,
         };
 
         return quote;
     }
 
-    private static decimal CalculateTotalFee(RouteWithFeesDto route, decimal amount)
+    private async Task<decimal> CalculateTotalFeeAsync(Route route, decimal amount)
     {
         decimal fixedFee = default;
         decimal percentageFee = default;
-
-        if (route.Expenses is not null)
-        {
-            fixedFee += route.Expenses.ExpenseFeeInSource;
-        }
-
-        if (route.ServiceFee is not null)
-        {
-            fixedFee += route.ServiceFee.ServiceFeeInSource;
-            percentageFee = amount * route.ServiceFee.ServiceFeePercentage / 100m;
-        }
-
-        var totalFee = fixedFee + percentageFee;
-
-        return totalFee.Truncate(route.Source.Precision);
-    }
-
-    private async Task<RouteWithFeesDto?> GetActiveRouteAsync(
-        SourceDestinationRequest request,
-        decimal? amount)
-    {
-        var route = await routeRepository.GetAsync(
-            request.SourceNetwork,
-            request.SourceToken,
-            request.DestinationNetwork,
-            request.DestinationToken,
-            amount);
-
-        if (route is null)
-        {
-            return null;
-        }
-
-        var mappedRoute = route.ToWithFeesDto();
 
         var expenseFee = await CalculateExpenseFeeAsync(route);
 
         if (expenseFee is not null)
         {
-            mappedRoute.Expenses = new ExpenseFeeDto
-            {
-                ExpenseFeeInSource = expenseFee.ExpenseFeeInSource,
-            };
+            fixedFee += expenseFee.ExpenseFeeInSource;
         }
 
         var serviceFee = await CalculateServiceFeeAsync(route);
 
         if (serviceFee is not null)
         {
-            mappedRoute.ServiceFee = new ServiceFeeDto
-            {
-                ServiceFeeInSource = serviceFee.ServiceFeeInSource,
-                ServiceFeePercentage = serviceFee.ServiceFeePercentage,
-            };
+            fixedFee += serviceFee.ServiceFeeInSource;
+            percentageFee = amount * serviceFee.ServiceFeePercentage / 100m;
         }
 
-        return mappedRoute;
+        var totalFee = fixedFee + percentageFee;
+
+        return totalFee.Truncate(route.SourceToken.Precision);
     }
 
     private async Task<ServiceFeeDto> CalculateServiceFeeAsync(

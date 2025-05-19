@@ -10,6 +10,8 @@ public class SwapDto
 
     public decimal SourceAmount { get; set; }
 
+    public decimal SourceAmountInUsd { get; set; }
+
     public string SourceAddress { get; set; } = null!;
 
     public string DestinationNetwork { get; set; } = null!;
@@ -17,6 +19,8 @@ public class SwapDto
     public string DestinationToken { get; set; } = null!;
 
     public decimal DestinationAmount { get; set; }
+
+    public decimal DestinationAmountInUsd { get; set; }
 
     public string DestinationAddress { get; set; } = null!;
 

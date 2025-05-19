@@ -6,9 +6,7 @@ using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using Temporalio.Client;
 using Temporalio.Exceptions;
-using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastructure.Services;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -46,7 +44,6 @@ public static class TrainSolverBuilderExtensions
             new(ConnectionMultiplexer.Connect(options.RedisConnectionString))
         }));
 
-        services.AddTransient<IRouteService, RouteService>();
         services.AddTemporalWorkerClient(options.TemporalServerHost, options.TemporalNamespace);
 
         return new TrainSolverBuilder(services, configuration, options);

@@ -1,6 +1,6 @@
 ﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class RouteWithFeesDto : RouteDto
+public class RouteWithFeesDto : RouteDetailedDto
 {
     public ExpenseFeeDto? Expenses { get; set; }
 

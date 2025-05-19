@@ -3,6 +3,4 @@
 public class DetailedTokenDto : TokenDto
 {
     public string Logo { get; set; } = null!;
-
-    public DateTimeOffset ListingDate { get; set; }
 }

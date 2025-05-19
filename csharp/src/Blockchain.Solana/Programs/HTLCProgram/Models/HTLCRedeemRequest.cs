@@ -1,6 +1,6 @@
 ﻿using Solnet.Wallet;
 
-namespace Train.Solver.Blockchain.Solana.Programs.Models;
+namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 
 public class HTLCRedeemRequest
 {
@@ -15,4 +15,6 @@ public class HTLCRedeemRequest
     public PublicKey SignerPublicKey { get; set; } = null!;
 
     public PublicKey SenderPublicKey { get; set; } = null!;
+
+    public PublicKey RewardPublicKey { get; set; } = null!;
 }

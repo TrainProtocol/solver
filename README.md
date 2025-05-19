@@ -9,10 +9,11 @@
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
 | API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
-| Runner (Swap) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Runner (Swap Core) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
 | Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
 | Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
 | Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
+| Runner (Fuel) | `js/Dockerfile ARG fuel` | [![Fuel](https://img.shields.io/docker/v/trainprotocol/solver-fuel?label=Fuel&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-Fuel) |
 
 ---
 
@@ -78,7 +79,7 @@ TrainSolver.sln
     │   ├── Infrastructure.Abstractions/
     │   ├── Infrastructure.DependencyInjection/
     │   ├── Infrastructure.Logging.OpenTelemetry/
-    │   ├── Infrastructure.Secret.AzureKeyVault/
+    │   ├── Infrastructure.Secret.HashicorpKeyVault/
     │   └── Infrastructure.TokenPrice.Coingecko/
     └── Shared/
         └── Util/                       # Shared utilities
@@ -147,13 +148,17 @@ The following **scheduled workflows** handle critical background tasks:
 
 ## 🛠 Configuration
 
-Chain and route metadata is defined dynamically via a PostgreSQL database. Configuration includes:
+Chain and route metadata is defined dynamically via a PostgreSQL database and Hashicorp Key vault. Configuration includes:
 
+Postgres:
 - Registered blockchain networks
 - Contract addresses
 - Node URLs
 - Token definitions
 - Swap routing information
+
+Key Vault:
+- Private key's corresponding to the managed account addresses
 
 > The system dynamically interacts with blockchain integrations based on the configuration stored in the database.
 
@@ -162,7 +167,7 @@ Chain and route metadata is defined dynamically via a PostgreSQL database. Confi
 ## 🧩 Infrastructure
 
 - **Database**: PostgreSQL with Entity Framework Core  
-- **Secrets Management**: Azure Key Vault (for private key storage)  
+- **Secrets Management**: Hashicorp Key Vault (for private key storage)  
 - **Observability**: OpenTelemetry instrumentation with SigNoz as the backend  
 - **Price Feeds**: Coingecko-based token pricing service  
 
