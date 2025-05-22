@@ -18,20 +18,16 @@ public static class SolverV1Endpoints
     public static RouteGroupBuilder MapV1Endpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/routes", GetRoutesAsync)
-           .Produces<ApiResponse<List<RouteDto>>>()
-           .CacheOutput();
+           .Produces<ApiResponse<List<RouteDto>>>();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();
