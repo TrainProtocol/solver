@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Train.Solver.API.Models;
+using Train.Solver.PublicAPI.Models;
 
-namespace Train.Solver.API.MIddlewares;
+namespace Train.Solver.PublicAPI.MIddlewares;
 
 public class ErrorHandlerMiddleware(RequestDelegate next)
 {
