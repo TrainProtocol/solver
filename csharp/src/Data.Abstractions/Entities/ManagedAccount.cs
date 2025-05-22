@@ -6,6 +6,7 @@ public enum AccountType
 {
     Primary,
     Secondary,
+    Rebalance,
 }
 
 public class ManagedAccount : EntityBase<int>
