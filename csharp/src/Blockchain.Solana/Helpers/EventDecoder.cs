@@ -22,7 +22,7 @@ public static class EventDecoder
         List<Token> currencies)
     {
         var solverAccount = network.ManagedAccounts
-            .Single(x => x.Type == AccountType.LP);
+            .Single(x => x.Type == AccountType.Primary);
 
         var blockResponseResult = await rpcClient.GetParsedEventBlockAsync(block);
 
@@ -153,7 +153,7 @@ public static class EventDecoder
         Network network)
     {
         var solverAccount = network.ManagedAccounts
-            .FirstOrDefault(x => x.Type == AccountType.LP);
+            .FirstOrDefault(x => x.Type == AccountType.Primary);
 
         if (solverAccount is null)
         {
@@ -212,7 +212,7 @@ public static class EventDecoder
         try
         {
             var solverAccount = network.ManagedAccounts
-                .FirstOrDefault(x => x.Type == AccountType.LP);
+                .FirstOrDefault(x => x.Type == AccountType.Primary);
 
             if (solverAccount is null)
             {

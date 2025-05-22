@@ -4,8 +4,8 @@ namespace Train.Solver.Data.Abstractions.Entities;
 
 public enum AccountType
 {
-    LP,
-    Charging,
+    Primary,
+    Secondary,
 }
 
 public class ManagedAccount : EntityBase<int>

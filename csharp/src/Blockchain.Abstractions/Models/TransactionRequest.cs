@@ -12,5 +12,5 @@ public class TransactionRequest : BaseRequest
 
     public required string FromAddress { get; set; } = null!;
 
-    public required string SwapId { get; set; }
+    public string? SwapId { get; set; }
 }
