@@ -18,12 +18,6 @@ builder.Configuration
     .AddJsonFile($"appsettings.Local.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddOutputCache(options =>
-{
-    options.AddBasePolicy(builder =>
-        builder.Expire(TimeSpan.FromMinutes(3)));
-}); 
-
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -78,8 +72,6 @@ var app = builder.Build();
 
 app.UseRateLimiter();
 app.UseCors();
-app.UseOutputCache();
-
 
 app.MapGroup("/api")
     .MapGet("/health", () => Results.Ok())
