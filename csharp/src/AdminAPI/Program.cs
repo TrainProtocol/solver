@@ -1,12 +1,9 @@
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
-using Train.Solver.API.Endpoints;
-using Train.Solver.API.Extensions;
-using Train.Solver.API.MIddlewares;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Infrastructure.MarketMaker;
+using Train.Solver.Util.Extensions;
+using Train.Solver.AdminAPI.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -30,8 +27,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("latest", new() { Title = "Train Solver Latest API", Version = "latest" });
-    c.SwaggerDoc("v1", new() { Title = "Train Solver API v1", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Train Solver Admin API", Version = "v1" });
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
@@ -41,9 +37,8 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
-    .WithMarketMaker()
-    .WithOpenTelemetryLogging("Solver API")
-    .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
+    .WithOpenTelemetryLogging("Solver Admin API")
+    .WithNpgsqlRepositories();
 
 builder.Services.AddCors(options =>
 {
@@ -57,7 +52,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseRateLimiter();
 app.UseCors();
 
 app.MapGroup("/api")
@@ -65,14 +59,8 @@ app.MapGroup("/api")
     .WithTags("System")
     .Produces(StatusCodes.Status200OK);
 
-app.MapGroup("/api")
-   .MapV1Endpoints()
-   .RequireRateLimiting("Fixed")
-   .WithGroupName("latest")
-   .WithTags("Endpoints");
-
 app.MapGroup("/api/v1")
-   .MapV1Endpoints()
+   .MapAdminEndpoints()
    .RequireRateLimiting("Fixed")
    .WithGroupName("v1")
    .WithTags("Endpoints");
@@ -80,11 +68,8 @@ app.MapGroup("/api/v1")
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/latest/swagger.json", "Train Solver Latest API");
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver Admin API v1");
     c.DisplayRequestDuration();
 });
-
-app.UseMiddleware<ErrorHandlerMiddleware>();
 
 await app.RunAsync();

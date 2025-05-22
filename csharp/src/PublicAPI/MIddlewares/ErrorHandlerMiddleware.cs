@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Train.Solver.API.Models;
 
-namespace Train.Solver.API.MIddlewares;
+namespace Train.Solver.PublicAPI.MIddlewares;
 
 public class ErrorHandlerMiddleware(RequestDelegate next)
 {

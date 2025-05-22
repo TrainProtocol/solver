@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Train.Solver.API.Extensions;
+namespace Train.Solver.Util.Extensions;
 
 public static class HttpContextExtensions
 {
