@@ -243,7 +243,7 @@ public class EVMBlockchainActivities(
         }
 
         var solverAccount = network.ManagedAccounts
-            .First(x => x.Type == AccountType.LP);
+            .First(x => x.Type == AccountType.Primary);
 
         var currencies = await networkRepository.GetTokensAsync();
 

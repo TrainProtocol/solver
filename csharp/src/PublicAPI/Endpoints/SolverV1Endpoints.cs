@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
-using Train.Solver.API.Models;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
@@ -8,8 +7,9 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.PublicAPI.Models;
 
-namespace Train.Solver.API.Endpoints;
+namespace Train.Solver.PublicAPI.Endpoints;
 
 public static class SolverV1Endpoints
 {
@@ -18,20 +18,16 @@ public static class SolverV1Endpoints
     public static RouteGroupBuilder MapV1Endpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetNetworksAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/routes", GetRoutesAsync)
-           .Produces<ApiResponse<List<RouteDto>>>()
-           .CacheOutput();
+           .Produces<ApiResponse<List<RouteDto>>>();
 
         group.MapGet("/sources", GetAllSourcesAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/destinations", GetAllDestinationsAsync)
-            .Produces<ApiResponse<List<DetailedNetworkDto>>>()
-            .CacheOutput();
+            .Produces<ApiResponse<List<DetailedNetworkDto>>>();
 
         group.MapGet("/limits", GetSwapRouteLimitsAsync)
           .Produces<ApiResponse<LimitDto>>();

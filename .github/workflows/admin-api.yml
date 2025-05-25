@@ -1,21 +1,21 @@
-name: API
+name: Admin-API
 
 on:
   push:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/api.yml'
+      - '.github/workflows/admin-api.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/api.yml'
+      - '.github/workflows/admin-api.yml'
   release:
     types: [published, created]
 
 env:
-  DOCKER_IMAGE: trainprotocol/solver-api
+  DOCKER_IMAGE: trainprotocol/solver-admin-api
   DOTNET_VERSION: 9
   
 jobs:
@@ -55,7 +55,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/PublicAPI/Dockerfile
+          file: csharp/src/AdminAPI/Dockerfile
           push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
