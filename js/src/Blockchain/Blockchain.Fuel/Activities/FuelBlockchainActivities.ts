@@ -11,7 +11,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address } from "fuels";
+import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, formatUnits } from "fuels";
 import abi from './ABIs/ERC20.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
@@ -84,7 +84,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       }
 
       const provider = new Provider(node.url);
-      const balanceResult = await provider.getBalance(request.Address, token.asset);
+      const balanceResult = await provider.getBalance(request.Address, token.tokenContract);
       var balanceInWei = balanceResult.toString();
 
       let result: BalanceResponse =
@@ -121,7 +121,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       }
 
       const provider = new Provider(node.url);
-
       const lastBlockNumber = (await provider.getBlockNumber()).toNumber();
       const latestBlock = await provider.getBlock(lastBlockNumber);
 
@@ -141,6 +140,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         .createQueryBuilder("network")
         .leftJoinAndSelect("network.nodes", "n")
         .leftJoinAndSelect("network.contracts", "c")
+        .leftJoinAndSelect("network.tokens", "t")
         .where("UPPER(network.name) = UPPER(:nName)", { nName: feeRequest.NetworkName })
         .getOneOrFail();
 
@@ -150,22 +150,27 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         throw new Error(`Primary node not found for network ${feeRequest.NetworkName}`);
       }
       const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
-      const provider = new Provider(node.url);
-
-      const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
-
       const requestData = JSON.parse(feeRequest.CallData);
 
-      const functionName = requestData.func.name;
+      const token = network.tokens.find(t => t.asset === feeRequest.Asset);
+      if (!token) {
+        throw new Error(`Token not found for network ${network.name} and asset ${feeRequest.Asset}`);
+      }
 
+      const provider = new Provider(node.url);
+      const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+      const functionName = requestData.func.name;
       let transactionCost: TransactionCost;
 
-      if (functionName == "lock") {
+      const b256: B256Address = token.tokenContract;
+      const address: Address = Address.fromB256(b256);
+      const assetId: AssetId = address.toAssetId();
 
+      if (functionName == "lock") {
+        const amount = Number(utils.parseUnits(feeRequest.Amount.toString(), token.decimals))
         transactionCost = await contractInstance.functions[functionName](...requestData.args)
           .callParams({
-            forward: [requestData.func.forward.amount, requestData.func.forward.assetId],
+            forward: [amount, assetId.bits],
           }).getTransactionCost();
       }
       else {
@@ -183,9 +188,10 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         L1FeeInWei: null
       };
 
+      const feeToken = network.tokens.find(t => t.isNative === true);
       const result: Fee = {
-        Asset: feeRequest.Asset,
-        Decimals: requestData.func.decimals,
+        Asset: feeToken.asset,
+        Decimals: feeToken.decimals,
         FixedFeeData: fixedfeeData,
         LegacyFeeData: legacyFeeData,
       }
@@ -193,7 +199,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       return result;
     }
     catch (error: any) {
-      if (error?.message && error.message.includes("Invalid TimeLock")) {
+      if (error?.message && (error.message.includes("Invalid Reward Timelock") || error.message.includes("No Future Timelock"))) {
         throw new Error;
       }
       throw error;
@@ -252,9 +258,8 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     if (!node) {
       throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
     }
-
-    const solverAddress = network.managedAccounts.find(m => m.type === AccountType.LP)?.address;
-
+    
+    const solverAddress = network.managedAccounts.find(m => m.type === AccountType.Primary)?.address;
     const htlcAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
 
     const tokens = await this.dbContext.Tokens
@@ -289,7 +294,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
 
     const nativeToken = network.tokens.find(t => t.isNative === true);
-
     const provider = new Provider(node.url);
     const transaction = await (await provider.getTransactionResponse(request.TransactionHash)).getTransactionSummary();
     const transactionStatus = mapFuelStatusToInternal(transaction.status)
@@ -298,7 +302,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       throw new TransactionFailedException(`Transaction ${request.TransactionHash} failed on network ${network.name}`);
     }
 
-    const txReceipt = transaction.receipts.find(r => r.type === ReceiptType.Call);
     const latestblock = await provider.getBlockNumber();
     const txBlock = await provider.getBlock(transaction.blockId);
     const confirmations = latestblock.toNumber() - txBlock.height.toNumber();
@@ -335,31 +338,26 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       }
 
       const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
-
       const provider = new Provider(node.url);
-
       const wallet = Wallet.fromPrivateKey(privateKey, provider);
-
       const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
-
       const contractInstance = new Contract(htlcContractAddress, abi, wallet);
-
       const requestData = JSON.parse(request.CallData);
-
       const selector = requestData.func.name;
 
       if (selector == "lock") {
-
         const { transactionId } = await contractInstance.functions[selector](...requestData.args)
           .callParams({
-            forward: [requestData.forward.amount, requestData.forward.assetId],
-            gasLimit: request.Fee.LegacyFeeData.GasLimit,
+            forward: [request.Amount, requestData.forward.assetId],
+           // gasLimit: request.Fee.LegacyFeeData.GasLimit,
           }).call();
 
         result = transactionId;
       }
       else {
-        const { transactionId } = await contractInstance.functions[selector](...requestData.args).call();
+        const { transactionId } = await contractInstance.functions[selector](...requestData.args)
+         // .callParams({ gasLimit: request.Fee.LegacyFeeData.GasLimit })
+          .call();
         result = transactionId;
       }
     }
@@ -369,17 +367,5 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     return result;
   }
-}
-
-function getAsset(assetId: string, chainId: number): AssetFuel {
-  const rawAsset = rawAssets.find(
-    asset => asset.networks.some(
-      network => network.type === 'fuel' && network.assetId === assetId && network.chainId == chainId));
-
-  if (rawAsset == undefined || rawAsset == null) {
-    return null;
-  }
-
-  return getAssetFuel(rawAsset, chainId);
 }
 
