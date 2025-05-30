@@ -1,6 +1,4 @@
 import { ActivityOptions } from "@temporalio/workflow";
-import { v4 as uuidv4 } from 'uuid';
-import { TransactionType } from "../Blockchain/Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 
 export function defaultActivityOptions(taskQueue?: string): ActivityOptions {
   return {
@@ -8,12 +6,4 @@ export function defaultActivityOptions(taskQueue?: string): ActivityOptions {
     startToCloseTimeout: '1 hour',
     taskQueue,
   };
-}
-
-export function buildProcessorId(
-  networkName: string,
-  type: TransactionType
-): string {
-  const uniqueId = uuidv4();
-  return `${networkName}-${type}-${uniqueId}`;
 }
