@@ -206,7 +206,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
         }
 
-        const solverAddress = network.managedAccounts.find(m => m.type === AccountType.LP)?.address;
+        const solverAddress = network.managedAccounts.find(m => m.type === AccountType.Primary)?.address;
 
         const htlcAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
 

@@ -45,7 +45,7 @@ export async function FuelTransactionProcessor(
             ToAddress: preparedTransaction.ToAddress,
             Amount: preparedTransaction.Amount,
             FromAddress: request.FromAddress,
-            Asset: preparedTransaction.Asset!,
+            Asset: preparedTransaction.Asset,
             CallData: preparedTransaction.Data,
         });
     }
@@ -55,6 +55,7 @@ export async function FuelTransactionProcessor(
         FromAddress: request.FromAddress,
         CallData: preparedTransaction.Data,
         Fee: context.Fee,
+        Amount: preparedTransaction.AmountInWei,
     });
 
     const transactionResponse = await defaultActivities.GetTransaction({
@@ -62,5 +63,8 @@ export async function FuelTransactionProcessor(
         TransactionHash: publishedTransaction,
     });
 
+    transactionResponse.Asset = preparedTransaction.CallDataAsset;
+    transactionResponse.Amount = preparedTransaction.CallDataAmount;
+    
     return transactionResponse;
 }

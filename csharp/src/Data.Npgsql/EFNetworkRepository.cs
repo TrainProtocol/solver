@@ -49,7 +49,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
     {
         return await dbContext.ManagedAccounts
             .Include(x => x.Network)
-            .Where(x => networkNames.Contains(x.Network.Name) && x.Type == AccountType.LP)
+            .Where(x => networkNames.Contains(x.Network.Name) && x.Type == AccountType.Primary)
             .ToDictionaryAsync(x => x.Network.Name, y => y.Address);
     }
 

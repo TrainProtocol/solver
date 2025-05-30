@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace Train.Solver.API.Models;
+namespace Train.Solver.PublicAPI.Models;
 
 public class GetRouteLimitsQueryParams
 {

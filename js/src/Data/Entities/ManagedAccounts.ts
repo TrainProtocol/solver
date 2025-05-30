@@ -39,6 +39,7 @@ export class ManagedAccounts {
 }
 
 export enum AccountType {
-  LP ,
-  Charging,
+  Primary,
+  Secondary,
+  Rebalance,
 }

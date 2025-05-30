@@ -35,7 +35,7 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.SourceAsset} for {network.Name} is missing");
         }
 
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.LP);
+        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
 
         if (managedAccount == null)
         {
@@ -141,7 +141,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.SenderAddress), "Sender address is required");
         }
 
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.LP);
+        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
 
         if (managedAccount == null)
         {
@@ -240,7 +240,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.DestinationAddress), "Receiver address is required");
         }
 
-        var managedAddress = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.LP);
+        var managedAddress = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
 
         if (managedAddress == null)
         {
@@ -413,7 +413,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.SignerAddress), "Sender address is required");
         }
 
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.LP);
+        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
 
         if (managedAccount == null)
         {

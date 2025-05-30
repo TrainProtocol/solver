@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
-using Train.Solver.API.Models;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Entities;
@@ -8,8 +7,9 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.PublicAPI.Models;
 
-namespace Train.Solver.API.Endpoints;
+namespace Train.Solver.PublicAPI.Endpoints;
 
 public static class SolverV1Endpoints
 {

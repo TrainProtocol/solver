@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Text;
 
-namespace Train.Solver.API.Extensions;
+namespace Train.Solver.Util.Extensions;
 
 public static class TypeExtensions
 {

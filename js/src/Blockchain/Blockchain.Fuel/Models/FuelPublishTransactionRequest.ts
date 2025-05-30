@@ -5,4 +5,5 @@ export interface FuelPublishTransactionRequest extends BaseRequest {
     FromAddress: string;
     CallData: string;
     Fee: Fee;
+    Amount: string;
   }

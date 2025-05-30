@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Train.Solver.API.Models;
+namespace Train.Solver.PublicAPI.Models;
 
 public class ApiError
 {
