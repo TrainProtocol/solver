@@ -37,7 +37,7 @@ public class HtlcInstructionDataBuilder
         SetFieldData("destinationAsset", destinationAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("sourceAsset", sourceAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("receiver", 32, (v, buf, off) => buf.WritePubKey((PublicKey)v, off));
-        SetFieldData("amount", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));\
+        SetFieldData("amount", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
 
         var instructionExecutionOrder = new Dictionary<string, object>
         {
