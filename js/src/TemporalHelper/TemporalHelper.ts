@@ -10,6 +10,10 @@ export function defaultActivityOptions(taskQueue?: string): ActivityOptions {
   };
 }
 
-export function buildProcessorId(networkName: string, type: TransactionType, uniqueId: string = uuidv4()): string {
+export function buildProcessorId(
+  networkName: string,
+  type: TransactionType
+): string {
+  const uniqueId = uuidv4();
   return `${networkName}-${type}-${uniqueId}`;
 }
