@@ -22,8 +22,7 @@ public class HtlcInstructionDataBuilder
     }
 
     public byte[] CreateLockData(
-        HTLCLockRequest lockRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HTLCLockRequest lockRequest)
     {
         var destinationAssetData = Encoding.UTF8.GetBytes(lockRequest.DestinationAsset);
         var sourceAddressData = Encoding.UTF8.GetBytes(lockRequest.SourceAddress);
@@ -38,8 +37,7 @@ public class HtlcInstructionDataBuilder
         SetFieldData("destinationAsset", destinationAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("sourceAsset", sourceAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("receiver", 32, (v, buf, off) => buf.WritePubKey((PublicKey)v, off));
-        SetFieldData("amount", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
-        SetFieldData("htlcBump", 1, (v, buf, off) => buf.WriteU8((byte)v, off));
+        SetFieldData("amount", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));\
 
         var instructionExecutionOrder = new Dictionary<string, object>
         {
@@ -52,7 +50,6 @@ public class HtlcInstructionDataBuilder
             { "sourceAsset", sourceAssetData },
             { "receiver", lockRequest.ReceiverPublicKey },
             { "amount", lockRequest.Amount},
-            { "htlcBump", htlcPdaResponse.HtlcBump }
         };
 
         return BuildInstructionData(
@@ -61,20 +58,17 @@ public class HtlcInstructionDataBuilder
     }
 
     public byte[] CreateLockRewardData(
-        HTLCLockRequest lockRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HTLCLockRequest lockRequest)
     {
         SetFieldData("id", lockRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("rewardTimelock", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
         SetFieldData("reward", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
-        SetFieldData("htlcBump", 1, (v, buf, off) => buf.WriteU8((byte)v, off));
 
         var instructionExecutionOrder = new Dictionary<string, object>
         {
             { "id", lockRequest.Id},
             { "rewardTimelock", lockRequest.RewardTimelock},
             { "reward", lockRequest.Reward},
-            { "htlcBump", htlcPdaResponse.HtlcBump }
         };
 
         return BuildInstructionData(
