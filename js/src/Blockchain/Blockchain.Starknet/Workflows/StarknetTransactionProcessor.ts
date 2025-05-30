@@ -160,6 +160,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
         };
 
         const childContext: TransactionExecutionContext = {
+            Attempts: 0,
             Nonce: null,
             Fee: null,
             PublishedTransactionIds: [],
