@@ -13,7 +13,7 @@ import { TransactionRequest } from '../../Blockchain.Abstraction/Models/Transaci
 import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
-import { buildProcessorId } from '../../../TemporalHelper/TemporalHelper';
+import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -32,6 +32,11 @@ const nonRetryableActivities = proxyActivities<IStarknetBlockchainActivities>({
             TransactionFailedException.name,
         ],
     },
+});
+
+const utilityActivities = proxyActivities<IUtilityActivities>({
+    startToCloseTimeout: '1 hour',
+    scheduleToCloseTimeout: '2 days',
 });
 
 export async function StarknetTransactionProcessor(
@@ -107,6 +112,8 @@ export async function StarknetTransactionProcessor(
                 ToAddress: request.FromAddress,
             };
 
+            const processorId = await utilityActivities.BuildProcessorId(request.NetworkName, TransactionType.Transfer);
+
             await executeChild(StarknetTransactionProcessor,
                 {
                     args: [
@@ -120,7 +127,7 @@ export async function StarknetTransactionProcessor(
                         },
                         { Nonce: context.Nonce }
                     ],
-                    workflowId: buildProcessorId(request.NetworkName, TransactionType.Transfer),
+                    workflowId: processorId,
                 });
         }
 
@@ -143,6 +150,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
             PrepareArgs: JSON.stringify({
                 Amount: 1000000000,
                 Asset: lockRequest.SourceAsset,
+
             }),
             Type: TransactionType.Approve,
             FromAddress: context.FromAddress,
@@ -151,12 +159,17 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
             SwapId: context.SwapId,
         };
 
-        const childContext: TransactionExecutionContext = {};
+        const childContext: TransactionExecutionContext = {
+            Nonce: null,
+            Fee: null,
+            PublishedTransactionIds: [],
+        };
+        const processorId = await utilityActivities.BuildProcessorId(context.NetworkName, context.Type);
 
         await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],
-                workflowId: buildProcessorId(context.NetworkName, context.Type),
+                workflowId: processorId,
             });
     }
 }
