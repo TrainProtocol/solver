@@ -4,5 +4,5 @@ public class ServiceFeeDto
 {
     public decimal ServiceFeePercentage { get; set; }
 
-    public decimal ServiceFeeInSource { get; set; }
+    public string ServiceFeeInSource { get; set; } = null!;
 }

@@ -35,7 +35,7 @@ public class SolanaTransactionProcessor
                         FromAddress = request.FromAddress!,
                         ToAddress = preparedTransaction.ToAddress,
                         Asset = preparedTransaction.Asset,
-                        Amount = preparedTransaction.Amount,
+                        Amount = preparedTransaction.AmountInWei,
                         CallData = preparedTransaction.Data,
                     }
                 ),
@@ -105,7 +105,7 @@ public class SolanaTransactionProcessor
                 TemporalHelper.DefaultActivityOptions(request.NetworkType));
 
             confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-            confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
+            confirmedTransaction.Amount = preparedTransaction.CallDataAmountInWei;
         }
         catch (ActivityFailureException ex)
         {

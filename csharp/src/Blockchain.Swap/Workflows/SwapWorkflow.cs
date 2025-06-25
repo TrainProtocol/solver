@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Activities;
@@ -49,13 +50,15 @@ public class SwapWorkflow : ISwapWorkflow
             throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
         }
 
-        var solverAddresses = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressesAsync(
-                _htlcCommitMessage.SourceNetwork, _htlcCommitMessage.DestinationNetwork),
+        _solverManagedAccountInDestination = await ExecuteActivityAsync(
+            (ISwapActivities x) => x.GetSolverAddressAsync(
+                _htlcCommitMessage.DestinationNetwork),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        _solverManagedAccountInDestination = solverAddresses[_htlcCommitMessage.DestinationNetwork];
-        _solverManagedAccountInSource = solverAddresses[_htlcCommitMessage.SourceNetwork];
+        _solverManagedAccountInSource = await ExecuteActivityAsync(
+            (ISwapActivities x) => x.GetSolverAddressAsync(
+                _htlcCommitMessage.SourceNetwork),
+                       DefaultActivityOptions(Constants.CoreTaskQueue));
 
         // Validate limit
         var limit = await ExecuteActivityAsync(
@@ -79,7 +82,7 @@ public class SwapWorkflow : ISwapWorkflow
                 },
             });
 
-        if (_htlcCommitMessage.Amount > limit.MaxAmount)
+        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > BigInteger.Parse(limit.MaxAmount))
         {
             throw new ApplicationFailureException($"Amount is greater than max amount");
         }
@@ -92,10 +95,10 @@ public class SwapWorkflow : ISwapWorkflow
                SourceNetwork = _htlcCommitMessage.SourceNetwork,
                DestinationToken = _htlcCommitMessage.DestinationAsset,
                DestinationNetwork = _htlcCommitMessage.DestinationNetwork,
-               Amount = _htlcCommitMessage.Amount
+               Amount = _htlcCommitMessage.AmountInWei
            }), DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        if (quote.ReceiveAmount <= 0)
+        if (BigInteger.Parse(quote.ReceiveAmount) <= 0)
         {
             throw new ApplicationFailureException("Output amount is less than the fee");
         }
@@ -132,7 +135,7 @@ public class SwapWorkflow : ISwapWorkflow
                 Id = _htlcCommitMessage.Id,
                 Timelock = _lpTimeLock.ToUnixTimeSeconds(),
                 RewardTimelock = rewardTimelock.ToUnixTimeSeconds(),
-                Reward = 0,
+                Reward = BigInteger.Zero.ToString(),
                 Receiver = _htlcCommitMessage.DestinationAddress,
                 Hashlock = hashlock.Hash,
             }),
@@ -341,6 +344,7 @@ public class SwapWorkflow : ISwapWorkflow
                 confirmedTransaction.Asset,
                 transactionRequest.Type),
             DefaultActivityOptions(Constants.CoreTaskQueue));
+
         return confirmedTransaction;
     }
 }

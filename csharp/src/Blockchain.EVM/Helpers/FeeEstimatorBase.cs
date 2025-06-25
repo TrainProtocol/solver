@@ -32,15 +32,14 @@ public abstract class FeeEstimatorBase : IFeeEstimator
         string fromAddress,
         string toAddress,
         Token currency,
-        decimal? amount = null,
+        string amount,
         string? callData = null)
     {
         var callInput = new CallInput
         {
             From = fromAddress,
             To = toAddress,
-            Value = (amount.HasValue ? Web3.Convert.ToWei(amount.Value, currency.Decimals) : BigInteger.One)
-                .ToHexBigInteger(),
+            Value = BigInteger.Parse(amount).ToHexBigInteger(),
         };
 
         if (!string.IsNullOrEmpty(callData))
@@ -56,7 +55,7 @@ public abstract class FeeEstimatorBase : IFeeEstimator
             {
                 FromAddress = fromAddress,
                 To = toAddress,
-                Value = Web3.Convert.ToWei(amount ?? 0, currency.Decimals)
+                Value = BigInteger.Parse(amount)
             }.GetCallData().ToHex();
         }
 

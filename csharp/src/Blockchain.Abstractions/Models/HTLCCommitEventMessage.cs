@@ -8,7 +8,7 @@ public class HTLCCommitEventMessage
 
     public required string Id { get; set; } = null!;
 
-    public required decimal Amount { get; set; }
+    //public required decimal Amount { get; set; }
 
     public required string AmountInWei { get; set; } = null!;
 

@@ -20,13 +20,13 @@ public class Swap : EntityBase<string>
 
     public string DestinationAddress { get; set; } = null!;
 
-    public decimal SourceAmount { get; set; }
+    public string SourceAmount { get; set; } = null!;
 
     public string Hashlock { get; set; } = null!;
 
-    public decimal DestinationAmount { get; set; }
+    public string DestinationAmount { get; set; } = null!;
 
-    public decimal FeeAmount { get; set; }
+    public string FeeAmount { get; set; } = null!;
 
     public virtual List<Transaction> Transactions { get; set; } = [];
 }

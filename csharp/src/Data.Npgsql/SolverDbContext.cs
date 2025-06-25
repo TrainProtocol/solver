@@ -29,8 +29,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<Expense> Expenses { get; set; }
 
-    public DbSet<Contract> Contracts { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(Swap).Assembly);
@@ -68,10 +66,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .Property(b => b.Type)
             .HasEnumComment();
 
-        modelBuilder.Entity<Contract>()
-            .Property(b => b.Type)
-            .HasEnumComment();
-
         modelBuilder.Entity<Node>()
             .Property(b => b.Type)
             .HasEnumComment();
@@ -81,11 +75,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .IsUnique();
 
         modelBuilder.Entity<ManagedAccount>()
-            .HasIndex(x => x.Address);
-
-        modelBuilder.Entity<ManagedAccount>()
-            .Property(b => b.Type)
-            .HasEnumComment();
+            .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<Route>()
             .Property(b => b.Status)
@@ -118,7 +108,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
            .IsUnique();
 
         modelBuilder.Entity<Token>()
-           .HasIndex(x => x.Asset);       
+           .HasIndex(x => x.Asset);
 
         modelBuilder.Entity<Swap>()
             .HasIndex(x => x.SourceAddress);
@@ -166,8 +156,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         var entitiesAssambly = typeof(EntityBase<>).Assembly;
 
         var entities = entitiesAssambly.GetTypes()
-            .Where(x => 
-                x.BaseType is { IsGenericType: true } 
+            .Where(x =>
+                x.BaseType is { IsGenericType: true }
                 && x.BaseType.GetGenericTypeDefinition() == typeof(EntityBase<>)
                 && !x.IsAbstract);
 

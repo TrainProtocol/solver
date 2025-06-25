@@ -33,13 +33,13 @@ public class Transaction : EntityBase<Guid>
 
     public string? Asset { get; set; }
 
-    public decimal Amount { get; set; }
+    public string Amount { get; set; } = null!;
 
     public decimal UsdPrice { get; set; }
     
     public string? FeeAsset { get; set; }
 
-    public decimal? FeeAmount { get; set; }
+    public string? FeeAmount { get; set; }
 
     public decimal? FeeUsdPrice { get; set; }
 

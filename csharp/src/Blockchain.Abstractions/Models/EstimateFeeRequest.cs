@@ -8,7 +8,7 @@ public class EstimateFeeRequest : BaseRequest
 
     public required string ToAddress { get; set; } = null!;
 
-    public required decimal Amount { get; set; }
+    public required string Amount { get; set; }
 
     public string? CallData { get; set; }
 }

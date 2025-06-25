@@ -17,10 +17,8 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
     public async Task<Network?> GetAsync(string networkName)
     {
         return await dbContext.Networks
-            .Include(x => x.Contracts)
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
-            .Include(x => x.ManagedAccounts)
             .Include(x => x.Nodes)
             .FirstOrDefaultAsync(x => x.Name == networkName);
     }
@@ -28,29 +26,33 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
     public async Task<List<Network>> GetAllAsync()
     {
         return await dbContext.Networks
-            .Include(x => x.Contracts)
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
-            .Include(x => x.ManagedAccounts)
             .Include(x => x.Nodes)
             .ToListAsync();
     }
 
-    public async Task<Dictionary<string, Token>> GetNativeTokensAsync(string[] networkNames)
+    public async Task<string> GetSolverAccountAsync(string networkName)
     {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .Where(x => x.IsNative && networkNames.Contains(x.Network.Name))
-            .ToDictionaryAsync(x => x.Network.Name);
-    }
+        var network = await dbContext.Networks
+            .Where(x => x.Name == networkName)
+            .FirstOrDefaultAsync();
 
-    public async Task<Dictionary<string, string>> GetSolverAccountsAsync(string[] networkNames)
-    {
-        return await dbContext.ManagedAccounts
-            .Include(x => x.Network)
-            .Where(x => networkNames.Contains(x.Network.Name) && x.Type == AccountType.Primary)
-            .ToDictionaryAsync(x => x.Network.Name, y => y.Address);
+        if (network == null)
+        {
+            throw new Exception($"Network '{networkName}' not found.");
+        }
+
+        var managedAccount = await dbContext.ManagedAccounts
+            .Where(x => x.NetworkType == network.Type)
+            .FirstOrDefaultAsync();
+
+        if (managedAccount == null)
+        {
+            throw new Exception($"Solver account for network '{networkName}' not found.");
+        }
+
+        return managedAccount.Address;
     }
 
     public async Task<List<Token>> GetTokensAsync()
@@ -64,10 +66,8 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
     public Task<List<Token>> GetTokensAsync(int[] ids)
     {
         return dbContext.Tokens
-            .Include(x => x.Network.ManagedAccounts)
             .Include(x => x.Network.Nodes)
             //.Include(x => x.Network.NativeToken)
-            .Include(x => x.Network.Contracts)
             .Include(x => x.TokenPrice)
             .Where(x => ids.Contains(x.Id))
             .ToListAsync();

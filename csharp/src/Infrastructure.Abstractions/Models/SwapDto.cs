@@ -8,7 +8,7 @@ public class SwapDto
 
     public string SourceToken { get; set; } = null!;
 
-    public decimal SourceAmount { get; set; }
+    public string SourceAmount { get; set; }
 
     public decimal SourceAmountInUsd { get; set; }
 
@@ -18,13 +18,13 @@ public class SwapDto
 
     public string DestinationToken { get; set; } = null!;
 
-    public decimal DestinationAmount { get; set; }
+    public string DestinationAmount { get; set; } = null!;
 
     public decimal DestinationAmountInUsd { get; set; }
 
     public string DestinationAddress { get; set; } = null!;
 
-    public decimal FeeAmount { get; set; }
+    public string FeeAmount { get; set; } = null!;
 
     public IEnumerable<TransactionDto> Transactions { get; set; } = [];
 }

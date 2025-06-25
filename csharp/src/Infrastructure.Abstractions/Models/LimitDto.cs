@@ -4,9 +4,9 @@ public class LimitDto
 {
     public decimal MinAmountInUsd { get; set; }
 
-    public decimal MinAmount { get; set; }
+    public string MinAmount { get; set; } = null!;
 
     public decimal MaxAmountInUsd { get; set; }
 
-    public decimal MaxAmount { get; set; }
+    public string MaxAmount { get; set; } = null!;
 }
