@@ -40,43 +40,42 @@ public static class AdminV1Endpoints
             return Results.NotFound($"Token {rebalanceRequest.Token} not found in network {rebalanceRequest.NetworkName}");
         }
 
-        var fromAccount = network.ManagedAccounts
-            .FirstOrDefault(x => x.Type == rebalanceRequest.From);
+        var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
 
-        if (fromAccount == null)
+        if (solverAccount is null)
         {
-            return Results.NotFound($"From account {rebalanceRequest.From} not found in network {rebalanceRequest.NetworkName}");
+            throw new ArgumentNullException(nameof(network), $"Solver account for {network.Name} not found");
         }
+      
+        //var toAccount = network.ManagedAccounts
+        //    .FirstOrDefault(x => x.Type == rebalanceRequest.To);
 
-        var toAccount = network.ManagedAccounts
-            .FirstOrDefault(x => x.Type == rebalanceRequest.To);
+        //if (toAccount == null)
+        //{
+        //    return Results.NotFound($"To account {rebalanceRequest.To} not found in network {rebalanceRequest.NetworkName}");
+        //}
 
-        if (toAccount == null)
-        {
-            return Results.NotFound($"To account {rebalanceRequest.To} not found in network {rebalanceRequest.NetworkName}");
-        }
-
-        var workflowId =  await temporalClient.StartWorkflowAsync(
-            TemporalHelper.ResolveProcessor(network.Type), [new TransactionRequest()
-                {
-                    PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
-                    {
-                      Amount = rebalanceRequest.Amount,
-                      Asset = token.Asset,
-                      FromAddress = fromAccount.Address,
-                      ToAddress = toAccount.Address,
-                    }),
-                    Type = TransactionType.Transfer,
-                    NetworkName = network.Name,
-                    NetworkType = network.Type,
-                    FromAddress = fromAccount.Address,
-            },
-            new TransactionExecutionContext()],
-            new(id: TemporalHelper.BuildProcessorId(network.Name, TransactionType.Transfer, Guid.NewGuid()),
-            taskQueue: network.Type.ToString())
-            {
-                IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
-            });
+        //var workflowId =  await temporalClient.StartWorkflowAsync(
+        //    TemporalHelper.ResolveProcessor(network.Type), [new TransactionRequest()
+        //        {
+        //            PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+        //            {
+        //              Amount = rebalanceRequest.Amount,
+        //              Asset = token.Asset,
+        //              FromAddress = fromAccount.Address,
+        //              ToAddress = toAccount.Address,
+        //            }),
+        //            Type = TransactionType.Transfer,
+        //            NetworkName = network.Name,
+        //            NetworkType = network.Type,
+        //            FromAddress = fromAccount.Address,
+        //    },
+        //    new TransactionExecutionContext()],
+        //    new(id: TemporalHelper.BuildProcessorId(network.Name, TransactionType.Transfer, Guid.NewGuid()),
+        //    taskQueue: network.Type.ToString())
+        //    {
+        //        IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
+        //    });
 
         return Results.Ok();
     }

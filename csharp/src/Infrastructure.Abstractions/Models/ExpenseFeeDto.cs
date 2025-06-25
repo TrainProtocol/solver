@@ -2,5 +2,5 @@
 
 public class ExpenseFeeDto
 {
-    public decimal ExpenseFeeInSource { get; set; }
+    public string ExpenseFeeInSource { get; set; } = null!;
 }

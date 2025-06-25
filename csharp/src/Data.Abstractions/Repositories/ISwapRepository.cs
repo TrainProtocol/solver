@@ -16,12 +16,12 @@ public interface ISwapRepository
         string destinationAddress,
         string sourceNetworkName,
         string sourceToken,
-        decimal sourceAmount,
+        string sourceAmount,
         string destinationNetworkName,
         string destinationToken,
-        decimal destinationAmount,
+        string destinationAmount,
         string hashlock,
-        decimal feeAmount);
+        string feeAmount);
 
     Task<Guid> CreateSwapTransactionAsync(
         string networkName,
@@ -29,9 +29,9 @@ public interface ISwapRepository
         TransactionType transactionType,
         string transactionHash,
         string asset,
-        decimal amount,
+        string amount,
         int confirmations,
         DateTimeOffset timestamp,
         string feeAsset,
-        decimal feeAmount);
+        string feeAmount);
 }

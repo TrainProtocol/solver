@@ -20,9 +20,9 @@ public class HTLCLockTransactionPrepareRequest
 
     public string Id { get; set; } = null!;
 
-    public decimal Amount { get; set; }
+    public string Amount { get; set; } = null!;
 
-    public decimal Reward { get; set; }
+    public string Reward { get; set; } = null!;
 
     public long RewardTimelock { get; set; }
 }

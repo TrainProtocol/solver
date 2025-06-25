@@ -10,6 +10,7 @@ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Blockchain.EVM.Models;
 using static Temporalio.Workflows.Workflow;
+using System.Numerics;
 
 namespace Train.Solver.Blockchain.EVM.Workflows;
 
@@ -123,7 +124,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
         confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-        confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
+        confirmedTransaction.Amount = preparedTransaction.CallDataAmountInWei;
 
         return confirmedTransaction;
     }
@@ -142,7 +143,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     FromAddress = request.FromAddress!,
                     ToAddress = preparedTransaction.ToAddress!,
                     Asset = preparedTransaction.Asset!,
-                    Amount = preparedTransaction.Amount,
+                    Amount = preparedTransaction.AmountInWei,
                     CallData = preparedTransaction.Data,
                 }),
                 new()
@@ -242,7 +243,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
             }),
             TemporalHelper.DefaultActivityOptions(context.NetworkType));
 
-        if (lockRequest.Amount > allowance)
+        if (BigInteger.Parse(lockRequest.Amount) > BigInteger.Parse(allowance))
         {
             // Initiate approval transaction
 

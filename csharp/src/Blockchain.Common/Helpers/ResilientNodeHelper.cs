@@ -11,17 +11,14 @@ public static class ResilientNodeHelper
             throw new ArgumentNullException(nameof(nodes), "Collection of nodes is null");
         }
 
-        var orderedNodes = nodes
-            .OrderByDescending(n => n.TraceEnabled)
-            .ToList();
-
-        if (!orderedNodes.Any())
+        if (!nodes.Any())
         {
             throw new ArgumentException("Collection of nodes is empty", nameof(nodes));
         }
 
         var exceptions = new List<Exception>();
-        foreach (var node in orderedNodes)
+
+        foreach (var node in nodes)
         {
             try
             {

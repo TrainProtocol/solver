@@ -19,7 +19,7 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
         return await dbContext.ServiceFees.ToListAsync();
     }
 
-    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, decimal feeAmount, TransactionType transactionType)
+    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)
     {
         var feeToken = await networkRepository.GetTokenAsync(networkName, tokenAsset);
 
@@ -50,24 +50,10 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
             dbContext.Expenses.Add(expense);
         }
 
-        if (expense.LastFeeValues.Length == 0)
-        {
-            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
-        }
-        else
-        {
-            if (feeAmount > expense.LastFeeValues.Average() * 30)
-            {
-                return;
-            }
-
-            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
-
-            if (expense.LastFeeValues.Length > 10)
-            {
-                expense.LastFeeValues = expense.LastFeeValues.Skip(expense.LastFeeValues.Length - 10).ToArray();
-            }
-        }
+        expense.LastFeeValues = expense.LastFeeValues
+            .Append(feeAmount)
+            .TakeLast(10)
+            .ToArray();
 
         await dbContext.SaveChangesAsync();
     }

@@ -22,8 +22,8 @@ public class SwapActivities(
     [Activity]
     public virtual async Task<string> CreateSwapAsync(
         HTLCCommitEventMessage commitEventMessage,
-        decimal outputAmount,
-        decimal feeAmount,
+        string outputAmount,
+        string feeAmount,
         string hashlock)
     {
         var swap = await swapRepository.CreateAsync(
@@ -32,7 +32,7 @@ public class SwapActivities(
             commitEventMessage.DestinationAddress,
             commitEventMessage.SourceNetwork,
             commitEventMessage.SourceAsset,
-            commitEventMessage.Amount,
+            commitEventMessage.AmountInWei,
             commitEventMessage.DestinationNetwork,
             commitEventMessage.DestinationAsset,
             outputAmount,
@@ -43,9 +43,9 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<Dictionary<string, string>> GetSolverAddressesAsync(params string[] networkNames)
+    public virtual async Task<string> GetSolverAddressAsync(string networkName)
     {
-        return await networkRepository.GetSolverAccountsAsync(networkNames);
+        return await networkRepository.GetSolverAccountAsync(networkName);
     }
 
     [Activity]
@@ -109,7 +109,7 @@ public class SwapActivities(
     public virtual async Task UpdateExpensesAsync(
         string networkName,
         string feeAsset,
-        decimal currentFee,
+        string currentFee,
         string callDataAsset,
         TransactionType callDataType)
     {

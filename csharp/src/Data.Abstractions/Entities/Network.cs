@@ -32,22 +32,15 @@ public class Network : EntityBase<int>
 
     public int FeePercentageIncrease { get; set; }
 
-    public string TransactionExplorerTemplate { get; set; } = null!;
+    public string HTLCNativeContractAddress { get; set; } = null!;
 
-    public string AccountExplorerTemplate { get; set; } = null!;
+    public string HTLCTokenContractAddress { get; set; } = null!;
 
-    public string Logo { get; set; } = null!;
+    public int NativeTokenId { get; set; }
 
-    public int? NativeTokenId { get; set; }
+    public virtual Token NativeToken { get; set; } = null!;
 
-    public virtual Token? NativeToken { get; set; }
+    public virtual List<Token> Tokens { get; set; } = [];
 
-    public virtual List<ManagedAccount> ManagedAccounts { get; set; } = new();
-
-    public virtual List<Token> Tokens { get; set; } = new();
-
-    public virtual List<Node> Nodes { get; set; } = new();
-
-    public virtual List<Contract> Contracts { get; set; } = new();
-
+    public virtual List<Node> Nodes { get; set; } = [];
 }

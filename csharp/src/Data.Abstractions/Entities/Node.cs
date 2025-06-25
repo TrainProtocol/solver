@@ -19,8 +19,4 @@ public class Node : EntityBase<int>
     public int NetworkId { get; set; }
 
     public virtual Network Network { get; set; } = null!;
-    
-    public bool TraceEnabled { get; set; }
-    
-    public double Priority { get; set; }
 }

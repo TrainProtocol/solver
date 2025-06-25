@@ -29,5 +29,5 @@ public interface IEVMBlockchainActivities
     Task<SignedTransaction> ComposeSignedRawTransactionAsync(EVMComposeTransactionRequest request);
 
     [Activity]
-    Task<decimal> GetSpenderAllowanceAsync(AllowanceRequest request);
+    Task<string> GetSpenderAllowanceAsync(AllowanceRequest request);
 }

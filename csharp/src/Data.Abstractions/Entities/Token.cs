@@ -8,15 +8,9 @@ public class Token : EntityBase<int>
 
     public string? TokenContract { get; set; }
 
-    public bool IsNative { get; set; }
-
-    public int Precision { get; set; }
-
     public int Decimals { get; set; }
 
     public int NetworkId { get; set; }
-
-    public string Logo { get; set; } = null!;
 
     public virtual Network Network { get; set; } = null!;
 

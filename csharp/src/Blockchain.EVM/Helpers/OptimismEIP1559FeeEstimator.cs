@@ -17,6 +17,8 @@ namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
 {
+    private const string GasPriceOracleContract = "0x420000000000000000000000000000000000000F";
+
     public override BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction, EVMTransactionReceipt receipt)
     {
         return (receipt.L1Fee ?? BigInteger.Zero) + receipt.EffectiveGasPrice.Value * receipt.GasUsed.Value;
@@ -26,13 +28,6 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
         Network network,
         EstimateFeeRequest request)
     {
-        var gasPriceOracleContract = network.Contracts.FirstOrDefault(c => c.Type == ContarctType.GasPriceOracleContract);
-
-        if (gasPriceOracleContract == null)
-        {
-            throw new($"GasPriceOracleContract is not configured on {network.Name} network");
-        }
-
         var nodes = network.Nodes;
 
         if (!nodes.Any())
@@ -81,10 +76,10 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 priorityFee,
                 maxFeePerGas,
                 gasLimit,
-                gasPriceOracleContract.Address,//TODO
+                GasPriceOracleContract,
                 request.FromAddress,
                 request.ToAddress,
-                Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                BigInteger.Parse(request.Amount),
                 request.CallData));
 
 

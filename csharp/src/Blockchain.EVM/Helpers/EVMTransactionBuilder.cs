@@ -28,16 +28,15 @@ public static class EVMTransactionBuilder
         var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.TokenContract));
 
         var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
-           network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-           : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+           network.HTLCTokenContractAddress
+           : network.HTLCTokenContractAddress;
 
         if (currency.Id != nativeCurrency.Id)
         {
             var response = new PrepareTransactionResponse
             {
-                ToAddress = currency.TokenContract,
-                Amount = 0,
-                AmountInWei = "0",
+                ToAddress = currency.TokenContract!,
+                AmountInWei = BigInteger.Zero.ToString(),
                 Asset = nativeCurrency.Asset,
                 Data = new FunctionMessages.ApproveFunction
                 {
@@ -45,8 +44,7 @@ public static class EVMTransactionBuilder
                     Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
                 CallDataAsset = nativeCurrency.Asset,
-                CallDataAmountInWei = "0",
-                CallDataAmount = 0
+                CallDataAmountInWei = BigInteger.Zero.ToString(),
             };
 
             return response;
@@ -88,21 +86,17 @@ public static class EVMTransactionBuilder
                 Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
             }.GetCallData().ToHex().EnsureEvenLengthHex()}{memoHex.RemoveHexPrefix()}".EnsureHexPrefix();
 
-            response.Amount = 0m;
-            response.AmountInWei = "0";
-            response.ToAddress = currency.TokenContract;
+            response.AmountInWei = BigInteger.Zero.ToString();
+            response.ToAddress = currency.TokenContract!;
             response.CallDataAsset = currency.Asset;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
-            response.CallDataAmount = request.Amount;
         }
         else
         {
-            response.Amount = request.Amount;
             response.AmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
             response.ToAddress = request.ToAddress;
             response.CallDataAsset = currency.Asset;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
-            response.CallDataAmount = request.Amount;
         }
 
         return response;
@@ -118,10 +112,11 @@ public static class EVMTransactionBuilder
         }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var isNative = currency.Id == network.NativeTokenId;
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCTokenContractAddress
+            : network.HTLCTokenContractAddress;
 
         var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
 
@@ -142,13 +137,11 @@ public static class EVMTransactionBuilder
                 V = byte.Parse(request.V!)
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
 
-            Amount = 0,
-            AmountInWei = "0",
+            AmountInWei = BigInteger.Zero.ToString(),
             Asset = nativeCurrency.Asset,
             ToAddress = htlcContractAddress,
             CallDataAsset = request.Asset,
-            CallDataAmount = 0,
-            CallDataAmountInWei = "0"
+            CallDataAmountInWei = BigInteger.Zero.ToString()
         };
 
         return response;
@@ -172,7 +165,7 @@ public static class EVMTransactionBuilder
         //ERC20 HTLC call
         if (currency.Id != nativeCurrency.Id)
         {
-            response.ToAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+            response.ToAddress = network.HTLCTokenContractAddress;
 
             response.Data = new ERC20CommitFunction
             {
@@ -188,16 +181,14 @@ public static class EVMTransactionBuilder
                 TokenContract = currency.TokenContract
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.Amount = 0;
-            response.AmountInWei = "0";
+            response.AmountInWei = BigInteger.Zero.ToString();
             response.Asset = nativeCurrency.Asset;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
         }
         else
         {
-            response.ToAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address;
+            response.ToAddress = network.HTLCTokenContractAddress;
 
             response.Data = new CommitFunction
             {
@@ -212,11 +203,9 @@ public static class EVMTransactionBuilder
                 Timelock = request.Timelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.Amount = request.Amount;
             response.AmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
             response.Asset = nativeCurrency.Asset;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
         }
 
@@ -238,6 +227,7 @@ public static class EVMTransactionBuilder
         var response = new PrepareTransactionResponse();
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
+        var isNative = currency.Id == network.NativeTokenId;
 
         var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
 
@@ -245,7 +235,7 @@ public static class EVMTransactionBuilder
 
         response.Asset = nativeCurrency.Asset;
 
-        if (currency.Id != nativeCurrency.Id)
+        if (!isNative)
         {
             response.Data = new ERC20LockFunction
             {
@@ -259,19 +249,17 @@ public static class EVMTransactionBuilder
                     DestinationChain = request.DestinationNetwork,
                     DestinationAddress = request.DestinationAddress,
                     DestinationAsset = request.DestinationAsset,
-                    Reward = Web3.Convert.ToWei(request.Reward, currency.Decimals),
+                    Reward = BigInteger.Parse(request.Reward),
                     RewardTimelock = request.RewardTimelock,
-                    Amount = Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                    Amount = BigInteger.Parse(request.Amount),
                     TokenContract = currency.TokenContract!,
                 }
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.Amount = 0;
             response.AmountInWei = "0";
             response.Asset = nativeCurrency.Asset;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount + request.Reward;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount + request.Reward, currency.Decimals).ToString();
+            response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
         }
         else
         {
@@ -285,21 +273,19 @@ public static class EVMTransactionBuilder
                 DestinationChain = request.DestinationNetwork,
                 DestinationAddress = request.DestinationAddress,
                 DestinationAsset = request.DestinationAsset,
-                Reward = Web3.Convert.ToWei(request.Reward, currency.Decimals),
+                Reward = BigInteger.Parse(request.Reward),
                 RewardTimelock = request.RewardTimelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.Amount = request.Amount;
-            response.AmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
+            response.AmountInWei = request.Amount;
             response.Asset = nativeCurrency.Asset;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount + request.Reward;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount + request.Reward, nativeCurrency.Decimals).ToString();
+            response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
         }
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCTokenContractAddress
+            : network.HTLCTokenContractAddress;
 
         response.ToAddress = htlcContractAddress;
 
@@ -318,15 +304,14 @@ public static class EVMTransactionBuilder
         }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-
-        var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
+        var isNative = currency.Id == network.NativeTokenId;
 
         var lockId = request.Id.ToBytes32();
         var secret = BigInteger.Parse(request.Secret);
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCTokenContractAddress
+            : network.HTLCTokenContractAddress;
 
         return new PrepareTransactionResponse
         {
@@ -335,12 +320,10 @@ public static class EVMTransactionBuilder
                 Id = lockId,
                 Secret = secret
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-            Amount = 0m,
             AmountInWei = "0",
             ToAddress = htlcContractAddress,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             CallDataAsset = request.Asset,
-            CallDataAmount = 0,
             CallDataAmountInWei = "0",
         };
     }
@@ -355,14 +338,13 @@ public static class EVMTransactionBuilder
         }
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-
-        var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
+        var isNative = currency.Id == network.NativeTokenId;
 
         var htlcId = request.Id.ToBytes32();
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCTokenContractAddress
+            : network.HTLCTokenContractAddress;
 
         return new PrepareTransactionResponse
         {
@@ -370,12 +352,10 @@ public static class EVMTransactionBuilder
             {
                 Id = htlcId,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-            Amount = 0m,
             AmountInWei = "0",
             ToAddress = htlcContractAddress,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             CallDataAsset = request.Asset,
-            CallDataAmount = 0,
             CallDataAmountInWei = "0",
         };
     }

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
@@ -6,6 +7,7 @@ using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Util;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Blockchain.Swap.Workflows;
@@ -28,23 +30,16 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 route.Destionation.Token.Symbol
             });
 
-        var networkNames = groupedByNetworkAndAsset.Select(x => x.Key.Name).Distinct().ToArray();
-
-        var managedAddressesByNetwork = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressesAsync(networkNames),
-            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
-
-
         foreach (var group in groupedByNetworkAndAsset)
         {
             var networkName = group.Key.Name;
             var networkType = group.Key.Type;
             var asset = group.Key.Symbol;
 
-            if (!managedAddressesByNetwork.TryGetValue(networkName, out var managedAddress))
-            {
-                continue;
-            }
+            var solverAccount = await ExecuteActivityAsync(
+                (ISwapActivities x) => x.GetSolverAddressAsync(
+                    networkName),
+                           TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
             BalanceResponse balance;
 
@@ -53,7 +48,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
                 {
                     NetworkName = networkName,
-                    Address = managedAddress!,
+                    Address = solverAccount!,
                     Asset = asset
                 }), TemporalHelper.DefaultActivityOptions(networkType));
             }
@@ -62,8 +57,11 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 continue;
             }
 
+            var balanceInDecimal = TokenUnitConverter
+                .FromBaseUnits(BigInteger.Parse(balance.AmountInWei), balance.Decimals);
+
             var routesToDisable = group
-                .Where(route => route.Status == RouteStatus.Active && route.MaxAmountInSource > balance.Amount)
+                .Where(route => route.Status == RouteStatus.Active && route.MaxAmountInSource > balanceInDecimal)
                 .ToList();
 
             if (routesToDisable.Any())
@@ -76,7 +74,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             }
 
             var routesToEnable = group
-                .Where(route => route.Status == RouteStatus.Inactive && route.MaxAmountInSource <= balance.Amount)
+                .Where(route => route.Status == RouteStatus.Inactive && route.MaxAmountInSource <= balanceInDecimal)
                 .ToList();
 
             if (routesToEnable.Any())

@@ -10,13 +10,13 @@ public class DetailedNetworkDto : NetworkDto
 
     public string AccountExplorerTemplate { get; set; } = null!;
 
+    public string HTLCNativeContractAddress { get; set; } = null!;
+
+    public string HTLCTokenContractAddress { get; set; } = null!;
+
     public DetailedTokenDto? NativeToken { get; set; } = null!;
 
     public IEnumerable<DetailedTokenDto> Tokens { get; set; } = [];
 
     public IEnumerable<NodeDto> Nodes { get; set; } = [];
-
-    public IEnumerable<ContractDto> Contracts { get; set; } = [];
-
-    public IEnumerable<ManagedAccountDto> ManagedAccounts { get; set; } = [];
 }

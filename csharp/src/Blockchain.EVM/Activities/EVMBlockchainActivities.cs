@@ -76,9 +76,9 @@ public class EVMBlockchainActivities(
             Asset = fee.Asset
         });
 
-        var amount = fee.Amount + request.Amount;
+        var amount = BigInteger.Parse(fee.AmountInWei) + BigInteger.Parse(request.Amount);
 
-        if (balance.Amount < amount)
+        if (BigInteger.Parse(balance.AmountInWei) < amount)
         {
             throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
@@ -216,7 +216,6 @@ public class EVMBlockchainActivities(
         var balanceResponse = new BalanceResponse
         {
             AmountInWei = balance.ToString(),
-            Amount = Web3.Convert.FromWei(balance, currency.Decimals),
             Decimals = currency.Decimals,
         };
 
@@ -242,27 +241,26 @@ public class EVMBlockchainActivities(
             throw new ArgumentException($"Node is not configured on {request.NetworkName} network", nameof(nodes));
         }
 
-        var solverAccount = network.ManagedAccounts
-            .First(x => x.Type == AccountType.Primary);
+
+        var solverAccount = await networkRepository.GetSolverAccountAsync(request.NetworkName);
+
+        if (string.IsNullOrEmpty(solverAccount))
+        {
+            throw new ArgumentException($"Solver account is not configured on {request.NetworkName} network", nameof(solverAccount));
+        }
 
         var currencies = await networkRepository.GetTokensAsync();
 
         var contractAddresses = new List<string>();
 
-        var htlcNativeContractAddress = network.Contracts
-            .FirstOrDefault(c => c.Type == ContarctType.HTLCNativeContractAddress);
-
-        if (htlcNativeContractAddress != null)
+        if (!string.IsNullOrEmpty(network.HTLCNativeContractAddress))
         {
-            contractAddresses.Add(htlcNativeContractAddress.Address);
+            contractAddresses.Add(network.HTLCNativeContractAddress);
         }
 
-        var htlcTokenContractAddress = network.Contracts
-            .FirstOrDefault(c => c.Type == ContarctType.HTLCTokenContractAddress);
-
-        if (htlcTokenContractAddress != null)
+        if (!string.IsNullOrEmpty(network.HTLCTokenContractAddress))
         {
-            contractAddresses.Add(htlcTokenContractAddress.Address);
+            contractAddresses.Add(network.HTLCTokenContractAddress);
         }
 
         var filterInput = new NewFilterInput
@@ -294,7 +292,7 @@ public class EVMBlockchainActivities(
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
                 if (FormatAddress(commitedEvent.Receiver)
-                    != FormatAddress(solverAccount.Address))
+                    != FormatAddress(solverAccount))
                 {
                     continue;
                 }
@@ -325,7 +323,6 @@ public class EVMBlockchainActivities(
                 {
                     TxId = log.TransactionHash,
                     Id = commitId,
-                    Amount = Web3.Convert.FromWei(commitedEvent.Amount, sourceCurrency.Decimals),
                     AmountInWei = commitedEvent.Amount.ToString(),
                     SourceAsset = sourceCurrency.Asset,
                     SenderAddress = commitedEvent.Sender,
@@ -334,7 +331,7 @@ public class EVMBlockchainActivities(
                     DestinationNetwork = destinationCurrency.Network.Name,
                     DestinationAsset = destinationCurrency.Asset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(solverAccount.Address),
+                    ReceiverAddress = FormatAddress(solverAccount),
                     DestinationNetworkType = destinationCurrency.Network.Type,
                     SourceNetworkType = sourceCurrency.Network.Type
                 };
@@ -391,7 +388,7 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<decimal> GetSpenderAllowanceAsync(AllowanceRequest request)
+    public virtual async Task<string> GetSpenderAllowanceAsync(AllowanceRequest request)
     {
         var network = await networkRepository.GetAsync(request.NetworkName);
 
@@ -410,8 +407,7 @@ public class EVMBlockchainActivities(
         var currency = network.Tokens.Single(x => x.Asset == request.Asset);
 
         var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
-           network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-           : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+           network.HTLCNativeContractAddress : network.HTLCTokenContractAddress;
 
         if (!string.IsNullOrEmpty(currency.TokenContract))
         {
@@ -427,10 +423,10 @@ public class EVMBlockchainActivities(
 
             var allowance =
                 await allowanceHandler.QueryAsync<BigInteger>(currency.TokenContract, allowanceFunctionMessage);
-            return Web3.Convert.FromWei(allowance, currency.Decimals);
+            return allowance.ToString();
         }
 
-        return decimal.MaxValue;
+        return (BigInteger.Pow(2, 256) - 1).ToString();
     }
 
     [Activity]
@@ -445,9 +441,11 @@ public class EVMBlockchainActivities(
 
         var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var isNative = currency.Id == network.NativeTokenId;
+
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         var signer = new Eip712TypedDataSigner();
         var typedData = GetAddLockMessageTypedDefinition(
@@ -833,10 +831,12 @@ public class EVMBlockchainActivities(
 
         var transactionModel = new TransactionResponse
         {
+            Decimals = nativeCurrency.Decimals,
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transaction.TransactionHash,
-            FeeAmount = Web3.Convert.FromWei(transactionFee, nativeCurrency.Decimals),
+            FeeAmount = transactionFee.ToString(),
+            FeeDecimals = nativeCurrency.Decimals,
             FeeAsset = nativeCurrency!.Asset,
             Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlock.Timestamp.Value * 1000),
             Confirmations = (int)(currentBlockNumber.Value - transaction.BlockNumber.Value) + 1

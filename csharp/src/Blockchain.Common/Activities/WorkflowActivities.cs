@@ -12,7 +12,10 @@ using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Blockchain.Common.Activities;
 
-public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient temporalClient) : IWorkflowActivities
+public class WorkflowActivities(
+    ISwapRepository swapRepository,
+    INetworkRepository networkRepository,
+    ITemporalClient temporalClient) : IWorkflowActivities
 {
     [Activity]
     public virtual async Task TerminateWorkflowAsync(string workflowId)
@@ -68,6 +71,13 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
             throw new ArgumentException("Swap not found", nameof(swapId));
         }
 
+        var solverAddress = await networkRepository.GetSolverAccountAsync(swap.DestinationToken.Network.Name);
+
+        if (string.IsNullOrEmpty(solverAddress))
+        {
+            throw new InvalidOperationException($"Solver account not found for network: {swap.DestinationToken.Network.Name}");
+        }
+
         await temporalClient.StartWorkflowAsync(
             TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionRequest()
                 {
@@ -79,7 +89,7 @@ public class WorkflowActivities(ISwapRepository swapRepository, ITemporalClient 
                     Type = TransactionType.HTLCRefund,
                     NetworkName = swap.DestinationToken.Network.Name,
                     NetworkType = swap.DestinationToken.Network.Type,
-                    FromAddress = swap.DestinationToken.Network.ManagedAccounts.First().Address,
+                    FromAddress = solverAddress,
                     SwapId = swap.Id,
             }],
             new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())

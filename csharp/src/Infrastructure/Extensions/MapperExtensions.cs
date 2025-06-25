@@ -1,5 +1,7 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Extensions;
@@ -14,12 +16,12 @@ public static class MapperExtensions
             SourceNetwork = swap.SourceToken.Network.Name,
             SourceToken = swap.SourceToken.Asset,
             SourceAmount = swap.SourceAmount,
-            SourceAmountInUsd = swap.SourceTokenPrice * swap.SourceAmount,
+            SourceAmountInUsd = BigInteger.Parse(swap.SourceAmount).ToUsd(swap.SourceTokenPrice, swap.SourceToken.Decimals),
             SourceAddress = swap.SourceAddress,
             DestinationNetwork = swap.DestinationToken.Network.Name,
             DestinationToken = swap.DestinationToken.Asset,
             DestinationAmount = swap.DestinationAmount,
-            DestinationAmountInUsd = swap.DestinationTokenPrice * swap.DestinationAmount,
+            DestinationAmountInUsd = BigInteger.Parse(swap.DestinationAmount).ToUsd(swap.DestinationTokenPrice, swap.DestinationToken.Decimals),
             DestinationAddress = swap.DestinationAddress,
             FeeAmount = swap.FeeAmount,
             Transactions = swap.Transactions.Select(t => t.ToDto())
@@ -36,21 +38,12 @@ public static class MapperExtensions
         };
     }
 
-    public static ContractDto ToDto(this Contract contract)
-    {
-        return new ContractDto
-        {
-            Type = contract.Type,
-            Address = contract.Address
-        };
-    }
-
     public static ManagedAccountDto ToDto(this ManagedAccount account)
     {
         return new ManagedAccountDto
         {
             Address = account.Address,
-            Type = account.Type
+            NetworkType = account.NetworkType
         };
     }
 
@@ -80,7 +73,6 @@ public static class MapperExtensions
             Symbol = token.Asset,
             Contract = token.TokenContract,
             Decimals = token.Decimals,
-            Precision = token.Precision,
         };
     }
 
@@ -91,8 +83,6 @@ public static class MapperExtensions
             Symbol = token.Asset,
             Contract = token.TokenContract,
             Decimals = token.Decimals,
-            Precision = token.Precision,
-            Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo),
         };
 
         return dto;
@@ -117,14 +107,11 @@ public static class MapperExtensions
             DisplayName = network.DisplayName,
             ChainId = network.ChainId,
             Type = network.Type,
-            Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
-            TransactionExplorerTemplate = network.TransactionExplorerTemplate,
-            AccountExplorerTemplate = network.AccountExplorerTemplate,
+            HTLCNativeContractAddress = network.HTLCNativeContractAddress,
+            HTLCTokenContractAddress = network.HTLCTokenContractAddress,
             NativeToken = network.NativeToken?.ToDetailedDto(),
             Tokens = network.Tokens.Select(t => t.ToDetailedDto()),
             Nodes = network.Nodes.Select(n => n.ToDto()),
-            Contracts = network.Contracts.Select(c => c.ToDto()),
-            ManagedAccounts = network.ManagedAccounts.Select(a => a.ToDto())
         };
 
         return dto;
