@@ -102,7 +102,8 @@ public class SolanaBlockchainActivities(
 
         var privateKeyResult = await privateKeyProvider.GetAsync(request.FromAddress);
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
+        
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node for network: {network.Id} is not configured");
@@ -216,7 +217,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -286,7 +287,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var nodes = network.Nodes.Where(x => x.Type == NodeType.Primary || x.Type == NodeType.Secondary).ToList();
+        var nodes = network.Nodes;
 
         if (!nodes.Any())
         {
@@ -342,7 +343,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Chain for network: {request.NetworkName} is not configured");
         }
 
-        var node = network!.Nodes.FirstOrDefault(x => x.Type == NodeType.DepositTracking);
+        var node = network!.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -400,7 +401,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -442,7 +443,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -518,7 +519,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -598,7 +599,7 @@ public class SolanaBlockchainActivities(
             throw new($"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -687,7 +688,7 @@ public class SolanaBlockchainActivities(
         Network network,
         string fromAddress)
     {
-        var primaryNode = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var primaryNode = network.Nodes.FirstOrDefault();
 
         if (primaryNode is null)
         {

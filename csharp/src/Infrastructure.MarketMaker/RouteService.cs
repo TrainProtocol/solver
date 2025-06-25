@@ -83,9 +83,9 @@ public class RouteService(
                     DisplayName = network.DisplayName,
                     HTLCNativeContractAddress = network.HTLCNativeContractAddress,
                     HTLCTokenContractAddress = network.HTLCTokenContractAddress,
-                    Tokens = x.Select(x => x.ToDetailedDto()),
-                    Nodes = network.Nodes.Where(x => x.Type == NodeType.Public).Select(x => x.ToDto()),
-                    NativeToken = network.NativeToken.ToDetailedDto(),
+                    Tokens = x.Select(x => x.ToDto()),
+                    Nodes = network.Nodes.Select(x => x.ToDto()),
+                    NativeToken = network.NativeToken?.ToDto(),
                 };
 
                 return networkWithTokens;
@@ -225,7 +225,11 @@ public class RouteService(
     {
         var serviceFees = await feeRepository.GetServiceFeesAsync();
 
-        var fee = new ServiceFeeDto();
+        var fee = new ServiceFeeDto()
+        {
+             ServiceFeeInSource = BigInteger.Zero.ToString(),
+             ServiceFeePercentage = default
+        };
 
         if (serviceFees.Any())
         {

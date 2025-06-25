@@ -66,14 +66,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .Property(b => b.Type)
             .HasEnumComment();
 
-        modelBuilder.Entity<Node>()
-            .Property(b => b.Type)
-            .HasEnumComment();
-
-        modelBuilder.Entity<Node>()
-            .HasIndex(x => new { x.Type, x.NetworkId })
-            .IsUnique();
-
         modelBuilder.Entity<ManagedAccount>()
             .HasIndex(x => new { x.Address, x.NetworkType });
 

@@ -52,7 +52,6 @@ public static class MapperExtensions
         return new NodeDto
         {
             Url = node.Url,
-            Type = node.Type
         };
     }
 
@@ -76,18 +75,6 @@ public static class MapperExtensions
         };
     }
 
-    public static DetailedTokenDto ToDetailedDto(this Token token)
-    {
-        var dto = new DetailedTokenDto
-        {
-            Symbol = token.Asset,
-            Contract = token.TokenContract,
-            Decimals = token.Decimals,
-        };
-
-        return dto;
-    }
-
     public static TokenNetworkDto ToWithNetworkDto(this Token token)
     {
         var dto = new TokenNetworkDto
@@ -109,8 +96,8 @@ public static class MapperExtensions
             Type = network.Type,
             HTLCNativeContractAddress = network.HTLCNativeContractAddress,
             HTLCTokenContractAddress = network.HTLCTokenContractAddress,
-            NativeToken = network.NativeToken?.ToDetailedDto(),
-            Tokens = network.Tokens.Select(t => t.ToDetailedDto()),
+            NativeToken = network.NativeToken?.ToDto(),
+            Tokens = network.Tokens.Select(t => t.ToDto()),
             Nodes = network.Nodes.Select(n => n.ToDto()),
         };
 

@@ -36,9 +36,9 @@ public class Network : EntityBase<int>
 
     public string HTLCTokenContractAddress { get; set; } = null!;
 
-    public int NativeTokenId { get; set; }
+    public int? NativeTokenId { get; set; }
 
-    public virtual Token NativeToken { get; set; } = null!;
+    public virtual Token? NativeToken { get; set; } = null!;
 
     public virtual List<Token> Tokens { get; set; } = [];
 

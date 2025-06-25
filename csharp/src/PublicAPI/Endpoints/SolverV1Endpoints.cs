@@ -187,15 +187,7 @@ public static class SolverV1Endpoints
         INetworkRepository networkRepository)
     {
         var networks = await networkRepository.GetAllAsync();
-
-        networks.ToList().ForEach(x =>
-        {
-            x.Nodes = x.Nodes.Where(x => x.Type == NodeType.Public).ToList();
-        });
-
         var mappedNetworks = networks.Select(x=>x.ToDetailedDto());
-
-       
 
         return Results.Ok(new ApiResponse<IEnumerable<DetailedNetworkDto>> { Data = mappedNetworks });
     }

@@ -8,7 +8,7 @@ public class SwapDto
 
     public string SourceToken { get; set; } = null!;
 
-    public string SourceAmount { get; set; }
+    public string SourceAmount { get; set; } = null!;
 
     public decimal SourceAmountInUsd { get; set; }
 

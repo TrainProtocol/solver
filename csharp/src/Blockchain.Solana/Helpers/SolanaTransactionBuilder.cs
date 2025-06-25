@@ -39,7 +39,7 @@ public static class SolanaTransactionBuilder
         }
 
         var isNative = currency.Id == network.NativeTokenId;
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -140,7 +140,7 @@ public static class SolanaTransactionBuilder
         }
 
         var isNative = currency.Id == network.NativeTokenId;
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -226,7 +226,7 @@ public static class SolanaTransactionBuilder
         }
 
         var isNative = currency.Id == network.NativeTokenId;
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -292,7 +292,7 @@ public static class SolanaTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -386,7 +386,7 @@ public static class SolanaTransactionBuilder
         }
 
         var isNative = currency.Id == network.NativeTokenId;
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {

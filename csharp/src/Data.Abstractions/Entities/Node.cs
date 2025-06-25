@@ -2,19 +2,9 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public enum NodeType
-{
-    Primary,
-    DepositTracking,
-    Public,
-    Secondary
-}
-
 public class Node : EntityBase<int>
 {
     public string Url { get; set; } = null!;
-
-    public NodeType Type { get; set; }
 
     public int NetworkId { get; set; }
 
