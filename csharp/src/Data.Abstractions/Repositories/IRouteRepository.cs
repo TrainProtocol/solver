@@ -1,4 +1,5 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -13,7 +14,7 @@ public interface IRouteRepository
         string sourceToken,
         string destinationNetworkName,
         string destinationToken,
-        string? amount);
+        BigInteger? amount);
 
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
 }

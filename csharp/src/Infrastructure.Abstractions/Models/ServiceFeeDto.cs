@@ -1,8 +1,10 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class ServiceFeeDto
 {
     public decimal ServiceFeePercentage { get; set; }
 
-    public string ServiceFeeInSource { get; set; } = null!;
+    public BigInteger ServiceFee { get; set; }
 }

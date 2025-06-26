@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
@@ -36,9 +37,9 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             SourceAddress = senderAddress,
             DestinationAddress = destinationAddress,
             SourceAmount = sourceAmount,
-            SourceTokenPrice = sourceToken.TokenPrice.PriceInUsd,
+            //SourceTokenPrice = sourceToken.TokenPrice.PriceInUsd,
             DestinationAmount = destinationAmount,
-            DestinationTokenPrice = destinationToken.TokenPrice.PriceInUsd,
+            //DestinationTokenPrice = destinationToken.TokenPrice.PriceInUsd,
             Hashlock = hashlock,
             FeeAmount = feeAmount,
         };

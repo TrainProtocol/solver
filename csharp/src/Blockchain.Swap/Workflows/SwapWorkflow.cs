@@ -82,7 +82,7 @@ public class SwapWorkflow : ISwapWorkflow
                 },
             });
 
-        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > BigInteger.Parse(limit.MaxAmount))
+        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > limit.MaxAmount)
         {
             throw new ApplicationFailureException($"Amount is greater than max amount");
         }
@@ -95,10 +95,10 @@ public class SwapWorkflow : ISwapWorkflow
                SourceNetwork = _htlcCommitMessage.SourceNetwork,
                DestinationToken = _htlcCommitMessage.DestinationAsset,
                DestinationNetwork = _htlcCommitMessage.DestinationNetwork,
-               Amount = _htlcCommitMessage.AmountInWei
+               Amount = BigInteger.Parse(_htlcCommitMessage.AmountInWei)
            }), DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        if (BigInteger.Parse(quote.ReceiveAmount) <= 0)
+        if (quote.ReceiveAmount <= 0)
         {
             throw new ApplicationFailureException("Output amount is less than the fee");
         }
@@ -115,7 +115,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         // Create swap 
         _swapId = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount, quote.TotalFee, hashlock.Hash),
+            (ISwapActivities x) => x.CreateSwapAsync(_htlcCommitMessage, quote.ReceiveAmount.ToString(), quote.TotalFee.ToString(), hashlock.Hash),
                 DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
@@ -131,7 +131,7 @@ public class SwapWorkflow : ISwapWorkflow
                 DestinationNetwork = _htlcCommitMessage.SourceNetwork,
                 DestinationAddress = _solverManagedAccountInSource,
                 SourceNetwork = _htlcCommitMessage.DestinationNetwork,
-                Amount = quote.ReceiveAmount,
+                Amount = quote.ReceiveAmount.ToString(),
                 Id = _htlcCommitMessage.Id,
                 Timelock = _lpTimeLock.ToUnixTimeSeconds(),
                 RewardTimelock = rewardTimelock.ToUnixTimeSeconds(),

@@ -124,10 +124,10 @@ public class RouteService(
 
         return new LimitDto
         {
-            MinAmount = minAmount.ToString(),
-            MinAmountInUsd = (TokenUnitConverter.FromBaseUnits(minAmount, route.SourceToken.Decimals) * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
-            MaxAmount = TokenUnitConverter.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals).ToString(),
-            MaxAmountInUsd = (route.MaxAmountInSource * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
+            MinAmount = minAmount,
+            //MinAmountInUsd = (TokenUnitConverter.FromBaseUnits(minAmount, route.SourceToken.Decimals) * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
+            MaxAmount = TokenUnitConverter.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
+            //MaxAmountInUsd = (route.MaxAmountInSource * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
         };
     }
 
@@ -153,13 +153,13 @@ public class RouteService(
         {
             var limit = await validatelimit!(route);
 
-            if (BigInteger.Parse(request.Amount) < BigInteger.Parse(limit.MinAmount))
+            if (request.Amount < limit.MinAmount)
             {
                 throw new ArgumentException($"Amount is less than min amount {limit.MinAmount}.",
                     nameof(request.Amount));
             }
 
-            if (BigInteger.Parse(request.Amount) > BigInteger.Parse(limit.MaxAmount))
+            if (request.Amount > limit.MaxAmount)
             {
                 throw new ArgumentException($"Amount is greater than max amount {limit.MaxAmount}.",
                     nameof(request.Amount));
@@ -167,7 +167,7 @@ public class RouteService(
         }
 
         var swapRate = await rateService.GetRateAsync(route);
-        var amount = BigInteger.Parse(request.Amount);
+        var amount = request.Amount;
         var totalFee = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - totalFee;
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
@@ -182,14 +182,16 @@ public class RouteService(
         var quote = new QuoteWithSolverDto
         {
             SourceAmount = request.Amount,
-            SourceAmountInUsd = BigInteger.Parse(request.Amount).ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals).Truncate(2),
-            ReceiveAmount = receiveAmount.ToString(),
-            ReceiveAmountInUsd = receiveAmount.ToUsd(route.DestinationToken.TokenPrice.PriceInUsd, route.DestinationToken.Decimals),
-            TotalFee = totalFee.ToString(),
-            TotalFeeInUsd = totalFee.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals),
-            SolverAddressInSource = solverAddressInSource,
-            NativeContractAddressInSource = route.SourceToken.Network.HTLCNativeContractAddress,
-            TokenContractAddressInSource = route.SourceToken.Network.HTLCTokenContractAddress,
+            //SourceAmountInUsd = request.Amount.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals).Truncate(2),
+            ReceiveAmount = receiveAmount,
+            //ReceiveAmountInUsd = receiveAmount.ToUsd(route.DestinationToken.TokenPrice.PriceInUsd, route.DestinationToken.Decimals),
+            TotalFee = totalFee,
+            //TotalFeeInUsd = totalFee.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals),
+            SolverAddress = solverAddressInSource,
+            ContractAddress = 
+                route.SourceToken.Id == route.SourceToken.Network.NativeTokenId 
+                ? route.SourceToken.Network.HTLCNativeContractAddress
+                : route.SourceToken.Network.HTLCTokenContractAddress,
         };
 
         return quote;
@@ -204,14 +206,14 @@ public class RouteService(
 
         if (expenseFee is not null)
         {
-            fixedFee += BigInteger.Parse(expenseFee.ExpenseFeeInSource);
+            fixedFee += expenseFee.ExpenseFee;
         }
 
         var serviceFee = await CalculateServiceFeeAsync(route);
 
         if (serviceFee is not null)
         {
-            fixedFee += BigInteger.Parse(serviceFee.ServiceFeeInSource);
+            fixedFee += serviceFee.ServiceFee;
             percentageFee = amount.PercentOf(serviceFee.ServiceFeePercentage);
         }
 
@@ -227,7 +229,7 @@ public class RouteService(
 
         var fee = new ServiceFeeDto()
         {
-             ServiceFeeInSource = BigInteger.Zero.ToString(),
+             ServiceFee = BigInteger.Zero,
              ServiceFeePercentage = default
         };
 
@@ -246,9 +248,9 @@ public class RouteService(
             if (serviceFee != null)
             {
                 fee.ServiceFeePercentage = serviceFee.FeePercentage;
-                fee.ServiceFeeInSource = TokenUnitConverter.ToBaseUnits(
+                fee.ServiceFee = TokenUnitConverter.ToBaseUnits(
                     serviceFee.FeeInUsd / route.SourceToken.TokenPrice.PriceInUsd,
-                    route.SourceToken.Decimals).ToString();
+                    route.SourceToken.Decimals);
 
             }
         }
@@ -337,7 +339,7 @@ public class RouteService(
                     transactionCompletionDetail.FeeToken.TokenPrice.PriceInUsd,
                     transactionCompletionDetail.FeeToken.Decimals);
 
-                fee.ExpenseFeeInSource += TokenUnitConverter.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
+                fee.ExpenseFee += TokenUnitConverter.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
             }
         }
 

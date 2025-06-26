@@ -1,6 +1,8 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class ExpenseFeeDto
 {
-    public string ExpenseFeeInSource { get; set; } = null!;
+    public BigInteger ExpenseFee { get; set; }
 }

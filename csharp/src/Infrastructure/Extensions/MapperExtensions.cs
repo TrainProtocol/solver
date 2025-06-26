@@ -15,15 +15,15 @@ public static class MapperExtensions
             CommitId = swap.Id,
             SourceNetwork = swap.SourceToken.Network.Name,
             SourceToken = swap.SourceToken.Asset,
-            SourceAmount = swap.SourceAmount,
-            SourceAmountInUsd = BigInteger.Parse(swap.SourceAmount).ToUsd(swap.SourceTokenPrice, swap.SourceToken.Decimals),
+            SourceAmount = BigInteger.Parse(swap.SourceAmount),
+            //SourceAmountInUsd = BigInteger.Parse(swap.SourceAmount).ToUsd(swap.SourceTokenPrice, swap.SourceToken.Decimals),
             SourceAddress = swap.SourceAddress,
             DestinationNetwork = swap.DestinationToken.Network.Name,
             DestinationToken = swap.DestinationToken.Asset,
-            DestinationAmount = swap.DestinationAmount,
-            DestinationAmountInUsd = BigInteger.Parse(swap.DestinationAmount).ToUsd(swap.DestinationTokenPrice, swap.DestinationToken.Decimals),
+            DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
+            //DestinationAmountInUsd = BigInteger.Parse(swap.DestinationAmount).ToUsd(swap.DestinationTokenPrice, swap.DestinationToken.Decimals),
             DestinationAddress = swap.DestinationAddress,
-            FeeAmount = swap.FeeAmount,
+            FeeAmount = BigInteger.Parse(swap.FeeAmount),
             Transactions = swap.Transactions.Select(t => t.ToDto())
         };
     }

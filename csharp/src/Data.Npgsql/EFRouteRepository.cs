@@ -18,7 +18,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         string sourceToken,
         string destinationNetworkName,
         string destinationToken,
-        string? amount)
+        BigInteger? amount)
     {
         var query = GetBaseQuery([RouteStatus.Active]);
 
@@ -39,7 +39,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         {
             var routeMaxAmount = route.MaxAmountInSource;
 
-            if (BigInteger.Parse(amount) > TokenUnitConverter.ToBaseUnits(routeMaxAmount, route.SourceToken.Decimals))
+            if (amount > TokenUnitConverter.ToBaseUnits(routeMaxAmount, route.SourceToken.Decimals))
             {
                 return null;
             }

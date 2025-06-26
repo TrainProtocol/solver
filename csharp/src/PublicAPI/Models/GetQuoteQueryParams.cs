@@ -1,12 +1,13 @@
 ﻿using FluentValidation;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Numerics;
 
 namespace Train.Solver.PublicAPI.Models;
 
 public class GetQuoteQueryParams : GetRouteLimitsQueryParams
 {
     [SwaggerParameter(Required = true)]
-    public string? Amount { get; set; }
+    public BigInteger? Amount { get; set; }
 }
 
 public class GetQuoteQueryParamsValidator : AbstractValidator<GetQuoteQueryParams>

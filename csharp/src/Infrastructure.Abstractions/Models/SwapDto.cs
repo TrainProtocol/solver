@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class SwapDto
 {
@@ -8,9 +10,9 @@ public class SwapDto
 
     public string SourceToken { get; set; } = null!;
 
-    public string SourceAmount { get; set; } = null!;
+    public BigInteger SourceAmount { get; set; }
 
-    public decimal SourceAmountInUsd { get; set; }
+    //public decimal SourceAmountInUsd { get; set; }
 
     public string SourceAddress { get; set; } = null!;
 
@@ -18,13 +20,13 @@ public class SwapDto
 
     public string DestinationToken { get; set; } = null!;
 
-    public string DestinationAmount { get; set; } = null!;
+    public BigInteger DestinationAmount { get; set; }
 
-    public decimal DestinationAmountInUsd { get; set; }
+    //public decimal DestinationAmountInUsd { get; set; }
 
     public string DestinationAddress { get; set; } = null!;
 
-    public string FeeAmount { get; set; } = null!;
+    public BigInteger FeeAmount { get; set; }
 
     public IEnumerable<TransactionDto> Transactions { get; set; } = [];
 }

@@ -1,4 +1,5 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 

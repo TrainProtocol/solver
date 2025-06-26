@@ -7,6 +7,8 @@ using Train.Solver.Infrastructure.MarketMaker;
 using Train.Solver.Util.Extensions;
 using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
+using Train.Solver.Util;
+using Train.Solver.Util.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -34,11 +36,13 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.AddSwaggerGen(c =>
@@ -48,6 +52,7 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
+    c.SchemaFilter<BigIntegerSchemaFilter>();
 });
 
 builder.Services.AddEndpointsApiExplorer();

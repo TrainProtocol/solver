@@ -263,7 +263,7 @@ public static class SolverV1Endpoints
             SourceToken = queryParams.SourceToken!,
             DestinationNetwork = queryParams.DestinationNetwork!,
             DestinationToken = queryParams.DestinationToken!,
-            Amount = queryParams.Amount!,
+            Amount = queryParams.Amount!.Value,
         };
 
         var quote = await routeService.GetValidatedQuoteAsync(quoteRequest);
