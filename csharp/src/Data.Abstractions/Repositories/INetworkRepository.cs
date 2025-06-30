@@ -12,8 +12,6 @@ public interface INetworkRepository
 
     Task<List<Token>> GetTokensAsync();
 
-    Task<List<Token>> GetTokensAsync(int[] ids);
-
     Task<string> GetSolverAccountAsync(string networkName);
 
     Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices);

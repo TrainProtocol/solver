@@ -47,7 +47,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("latest", new() { Title = "Train Solver Latest API", Version = "latest" });
     c.SwaggerDoc("v1", new() { Title = "Train Solver API v1", Version = "v1" });
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
@@ -83,12 +82,6 @@ app.MapGroup("/api")
     .WithTags("System")
     .Produces(StatusCodes.Status200OK);
 
-app.MapGroup("/api")
-   .MapV1Endpoints()
-   .RequireRateLimiting("Fixed")
-   .WithGroupName("latest")
-   .WithTags("Endpoints");
-
 app.MapGroup("/api/v1")
    .MapV1Endpoints()
    .RequireRateLimiting("Fixed")
@@ -98,7 +91,6 @@ app.MapGroup("/api/v1")
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/latest/swagger.json", "Train Solver Latest API");
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver API v1");
     c.DisplayRequestDuration();
 });

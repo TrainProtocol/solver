@@ -43,7 +43,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             throw new Exception($"Network '{networkName}' not found.");
         }
 
-        var managedAccount = await dbContext.ManagedAccounts
+        var managedAccount = await dbContext.Wallets
             .Where(x => x.NetworkType == network.Type)
             .FirstOrDefaultAsync();
 
@@ -60,16 +60,6 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         return await dbContext.Tokens
             .Include(x => x.Network)
             .Include(x => x.TokenPrice)
-            .ToListAsync();
-    }
-
-    public Task<List<Token>> GetTokensAsync(int[] ids)
-    {
-        return dbContext.Tokens
-            .Include(x => x.Network.Nodes)
-            //.Include(x => x.Network.NativeToken)
-            .Include(x => x.TokenPrice)
-            .Where(x => ids.Contains(x.Id))
             .ToListAsync();
     }
 

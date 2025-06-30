@@ -38,7 +38,7 @@ public static class MapperExtensions
         };
     }
 
-    public static ManagedAccountDto ToDto(this ManagedAccount account)
+    public static ManagedAccountDto ToDto(this Wallet account)
     {
         return new ManagedAccountDto
         {

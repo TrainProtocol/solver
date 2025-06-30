@@ -56,7 +56,7 @@ var arbitrumNetwork = new Network
 
 var accounts = new[]
 {
-    new ManagedAccount
+    new Wallet
     {
         Id = 1,
         Address = "0x2330bc7d79f670f51546dcf5fd0eca6889a7ceb9",
@@ -73,7 +73,7 @@ var serviceFee = new ServiceFee
 
 context.ServiceFees.Add(serviceFee);
 context.Networks.AddRange(ethereumNetwork, arbitrumNetwork);
-context.ManagedAccounts.AddRange(accounts);
+context.Wallets.AddRange(accounts);
 await context.SaveChangesAsync();
 
 var tokenGroup = new TokenGroup

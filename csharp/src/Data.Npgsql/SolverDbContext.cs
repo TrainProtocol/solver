@@ -19,7 +19,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<TokenGroup> TokenGroups { get; set; }
 
-    public DbSet<ManagedAccount> ManagedAccounts { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
 
@@ -68,7 +68,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .Property(b => b.Type)
             .HasEnumComment();
 
-        modelBuilder.Entity<ManagedAccount>()
+        modelBuilder.Entity<Wallet>()
             .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<Route>()
