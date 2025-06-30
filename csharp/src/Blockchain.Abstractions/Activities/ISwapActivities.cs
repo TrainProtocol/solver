@@ -25,7 +25,7 @@ public interface ISwapActivities
     Task<QuoteDto> GetQuoteAsync(QuoteRequest request);
 
     [Activity]
-    Task<string> GetSolverAddressAsync(string networkName);
+    Task<string> GetSolverAddressAsync(NetworkType type);
 
     [Activity]
     Task UpdateExpensesAsync(string networkName, string feeAsset, string currentFee, string callDataAsset, TransactionType callDataType);

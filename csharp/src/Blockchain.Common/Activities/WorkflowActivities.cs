@@ -16,6 +16,7 @@ namespace Train.Solver.Blockchain.Common.Activities;
 public class WorkflowActivities(
     ISwapRepository swapRepository,
     INetworkRepository networkRepository,
+    IWalletRepository walletRepository,
     ITemporalClient temporalClient) : IWorkflowActivities
 {
     [Activity]
@@ -72,9 +73,9 @@ public class WorkflowActivities(
             throw new ArgumentException("Swap not found", nameof(swapId));
         }
 
-        var solverAddress = await networkRepository.GetSolverAccountAsync(swap.DestinationToken.Network.Name);
+        var wallet = await walletRepository.GetDefaultAsync(swap.DestinationToken.Network.Type);
 
-        if (string.IsNullOrEmpty(solverAddress))
+        if (wallet == null)
         {
             throw new InvalidOperationException($"Solver account not found for network: {swap.DestinationToken.Network.Name}");
         }
@@ -97,7 +98,7 @@ public class WorkflowActivities(
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
                     NetworkType = swap.DestinationToken.Network.Type,
-                    FromAddress = solverAddress,
+                    FromAddress = wallet.Address,
                     SwapId = swap.Id,
             }],
             new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())

@@ -23,36 +23,13 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .FirstOrDefaultAsync(x => x.Name == networkName);
     }
 
-    public async Task<List<Network>> GetAllAsync()
+    public async Task<IEnumerable<Network>> GetAllAsync()
     {
         return await dbContext.Networks
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
             .Include(x => x.Nodes)
             .ToListAsync();
-    }
-
-    public async Task<string> GetSolverAccountAsync(string networkName)
-    {
-        var network = await dbContext.Networks
-            .Where(x => x.Name == networkName)
-            .FirstOrDefaultAsync();
-
-        if (network == null)
-        {
-            throw new Exception($"Network '{networkName}' not found.");
-        }
-
-        var managedAccount = await dbContext.Wallets
-            .Where(x => x.NetworkType == network.Type)
-            .FirstOrDefaultAsync();
-
-        if (managedAccount == null)
-        {
-            throw new Exception($"Solver account for network '{networkName}' not found.");
-        }
-
-        return managedAccount.Address;
     }
 
     public async Task<List<Token>> GetTokensAsync()
@@ -80,6 +57,32 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         }
 
         await dbContext.SaveChangesAsync();
-        return;
+    }
+
+    public async Task<Network?> CreateAsync(string networkName, string displayName, NetworkType type, TransactionFeeType feeType, string chainId, int feePercentageIncrease, string htlcNativeContractAddress, string htlcTokenContractAddress)
+    {
+        var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
+
+        if (networkExists)
+        {
+            return null;
+        }
+
+        var network = new Network
+        {
+            Name = networkName,
+            ChainId = chainId,
+            DisplayName = displayName,
+            FeePercentageIncrease = feePercentageIncrease,
+            FeeType = feeType,
+            HTLCNativeContractAddress = htlcNativeContractAddress,
+            HTLCTokenContractAddress = htlcTokenContractAddress,
+            Type = type,
+        };
+
+        dbContext.Networks.Add(network);
+        await dbContext.SaveChangesAsync();
+
+        return network;
     }
 }

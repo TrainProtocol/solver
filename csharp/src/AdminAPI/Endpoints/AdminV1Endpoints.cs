@@ -23,6 +23,7 @@ public static class AdminV1Endpoints
 
     private async static Task<IResult> RebalanceAsync(
         INetworkRepository networkRepository,
+        IWalletRepository walletRepository,
         ITemporalClient temporalClient,
         [FromBody] RebalanceRequest rebalanceRequest)
     {
@@ -40,9 +41,9 @@ public static class AdminV1Endpoints
             return Results.NotFound($"Token {rebalanceRequest.Token} not found in network {rebalanceRequest.NetworkName}");
         }
 
-        var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
+        var wallet = await walletRepository.GetDefaultAsync(network.Type);
 
-        if (solverAccount is null)
+        if (wallet is null)
         {
             throw new ArgumentNullException(nameof(network), $"Solver account for {network.Name} not found");
         }

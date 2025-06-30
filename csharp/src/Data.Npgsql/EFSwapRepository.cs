@@ -120,18 +120,19 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
         string feeAsset,
         string feeAmount)
     {
-        var token = await networkRepository.GetTokenAsync(networkName, asset);
+        var network = await networkRepository.GetAsync(networkName);
        
+        if (network == null)
+        {
+            throw new($"Network {networkName} not found.");
+        }
+
+        var token = network.Tokens.FirstOrDefault(x=>x.Asset == asset);
+       
+
         if (token == null)
         {
             throw new($"Token with asset {asset} not found.");
-        }
-
-        var feeToken = await networkRepository.GetTokenAsync(networkName, feeAsset);
-
-        if (feeToken == null)
-        {
-            throw new($"Token with asset {feeAsset} not found.");
         }
 
         var transaction = new Transaction
@@ -141,10 +142,10 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             Confirmations = confirmations,
             Timestamp = timestamp,
             FeeAmount = feeAmount,
-            FeeAsset = feeToken.Asset,
+            FeeAsset = network.NativeToken!.Asset,
             Amount = amount,
             Asset = token.Asset,
-            FeeUsdPrice = feeToken.TokenPrice.PriceInUsd,
+            FeeUsdPrice = network.NativeToken.TokenPrice.PriceInUsd,
             NetworkName = networkName,
             SwapId = swapId,
             Type = transactionType,

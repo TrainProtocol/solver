@@ -42,7 +42,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
 
             var solverAccount = await ExecuteActivityAsync(
                 (ISwapActivities x) => x.GetSolverAddressAsync(
-                    networkName),
+                    networkType),
                            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
             BalanceResponse balance;

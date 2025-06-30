@@ -60,7 +60,8 @@ var accounts = new[]
     {
         Id = 1,
         Address = "0x2330bc7d79f670f51546dcf5fd0eca6889a7ceb9",
-        NetworkType = NetworkType.EVM
+        NetworkType = NetworkType.EVM,
+        Name = "Default"
     },
 };
 

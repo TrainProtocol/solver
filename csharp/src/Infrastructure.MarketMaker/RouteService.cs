@@ -14,6 +14,7 @@ namespace Train.Solver.Infrastructure.MarketMaker;
 
 public class RouteService(
     IRouteRepository routeRepository,
+    IWalletRepository walletRepository,
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRateService rateService) : IRouteService
@@ -176,9 +177,9 @@ public class RouteService(
         var actualAmountToSwap = amount - totalFee;
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
 
-        var solverAddressInSource = await networkRepository.GetSolverAccountAsync(route.SourceToken.Network.Name);
+        var wallet = await walletRepository.GetDefaultAsync(route.SourceToken.Network.Type);
 
-        if (string.IsNullOrEmpty(solverAddressInSource))
+        if (wallet == null)
         {
             throw new Exception($"Solver account not found for network {route.SourceToken.Network.Name}");
         }
@@ -191,7 +192,7 @@ public class RouteService(
             //ReceiveAmountInUsd = receiveAmount.ToUsd(route.DestinationToken.TokenPrice.PriceInUsd, route.DestinationToken.Decimals),
             TotalFee = totalFee,
             //TotalFeeInUsd = totalFee.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals),
-            SolverAddress = solverAddressInSource,
+            SolverAddress = wallet.Address,
             ContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
                 ? route.SourceToken.Network.HTLCNativeContractAddress

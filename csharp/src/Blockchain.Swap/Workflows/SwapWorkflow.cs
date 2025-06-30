@@ -51,14 +51,22 @@ public class SwapWorkflow : ISwapWorkflow
             throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
         }
 
+        var sourceNetwork = await ExecuteActivityAsync(
+           (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.SourceNetwork),
+           DefaultActivityOptions(Constants.CoreTaskQueue));
+
+        var destinationNetwork = await ExecuteActivityAsync(
+            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.DestinationNetwork),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
+
         _solverManagedAccountInDestination = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetSolverAddressAsync(
-                _htlcCommitMessage.DestinationNetwork),
+                destinationNetwork.Type),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _solverManagedAccountInSource = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetSolverAddressAsync(
-                _htlcCommitMessage.SourceNetwork),
+                sourceNetwork.Type),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
         // Validate limit
@@ -120,15 +128,7 @@ public class SwapWorkflow : ISwapWorkflow
                 DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
-        var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));
-
-        var sourceNetwork = await ExecuteActivityAsync(
-            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.SourceNetwork),
-            DefaultActivityOptions(Constants.CoreTaskQueue));
-
-        var destinationNetwork = await ExecuteActivityAsync(
-            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.DestinationNetwork),
-            DefaultActivityOptions(Constants.CoreTaskQueue));
+        var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));       
 
         // Lock in destination network
         await ExecuteTransactionAsync(new TransactionRequest()

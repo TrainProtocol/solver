@@ -33,6 +33,7 @@ namespace Train.Solver.Blockchain.EVM.Activities;
 
 public class EVMBlockchainActivities(
     INetworkRepository networkRepository,
+    IWalletRepository walletRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
     IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
@@ -195,12 +196,11 @@ public class EVMBlockchainActivities(
             throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
         }
 
+        var wallet = await walletRepository.GetDefaultAsync(request.Network.Type);
 
-        var solverAccount = await networkRepository.GetSolverAccountAsync(request.Network.Name);
-
-        if (string.IsNullOrEmpty(solverAccount))
+        if (wallet == null)
         {
-            throw new ArgumentException($"Solver account is not configured on {request.Network.Name} network", nameof(solverAccount));
+            throw new ArgumentException($"Solver account is not configured on {request.Network.Name} network", nameof(wallet));
         }
 
         var currencies = await networkRepository.GetTokensAsync();
@@ -246,7 +246,7 @@ public class EVMBlockchainActivities(
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
                 if (FormatAddress(commitedEvent.Receiver)
-                    != FormatAddress(solverAccount))
+                    != FormatAddress(wallet.Address))
                 {
                     continue;
                 }
@@ -285,7 +285,7 @@ public class EVMBlockchainActivities(
                     DestinationNetwork = destinationCurrency.Network.Name,
                     DestinationAsset = destinationCurrency.Asset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(solverAccount),
+                    ReceiverAddress = FormatAddress(wallet.Address),
                     DestinationNetworkType = destinationCurrency.Network.Type,
                     SourceNetworkType = sourceCurrency.Network.Type
                 };

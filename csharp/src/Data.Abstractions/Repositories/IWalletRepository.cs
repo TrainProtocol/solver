@@ -7,24 +7,15 @@ using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
-public class CreateWalletRequest
-{
-    public string Name { get; set; } = null!;
-
-    public string Address { get; set; } = null!;
-
-    public NetworkType Type { get; set; }
-}
-
 public interface IWalletRepository
 {
-    public Task<Wallet> GetDefaultAsync(NetworkType type);
+    public Task<Wallet?> GetDefaultAsync(NetworkType type);
 
     public Task<IEnumerable<Wallet>> GetAsync(NetworkType type);
 
     public Task<IEnumerable<Wallet>> GetAllAsync();
 
-    public Task CreateAsync(CreateWalletRequest request);
+    public Task<Wallet?> CreateAsync(NetworkType type, string address, string name);
 
-
+    public Task<Wallet?> UpdateAsync(NetworkType type, string address, string name);
 }

@@ -6,7 +6,9 @@ using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using Temporalio.Client;
 using Temporalio.Exceptions;
+using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Services;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -36,6 +38,9 @@ public static class TrainSolverBuilderExtensions
         }
 
         services.AddHttpClient();
+
+        services.AddTransient<IWalletService, WalletService>();
+        services.AddTransient<INetworkService, NetworkService>();
 
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(options.RedisConnectionString));
         services.AddTransient(sp => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase(options.RedisDatabaseIndex));

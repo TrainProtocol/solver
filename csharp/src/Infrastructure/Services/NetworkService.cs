@@ -30,8 +30,6 @@ public class NetworkService(INetworkRepository networkRepository) : INetworkServ
             ChainId = network.ChainId,
             FeePercentageIncrease = network.FeePercentageIncrease,
         };
-                
-
     }
 
     public async Task<IEnumerable<DetailedNetworkDto>> GetAllAsync()

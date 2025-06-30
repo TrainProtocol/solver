@@ -15,6 +15,7 @@ namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,
+    IWalletRepository walletRepository,
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRouteService routeService) : ISwapActivities
@@ -43,9 +44,17 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<string> GetSolverAddressAsync(string networkName)
+    public virtual async Task<string> GetSolverAddressAsync(NetworkType type)
     {
-        return await networkRepository.GetSolverAccountAsync(networkName);
+
+        var wallet = await walletRepository.GetDefaultAsync(type);
+
+        if (wallet == null)
+        {
+            throw new ArgumentNullException(nameof(wallet));
+        }
+
+        return wallet.Address;
     }
 
     [Activity]
