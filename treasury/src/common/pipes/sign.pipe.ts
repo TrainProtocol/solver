@@ -10,9 +10,8 @@ export class SignRequestValidator implements PipeTransform {
     const baseValidation = plainToInstance(BaseSignRequest, value);
     
     const errors = await validate(baseValidation);
-    console.log('Validation errors:', errors);
 
-     if (errors.length > 0) {
+    if (errors.length > 0) {
       const errorMessages = errors.flatMap(error => 
             Object.values(error.constraints ?? {}));
 
