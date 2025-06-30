@@ -34,7 +34,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             (INetworkActivities x) => x.GetNetworkAsync(networkName),
             new ActivityOptions
             {
-                TaskQueue = networkType.ToString(),
+                TaskQueue = Constants.CoreTaskQueue,
                 StartToCloseTimeout = TimeSpan.FromSeconds(20),
                 ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
                 RetryPolicy = new()

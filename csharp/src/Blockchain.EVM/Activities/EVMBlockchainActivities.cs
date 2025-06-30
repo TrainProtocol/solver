@@ -25,9 +25,9 @@ using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Blockchain.EVM.Helpers;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Blockchain.Common.Helpers;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Blockchain.Common.Helpers;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 
