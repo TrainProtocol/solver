@@ -18,6 +18,23 @@ public interface INetworkRepository
         string htlcNativeContractAddress,
         string htlcTokenContractAddress);
 
+    Task<Node?> CreateNodeAsync(
+        string networkName,
+        string url);
+
+    Task<Token?> CreateTokenAsync(
+       string networkName,
+       string symbol,
+       string? contract,
+       int decimals);
+
+    Task<Token?> CreateNativeTokenAsync(
+        string networkName,
+        string symbol,
+        int decimals);
+
+    Task DeleteTokenAsync(string networkName, string symbol);
+
     Task<Token?> GetTokenAsync(string networkName, string asset);
 
 

@@ -7,8 +7,6 @@ public interface IRouteRepository
 {
     Task<List<Route>> GetAllAsync(RouteStatus[] statuses);
 
-    Task<List<int>> GetReachablePointsAsync(RouteStatus[] statuses, bool fromSrcToDest, int? tokenId);
-
     Task<Route?> GetAsync(
         string sourceNetworkName,
         string sourceToken,

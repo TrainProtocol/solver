@@ -37,9 +37,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             SourceAddress = senderAddress,
             DestinationAddress = destinationAddress,
             SourceAmount = sourceAmount,
-            //SourceTokenPrice = sourceToken.TokenPrice.PriceInUsd,
             DestinationAmount = destinationAmount,
-            //DestinationTokenPrice = destinationToken.TokenPrice.PriceInUsd,
             Hashlock = hashlock,
             FeeAmount = feeAmount,
         };
@@ -90,22 +88,6 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             )
             .Select(s => s.Id)
             .ToListAsync();
-    }
-
-    public async Task<Transaction> InitiateSwapTransactionAsync(string networkName, string swapId, TransactionType transactionType)
-    {
-        var transaction = new Transaction
-        {
-            SwapId = swapId,
-            NetworkName = networkName,
-            Type = transactionType,
-            Status = TransactionStatus.Initiated,
-        };
-
-        dbContext.Transactions.Add(transaction);
-        await dbContext.SaveChangesAsync();
-
-        return transaction;
     }
 
     public async Task<Guid> CreateSwapTransactionAsync(

@@ -48,20 +48,6 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         return route;
     }
 
-    public async Task<List<int>> GetReachablePointsAsync(RouteStatus[] statuses, bool fromSrcToDest, int? tokenId)
-    {
-        var reachablePoints = await dbContext.Routes
-            .Where(x =>
-                x.MaxAmountInSource > 0
-                && statuses.Contains(x.Status)
-                && (tokenId == null || (fromSrcToDest ? x.SourceTokenId == tokenId : x.DestinationTokenId == tokenId)))
-            .Select(x => fromSrcToDest ? x.DestinationTokenId : x.SourceTokenId)
-            .Distinct()
-            .ToListAsync();
-
-        return reachablePoints;
-    }
-
     public async Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status)
     {
         var routes = await dbContext.Routes

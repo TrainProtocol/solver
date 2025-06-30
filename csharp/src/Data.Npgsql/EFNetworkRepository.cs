@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Flurl;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Contracts;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
@@ -84,5 +86,86 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         await dbContext.SaveChangesAsync();
 
         return network;
+    }
+
+    public async Task<Node?> CreateNodeAsync(string networkName, string url)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        var node = new Node { Url = url };
+        network.Nodes.Add(node);
+        await dbContext.SaveChangesAsync();
+
+        return node;
+    }
+
+    public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        if (network.Tokens.Any(x => x.Asset == symbol && x.TokenContract == contract))
+        {
+            return null;
+        }
+
+        var token = new Token
+        {
+            Asset = symbol,
+            Decimals = decimals,
+            TokenContract = contract,
+        };
+
+        network.Tokens.Add(token);
+        await dbContext.SaveChangesAsync();
+
+        return token;
+    }
+
+    public async Task<Token?> CreateNativeTokenAsync(string networkName, string symbol, int decimals)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        if (network.NativeTokenId != null)
+        {
+            return null;
+        }
+
+        var token = new Token
+        {
+            Asset = symbol,
+            Decimals = decimals,
+            NetworkId = network.Id,
+        };
+
+        network.NativeToken = token;
+        await dbContext.SaveChangesAsync();
+
+        return token;
+    }
+
+    public async Task DeleteTokenAsync(string networkName, string symbol)
+    {
+        var tokenToDelete = await GetTokenAsync(networkName, symbol);
+
+        if (tokenToDelete != null)
+        {
+            dbContext.Tokens.Remove(tokenToDelete);
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

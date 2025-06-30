@@ -28,7 +28,7 @@ public class Network : EntityBase<int>
 
     public TransactionFeeType FeeType { get; set; }
 
-    public string? ChainId { get; set; }
+    public string ChainId { get; set; } = null!;
 
     public int FeePercentageIncrease { get; set; }
 

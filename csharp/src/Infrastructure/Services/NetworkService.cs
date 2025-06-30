@@ -19,23 +19,28 @@ public class NetworkService(INetworkRepository networkRepository) : INetworkServ
             throw new InvalidNetworkException($"Network {network.Name} already exists");
         }
 
-        var newNetwork = new Network
+        var createdNetwork = await networkRepository.CreateAsync(
+            network.Name,
+            network.DisplayName,
+            network.Type,
+            network.FeeType,
+            network.ChainId,
+            network.FeePercentageIncrease,
+            network.HTLCNativeContractAddress,
+            network.HTLCTokenContractAddress);
+
+        if (createdNetwork == null)
         {
-            Name = network.Name,
-            DisplayName = network.DisplayName,
-            HTLCNativeContractAddress = network.HTLCNativeContractAddress,
-            HTLCTokenContractAddress = network.HTLCTokenContractAddress,
-            Type = network.Type,
-            FeeType = network.FeeType,
-            ChainId = network.ChainId,
-            FeePercentageIncrease = network.FeePercentageIncrease,
-        };
+            throw new("Failed to create network");
+        }
+
+
     }
 
     public async Task<IEnumerable<DetailedNetworkDto>> GetAllAsync()
     {
         var networks = await networkRepository.GetAllAsync();
-        return networks.Select(x=> x.ToDetailedDto());
+        return networks.Select(x => x.ToDetailedDto());
     }
 
     public async Task<DetailedNetworkDto> GetAsync(string name)
@@ -54,4 +59,4 @@ public class NetworkService(INetworkRepository networkRepository) : INetworkServ
     {
         throw new NotImplementedException();
     }
-}   
+}
