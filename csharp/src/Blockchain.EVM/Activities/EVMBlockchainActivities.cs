@@ -757,7 +757,7 @@ public class EVMBlockchainActivities(
         }
     }
 
-    private async Task<TransactionResponse> GetTransactionAsync(Network network, string transactionId)
+    private static async Task<TransactionResponse> GetTransactionAsync(Network network, string transactionId)
     {
         var nodes = network.Nodes;
 

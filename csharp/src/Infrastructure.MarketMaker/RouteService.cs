@@ -8,6 +8,7 @@ using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 using Nethereum.Util;
 using Train.Solver.Util;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
@@ -131,7 +132,7 @@ public class RouteService(
         };
     }
 
-    private async Task<QuoteWithSolverDto?> GetQuoteAsync(
+    private async Task<QuoteWithSolverDto> GetQuoteAsync(
         QuoteRequest request,
         Func<Route, Task<LimitDto>>? validatelimit)
     {
@@ -146,7 +147,7 @@ public class RouteService(
 
         if (route is null)
         {
-            return null;
+            throw new RouteNotFoundException($"Route not found.");
         }
 
         if (shouldValidateLimit)
@@ -155,14 +156,12 @@ public class RouteService(
 
             if (request.Amount < limit.MinAmount)
             {
-                throw new ArgumentException($"Amount is less than min amount {limit.MinAmount}.",
-                    nameof(request.Amount));
+                throw new InvalidAmountException($"Amount is less than min amount {limit.MinAmount}.");
             }
 
             if (request.Amount > limit.MaxAmount)
             {
-                throw new ArgumentException($"Amount is greater than max amount {limit.MaxAmount}.",
-                    nameof(request.Amount));
+                throw new InvalidAmountException($"Amount is greater than max amount {limit.MaxAmount}.");
             }
         }
 
@@ -181,7 +180,7 @@ public class RouteService(
 
         var quote = new QuoteWithSolverDto
         {
-            SourceAmount = request.Amount,
+            //SourceAmount = request.Amount,
             //SourceAmountInUsd = request.Amount.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals).Truncate(2),
             ReceiveAmount = receiveAmount,
             //ReceiveAmountInUsd = receiveAmount.ToUsd(route.DestinationToken.TokenPrice.PriceInUsd, route.DestinationToken.Decimals),

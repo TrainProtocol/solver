@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Blockchain.Abstractions.Models;
+﻿using Train.Solver.Infrastructure.Abstractions.Models;
+
+namespace Train.Solver.Blockchain.Abstractions.Models;
 
 public class BaseRequest
 {

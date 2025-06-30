@@ -5,6 +5,8 @@ namespace Train.Solver.Blockchain.Abstractions.Activities;
 
 public interface IBlockchainActivities
 {
+    //string NullAddress { get; }
+
     [Activity]
     Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
 

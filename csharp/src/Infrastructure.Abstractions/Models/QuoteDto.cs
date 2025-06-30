@@ -12,7 +12,7 @@ public class QuoteDto
 
     //public decimal ReceiveAmountInUsd { get; set; }
 
-    public required BigInteger SourceAmount { get; set; }
+    //public required BigInteger SourceAmount { get; set; }
 
     //public required decimal SourceAmountInUsd { get; set; }
 }
