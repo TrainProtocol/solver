@@ -16,34 +16,32 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
         return receipt.GasUsed * transaction.GasPrice.Value;
     }
 
-    public override async Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request)
+    public override async Task<Fee> EstimateAsync(EstimateFeeRequest request)
     {
-        var nodes = network.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new Exception($"Node is not configured on {request.NetworkName} network");
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
-        var feeCurrency = network.Tokens.Single(x => x.TokenContract == null);
-
-        var currency = network.Tokens.Single(x => x.Asset == request.Asset);
+        var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
         var gasLimitResult = await
             GetGasLimitAsync(nodes,
                 request.FromAddress,
                 request.ToAddress,
-                currency,
+                currency.Contract,
                 request.Amount,
                 request.CallData);
 
         var currentGasPriceResult = await GetGasPriceAsync(nodes);
 
-        var gasPrice = currentGasPriceResult.Value.PercentageIncrease(network.FeePercentageIncrease);
+        var gasPrice = currentGasPriceResult.Value.PercentageIncrease(request.Network.FeePercentageIncrease);
 
         return new Fee(
-            feeCurrency.Asset,
-            feeCurrency.Decimals,
+            request.Network.NativeToken!.Symbol,
+            request.Network.NativeToken!.Decimals,
             new LegacyData(gasPrice.ToString(), gasLimitResult.ToString()));
     }
 
@@ -54,13 +52,13 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
             throw new ArgumentNullException(nameof(fee.LegacyFeeData), "Legacy fee data is missing");
         }
 
-        fee.LegacyFeeData.GasPriceInWei = 
+        fee.LegacyFeeData.GasPriceInWei =
             BigInteger.Parse(fee.LegacyFeeData.GasPriceInWei)
                 .PercentageIncrease(percentage)
                 .ToString();
     }
 }
 
-    //protected override BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction, EVMTransactionReceipt receipt)
-    //    => receipt.GasUsed.Value * receipt.EffectiveGasPrice;
+//protected override BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction, EVMTransactionReceipt receipt)
+//    => receipt.GasUsed.Value * receipt.EffectiveGasPrice;
 

@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using Train.Solver.Data.Abstractions.Entities;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class DetailedNetworkDto : NetworkDto
 {
@@ -7,6 +9,10 @@ public class DetailedNetworkDto : NetworkDto
     public string HTLCNativeContractAddress { get; set; } = null!;
 
     public string HTLCTokenContractAddress { get; set; } = null!;
+
+    public TransactionFeeType FeeType { get; set; }
+
+    public int FeePercentageIncrease { get; set; }
 
     public TokenDto? NativeToken { get; set; } = null!;
 

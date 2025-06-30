@@ -2,8 +2,10 @@
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
+using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Blockchain.Common.Worklows;
@@ -28,6 +30,20 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
         var iteration = 0;
 
+        var network = await ExecuteActivityAsync(
+            (INetworkActivities x) => x.GetNetworkAsync(networkName),
+            new ActivityOptions
+            {
+                TaskQueue = networkType.ToString(),
+                StartToCloseTimeout = TimeSpan.FromSeconds(20),
+                ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
+                RetryPolicy = new()
+                {
+                    InitialInterval = TimeSpan.FromSeconds(5),
+                    BackoffCoefficient = 1f,
+                }
+            });
+
         while (!Workflow.CancellationToken.IsCancellationRequested)
         {
             // Reset workflow history if it has been running for too long
@@ -45,7 +61,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             {
                 var blockNumberWithHash = await ExecuteActivityAsync(
                     (IBlockchainActivities x) => x.GetLastConfirmedBlockNumberAsync(
-                        new BaseRequest { NetworkName = networkName}),
+                        new BaseRequest { Network = network }),
                     new()
                     {
                         TaskQueue = networkType.ToString(),
@@ -85,7 +101,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 {
                     foreach (var blockChunk in blockRanges.Chunk(_maxConcurrentTaskCount))
                     {
-                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(networkName, networkType, x)));
+                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(network, networkType, x)));
 
                         _lastProcessedBlockNumber = blockChunk.Last().To;
                     }
@@ -107,14 +123,14 @@ public class EventListenerWorkflow : IEventListenerWorkflow
     }
 
     private async Task ProcessBlockRangeAsync(
-        string networkName,
+        DetailedNetworkDto network,
         NetworkType networkType,
         BlockRangeModel blockRange)
     {
         var result = await ExecuteActivityAsync(
             (IBlockchainActivities x) => x.GetEventsAsync(new EventRequest()
             {
-                NetworkName = networkName,
+                Network = network,
                 FromBlock = blockRange.From,
                 ToBlock = blockRange.To
             }),

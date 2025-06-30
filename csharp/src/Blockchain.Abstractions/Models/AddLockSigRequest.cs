@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Blockchain.Abstractions.Models;
+﻿using Train.Solver.Infrastructure.Abstractions.Models;
+
+namespace Train.Solver.Blockchain.Abstractions.Models;
 
 public class AddLockSignatureRequest : AddLockSignatureModel
 {
@@ -10,7 +12,7 @@ public class AddLockSignatureRequest : AddLockSignatureModel
 
     public required string Asset { get; set; } = null!;
 
-    public required string NetworkName { get; set; } = null!;
+    public required DetailedNetworkDto Network { get; set; } = null!;
 }
 
 public class AddLockSignatureModel

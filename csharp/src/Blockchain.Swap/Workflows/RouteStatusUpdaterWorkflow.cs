@@ -36,6 +36,10 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             var networkType = group.Key.Type;
             var asset = group.Key.Symbol;
 
+            var network = await ExecuteActivityAsync(
+                (INetworkActivities x) => x.GetNetworkAsync(networkName),
+                TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+
             var solverAccount = await ExecuteActivityAsync(
                 (ISwapActivities x) => x.GetSolverAddressAsync(
                     networkName),
@@ -47,7 +51,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             {
                 balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
                 {
-                    NetworkName = networkName,
+                    Network = network,
                     Address = solverAccount!,
                     Asset = asset
                 }), TemporalHelper.DefaultActivityOptions(networkType));

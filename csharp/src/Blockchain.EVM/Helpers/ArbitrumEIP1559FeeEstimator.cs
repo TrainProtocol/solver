@@ -13,9 +13,9 @@ public class ArbitrumEIP1559FeeEstimator : EthereumEIP1559FeeEstimator
         return receipt.GasUsed.Value * receipt.EffectiveGasPrice;
     }
 
-    public override async Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request)
+    public override async Task<Fee> EstimateAsync(EstimateFeeRequest request)
     {
-        var fee = await base.EstimateAsync(network, request);
+        var fee = await base.EstimateAsync(request);
 
         if (fee.Eip1559FeeData is null)
         {

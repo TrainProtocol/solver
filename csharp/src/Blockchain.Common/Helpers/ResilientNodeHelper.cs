@@ -4,7 +4,7 @@ namespace Train.Solver.Blockchain.Common.Helpers;
 
 public static class ResilientNodeHelper
 {
-    public static async Task<T> GetDataFromNodesAsync<T>(IEnumerable<Node> nodes, Func<string, Task<T>> dataRetrievalTask)
+    public static async Task<T> GetDataFromNodesAsync<T>(IEnumerable<string> nodes, Func<string, Task<T>> dataRetrievalTask)
     {
         if (nodes == null)
         {
@@ -22,7 +22,7 @@ public static class ResilientNodeHelper
         {
             try
             {
-                var taskResult = await dataRetrievalTask(node.Url);
+                var taskResult = await dataRetrievalTask(node);
                 return taskResult;
             }
             catch (Exception e)

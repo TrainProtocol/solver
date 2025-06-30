@@ -11,12 +11,13 @@ using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Data.Abstractions.Entities;
 using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public abstract class FeeEstimatorBase : IFeeEstimator
 {
-    public abstract Task<Fee> EstimateAsync(Network network, EstimateFeeRequest request);
+    public abstract Task<Fee> EstimateAsync(EstimateFeeRequest request);
     public abstract void Increase(Fee fee, int percentage);
 
     private static readonly string[] _invalidTimelockError = ["0xf8d10e82",];
@@ -28,10 +29,10 @@ public abstract class FeeEstimatorBase : IFeeEstimator
     private static readonly string[] _alreadyClaimedError = ["0x646cf558",];
 
     public static async Task<BigInteger> GetGasLimitAsync(
-        ICollection<Node> nodes,
+        IEnumerable<string> nodes,
         string fromAddress,
         string toAddress,
-        Token currency,
+        string? tokenContract,
         string amount,
         string? callData = null)
     {
@@ -46,10 +47,10 @@ public abstract class FeeEstimatorBase : IFeeEstimator
         {
             callInput.Data = callData;
         }
-        else if (!string.IsNullOrEmpty(currency.TokenContract))
+        else if (!string.IsNullOrEmpty(tokenContract))
         {
             callInput.Value = BigInteger.Zero.ToHexBigInteger();
-            callInput.To = currency.TokenContract;
+            callInput.To = tokenContract;
 
             callInput.Data = new TransferFunction
             {
@@ -111,7 +112,7 @@ public abstract class FeeEstimatorBase : IFeeEstimator
         }
     }
 
-    public async Task<HexBigInteger> GetGasPriceAsync(ICollection<Node> nodes)
+    public async Task<HexBigInteger> GetGasPriceAsync(IEnumerable<string> nodes)
     {
         var gasPrice = await GetDataFromNodesAsync(nodes,
             async nodeUrl => await new Web3(nodeUrl).Eth.GasPrice.SendRequestAsync());

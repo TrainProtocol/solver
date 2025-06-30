@@ -9,6 +9,7 @@ using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Blockchain.Common.Activities;
 
@@ -78,6 +79,13 @@ public class WorkflowActivities(
             throw new InvalidOperationException($"Solver account not found for network: {swap.DestinationToken.Network.Name}");
         }
 
+        var destinationNetwork = await networkRepository.GetAsync(swap.DestinationToken.Network.Name);
+
+        if (destinationNetwork == null)
+        {
+            throw new InvalidOperationException($"Network not found: {swap.DestinationToken.Network.Name}");
+        }
+
         await temporalClient.StartWorkflowAsync(
             TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionRequest()
                 {
@@ -87,7 +95,7 @@ public class WorkflowActivities(
                         Asset = swap.DestinationToken.Asset,
                     }),
                     Type = TransactionType.HTLCRefund,
-                    NetworkName = swap.DestinationToken.Network.Name,
+                    Network = destinationNetwork.ToDetailedDto(),
                     NetworkType = swap.DestinationToken.Network.Type,
                     FromAddress = solverAddress,
                     SwapId = swap.Id,

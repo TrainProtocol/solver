@@ -10,6 +10,7 @@ using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Util.Extensions;
 using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
 
@@ -25,37 +26,34 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
     }
 
     public override async Task<Fee> EstimateAsync(
-        Network network,
         EstimateFeeRequest request)
     {
-        var nodes = network.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new Exception($"Node is not configured on {request.NetworkName} network");
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset == request.Asset);
+        var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
         var gasLimit = await
             GetGasLimitAsync(nodes,
                 request.FromAddress,
                 request.ToAddress,
-                currency,
+                currency.Contract,
                 request.Amount,
                 request.CallData);
 
         var currentGasPriceResult = await GetGasPriceAsync(nodes);
 
-        var gasPrice = currentGasPriceResult.Value.PercentageIncrease(network.FeePercentageIncrease);
-
-        var nativeToken = network.Tokens.Single(x=>x.TokenContract == null);
+        var gasPrice = currentGasPriceResult.Value.PercentageIncrease(request.Network.FeePercentageIncrease);
 
         var priorityFee = await GetDataFromNodesAsync(nodes,
                     async url => await new EthMaxPriorityFeePerGas(new Web3(url).Client).SendRequestAsync());
 
         priorityFee = priorityFee.Value
-            .PercentageIncrease(network.FeePercentageIncrease)
+            .PercentageIncrease(request.Network.FeePercentageIncrease)
             .ToHexBigInteger();
 
         // base fee
@@ -71,8 +69,8 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
         var l1FeeInWei = await GetDataFromNodesAsync(nodes,
             async url => await GetL1FeeAsync(
                 new Web3(url),
-                nativeToken,
-                BigInteger.Parse(network.ChainId),
+                request.Network.NativeToken,
+                BigInteger.Parse(request.Network.ChainId),
                 priorityFee,
                 maxFeePerGas,
                 gasLimit,
@@ -84,8 +82,8 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
 
 
         return new Fee(
-            nativeToken.Asset,
-            nativeToken.Decimals,
+            request.Network.NativeToken!.Symbol,
+            request.Network.NativeToken!.Decimals,
             new EIP1559Data(
                 priorityFee.Value.ToString(),
                 baseFee.ToString(),
@@ -95,7 +93,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
 
     private static async Task<BigInteger> GetL1FeeAsync(
             Web3 web3,
-            Token currency,
+            TokenDto currency,
             BigInteger chainId,
             BigInteger maxPriorityFeePerGas,
             BigInteger maxFeePerGas,
@@ -108,7 +106,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
     {
         var data = callData ?? string.Empty;
 
-        if (!string.IsNullOrEmpty(currency.TokenContract))
+        if (!string.IsNullOrEmpty(currency.Contract))
         {
             var transactionMessage = new TransferFunction
             {

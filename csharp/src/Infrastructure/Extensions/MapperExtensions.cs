@@ -94,6 +94,8 @@ public static class MapperExtensions
             DisplayName = network.DisplayName,
             ChainId = network.ChainId,
             Type = network.Type,
+            FeeType = network.FeeType,
+            FeePercentageIncrease = network.FeePercentageIncrease,
             HTLCNativeContractAddress = network.HTLCNativeContractAddress,
             HTLCTokenContractAddress = network.HTLCTokenContractAddress,
             NativeToken = network.NativeToken?.ToDto(),

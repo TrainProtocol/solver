@@ -49,6 +49,7 @@ public static class SolverV1Endpoints
 
     private async static Task<IResult> AddLockSigAsync(
     ISwapRepository swapRepository,
+    INetworkRepository networkRepository,
     ITemporalClient temporalClient,
     [FromRoute] string commitId,
     [FromBody] AddLockSignatureModel addLockSignature)
@@ -63,6 +64,20 @@ public static class SolverV1Endpoints
                 {
                     //Code = "SWAP_NOT_FOUND",
                     Message = "Swap not found",
+                }
+            });
+        }
+
+        var sourceNetwork = await networkRepository.GetAsync(swap.SourceToken.Network.Name);
+
+        if (sourceNetwork is null)
+        {
+            return Results.NotFound(new ApiResponse()
+            {
+                Error = new ApiError()
+                {
+                    //Code = "NETWORK_NOT_FOUND",
+                    Message = "Source network not found",
                 }
             });
         }
@@ -82,7 +97,7 @@ public static class SolverV1Endpoints
                     V = addLockSignature.V,
                     R = addLockSignature.R,
                     S = addLockSignature.S,
-                    NetworkName = swap.SourceToken.Network.Name,
+                    Network = sourceNetwork.ToDetailedDto(),
                 }));
 
         if (!isValid)

@@ -9,6 +9,7 @@ using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using static Temporalio.Workflows.Workflow;
 using static Train.Solver.Blockchain.Common.Helpers.TemporalHelper;
 
@@ -121,6 +122,14 @@ public class SwapWorkflow : ISwapWorkflow
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
         var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));
 
+        var sourceNetwork = await ExecuteActivityAsync(
+            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.SourceNetwork),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
+
+        var destinationNetwork = await ExecuteActivityAsync(
+            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.DestinationNetwork),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
+
         // Lock in destination network
         await ExecuteTransactionAsync(new TransactionRequest()
         {
@@ -140,7 +149,7 @@ public class SwapWorkflow : ISwapWorkflow
                 Hashlock = hashlock.Hash,
             }),
             Type = TransactionType.HTLCLock,
-            NetworkName = _htlcCommitMessage.DestinationNetwork,
+            Network = destinationNetwork,
             NetworkType = _htlcCommitMessage.DestinationNetworkType,
             FromAddress = _solverManagedAccountInDestination!,
             SwapId = _swapId,
@@ -182,7 +191,7 @@ public class SwapWorkflow : ISwapWorkflow
                         SignerAddress = _htlcAddLockSigMessage.SignerAddress,
                     }),
                     Type = TransactionType.HTLCAddLockSig,
-                    NetworkName = _htlcCommitMessage.SourceNetwork,
+                    Network = sourceNetwork,
                     NetworkType = _htlcCommitMessage.SourceNetworkType,
                     FromAddress = _solverManagedAccountInSource!,
                     SwapId = _swapId
@@ -203,7 +212,7 @@ public class SwapWorkflow : ISwapWorkflow
                     < _minAcceptableTimelockPeriod.TotalSeconds)
             {
                 // Refund LP funds
-                await RefundSolverLockedFundsAsync();
+                await RefundSolverLockedFundsAsync(destinationNetwork);
                 return;
             }
 
@@ -219,7 +228,7 @@ public class SwapWorkflow : ISwapWorkflow
                     SenderAddress = _solverManagedAccountInDestination
                 }),
                 Type = TransactionType.HTLCRedeem,
-                NetworkName = _htlcCommitMessage.DestinationNetwork,
+                Network = destinationNetwork,
                 NetworkType = _htlcCommitMessage.DestinationNetworkType,
                 FromAddress = _solverManagedAccountInDestination!,
                 SwapId = _swapId
@@ -237,7 +246,7 @@ public class SwapWorkflow : ISwapWorkflow
                     SenderAddress = _htlcCommitMessage.SenderAddress
                 }),
                 Type = TransactionType.HTLCRedeem,
-                NetworkName = _htlcCommitMessage.SourceNetwork,
+                Network = sourceNetwork,
                 NetworkType = _htlcCommitMessage.SourceNetworkType,
                 FromAddress = _solverManagedAccountInSource!,
                 SwapId = _swapId
@@ -250,12 +259,12 @@ public class SwapWorkflow : ISwapWorkflow
         }
         catch (Exception e) when (TemporalException.IsCanceledException(e))
         {
-            await RefundSolverLockedFundsAsync();
+            await RefundSolverLockedFundsAsync(destinationNetwork);
             throw;
         }
     }
 
-    private async Task RefundSolverLockedFundsAsync()
+    private async Task RefundSolverLockedFundsAsync(DetailedNetworkDto network)
     {
         var diff = _lpTimeLock - new DateTimeOffset(UtcNow);
 
@@ -272,7 +281,7 @@ public class SwapWorkflow : ISwapWorkflow
                 Asset = _htlcCommitMessage.DestinationAsset,
             }),
             Type = TransactionType.HTLCRefund,
-            NetworkName = _htlcCommitMessage.DestinationNetwork,
+            Network = network,
             NetworkType = _htlcCommitMessage.DestinationNetworkType,
             FromAddress = _solverManagedAccountInDestination!,
             SwapId = _swapId!
@@ -325,7 +334,7 @@ public class SwapWorkflow : ISwapWorkflow
             new ChildWorkflowOptions
             {
                 Id = BuildProcessorId(
-                    transactionRequest.NetworkName,
+                    transactionRequest.Network.Name,
                     transactionRequest.Type,
                     NewGuid()),
                 TaskQueue = transactionRequest.NetworkType.ToString(),

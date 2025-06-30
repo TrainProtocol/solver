@@ -9,12 +9,13 @@ using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Util.Extensions;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 
 public static class EVMTransactionBuilder
 {
-    public static PrepareTransactionResponse BuildApproveTransaction(Network network, string args)
+    public static PrepareTransactionResponse BuildApproveTransaction(DetailedNetworkDto network, string args)
     {
         var request = JsonSerializer.Deserialize<ApprovePrepareRequest>(args);
 
@@ -23,27 +24,27 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset == request.Asset);
+        var currency = network.Tokens.Single(x => x.Symbol == request.Asset);
 
-        var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.TokenContract));
+        var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.Contract));
 
-        var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
+        var spenderAddress = string.IsNullOrEmpty(currency.Contract) ?
            network.HTLCTokenContractAddress
            : network.HTLCTokenContractAddress;
 
-        if (currency.Id != nativeCurrency.Id)
+        if (currency.Symbol != nativeCurrency.Symbol)
         {
             var response = new PrepareTransactionResponse
             {
-                ToAddress = currency.TokenContract!,
+                ToAddress = currency.Contract!,
                 AmountInWei = BigInteger.Zero.ToString(),
-                Asset = nativeCurrency.Asset,
+                Asset = nativeCurrency.Symbol,
                 Data = new FunctionMessages.ApproveFunction
                 {
                     Spender = spenderAddress,
                     Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-                CallDataAsset = nativeCurrency.Asset,
+                CallDataAsset = nativeCurrency.Symbol,
                 CallDataAmountInWei = BigInteger.Zero.ToString(),
             };
 
@@ -54,7 +55,7 @@ public static class EVMTransactionBuilder
     }
 
     public static PrepareTransactionResponse BuildTransferTransaction(
-        Network network,
+        DetailedNetworkDto network,
         string args)
     {
         var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
@@ -73,12 +74,12 @@ public static class EVMTransactionBuilder
             response.Data = memoHex;
         }
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
-        var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.TokenContract));
-        response.Asset = nativeCurrency.Asset;
+        var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.Contract));
+        response.Asset = nativeCurrency.Contract;
 
-        if (currency.Id != nativeCurrency.Id)
+        if (currency.Symbol != nativeCurrency.Symbol)
         {
             response.Data = $"{new TransferFunction
             {
@@ -87,22 +88,22 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex()}{memoHex.RemoveHexPrefix()}".EnsureHexPrefix();
 
             response.AmountInWei = BigInteger.Zero.ToString();
-            response.ToAddress = currency.TokenContract!;
-            response.CallDataAsset = currency.Asset;
+            response.ToAddress = currency.Contract!;
+            response.CallDataAsset = currency.Symbol;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
         }
         else
         {
             response.AmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
             response.ToAddress = request.ToAddress;
-            response.CallDataAsset = currency.Asset;
+            response.CallDataAsset = currency.Symbol;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
         }
 
         return response;
     }
 
-    public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(Network network, string args)
+    public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(DetailedNetworkDto network, string args)
     {
         var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
 
@@ -111,14 +112,14 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-        var isNative = currency.Id == network.NativeTokenId;
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
+        var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
         var htlcContractAddress = isNative
             ? network.HTLCTokenContractAddress
             : network.HTLCTokenContractAddress;
 
-        var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
+        var nativeCurrency = network.Tokens.First(x => x.Contract is null);
 
         var hashlock = request.Hashlock.ToBytes32();
 
@@ -138,7 +139,7 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
 
             AmountInWei = BigInteger.Zero.ToString(),
-            Asset = nativeCurrency.Asset,
+            Asset = nativeCurrency.Symbol,
             ToAddress = htlcContractAddress,
             CallDataAsset = request.Asset,
             CallDataAmountInWei = BigInteger.Zero.ToString()
@@ -147,7 +148,7 @@ public static class EVMTransactionBuilder
         return response;
     }
 
-    public static PrepareTransactionResponse BuildHTLCCommitTransaction(Network network, string args)
+    public static PrepareTransactionResponse BuildHTLCCommitTransaction(DetailedNetworkDto network, string args)
     {
         var request = JsonSerializer.Deserialize<HTLCCommitTransactionPrepareRequest>(args);
 
@@ -156,14 +157,14 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.SourceAsset.ToUpper());
 
-        var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
+        var nativeCurrency = network.Tokens.First(x => x.Contract is null);
 
         var response = new PrepareTransactionResponse();
 
         //ERC20 HTLC call
-        if (currency.Id != nativeCurrency.Id)
+        if (currency.Symbol != nativeCurrency.Symbol)
         {
             response.ToAddress = network.HTLCTokenContractAddress;
 
@@ -178,11 +179,11 @@ public static class EVMTransactionBuilder
                 Receiver = request.Receiever,
                 Timelock = request.Timelock,
                 Amount = Web3.Convert.ToWei(request.Amount, currency.Decimals),
-                TokenContract = currency.TokenContract
+                TokenContract = currency.Contract
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.AmountInWei = BigInteger.Zero.ToString();
-            response.Asset = nativeCurrency.Asset;
+            response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
         }
@@ -204,7 +205,7 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.AmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
-            response.Asset = nativeCurrency.Asset;
+            response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
             response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
         }
@@ -214,7 +215,7 @@ public static class EVMTransactionBuilder
     }
 
     public static PrepareTransactionResponse BuildHTLCLockTransaction(
-        Network network,
+        DetailedNetworkDto network,
         string args)
     {
         var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
@@ -226,14 +227,14 @@ public static class EVMTransactionBuilder
 
         var response = new PrepareTransactionResponse();
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
-        var isNative = currency.Id == network.NativeTokenId;
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.SourceAsset.ToUpper());
+        var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
-        var nativeCurrency = network.Tokens.First(x => x.TokenContract is null);
+        var nativeCurrency = network.Tokens.First(x => x.Contract is null);
 
         var hashlock = request.Hashlock.ToBytes32();
 
-        response.Asset = nativeCurrency.Asset;
+        response.Asset = nativeCurrency.Symbol;
 
         if (!isNative)
         {
@@ -252,12 +253,12 @@ public static class EVMTransactionBuilder
                     Reward = BigInteger.Parse(request.Reward),
                     RewardTimelock = request.RewardTimelock,
                     Amount = BigInteger.Parse(request.Amount),
-                    TokenContract = currency.TokenContract!,
+                    TokenContract = currency.Contract!,
                 }
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.AmountInWei = "0";
-            response.Asset = nativeCurrency.Asset;
+            response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
             response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
         }
@@ -278,7 +279,7 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.AmountInWei = request.Amount;
-            response.Asset = nativeCurrency.Asset;
+            response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
             response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
         }
@@ -293,7 +294,7 @@ public static class EVMTransactionBuilder
     }
 
     public static PrepareTransactionResponse BuildHTLCRedeemTranaction(
-        Network network,
+        DetailedNetworkDto network,
         string args)
     {
         var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
@@ -303,8 +304,8 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-        var isNative = currency.Id == network.NativeTokenId;
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
+        var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
         var lockId = request.Id.ToBytes32();
         var secret = BigInteger.Parse(request.Secret);
@@ -322,13 +323,13 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
             AmountInWei = "0",
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
+            Asset = network.NativeToken.Symbol,
             CallDataAsset = request.Asset,
             CallDataAmountInWei = "0",
         };
     }
 
-    public static PrepareTransactionResponse BuildHTLCRefundTransaction(Network network, string args)
+    public static PrepareTransactionResponse BuildHTLCRefundTransaction(DetailedNetworkDto network, string args)
     {
         var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
 
@@ -337,8 +338,8 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-        var isNative = currency.Id == network.NativeTokenId;
+        var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
+        var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
         var htlcId = request.Id.ToBytes32();
 
@@ -354,7 +355,7 @@ public static class EVMTransactionBuilder
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
             AmountInWei = "0",
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
+            Asset = network.NativeToken.Symbol,
             CallDataAsset = request.Asset,
             CallDataAmountInWei = "0",
         };
