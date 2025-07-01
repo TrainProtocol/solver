@@ -6,5 +6,5 @@ public interface IPrivateKeyProvider
 {
     Task<string> GenerateAsync(NetworkType type);
 
-    Task<string> SignAsync(string publicKey, string message);
+    Task<string> SignAsync(NetworkType type, string publicKey, string message);
 }

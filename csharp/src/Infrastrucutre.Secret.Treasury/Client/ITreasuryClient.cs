@@ -6,10 +6,10 @@ namespace Train.Solver.Infrastructure.Treasury.Client.Client;
 public interface ITreasuryClient
 {
     [Post("/treasury/{networkType}/sign")]
-    Task<IApiResponse<SignResponseModel>> SignAsync(
+    Task<IApiResponse<SignTransactionResponseModel>> SignTransactionAsync(
         string networkType,
-        [Body] SignRequestModel request);
+        [Body] SignTransactionRequestModel request);
 
     [Post("/treasury/{networkType}/generate")]
-    Task<IApiResponse<GenerateResponseModel>> GenerateAsync(string networkType);
+    Task<IApiResponse<GenerateAddressResponseModel>> GenerateAddressAsync(string networkType);
 }

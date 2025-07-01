@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Infrastructure.Treasury.Client.Models;
 
-public class SignRequestModel
+public class SignTransactionRequestModel
 {
     [JsonPropertyName("address")]
     public string Address { get; set; } = null!;

@@ -622,6 +622,7 @@ public class EVMBlockchainActivities(
         }
 
         var signedTransaction = await privateKeyProvider.SignAsync(
+            NetworkType.EVM,
             signerAddress,
             unsignedRawTransaction);
 
@@ -634,7 +635,7 @@ public class EVMBlockchainActivities(
 
         var txHash = decodedTransaction.Hash.ToHex();
 
-        return new Models.SignedTransaction
+        return new SignedTransaction
         {
             RawTxn = signedTransaction,
             Hash = txHash,

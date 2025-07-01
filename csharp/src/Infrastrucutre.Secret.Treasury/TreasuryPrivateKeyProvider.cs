@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Treasury.Client.Client;
 
@@ -11,13 +6,37 @@ namespace Train.Solver.Infrastructure.Services;
 
 public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
 {
-    public Task<string> GenerateAsync(NetworkType type)
+    public async Task<string> GenerateAsync(NetworkType type)
     {
-        throw new NotImplementedException();
+        var generateResponse = await client.GenerateAddressAsync(type.ToString());
+
+        if (!generateResponse.IsSuccessStatusCode)
+        {
+            throw new Exception($"Failed to generate address. Error:{generateResponse.Error?.Content}");
+        }
+
+        return generateResponse.Content!.Address;
     }
 
-    public Task<string> SignAsync(string publicKey, string message)
+    public async Task<string> SignAsync(
+        NetworkType type, 
+        string publicKey, 
+        string message)
     {
-        throw new NotImplementedException();
+        var signedTransactionResponse = await client.SignTransactionAsync(
+            type.ToString(),
+            request: new()
+            {
+                Address = publicKey,
+                UnsignedTxn = message
+            });
+
+        if (!signedTransactionResponse.IsSuccessStatusCode)
+        {
+            throw new Exception(
+                $"Failed to sign transaction. Error:{signedTransactionResponse.Error?.Content}");
+        }
+
+        return signedTransactionResponse.Content!.SignedTxn;
     }
 }
