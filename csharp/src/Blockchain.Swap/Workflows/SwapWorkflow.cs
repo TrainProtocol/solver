@@ -28,6 +28,8 @@ public class SwapWorkflow : ISwapWorkflow
     private AddLockSignatureRequest? _htlcAddLockSigMessage;
     private string? _solverManagedAccountInDestination;
     private string? _solverManagedAccountInSource;
+    private DetailedNetworkDto? _sourceNetwork;
+    private DetailedNetworkDto? _destinationNetwork;
     private string? _swapId;
     private DateTimeOffset _lpTimeLock;
 
@@ -51,22 +53,27 @@ public class SwapWorkflow : ISwapWorkflow
             throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
         }
 
-        var sourceNetwork = await ExecuteActivityAsync(
+        _sourceNetwork = await ExecuteActivityAsync(
            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.SourceNetwork),
            DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        var destinationNetwork = await ExecuteActivityAsync(
+        _destinationNetwork = await ExecuteActivityAsync(
             (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.DestinationNetwork),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
+        if (!_sourceNetwork.Tokens.Any(x => x.Symbol == message.SourceAsset) || !_destinationNetwork.Tokens.Any(x => x.Symbol == message.DestinationAsset))
+        {
+            throw new ApplicationFailureException("Source or destination asset is not supported in the network");
+        }
+
         _solverManagedAccountInDestination = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetSolverAddressAsync(
-                destinationNetwork.Type),
+                _destinationNetwork.Type),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _solverManagedAccountInSource = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetSolverAddressAsync(
-                sourceNetwork.Type),
+                _sourceNetwork.Type),
                        DefaultActivityOptions(Constants.CoreTaskQueue));
 
         // Validate limit
@@ -128,7 +135,7 @@ public class SwapWorkflow : ISwapWorkflow
                 DefaultActivityOptions(Constants.CoreTaskQueue));
 
         _lpTimeLock = new DateTimeOffset(UtcNow.Add(_defaultLPTimelockPeriod));
-        var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));       
+        var rewardTimelock = new DateTimeOffset(UtcNow.Add(_deafultRewardPeriod));
 
         // Lock in destination network
         await ExecuteTransactionAsync(new TransactionRequest()
@@ -149,8 +156,7 @@ public class SwapWorkflow : ISwapWorkflow
                 Hashlock = hashlock.Hash,
             }),
             Type = TransactionType.HTLCLock,
-            Network = destinationNetwork,
-            NetworkType = _htlcCommitMessage.DestinationNetworkType,
+            Network = _destinationNetwork,
             FromAddress = _solverManagedAccountInDestination!,
             SwapId = _swapId,
         });
@@ -191,8 +197,7 @@ public class SwapWorkflow : ISwapWorkflow
                         SignerAddress = _htlcAddLockSigMessage.SignerAddress,
                     }),
                     Type = TransactionType.HTLCAddLockSig,
-                    Network = sourceNetwork,
-                    NetworkType = _htlcCommitMessage.SourceNetworkType,
+                    Network = _sourceNetwork,
                     FromAddress = _solverManagedAccountInSource!,
                     SwapId = _swapId
                 });
@@ -212,7 +217,7 @@ public class SwapWorkflow : ISwapWorkflow
                     < _minAcceptableTimelockPeriod.TotalSeconds)
             {
                 // Refund LP funds
-                await RefundSolverLockedFundsAsync(destinationNetwork);
+                await RefundSolverLockedFundsAsync(_destinationNetwork);
                 return;
             }
 
@@ -228,8 +233,7 @@ public class SwapWorkflow : ISwapWorkflow
                     SenderAddress = _solverManagedAccountInDestination
                 }),
                 Type = TransactionType.HTLCRedeem,
-                Network = destinationNetwork,
-                NetworkType = _htlcCommitMessage.DestinationNetworkType,
+                Network = _destinationNetwork,
                 FromAddress = _solverManagedAccountInDestination!,
                 SwapId = _swapId
             });
@@ -246,8 +250,7 @@ public class SwapWorkflow : ISwapWorkflow
                     SenderAddress = _htlcCommitMessage.SenderAddress
                 }),
                 Type = TransactionType.HTLCRedeem,
-                Network = sourceNetwork,
-                NetworkType = _htlcCommitMessage.SourceNetworkType,
+                Network = _sourceNetwork,
                 FromAddress = _solverManagedAccountInSource!,
                 SwapId = _swapId
             });
@@ -259,7 +262,7 @@ public class SwapWorkflow : ISwapWorkflow
         }
         catch (Exception e) when (TemporalException.IsCanceledException(e))
         {
-            await RefundSolverLockedFundsAsync(destinationNetwork);
+            await RefundSolverLockedFundsAsync(_destinationNetwork);
             throw;
         }
     }
@@ -282,7 +285,6 @@ public class SwapWorkflow : ISwapWorkflow
             }),
             Type = TransactionType.HTLCRefund,
             Network = network,
-            NetworkType = _htlcCommitMessage.DestinationNetworkType,
             FromAddress = _solverManagedAccountInDestination!,
             SwapId = _swapId!
         });
@@ -300,7 +302,7 @@ public class SwapWorkflow : ISwapWorkflow
         {
             var isValid = await ExecuteActivityAsync(
                 (IBlockchainActivities x) => x.ValidateAddLockSignatureAsync(addLockSig),
-                DefaultActivityOptions(_htlcCommitMessage!.SourceNetworkType));
+                DefaultActivityOptions(_sourceNetwork.Type));
 
             if (isValid)
             {
@@ -329,7 +331,7 @@ public class SwapWorkflow : ISwapWorkflow
     private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
     {
         var confirmedTransaction = await ExecuteChildTransactionProcessorWorkflowAsync(
-            transactionRequest.NetworkType,
+            transactionRequest.Network.Type,
             x => x.RunAsync(transactionRequest, new TransactionExecutionContext()),
             new ChildWorkflowOptions
             {
@@ -337,7 +339,7 @@ public class SwapWorkflow : ISwapWorkflow
                     transactionRequest.Network.Name,
                     transactionRequest.Type,
                     NewGuid()),
-                TaskQueue = transactionRequest.NetworkType.ToString(),
+                TaskQueue = transactionRequest.Network.Type.ToString(),
             });
 
         await ExecuteActivityAsync(

@@ -20,16 +20,4 @@ public class NetworkActivities(INetworkRepository networkRepository) : INetworkA
 
         return network.ToDetailedDto();
     }
-
-    [Activity]
-    public async Task<List<TokenNetworkDto>> GetAvailableTokensAsync()
-    {
-        var tokens = await networkRepository.GetTokensAsync();
-        
-        var mappedTokens = tokens
-            .Select(x => x.ToWithNetworkDto())
-            .ToList();
-
-        return mappedTokens;
-    }
 }

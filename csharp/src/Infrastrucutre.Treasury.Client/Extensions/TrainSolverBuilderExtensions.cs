@@ -4,21 +4,30 @@ using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Services;
+using Train.Solver.Infrastructure.Treasury.Client.Client;
 using Train.Solver.Infrastructure.Treasury.Client.Options;
 
 namespace Train.Solver.Infrastructure.Treasury.Client.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {
-    public static TrainSolverBuilder WithTreasuryClient(
-        this TrainSolverBuilder builder,
-        Action<TreasuryClientOptions>? configureOptions)
+    public static TrainSolverBuilder WithTreasury(
+    this TrainSolverBuilder builder)
     {
-        var options = new TreasuryClientOptions();
+        return builder.WithTreasury(null);
+    }
+
+    public static TrainSolverBuilder WithTreasury(
+        this TrainSolverBuilder builder,
+        Action<TreasuryOptions>? configureOptions)
+    {
+        var options = new TreasuryOptions();
         builder.Configuration.GetSection(TrainSolverOptions.SectionName).Bind(options);
 
-        if (options.TreasuryUri == null)
+        if (options.TreasuryUrl == null)
         {
             throw new InvalidOperationException("Treasury  URI is not set.");
         }
@@ -41,9 +50,11 @@ public static class TrainSolverBuilderExtensions
         builder.Services.AddRefitClient<ITreasuryClient>(refitSettings)
             .ConfigureHttpClient(c =>
             {
-                c.BaseAddress = options.TreasuryUri;
+                c.BaseAddress = options.TreasuryUrl;
                 c.Timeout = options.TreasuryTimeout;
             });
+
+        builder.Services.AddTransient<IPrivateKeyProvider, TreasuryPrivateKeyProvider>();
 
         return builder;
     }

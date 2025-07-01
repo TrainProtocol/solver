@@ -1,8 +1,7 @@
 ﻿using Train.Solver.Blockchain.EVM.Extensions;
-using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Data.Npgsql.Extensions;
+using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
+using Train.Solver.Infrastructure.Treasury.Client.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -16,8 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services
             .AddTrainSolver(hostContext.Configuration)
             .WithOpenTelemetryLogging("EVM Runner")
-            .WithNpgsqlRepositories()
-            .WithHashicorpKeyVault()
+            .WithTreasury()
             .WithEVMWorkflows();
     })
     .Build();

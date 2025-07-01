@@ -1,6 +1,7 @@
 ﻿using Temporalio.Extensions.Hosting;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Activities;
+using Train.Solver.Blockchain.Common.Worklows;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Blockchain.Swap.Workflows;
 using Train.Solver.Infrastructure.DependencyInjection;
@@ -14,6 +15,7 @@ public static class TrainSolverBuilderExtensions
     {
         var temporalBuilder = builder.Services
             .AddHostedTemporalWorker(Constants.CoreTaskQueue)
+            .AddTransientActivities<UtilityActivities>()
             .AddTransientActivities<RouteActivities>()
             .AddTransientActivities<SwapActivities>()
             .AddTransientActivities<TokenPriceActivities>()
@@ -22,6 +24,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<SwapWorkflow>()
             .AddWorkflow<TokenPriceUpdaterWorkflow>()
             .AddWorkflow<RouteStatusUpdaterWorkflow>()
+            .AddWorkflow<EventListenerWorkflow>()
             .AddWorkflow<EventListenerUpdaterWorkflow>();
 
         return builder;

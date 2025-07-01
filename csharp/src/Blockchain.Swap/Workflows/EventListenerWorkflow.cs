@@ -21,7 +21,6 @@ public class EventListenerWorkflow : IEventListenerWorkflow
     [WorkflowRun]
     public async Task RunAsync(
         string networkName,
-        NetworkType networkType,
         uint blockBatchSize,
         int waitInterval,
         ulong? lastProcessedBlockNumber = null)
@@ -44,6 +43,21 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 }
             });
 
+        var solverWallet = await ExecuteActivityAsync(
+            (ISwapActivities x) => x.GetSolverAddressAsync(
+                network.Type),
+                       new()
+                       {
+                           TaskQueue = Constants.CoreTaskQueue,
+                           StartToCloseTimeout = TimeSpan.FromSeconds(20),
+                           ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
+                           RetryPolicy = new()
+                           {
+                               InitialInterval = TimeSpan.FromSeconds(5),
+                               BackoffCoefficient = 1f,
+                           }
+                       });
+
         while (!Workflow.CancellationToken.IsCancellationRequested)
         {
             // Reset workflow history if it has been running for too long
@@ -51,7 +65,6 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             {
                 throw CreateContinueAsNewException<EventListenerWorkflow>((x) => x.RunAsync(
                     networkName,
-                    networkType,
                     blockBatchSize,
                     waitInterval,
                     _lastProcessedBlockNumber));
@@ -64,7 +77,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                         new BaseRequest { Network = network }),
                     new()
                     {
-                        TaskQueue = networkType.ToString(),
+                        TaskQueue = network.Type.ToString(),
                         StartToCloseTimeout = TimeSpan.FromSeconds(20),
                         ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
                         RetryPolicy = new()
@@ -101,7 +114,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 {
                     foreach (var blockChunk in blockRanges.Chunk(_maxConcurrentTaskCount))
                     {
-                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(network, networkType, x)));
+                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(network, solverWallet, x)));
 
                         _lastProcessedBlockNumber = blockChunk.Last().To;
                     }
@@ -112,7 +125,6 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             {
                 throw CreateContinueAsNewException<EventListenerWorkflow>((x) => x.RunAsync(
                     networkName,
-                    networkType,
                     blockBatchSize,
                     waitInterval,
                     _lastProcessedBlockNumber));
@@ -124,7 +136,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
     private async Task ProcessBlockRangeAsync(
         DetailedNetworkDto network,
-        NetworkType networkType,
+        string solverWallet,
         BlockRangeModel blockRange)
     {
         var result = await ExecuteActivityAsync(
@@ -132,11 +144,12 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             {
                 Network = network,
                 FromBlock = blockRange.From,
-                ToBlock = blockRange.To
+                ToBlock = blockRange.To,
+                WalletAddress = solverWallet,
             }),
             new()
             {
-                TaskQueue = networkType.ToString(),
+                TaskQueue = network.Type.ToString(),
                 StartToCloseTimeout = TimeSpan.FromSeconds(20),
                 ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
                 RetryPolicy = new()

@@ -9,6 +9,7 @@ using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
 using Train.Solver.Util;
 using Train.Solver.Util.Swagger;
+using Train.Solver.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -58,6 +59,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
+    .WithCoreServices()
     .WithMarketMaker()
     .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);

@@ -33,7 +33,6 @@ public class EventListenerUpdaterWorkflow : IScheduledWorkflow
                 await ExecuteActivityAsync(
                     (WorkflowActivities x) => x.RunEventListeningWorkflowAsync(
                         network.Name,
-                        network.Type,
                         _blockBachSize,
                         _waitIntervalInSeconds),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));

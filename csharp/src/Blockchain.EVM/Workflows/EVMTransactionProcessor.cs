@@ -37,7 +37,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     Args = request.PrepareArgs,
                     Type = request.Type
                 }),
-            TemporalHelper.DefaultActivityOptions(request.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
         // Estimate fee
         if (context.Fee == null)
@@ -54,7 +54,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     Network = request.Network,
                     Address = request.FromAddress!,
                 }),
-                TemporalHelper.DefaultActivityOptions(request.NetworkType));
+                TemporalHelper.DefaultActivityOptions(request.Network.Type));
         }
 
         var rawTransaction = await ExecuteActivityAsync(
@@ -68,7 +68,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 CallData = preparedTransaction.Data,
                 Fee = context.Fee
             }),
-            TemporalHelper.DefaultActivityOptions(request.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
         // Initiate blockchain transfer
         try
@@ -110,7 +110,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         Fee = newFee,
                         Network = request.Network,
                     }),
-                    TemporalHelper.DefaultActivityOptions(request.NetworkType));
+                    TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
                 context.Fee = increasedFee;
                 context.Attempts++;
@@ -181,7 +181,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         {
                             Network = request.Network,
                             FromAddress = request.FromAddress,
-                            NetworkType = request.NetworkType,
                             PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
                             {
                                 Amount = 0,
@@ -241,7 +240,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 OwnerAddress = context.FromAddress,
                 Asset = lockRequest.SourceAsset
             }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
+            TemporalHelper.DefaultActivityOptions(context.Network.Type));
 
         if (BigInteger.Parse(lockRequest.Amount) > BigInteger.Parse(allowance))
         {
@@ -257,7 +256,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 Type = TransactionType.Approve,
                 FromAddress = context.FromAddress,
                 Network = context.Network,
-                NetworkType = context.NetworkType,
                 SwapId = context.SwapId,
             },
             new()), new() { Id = TemporalHelper.BuildProcessorId(context.Network.Name, TransactionType.Approve, NewGuid()) });

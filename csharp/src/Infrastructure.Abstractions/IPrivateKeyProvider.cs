@@ -1,7 +1,10 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions;
+﻿using Train.Solver.Data.Abstractions.Entities;
+
+namespace Train.Solver.Infrastructure.Abstractions;
 
 public interface IPrivateKeyProvider
 {
-    Task<string> GetAsync(string publicKey);
-    Task<string> SetAsync(string publicKey, string privateKey);
+    Task<string> GenerateAsync(NetworkType type);
+
+    Task<string> SignAsync(string publicKey, string message);
 }

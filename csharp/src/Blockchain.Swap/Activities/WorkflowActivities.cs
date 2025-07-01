@@ -44,7 +44,6 @@ public class WorkflowActivities(
     [Activity]
     public virtual async Task RunEventListeningWorkflowAsync(
         string networkName,
-        NetworkType networkType,
         uint blockBatchSize,
         int waitInterval)
     {
@@ -52,12 +51,11 @@ public class WorkflowActivities(
             (IEventListenerWorkflow x) =>
                 x.RunAsync(
                     networkName,
-                    networkType,
                     blockBatchSize,
                     waitInterval,
                     null),
             new(id: TemporalHelper.BuildEventListenerId(networkName),
-            taskQueue: networkType.ToString())
+            taskQueue: Constants.CoreTaskQueue)
             {
                 IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning
             });
@@ -97,7 +95,6 @@ public class WorkflowActivities(
                     }),
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
-                    NetworkType = swap.DestinationToken.Network.Type,
                     FromAddress = wallet.Address,
                     SwapId = swap.Id,
             }],

@@ -1,6 +1,4 @@
-using Train.Solver.Data.Abstractions.Entities;
-
-namespace Train.Solver.Blockchain.Common.Helpers;
+namespace Train.Solver.Util.Helpers;
 
 public static class ResilientNodeHelper
 {

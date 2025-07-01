@@ -4,6 +4,7 @@ using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.AdminAPI.Endpoints;
+using Train.Solver.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -37,6 +38,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
+    .WithCoreServices()
     .WithOpenTelemetryLogging("Solver Admin API")
     .WithNpgsqlRepositories();
 

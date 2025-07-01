@@ -7,7 +7,7 @@ using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Util.Extensions;
-using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
+using static Train.Solver.Util.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 

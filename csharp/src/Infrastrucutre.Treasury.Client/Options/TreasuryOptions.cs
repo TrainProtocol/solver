@@ -1,8 +1,8 @@
 ﻿namespace Train.Solver.Infrastructure.Treasury.Client.Options;
 
-public class TreasuryClientOptions
+public class TreasuryOptions
 {
-    public Uri TreasuryUri { get; set; } = null!;
+    public Uri TreasuryUrl { get; set; } = null!;
 
     public TimeSpan TreasuryTimeout { get; set; } = TimeSpan.FromSeconds(30);
 }

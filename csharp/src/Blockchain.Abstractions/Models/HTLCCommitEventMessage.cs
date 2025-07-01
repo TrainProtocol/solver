@@ -28,7 +28,7 @@ public class HTLCCommitEventMessage
 
     public required long TimeLock { get; set; }
 
-    public required NetworkType DestinationNetworkType { get; set; }
+    //public required NetworkType DestinationNetworkType { get; set; }
 
-    public required NetworkType SourceNetworkType { get; set; }
+    //public required NetworkType SourceNetworkType { get; set; }
 }

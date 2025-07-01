@@ -11,9 +11,7 @@ using Nethereum.Signer.EIP712;
 using Nethereum.Util;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using RedLockNet;
-using StackExchange.Redis;
-using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
+using static Train.Solver.Util.Helpers.ResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
@@ -28,12 +26,12 @@ using Train.Solver.Infrastructure.Abstractions;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Blockchain.Common.Helpers;
+using RedLockNet;
+using StackExchange.Redis;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 
 public class EVMBlockchainActivities(
-    INetworkRepository networkRepository,
-    IWalletRepository walletRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
     IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
@@ -196,15 +194,6 @@ public class EVMBlockchainActivities(
             throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
         }
 
-        var wallet = await walletRepository.GetDefaultAsync(request.Network.Type);
-
-        if (wallet == null)
-        {
-            throw new ArgumentException($"Solver account is not configured on {request.Network.Name} network", nameof(wallet));
-        }
-
-        var currencies = await networkRepository.GetTokensAsync();
-
         var contractAddresses = new List<string>();
 
         if (!string.IsNullOrEmpty(request.Network.HTLCNativeContractAddress))
@@ -246,48 +235,26 @@ public class EVMBlockchainActivities(
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
                 if (FormatAddress(commitedEvent.Receiver)
-                    != FormatAddress(wallet.Address))
+                    != FormatAddress(request.WalletAddress))
                 {
                     continue;
                 }
 
                 var commitId = commitedEvent.Id.ToHex(prefix: true);
 
-                var sourceCurrency = currencies
-                    .FirstOrDefault(x =>
-                        x.Asset == commitedEvent.SourceAsset
-                        && x.Network.Name == request.Network.Name);
-
-                if (sourceCurrency is null)
-                {
-                    continue;
-                }
-
-                var destinationCurrency = currencies
-                    .FirstOrDefault(x =>
-                        x.Asset == commitedEvent.DestinationAsset
-                        && x.Network.Name == commitedEvent.DestinationChain);
-
-                if (destinationCurrency is null)
-                {
-                    continue;
-                }
-
                 var message = new HTLCCommitEventMessage
                 {
                     TxId = log.TransactionHash,
                     Id = commitId,
                     AmountInWei = commitedEvent.Amount.ToString(),
-                    SourceAsset = sourceCurrency.Asset,
+                    SourceAsset = commitedEvent.SourceAsset,
                     SenderAddress = commitedEvent.Sender,
                     SourceNetwork = request.Network.Name,
                     DestinationAddress = commitedEvent.DestinationAddress,
-                    DestinationNetwork = destinationCurrency.Network.Name,
-                    DestinationAsset = destinationCurrency.Asset,
+                    DestinationNetwork = commitedEvent.DestinationChain,
+                    DestinationAsset = commitedEvent.DestinationAsset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(wallet.Address),
-                    DestinationNetworkType = destinationCurrency.Network.Type,
-                    SourceNetworkType = sourceCurrency.Network.Type
+                    ReceiverAddress = FormatAddress(request.WalletAddress),
                 };
 
                 result.HTLCCommitEventMessages.Add(message);
@@ -538,14 +505,11 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<SignedTransaction> ComposeSignedRawTransactionAsync(EVMComposeTransactionRequest request)
+    public virtual async Task<Models.SignedTransaction> ComposeSignedRawTransactionAsync(EVMComposeTransactionRequest request)
     {
-        var privateKeyResult = await privateKeyProvider.GetAsync(request.FromAddress);
-
-        var account = new Account(privateKeyResult, BigInteger.Parse(request.Network.ChainId!));
-
         var transactionInput = new TransactionInput
         {
+            ChainId = BigInteger.Parse(request.Network.ChainId).ToHexBigInteger(),
             From = request.FromAddress,
             To = request.ToAddress,
             Nonce = BigInteger.Parse(request.Nonce).ToHexBigInteger(),
@@ -570,7 +534,9 @@ public class EVMBlockchainActivities(
             transactionInput.Type = new HexBigInteger((int)Nethereum.Model.TransactionType.EIP1559);
         }
 
-        return SignTransaction(account, transactionInput);
+        var signedTransaction = await SignTransaction(request.FromAddress, transactionInput);
+
+        return signedTransaction;
     }
 
     private static string FormatAddress(string address) => address.ToLower();
@@ -598,19 +564,19 @@ public class EVMBlockchainActivities(
         };
     }
 
-    private static SignedTransaction SignTransaction(
-       Account account,
+    private async Task<Models.SignedTransaction> SignTransaction(
+       string signerAddress,
        TransactionInput transaction)
     {
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         if (string.IsNullOrWhiteSpace(transaction.From))
-            transaction.From = account.Address;
+            transaction.From = signerAddress;
 
-        else if (!transaction.From.IsTheSameAddress(account.Address))
+        else if (!transaction.From.IsTheSameAddress(signerAddress))
             throw new Exception("Invalid account used for signing, does not match the transaction input");
 
-        var chainId = account.ChainId;
+        var chainId = transaction.ChainId;
 
         var nonce = transaction.Nonce;
         if (nonce == null)
@@ -620,6 +586,8 @@ public class EVMBlockchainActivities(
         var value = transaction.Value ?? new HexBigInteger(0);
 
         if (chainId == null) throw new ArgumentException("ChainId required for TransactionType 0X02 EIP1559");
+
+        string unsignedRawTransaction;
 
         if (transaction.Type != null && transaction.Type.Value == Nethereum.Model.TransactionTypeExtensions.AsByte(Nethereum.Model.TransactionType.EIP1559))
         {
@@ -637,15 +605,7 @@ public class EVMBlockchainActivities(
                 transaction.Data,
                 transaction.AccessList.ToSignerAccessListItemArray());
 
-            var transaction1559Signer = new Transaction1559Signer();
-
-            var rawTxnHex = transaction1559Signer.SignTransaction(new EthECKey(account.PrivateKey), transaction1559);
-
-            return new()
-            {
-                RawTxn = rawTxnHex,
-                Hash = transaction1559.Hash.ToHex(),
-            };
+            unsignedRawTransaction = transaction1559.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
         }
         else
         {
@@ -658,15 +618,27 @@ public class EVMBlockchainActivities(
                 transaction.Data,
                 chainId.Value);
 
-            var signature = new EthECKey(account.PrivateKey.HexToByteArray(), true).SignAndCalculateV(transactionLegacy.RawHash, transactionLegacy.GetChainIdAsBigInteger());
-            transactionLegacy.SetSignature(new Nethereum.Model.Signature() { R = signature.R, S = signature.S, V = signature.V });
-
-            return new()
-            {
-                Hash = transactionLegacy.Hash.ToHex(),
-                RawTxn = transactionLegacy.GetRLPEncoded().ToHex(),
-            };
+            unsignedRawTransaction = transactionLegacy.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
         }
+
+        var signedTransaction = await privateKeyProvider.SignAsync(
+            signerAddress,
+            unsignedRawTransaction);
+
+        if (string.IsNullOrEmpty(signedTransaction))
+        {
+            throw new Exception($"Failed to sign transaction for {signerAddress} on {transaction.ChainId}");
+        }
+
+        var decodedTransaction = Nethereum.Model.TransactionFactory.CreateTransaction(signedTransaction);
+
+        var txHash = decodedTransaction.Hash.ToHex();
+
+        return new Models.SignedTransaction
+        {
+            RawTxn = signedTransaction,
+            Hash = txHash,
+        };
     }
 
     private static async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
