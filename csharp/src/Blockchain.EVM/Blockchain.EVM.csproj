@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
     <ProjectReference Include="..\Blockchain.Common\Blockchain.Common.csproj" />
 		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
-		<ProjectReference Include="..\Infrastrucutre.Treasury.Client\Infrastrucutre.Secret.Treasury.csproj" />
+		<ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
   </ItemGroup>
 	
 </Project>
