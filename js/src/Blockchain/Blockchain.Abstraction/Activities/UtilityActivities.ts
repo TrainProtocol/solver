@@ -1,4 +1,6 @@
 import { BlockRangeModel } from "../Models/BlockRangeModel";
+import { TransactionType } from "../Models/TransacitonModels/TransactionType";
+import { v4 as uuidv4 } from 'uuid';
 
 export function GenerateBlockRanges(start: number, end: number, chunkSize: number): BlockRangeModel[] {
     if (chunkSize <= 0) {
@@ -15,4 +17,8 @@ export function GenerateBlockRanges(start: number, end: number, chunkSize: numbe
     }
 
     return result;
+}
+
+export function BuildProcessorId(networkName: string, type: TransactionType): string {
+   return `${networkName}-${type}-${uuidv4()}`;
 }
