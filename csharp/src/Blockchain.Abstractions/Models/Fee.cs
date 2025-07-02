@@ -36,7 +36,7 @@ public class Fee
         SolanaFeeData = feeData;
     }
 
-    public decimal Amount
+    private decimal Amount
     {
         get
         {

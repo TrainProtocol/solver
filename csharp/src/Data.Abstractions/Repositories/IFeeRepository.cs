@@ -10,7 +10,7 @@ public interface IFeeRepository
         string networkName,
         string token,
         string feeToken,
-        decimal fee,
+        string fee,
         TransactionType transactionType);
 
     Task<List<ServiceFee>> GetServiceFeesAsync();

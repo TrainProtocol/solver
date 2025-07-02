@@ -14,8 +14,8 @@ public static class HTLCProgram
     {
         var htlcPdaParams = GetHtlcPdaParams(htlcLockRequest.Id, htlcProgramIdKey);
 
-        var lockData = new HtlcInstructionDataBuilder().CreateLockData(htlcLockRequest, htlcPdaParams);
-        var lockRewardData = new HtlcInstructionDataBuilder().CreateLockRewardData(htlcLockRequest, htlcPdaParams);
+        var lockData = new HtlcInstructionDataBuilder().CreateLockData(htlcLockRequest);
+        var lockRewardData = new HtlcInstructionDataBuilder().CreateLockRewardData(htlcLockRequest);
 
         // Add Lock instruction
         builder.AddInstruction(new()

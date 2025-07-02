@@ -7,6 +7,4 @@ public class TokenDto
     public string? Contract { get; set; }
 
     public int Decimals { get; set; }
-
-    public int Precision { get; set; }
 }

@@ -5,4 +5,8 @@
 		<RootNamespace>Train.Solver.Data.Abstractions</RootNamespace>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Util\Util.csproj" />
+	</ItemGroup>
+
 </Project>

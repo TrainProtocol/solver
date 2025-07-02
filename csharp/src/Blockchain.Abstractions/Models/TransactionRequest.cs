@@ -8,9 +8,7 @@ public class TransactionRequest : BaseRequest
 
     public required TransactionType Type { get; set; }
 
-    public required NetworkType NetworkType { get; set; }
-
     public required string FromAddress { get; set; } = null!;
 
-    public required string SwapId { get; set; }
+    public string? SwapId { get; set; }
 }

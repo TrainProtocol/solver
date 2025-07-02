@@ -6,7 +6,7 @@ public class PrepareTransactionResponse
 
     public string? Data { get; set; }
 
-    public decimal Amount { get; set; }
+    //public decimal Amount { get; set; }
 
     public string Asset { get; set; } = null!;
 
@@ -16,5 +16,5 @@ public class PrepareTransactionResponse
 
     public string CallDataAmountInWei { get; set; } = null!;
 
-    public decimal CallDataAmount { get; set; } 
+    //public decimal CallDataAmount { get; set; } 
 }

@@ -3,13 +3,14 @@ using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
-using Train.Solver.Blockchain.Common.Extensions;
-using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.EVM.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Blockchain.EVM.Models;
 using static Temporalio.Workflows.Workflow;
+using System.Numerics;
+using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Abstractions.Extensions;
 
 namespace Train.Solver.Blockchain.EVM.Workflows;
 
@@ -32,11 +33,11 @@ public class EVMTransactionProcessor : ITransactionProcessor
             (IEVMBlockchainActivities x) => x.BuildTransactionAsync(
                 new TransactionBuilderRequest()
                 {
-                    NetworkName = request.NetworkName,
+                    Network = request.Network,
                     Args = request.PrepareArgs,
                     Type = request.Type
                 }),
-            TemporalHelper.DefaultActivityOptions(request.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
         // Estimate fee
         if (context.Fee == null)
@@ -50,16 +51,16 @@ public class EVMTransactionProcessor : ITransactionProcessor
             context.Nonce = await ExecuteActivityAsync(
                 (IEVMBlockchainActivities x) => x.GetNextNonceAsync(new()
                 {
-                    NetworkName = request.NetworkName,
+                    Network = request.Network,
                     Address = request.FromAddress!,
                 }),
-                TemporalHelper.DefaultActivityOptions(request.NetworkType));
+                TemporalHelper.DefaultActivityOptions(request.Network.Type));
         }
 
         var rawTransaction = await ExecuteActivityAsync(
             (IEVMBlockchainActivities x) => x.ComposeSignedRawTransactionAsync(new EVMComposeTransactionRequest()
             {
-                NetworkName = request.NetworkName,
+                Network = request.Network,
                 FromAddress = request.FromAddress,
                 ToAddress = preparedTransaction.ToAddress,
                 Nonce = context.Nonce,
@@ -67,7 +68,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 CallData = preparedTransaction.Data,
                 Fee = context.Fee
             }),
-            TemporalHelper.DefaultActivityOptions(request.NetworkType));
+            TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
         // Initiate blockchain transfer
         try
@@ -76,7 +77,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 (IEVMBlockchainActivities x) => x.PublishRawTransactionAsync(
                     new EVMPublishTransactionRequest()
                     {
-                        NetworkName = request.NetworkName,
+                        Network = request.Network,
                         FromAddress = request.FromAddress,
                         SignedTransaction = rawTransaction
                     }),
@@ -107,9 +108,9 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     (EVMBlockchainActivities x) => x.IncreaseFeeAsync(new EVMFeeIncreaseRequest()
                     {
                         Fee = newFee,
-                        NetworkName = request.NetworkName,
+                        Network = request.Network,
                     }),
-                    TemporalHelper.DefaultActivityOptions(request.NetworkType));
+                    TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
                 context.Fee = increasedFee;
                 context.Attempts++;
@@ -123,7 +124,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
         confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-        confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
+        confirmedTransaction.Amount = preparedTransaction.CallDataAmountInWei;
 
         return confirmedTransaction;
     }
@@ -138,11 +139,11 @@ public class EVMTransactionProcessor : ITransactionProcessor
             var fee = await ExecuteActivityAsync(
                 (IEVMBlockchainActivities x) => x.EstimateFeeAsync(new EstimateFeeRequest
                 {
-                    NetworkName = request.NetworkName,
+                    Network = request.Network,
                     FromAddress = request.FromAddress!,
                     ToAddress = preparedTransaction.ToAddress!,
                     Asset = preparedTransaction.Asset!,
-                    Amount = preparedTransaction.Amount,
+                    Amount = preparedTransaction.AmountInWei,
                     CallData = preparedTransaction.Data,
                 }),
                 new()
@@ -178,9 +179,8 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((x) => x.RunAsync(
                         new TransactionRequest()
                         {
-                            NetworkName = request.NetworkName,
+                            Network = request.Network,
                             FromAddress = request.FromAddress,
-                            NetworkType = request.NetworkType,
                             PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
                             {
                                 Amount = 0,
@@ -193,7 +193,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         {
                             Nonce = context.Nonce,
                         }),
-                        new() { Id = TemporalHelper.BuildProcessorId(request.NetworkName, TransactionType.Transfer, NewGuid()) });
+                        new() { Id = TemporalHelper.BuildProcessorId(request.Network.Name, TransactionType.Transfer, NewGuid()) });
                 }
 
                 throw;
@@ -236,13 +236,13 @@ public class EVMTransactionProcessor : ITransactionProcessor
         var allowance = await ExecuteActivityAsync(
             (IEVMBlockchainActivities x) => x.GetSpenderAllowanceAsync(new AllowanceRequest()
             {
-                NetworkName = lockRequest.SourceNetwork,
+                Network = context.Network,
                 OwnerAddress = context.FromAddress,
                 Asset = lockRequest.SourceAsset
             }),
-            TemporalHelper.DefaultActivityOptions(context.NetworkType));
+            TemporalHelper.DefaultActivityOptions(context.Network.Type));
 
-        if (lockRequest.Amount > allowance)
+        if (BigInteger.Parse(lockRequest.Amount) > BigInteger.Parse(allowance))
         {
             // Initiate approval transaction
 
@@ -255,11 +255,10 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 }, (JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,
                 FromAddress = context.FromAddress,
-                NetworkName = lockRequest.SourceNetwork,
-                NetworkType = context.NetworkType,
+                Network = context.Network,
                 SwapId = context.SwapId,
             },
-            new()), new() { Id = TemporalHelper.BuildProcessorId(context.NetworkName, TransactionType.Approve, NewGuid()) });
+            new()), new() { Id = TemporalHelper.BuildProcessorId(context.Network.Name, TransactionType.Approve, NewGuid()) });
 
         }
     }
@@ -271,7 +270,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
             return await ExecuteActivityAsync(
                (IEVMBlockchainActivities x) => x.GetBatchTransactionAsync(new GetBatchTransactionRequest()
                {
-                   NetworkName = request.NetworkName,
+                   Network = request.Network,
                    TransactionHashes = context.PublishedTransactionIds.ToArray()
                }),
                     new()

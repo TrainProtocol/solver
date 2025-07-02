@@ -47,4 +47,57 @@ public static class BigIntegerExtensions
         return addressInt.Value.CompareTo(lowerBound) > 0 &&
                addressInt.Value.CompareTo(upperBound) < 0;
     }
+
+    public static BigInteger Average(this IEnumerable<BigInteger> source)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+
+        var list = source as ICollection<BigInteger> ?? source.ToList();
+        if (list.Count == 0) throw new InvalidOperationException("Sequence contains no elements");
+
+        BigInteger sum = BigInteger.Zero;
+        foreach (var val in list)
+            sum += val;
+
+        return sum / list.Count;
+    }
+
+    public static decimal ToUsd(this BigInteger amount, decimal priceUsd, int decimals)
+    {
+        if (decimals < 0 || decimals > 77)
+            throw new ArgumentOutOfRangeException(nameof(decimals), "Decimals must be between 0 and 77 for decimal precision.");
+
+        // Convert divisor to decimal manually
+        var divisor = BigInteger.Pow(10, decimals);
+        decimal normalizedAmount = (decimal)(amount / divisor) + ((decimal)(amount % divisor) / (decimal)divisor);
+
+        return (normalizedAmount * priceUsd).Truncate(2);
+    }
+
+    public static BigInteger PercentOf(this BigInteger value, decimal percent)
+    {
+        if (percent < 0) throw new ArgumentOutOfRangeException(nameof(percent), "Percentage must be non-negative.");
+
+        // Convert 10.5% to 1050 with a scale of 10000 (4 decimal places)
+        const int scale = 10000;
+        var scaledPercent = (BigInteger)(percent * scale);
+
+        return (value * scaledPercent) / scale / 100;
+    }
+
+    public static BigInteger ConvertTokenAmount(this BigInteger amountIn, decimal rate, int sourceDecimals, int destDecimals)
+    {
+        if (rate < 0) throw new ArgumentOutOfRangeException(nameof(rate));
+        if (sourceDecimals < 0 || destDecimals < 0) throw new ArgumentOutOfRangeException("Decimals must be >= 0");
+
+        // Normalize source to decimal
+        var scaleSource = BigInteger.Pow(10, sourceDecimals);
+        var scaleDest = BigInteger.Pow(10, destDecimals);
+
+        // amountIn * rate * destScale / sourceScale
+        var numerator = BigInteger.Multiply(amountIn, (BigInteger)(rate * 1_000_000_000m)); // scale rate for precision
+        var scaled = (numerator * scaleDest) / (scaleSource * 1_000_000_000);
+
+        return scaled;
+    }
 }

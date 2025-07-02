@@ -6,5 +6,5 @@ public class ManagedAccountDto
 {
     public string Address { get; set; } = null!;
 
-    public AccountType Type { get; set; }
+    public NetworkType NetworkType { get; set; }
 }

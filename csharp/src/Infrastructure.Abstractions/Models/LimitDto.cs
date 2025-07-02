@@ -1,12 +1,14 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class LimitDto
 {
-    public decimal MinAmountInUsd { get; set; }
+    //public decimal MinAmountInUsd { get; set; }
 
-    public decimal MinAmount { get; set; }
+    public BigInteger MinAmount { get; set; }
 
-    public decimal MaxAmountInUsd { get; set; }
+    //public decimal MaxAmountInUsd { get; set; }
 
-    public decimal MaxAmount { get; set; }
+    public BigInteger MaxAmount { get; set; }
 }

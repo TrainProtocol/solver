@@ -1,16 +1,18 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class QuoteDto
 {
-    public decimal TotalFee { get; set; }
+    public BigInteger TotalFee { get; set; } 
 
-    public decimal TotalFeeInUsd { get; set; }
+    //public decimal TotalFeeInUsd { get; set; }
 
-    public decimal ReceiveAmount { get; set; }
+    public BigInteger ReceiveAmount { get; set; }
 
-    public decimal ReceiveAmountInUsd { get; set; }
+    //public decimal ReceiveAmountInUsd { get; set; }
 
-    public required decimal SourceAmount { get; set; }
+    //public required BigInteger SourceAmount { get; set; }
 
-    public required decimal SourceAmountInUsd { get; set; }
+    //public required decimal SourceAmountInUsd { get; set; }
 }

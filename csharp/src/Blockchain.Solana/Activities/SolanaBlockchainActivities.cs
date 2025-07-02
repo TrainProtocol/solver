@@ -48,6 +48,13 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
+        var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
+
+        if (solverAccount is null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Solver account for {request.NetworkName} not found");
+        }
+
         PrepareTransactionResponse result;
 
         switch (request.Type)
@@ -56,16 +63,16 @@ public class SolanaBlockchainActivities(
                 result = await SolanaTransactionBuilder.BuildTransferTransactionAsync(network, request.Args);
                 break;
             case TransactionType.HTLCLock:
-                result = await SolanaTransactionBuilder.BuildHTLCLockTransactionAsync(network, request.Args);
+                result = await SolanaTransactionBuilder.BuildHTLCLockTransactionAsync(network, solverAccount, request.Args);
                 break;
             case TransactionType.HTLCRedeem:
-                result = await SolanaTransactionBuilder.BuildHTLCRedeemTransactionAsync(network, request.Args);
+                result = await SolanaTransactionBuilder.BuildHTLCRedeemTransactionAsync(network, solverAccount, request.Args);
                 break;
             case TransactionType.HTLCRefund:
-                result = await SolanaTransactionBuilder.BuildHTLCRefundTransactionAsync(network, request.Args);
+                result = await SolanaTransactionBuilder.BuildHTLCRefundTransactionAsync(network, solverAccount, request.Args);
                 break;
             case TransactionType.HTLCAddLockSig:
-                result = await SolanaTransactionBuilder.BuildHTLCAddlockSigTransactionAsync(network, request.Args);
+                result = await SolanaTransactionBuilder.BuildHTLCAddlockSigTransactionAsync(network, solverAccount, request.Args);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request.Type), $"Not supported transaction type {request.Type} for network {request.NetworkName}");
@@ -95,7 +102,8 @@ public class SolanaBlockchainActivities(
 
         var privateKeyResult = await privateKeyProvider.GetAsync(request.FromAddress);
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
+        
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node for network: {network.Id} is not configured");
@@ -189,9 +197,9 @@ public class SolanaBlockchainActivities(
             Asset = fee.Asset
         });
 
-        var amount = fee.Amount + request.Amount;
+        var amount = BigInteger.Parse(fee.AmountInWei) + BigInteger.Parse(request.Amount);
 
-        if (balance.Amount < amount)
+        if (BigInteger.Parse(balance.AmountInWei) < amount)
         {
             throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
@@ -209,7 +217,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -263,7 +271,6 @@ public class SolanaBlockchainActivities(
         var balanceResponse = new BalanceResponse
         {
             AmountInWei = balance.ToString(),
-            Amount = Web3.Convert.FromWei(balance, currency.Decimals),
             Decimals = currency.Decimals,
         };
 
@@ -280,7 +287,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var nodes = network.Nodes.Where(x => x.Type == NodeType.Primary || x.Type == NodeType.Secondary).ToList();
+        var nodes = network.Nodes;
 
         if (!nodes.Any())
         {
@@ -336,11 +343,18 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Chain for network: {request.NetworkName} is not configured");
         }
 
-        var node = network!.Nodes.FirstOrDefault(x => x.Type == NodeType.DepositTracking);
+        var node = network!.Nodes.FirstOrDefault();
 
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node for network: {request.NetworkName} is not configured");
+        }
+
+        var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
+
+        if (solverAccount is null)
+        {
+            throw new ArgumentNullException(nameof(network), $"Solver account for {request.NetworkName} not found");
         }
 
         var rpcClient = ClientFactory.GetClient(node.Url);
@@ -359,7 +373,8 @@ public class SolanaBlockchainActivities(
                     rpcClient,
                     currentBlock,
                     network,
-                    currencies);
+                    currencies,
+                    solverAccount);
             }
 
             await Task.WhenAll(blockProcessingTasks.Values);
@@ -386,7 +401,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -428,7 +443,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -504,7 +519,7 @@ public class SolanaBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -584,7 +599,7 @@ public class SolanaBlockchainActivities(
             throw new($"Network {request.NetworkName} not found");
         }
 
-        var node = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -673,7 +688,7 @@ public class SolanaBlockchainActivities(
         Network network,
         string fromAddress)
     {
-        var primaryNode = network.Nodes.FirstOrDefault(x => x.Type == NodeType.Primary);
+        var primaryNode = network.Nodes.FirstOrDefault();
 
         if (primaryNode is null)
         {
@@ -722,12 +737,14 @@ public class SolanaBlockchainActivities(
         var result = new TransactionResponse
         {
             TransactionHash = transactionId,
-            FeeAmount = Web3.Convert.FromWei(transactionReceiptResult.Result.Meta.Fee, feeCurrency.Decimals),
+            FeeAmount = transactionReceiptResult.Result.Meta.Fee.ToString(),
             FeeAsset = feeCurrency.Asset,
+            FeeDecimals = feeCurrency.Decimals,
             Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(transactionReceiptResult.Result.BlockTime * 1000),
             Status = transactionReceiptResult.Result.Meta.Err is null ? TransactionStatus.Completed : TransactionStatus.Failed,
             Confirmations = confirmations,
             NetworkName = network.Name,
+            Decimals = feeCurrency.Decimals,
         };
 
         return result;

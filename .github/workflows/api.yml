@@ -55,7 +55,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: csharp/src/API/Dockerfile
+          file: csharp/src/PublicAPI/Dockerfile
           push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}

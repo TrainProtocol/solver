@@ -3,8 +3,8 @@ using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
 using Train.Solver.Infrastructure.MarketMaker;
+using Train.Solver.Infrastructure.DependencyInjection;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -18,9 +18,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         services
             .AddTrainSolver(hostContext.Configuration)
             .WithOpenTelemetryLogging("Swap Core Runner")
+            .WithCoreServices()
             .WithNpgsqlRepositories()
             .WithCoreWorkflows()
-            .WithHashicorpKeyVault()
             .WithCoingeckoPrices()
             .WithMarketMaker();
     })

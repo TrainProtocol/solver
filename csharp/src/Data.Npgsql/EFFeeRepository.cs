@@ -19,16 +19,16 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
         return await dbContext.ServiceFees.ToListAsync();
     }
 
-    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, decimal feeAmount, TransactionType transactionType)
+    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)
     {
-        var feeToken = await networkRepository.GetTokenAsync(networkName, tokenAsset);
+        var network = await networkRepository.GetAsync(networkName);
 
-        if (feeToken == null)
+        if (network == null)
         {
-            throw new Exception($"Fee token {feeAsset} not found in network {networkName}");
+            throw new Exception($"Network {networkName} not found");
         }
 
-        var token = await networkRepository.GetTokenAsync(networkName, tokenAsset);
+        var token = network.Tokens.FirstOrDefault(x=>x.Asset == tokenAsset);
 
         if (token == null)
         {
@@ -36,38 +36,24 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
         }
 
         var expense = await dbContext.Expenses.FirstOrDefaultAsync(x =>
-                   x.TokenId == token.Id && x.FeeTokenId == feeToken.Id && x.TransactionType == transactionType);
+            x.TokenId == token.Id && x.FeeTokenId == network.NativeTokenId && x.TransactionType == transactionType);
 
         if (expense == null)
         {
             expense = new Expense
             {
                 TokenId = token.Id,
-                FeeTokenId = feeToken.Id,
+                FeeTokenId = network.NativeTokenId!.Value,
                 TransactionType = transactionType
             };
 
             dbContext.Expenses.Add(expense);
         }
 
-        if (expense.LastFeeValues.Length == 0)
-        {
-            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
-        }
-        else
-        {
-            if (feeAmount > expense.LastFeeValues.Average() * 30)
-            {
-                return;
-            }
-
-            expense.LastFeeValues = expense.LastFeeValues.Append(feeAmount).ToArray();
-
-            if (expense.LastFeeValues.Length > 10)
-            {
-                expense.LastFeeValues = expense.LastFeeValues.Skip(expense.LastFeeValues.Length - 10).ToArray();
-            }
-        }
+        expense.LastFeeValues = expense.LastFeeValues
+            .Append(feeAmount)
+            .TakeLast(10)
+            .ToArray();
 
         await dbContext.SaveChangesAsync();
     }
