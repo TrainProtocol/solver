@@ -1,8 +1,8 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Infrastructure.Treasury.Client.Client;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
 
-namespace Train.Solver.Infrastructure.Services;
+namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 
 public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
 {

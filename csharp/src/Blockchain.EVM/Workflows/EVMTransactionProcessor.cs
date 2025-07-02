@@ -3,7 +3,6 @@ using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
-using Train.Solver.Blockchain.Common.Extensions;
 using Train.Solver.Blockchain.EVM.Activities;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
@@ -11,6 +10,7 @@ using Train.Solver.Blockchain.EVM.Models;
 using static Temporalio.Workflows.Workflow;
 using System.Numerics;
 using Train.Solver.Blockchain.Common.Helpers;
+using Train.Solver.Blockchain.Abstractions.Extensions;
 
 namespace Train.Solver.Blockchain.EVM.Workflows;
 

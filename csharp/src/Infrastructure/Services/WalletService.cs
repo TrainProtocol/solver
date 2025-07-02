@@ -1,18 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 
 namespace Train.Solver.Infrastructure.Services;
 
-public class WalletService : IWalletService
+public class WalletService(IPrivateKeyProvider privateKeyProvider, IWalletRepository walletRepository) : IWalletService
 {
-    public Task<string> CreateAsync(CreateWalletRequest request)
+    public async Task<string> CreateAsync(CreateWalletRequest request)
     {
-        throw new NotImplementedException();
+        var publicKey = await privateKeyProvider.GenerateAsync(request.Type);
+
+        var wallet = await walletRepository.CreateAsync(
+            request.Type,
+            publicKey,
+            request.Name);
+
+        if (wallet == null)
+        {
+            throw new InvalidOperationException($"Failed to create wallet for {request.Type}");
+        }
+
+        return wallet.Address;
     }
 
     public Task<IEnumerable<string>> GetAllAsync(NetworkType type)

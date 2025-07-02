@@ -25,9 +25,9 @@ using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Infrastructure.Abstractions;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Blockchain.Common.Helpers;
 using RedLockNet;
 using StackExchange.Redis;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 

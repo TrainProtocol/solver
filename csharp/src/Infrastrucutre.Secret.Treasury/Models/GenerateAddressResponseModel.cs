@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Infrastructure.Treasury.Client.Models;
+﻿namespace Train.Solver.Infrastrucutre.Secret.Treasury.Models;
 public class GenerateAddressResponseModel
 {
     public string Address { get; set; } = null!;

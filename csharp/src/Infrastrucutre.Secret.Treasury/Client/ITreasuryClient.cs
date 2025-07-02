@@ -1,7 +1,7 @@
 ﻿using Refit;
-using Train.Solver.Infrastructure.Treasury.Client.Models;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Models;
 
-namespace Train.Solver.Infrastructure.Treasury.Client.Client;
+namespace Train.Solver.Infrastrucutre.Secret.Treasury.Client;
 
 public interface ITreasuryClient
 {

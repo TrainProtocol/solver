@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Train.Solver.Infrastructure.Treasury.Client.Models;
+namespace Train.Solver.Infrastrucutre.Secret.Treasury.Models;
 
 public class SignTransactionResponseModel
 {

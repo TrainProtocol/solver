@@ -6,11 +6,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastructure.Services;
-using Train.Solver.Infrastructure.Treasury.Client.Client;
-using Train.Solver.Infrastructure.Treasury.Client.Options;
+using Train.Solver.Infrastrucutre.Secret.Treasury;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Options;
 
-namespace Train.Solver.Infrastructure.Treasury.Client.Extensions;
+namespace Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {

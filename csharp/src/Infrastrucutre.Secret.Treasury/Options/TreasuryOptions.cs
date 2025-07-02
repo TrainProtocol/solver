@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Infrastructure.Treasury.Client.Options;
+﻿namespace Train.Solver.Infrastrucutre.Secret.Treasury.Options;
 
 public class TreasuryOptions
 {

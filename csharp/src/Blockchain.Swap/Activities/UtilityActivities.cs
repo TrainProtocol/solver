@@ -2,7 +2,7 @@
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 
-namespace Train.Solver.Blockchain.Common.Activities;
+namespace Train.Solver.Blockchain.Swap.Activities;
 
 
 public class UtilityActivities : IUtilityActivities

@@ -10,6 +10,9 @@ using Train.Solver.PublicAPI.MIddlewares;
 using Train.Solver.Util;
 using Train.Solver.Util.Swagger;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -59,6 +62,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
+    .WithTreasury()
     .WithCoreServices()
     .WithMarketMaker()
     .WithOpenTelemetryLogging("Solver API")
@@ -98,5 +102,14 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
+
+var scope = app.Services.CreateScope();
+var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
+
+var klir = await walletService.CreateAsync(new CreateWalletRequest
+{
+    Type = NetworkType.EVM,
+    Name = "Klir Wallet",
+});
 
 await app.RunAsync();
