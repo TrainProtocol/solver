@@ -7,7 +7,7 @@ import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstracti
 import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Contract, DateTime, Provider } from "fuels";
+import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
 import { NodeType } from "../../../../Data/Entities/Nodes";
 import abi from '../ABIs/ERC20.json';
 
@@ -108,10 +108,14 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
     }
 
     const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
     const provider = new Provider(node.url);
-
     const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+
+    const receiverAddress = { bits: lockRequest.Receiver };
+
+    const b256: B256Address = token.tokenContract;
+    const address: Address = Address.fromB256(b256);
+    const assetId: AssetId = address.toAssetId();
 
     const callConfig = contractInstance.functions
         .lock(
@@ -120,13 +124,13 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
             lockRequest.Reward,
             DateTime.fromUnixSeconds(lockRequest.RewardTimelock).toTai64(),
             DateTime.fromUnixSeconds(lockRequest.Timelock).toTai64(),
-            lockRequest.Receiver,
-            lockRequest.SourceAsset,
-            lockRequest.DestinationNetwork,
-            lockRequest.DestinationAsset,
-            lockRequest.DestinationAddress,
+            receiverAddress,
+            lockRequest.SourceAsset.padEnd(64, ' '),
+            lockRequest.DestinationNetwork.padEnd(64, ' '),
+            lockRequest.DestinationAsset.padEnd(64, ' '),
+            lockRequest.DestinationAddress.padEnd(64, ' '),
         ).callParams({
-            forward: [lockRequest.Amount + lockRequest.Reward, lockRequest.SourceAsset],
+            forward: [Number(formatUnits(lockRequest.Amount + lockRequest.Reward, token.decimals)), assetId.bits],
         })
         .getCallConfig();
 
