@@ -198,7 +198,7 @@ public class RouteService(
 
         var expenseFee = await CalculateExpenseFeeAsync(route);
 
-        if (expenseFee is not null && options.Value.DisableExpenseFee)
+        if (expenseFee is not null && !options.Value.DisableExpenseFee)
         {
             fixedFee += expenseFee.ExpenseFeeInSource;
         }
