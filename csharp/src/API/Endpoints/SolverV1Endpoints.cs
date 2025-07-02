@@ -41,6 +41,9 @@ public static class SolverV1Endpoints
         group.MapGet("/swaps/{commitId}", GetSwapAsync)
             .Produces<ApiResponse<SwapDto>>();
 
+        group.MapGet("/transactions/build", BuildTransationAsync)
+            .Produces<ApiResponse<SwapDto>>();
+
         group.MapPost("/swaps/{commitId}/addLockSig", AddLockSigAsync)
             .Produces<ApiResponse>();
 
@@ -289,5 +292,42 @@ public static class SolverV1Endpoints
         }
 
         return Results.Ok(new ApiResponse<QuoteWithSolverDto> { Data = quote });
+    }
+
+    private static async Task<IResult> BuildTransactionAsync(
+        ITemporalClient temporalClient)
+    {
+        var isValid = await temporalClient
+            .GetWorkflowHandle<ITransactionBuilderWorkflow>(commitId)
+            .ExecuteUpdateAsync((x) => x.SetAddLockSigAsync(
+                new AddLockSignatureRequest
+                {
+                    Asset = swap.SourceToken.Asset,
+                    Hashlock = swap.Hashlock,
+                    Id = swap.Id,
+                    SignerAddress = swap.SourceAddress,
+                    Signature = addLockSignature.Signature,
+                    SignatureArray = addLockSignature.SignatureArray,
+                    Timelock = addLockSignature.Timelock,
+                    V = addLockSignature.V,
+                    R = addLockSignature.R,
+                    S = addLockSignature.S,
+                    NetworkName = swap.SourceToken.Network.Name,
+                }));
+
+
+        if (swap is null)
+        {
+            return Results.NotFound(new ApiResponse()
+            {
+                Error = new ApiError()
+                {
+                    Code = "SWAP_NOT_FOUND",
+                    Message = "Swap not found",
+                }
+            });
+        }
+
+        return Results.Ok(new ApiResponse<SwapDto> { Data = swap.ToDto() });
     }
 }
