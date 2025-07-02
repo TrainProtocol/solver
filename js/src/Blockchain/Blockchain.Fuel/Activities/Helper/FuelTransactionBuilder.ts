@@ -6,6 +6,7 @@ import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abs
 import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
 import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
+import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
 import { NodeType } from "../../../../Data/Entities/Nodes";
@@ -37,6 +38,49 @@ export async function CreateRefundCallData(network: Networks, args: string): Pro
 
     const callConfig = contractInstance.functions
         .refund(refundRequest.Id)
+        .getCallConfig();
+
+    return {
+        Data: JSON.stringify(callConfig),
+        Amount: 0,
+        AmountInWei: "0",
+        Asset: nativeToken.asset,
+        CallDataAsset: token.asset,
+        CallDataAmountInWei: "0",
+        CallDataAmount: 0,
+        ToAddress: htlcContractAddress.address,
+    };
+}
+
+export async function CreateCommitCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+    const commitRequest = decodeJson<HTLCCommitTransactionPrepareRequest>(args);
+
+    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+
+    const token = network.tokens.find(t => t.asset === commitRequest.SourceAsset);
+    if (!token) {
+        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.SourceAsset}`);
+    }
+
+    const nativeToken = network.tokens.find(t => t.isNative === true);
+    if (!nativeToken) {
+        throw new Error(`Native token not found for network ${network.name}`);
+    }
+
+    const node = network.nodes.find(n => n.type === NodeType.Primary);
+    if (!node) {
+        throw new Error(`Primary node not found for network ${network.name}`);
+    }
+
+    const provider = new Provider(node.url);
+    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const commitId = generateUint256Hex().toString()
+
+    const callConfig = contractInstance.functions
+        .commit(commitRequest.HopChains, commitRequest.HopAssets, commitRequest.HopAddresses, commitRequest.DestinationChain, commitRequest.DestinationAddress, commitRequest.SourceAsset, commitId, commitRequest.Receiever, commitRequest.Timelock)
+        .callParams({
+            forward: [Number(formatUnits(commitRequest.Amount, token.decimals)), await provider.getBaseAssetId()]
+        })
         .getCallConfig();
 
     return {
@@ -189,4 +233,14 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
         CallDataAmount: 0,
         ToAddress: htlcContractAddress.address,
     };
+}
+
+export function generateUint256Hex() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    // turn into a 64-char hex string
+    const hex = Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    return '0x' + hex;
 }
