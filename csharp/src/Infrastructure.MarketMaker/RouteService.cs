@@ -3,10 +3,10 @@ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
-using Train.Solver.Util.Shared.Options;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
@@ -15,7 +15,7 @@ public class RouteService(
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRateService rateService,
-    IOptions<ExpenseFeeOptions> options) : IRouteService
+    IOptions<TrainSolverOptions> options) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
