@@ -1,7 +1,7 @@
 ﻿using Train.Solver.Blockchain.EVM.Extensions;
 using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Infrastructure.Treasury.Client.Extensions;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>

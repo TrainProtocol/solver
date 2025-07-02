@@ -2,9 +2,7 @@ using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
-using Train.Solver.Blockchain.Common.Activities;
 using Train.Solver.Blockchain.Common.Helpers;
-using Train.Solver.Blockchain.Swap.Activities;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Blockchain.Swap.Workflows;
