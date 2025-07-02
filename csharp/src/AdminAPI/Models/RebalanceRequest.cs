@@ -10,7 +10,5 @@ public class RebalanceRequest
 
     public decimal Amount { get; set; }
 
-    public AccountType From { get; set; }
-
-    public AccountType To { get; set; }
+    public string To { get; set; } = null!;
 }

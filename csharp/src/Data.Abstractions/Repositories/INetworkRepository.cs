@@ -6,17 +6,39 @@ public interface INetworkRepository
 {
     Task<Network?> GetAsync(string networkName);
 
-    Task<List<Network>> GetAllAsync();
+    Task<IEnumerable<Network>> GetAllAsync();
+
+    Task<Network?> CreateAsync(
+        string networkName,
+        string displayName,
+        NetworkType type,
+        TransactionFeeType feeType,
+        string chainId,
+        int feePercentageIncrease,
+        string htlcNativeContractAddress,
+        string htlcTokenContractAddress);
+
+    Task<Node?> CreateNodeAsync(
+        string networkName,
+        string url);
+
+    Task<Token?> CreateTokenAsync(
+       string networkName,
+       string symbol,
+       string? contract,
+       int decimals);
+
+    Task<Token?> CreateNativeTokenAsync(
+        string networkName,
+        string symbol,
+        int decimals);
+
+    Task DeleteTokenAsync(string networkName, string symbol);
 
     Task<Token?> GetTokenAsync(string networkName, string asset);
 
+
     Task<List<Token>> GetTokensAsync();
-
-    Task<List<Token>> GetTokensAsync(int[] ids);
-
-    Task<Dictionary<string, Token>> GetNativeTokensAsync(string[] networkNames);
-
-    Task<Dictionary<string, string>> GetSolverAccountsAsync(string[] networkNames);
 
     Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices);
 }

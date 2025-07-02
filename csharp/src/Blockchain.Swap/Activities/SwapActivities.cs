@@ -15,6 +15,7 @@ namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,
+    IWalletRepository walletRepository,
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRouteService routeService) : ISwapActivities
@@ -22,8 +23,8 @@ public class SwapActivities(
     [Activity]
     public virtual async Task<string> CreateSwapAsync(
         HTLCCommitEventMessage commitEventMessage,
-        decimal outputAmount,
-        decimal feeAmount,
+        string outputAmount,
+        string feeAmount,
         string hashlock)
     {
         var swap = await swapRepository.CreateAsync(
@@ -32,7 +33,7 @@ public class SwapActivities(
             commitEventMessage.DestinationAddress,
             commitEventMessage.SourceNetwork,
             commitEventMessage.SourceAsset,
-            commitEventMessage.Amount,
+            commitEventMessage.AmountInWei,
             commitEventMessage.DestinationNetwork,
             commitEventMessage.DestinationAsset,
             outputAmount,
@@ -43,9 +44,17 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<Dictionary<string, string>> GetSolverAddressesAsync(params string[] networkNames)
+    public virtual async Task<string> GetSolverAddressAsync(NetworkType type)
     {
-        return await networkRepository.GetSolverAccountsAsync(networkNames);
+
+        var wallet = await walletRepository.GetDefaultAsync(type);
+
+        if (wallet == null)
+        {
+            throw new ArgumentNullException(nameof(wallet));
+        }
+
+        return wallet.Address;
     }
 
     [Activity]
@@ -109,7 +118,7 @@ public class SwapActivities(
     public virtual async Task UpdateExpensesAsync(
         string networkName,
         string feeAsset,
-        decimal currentFee,
+        string currentFee,
         string callDataAsset,
         TransactionType callDataType)
     {

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Flurl;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Contracts;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
@@ -17,40 +19,19 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
     public async Task<Network?> GetAsync(string networkName)
     {
         return await dbContext.Networks
-            .Include(x => x.Contracts)
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
-            .Include(x => x.ManagedAccounts)
             .Include(x => x.Nodes)
             .FirstOrDefaultAsync(x => x.Name == networkName);
     }
 
-    public async Task<List<Network>> GetAllAsync()
+    public async Task<IEnumerable<Network>> GetAllAsync()
     {
         return await dbContext.Networks
-            .Include(x => x.Contracts)
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
-            .Include(x => x.ManagedAccounts)
             .Include(x => x.Nodes)
             .ToListAsync();
-    }
-
-    public async Task<Dictionary<string, Token>> GetNativeTokensAsync(string[] networkNames)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .Where(x => x.IsNative && networkNames.Contains(x.Network.Name))
-            .ToDictionaryAsync(x => x.Network.Name);
-    }
-
-    public async Task<Dictionary<string, string>> GetSolverAccountsAsync(string[] networkNames)
-    {
-        return await dbContext.ManagedAccounts
-            .Include(x => x.Network)
-            .Where(x => networkNames.Contains(x.Network.Name) && x.Type == AccountType.Primary)
-            .ToDictionaryAsync(x => x.Network.Name, y => y.Address);
     }
 
     public async Task<List<Token>> GetTokensAsync()
@@ -58,18 +39,6 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         return await dbContext.Tokens
             .Include(x => x.Network)
             .Include(x => x.TokenPrice)
-            .ToListAsync();
-    }
-
-    public Task<List<Token>> GetTokensAsync(int[] ids)
-    {
-        return dbContext.Tokens
-            .Include(x => x.Network.ManagedAccounts)
-            .Include(x => x.Network.Nodes)
-            //.Include(x => x.Network.NativeToken)
-            .Include(x => x.Network.Contracts)
-            .Include(x => x.TokenPrice)
-            .Where(x => ids.Contains(x.Id))
             .ToListAsync();
     }
 
@@ -90,6 +59,113 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         }
 
         await dbContext.SaveChangesAsync();
-        return;
+    }
+
+    public async Task<Network?> CreateAsync(string networkName, string displayName, NetworkType type, TransactionFeeType feeType, string chainId, int feePercentageIncrease, string htlcNativeContractAddress, string htlcTokenContractAddress)
+    {
+        var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
+
+        if (networkExists)
+        {
+            return null;
+        }
+
+        var network = new Network
+        {
+            Name = networkName,
+            ChainId = chainId,
+            DisplayName = displayName,
+            FeePercentageIncrease = feePercentageIncrease,
+            FeeType = feeType,
+            HTLCNativeContractAddress = htlcNativeContractAddress,
+            HTLCTokenContractAddress = htlcTokenContractAddress,
+            Type = type,
+        };
+
+        dbContext.Networks.Add(network);
+        await dbContext.SaveChangesAsync();
+
+        return network;
+    }
+
+    public async Task<Node?> CreateNodeAsync(string networkName, string url)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        var node = new Node { Url = url };
+        network.Nodes.Add(node);
+        await dbContext.SaveChangesAsync();
+
+        return node;
+    }
+
+    public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        if (network.Tokens.Any(x => x.Asset == symbol && x.TokenContract == contract))
+        {
+            return null;
+        }
+
+        var token = new Token
+        {
+            Asset = symbol,
+            Decimals = decimals,
+            TokenContract = contract,
+        };
+
+        network.Tokens.Add(token);
+        await dbContext.SaveChangesAsync();
+
+        return token;
+    }
+
+    public async Task<Token?> CreateNativeTokenAsync(string networkName, string symbol, int decimals)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            return null;
+        }
+
+        if (network.NativeTokenId != null)
+        {
+            return null;
+        }
+
+        var token = new Token
+        {
+            Asset = symbol,
+            Decimals = decimals,
+            NetworkId = network.Id,
+        };
+
+        network.NativeToken = token;
+        await dbContext.SaveChangesAsync();
+
+        return token;
+    }
+
+    public async Task DeleteTokenAsync(string networkName, string symbol)
+    {
+        var tokenToDelete = await GetTokenAsync(networkName, symbol);
+
+        if (tokenToDelete != null)
+        {
+            dbContext.Tokens.Remove(tokenToDelete);
+            await dbContext.SaveChangesAsync();
+        }
     }
 }

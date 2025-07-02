@@ -6,10 +6,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nethereum.Util" Version="4.29.0" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
 	</ItemGroup>
 </Project>

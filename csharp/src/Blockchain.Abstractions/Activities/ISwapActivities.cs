@@ -7,7 +7,7 @@ namespace Train.Solver.Blockchain.Abstractions.Activities;
 public interface ISwapActivities
 {
     [Activity]
-    Task<string> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, decimal outputAmount, decimal feeAmount, string hashlock);
+    Task<string> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
 
     [Activity]
     Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction);
@@ -25,8 +25,8 @@ public interface ISwapActivities
     Task<QuoteDto> GetQuoteAsync(QuoteRequest request);
 
     [Activity]
-    Task<Dictionary<string, string>> GetSolverAddressesAsync(params string[] networkNames);
+    Task<string> GetSolverAddressAsync(NetworkType type);
 
     [Activity]
-    Task UpdateExpensesAsync(string networkName, string feeAsset, decimal currentFee, string callDataAsset, TransactionType callDataType);
+    Task UpdateExpensesAsync(string networkName, string feeAsset, string currentFee, string callDataAsset, TransactionType callDataType);
 }

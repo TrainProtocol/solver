@@ -8,9 +8,7 @@ namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class QuoteWithSolverDto : QuoteDto
 {
-    public string SolverAddressInSource { get; set; } = null!;
+    public string SolverAddress { get; set; } = null!;
 
-    public string NativeContractAddressInSource { get; set; } = null!;
-
-    public string TokenContractAddressInSource { get; set; } = null!;
+    public string ContractAddress { get; set; } = null!;
 }

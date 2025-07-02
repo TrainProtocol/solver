@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Entities.Base;
 using Train.Solver.Data.Npgsql.Extensions;
@@ -17,7 +19,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<TokenGroup> TokenGroups { get; set; }
 
-    public DbSet<ManagedAccount> ManagedAccounts { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
 
@@ -28,8 +30,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
     public DbSet<ServiceFee> ServiceFees { get; set; }
 
     public DbSet<Expense> Expenses { get; set; }
-
-    public DbSet<Contract> Contracts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,24 +68,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .Property(b => b.Type)
             .HasEnumComment();
 
-        modelBuilder.Entity<Contract>()
-            .Property(b => b.Type)
-            .HasEnumComment();
-
-        modelBuilder.Entity<Node>()
-            .Property(b => b.Type)
-            .HasEnumComment();
-
-        modelBuilder.Entity<Node>()
-            .HasIndex(x => new { x.Type, x.NetworkId })
-            .IsUnique();
-
-        modelBuilder.Entity<ManagedAccount>()
-            .HasIndex(x => x.Address);
-
-        modelBuilder.Entity<ManagedAccount>()
-            .Property(b => b.Type)
-            .HasEnumComment();
+        modelBuilder.Entity<Wallet>()
+            .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<Route>()
             .Property(b => b.Status)
@@ -118,7 +102,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
            .IsUnique();
 
         modelBuilder.Entity<Token>()
-           .HasIndex(x => x.Asset);       
+           .HasIndex(x => x.Asset);
 
         modelBuilder.Entity<Swap>()
             .HasIndex(x => x.SourceAddress);
@@ -166,8 +150,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         var entitiesAssambly = typeof(EntityBase<>).Assembly;
 
         var entities = entitiesAssambly.GetTypes()
-            .Where(x => 
-                x.BaseType is { IsGenericType: true } 
+            .Where(x =>
+                x.BaseType is { IsGenericType: true }
                 && x.BaseType.GetGenericTypeDefinition() == typeof(EntityBase<>)
                 && !x.IsAbstract);
 

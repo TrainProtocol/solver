@@ -18,12 +18,10 @@ public static class EventDecoder
     public static async Task<HTLCBlockEventResponse> GetBlockEventsAsync(
         IRpcClient rpcClient,
         int block,
-        Network network,
-        List<Token> currencies)
+        Network network,        
+        List<Token> currencies,
+        string solverAccount)
     {
-        var solverAccount = network.ManagedAccounts
-            .Single(x => x.Type == AccountType.Primary);
-
         var blockResponseResult = await rpcClient.GetParsedEventBlockAsync(block);
 
         if (blockResponseResult is null)
@@ -35,8 +33,7 @@ public static class EventDecoder
 
         if (blockResponseResult.Result != null && blockResponseResult.Result.Transactions.Any())
         {
-            var htlcTokenContractAddress = network.Contracts
-                .First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+            var htlcTokenContractAddress = network.HTLCTokenContractAddress;
 
             var trackedBlockEvents = blockResponseResult.Result.Transactions
                 .Where(transaction => transaction.Transaction.Message.Instructions
@@ -65,14 +62,15 @@ public static class EventDecoder
                     var commitEvent = await DeserializeCommitEventDataAsync(
                         rpcClient,
                         id,
-                        network);
+                        network,
+                        solverAccount);
 
                     if (commitEvent == null)
                     {
                         continue;
                     }
 
-                    if (commitEvent.ReceiverAddress != solverAccount.Address)
+                    if (commitEvent.ReceiverAddress != solverAccount)
                     {
                         continue;
                     }
@@ -98,10 +96,8 @@ public static class EventDecoder
                     {
                         TxId = transaction.Transaction.Signatures.First(),
                         Id = commitEvent.Id,
-                        Amount = Web3.Convert.FromWei(BigInteger.Parse(commitEvent.AmountInWei),
-                            sourceCurrency.Decimals),
                         AmountInWei = commitEvent.AmountInWei,
-                        ReceiverAddress = solverAccount.Address,
+                        ReceiverAddress = solverAccount,
                         SourceNetwork = network.Name,
                         SourceAsset = commitEvent.SourceAsset,
                         DestinationAddress = commitEvent.DestinationAddress,
@@ -130,7 +126,8 @@ public static class EventDecoder
                     var addLockMessageResult = await DeserializeAddLockEventDataAsync(
                         rpcClient,
                         id,
-                        network);
+                        network,
+                        solverAccount);
 
                     if (addLockMessageResult == null)
                     {
@@ -150,11 +147,9 @@ public static class EventDecoder
     private static async Task<SolanaHTLCCommitEventModel> DeserializeCommitEventDataAsync(
         IRpcClient rpcClient,
         string commitId,
-        Network network)
+        Network network,
+        string solverAccount)
     {
-        var solverAccount = network.ManagedAccounts
-            .FirstOrDefault(x => x.Type == AccountType.Primary);
-
         if (solverAccount is null)
         {
             throw new ArgumentNullException(nameof(solverAccount),
@@ -162,12 +157,10 @@ public static class EventDecoder
         }
 
         var builder = new TransactionBuilder()
-            .SetFeePayer(new PublicKey(solverAccount!.Address));
-
-        var htlcContractAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+            .SetFeePayer(new PublicKey(solverAccount));
 
         builder.SetGetDetailsInstruction(
-            new PublicKey(htlcContractAddress),
+            new PublicKey(network.HTLCTokenContractAddress),
             commitId.HexToByteArray());
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -207,13 +200,11 @@ public static class EventDecoder
     private static async Task<HTLCLockEventMessage?> DeserializeAddLockEventDataAsync(
         IRpcClient rpcClient,
         string id,
-        Network network)
+        Network network,
+        string solverAccount)
     {
         try
         {
-            var solverAccount = network.ManagedAccounts
-                .FirstOrDefault(x => x.Type == AccountType.Primary);
-
             if (solverAccount is null)
             {
                 throw new ArgumentNullException(nameof(solverAccount),
@@ -221,9 +212,9 @@ public static class EventDecoder
             }
 
             var builder = new TransactionBuilder()
-                .SetFeePayer(new PublicKey(solverAccount!.Address));
+                .SetFeePayer(new PublicKey(solverAccount));
 
-            var htlcContractAddress = network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+            var htlcContractAddress = network.HTLCTokenContractAddress;
 
             builder.SetGetDetailsInstruction(
                 new PublicKey(htlcContractAddress),

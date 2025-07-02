@@ -1,4 +1,5 @@
-﻿using Train.Solver.Data.Abstractions.Entities.Base;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities.Base;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
@@ -12,21 +13,21 @@ public class Swap : EntityBase<string>
 
     public Token DestinationToken { get; set; } = null!;
 
-    public decimal SourceTokenPrice { get; set; }
+    //public decimal SourceTokenPrice { get; set; }
 
-    public decimal DestinationTokenPrice { get; set; }
+    //public decimal DestinationTokenPrice { get; set; }
 
     public string SourceAddress { get; set; } = null!;
 
     public string DestinationAddress { get; set; } = null!;
 
-    public decimal SourceAmount { get; set; }
-
     public string Hashlock { get; set; } = null!;
 
-    public decimal DestinationAmount { get; set; }
+    public string SourceAmount { get; set; } = null!;
 
-    public decimal FeeAmount { get; set; }
+    public string DestinationAmount { get; set; } = null!;
+
+    public string FeeAmount { get; set; } = null!;
 
     public virtual List<Transaction> Transactions { get; set; } = [];
 }

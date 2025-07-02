@@ -10,7 +10,7 @@ public interface IWorkflowActivities
     Task<List<string>> GetRunningWorkflowIdsAsync(string workflowType);
 
     [Activity]
-    Task RunEventListeningWorkflowAsync(string networkName, NetworkType networkType, uint blockBatchSize, int waitInterval);
+    Task RunEventListeningWorkflowAsync(string networkName, uint blockBatchSize, int waitInterval);
 
     [Activity]
     Task StartRefundWorkflowAsync(string swapId);

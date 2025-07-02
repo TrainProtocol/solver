@@ -18,7 +18,10 @@ namespace Train.Solver.Blockchain.Solana.Helpers;
 
 public static class SolanaTransactionBuilder
 {
-    public static async Task<PrepareTransactionResponse> BuildHTLCLockTransactionAsync(Network network, string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCLockTransactionAsync(
+        Network network,
+        string solverAccount,
+        string args)
     {
         var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
 
@@ -35,42 +38,29 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.SourceAsset} for {network.Name} is missing");
         }
 
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
-
-        if (managedAccount == null)
-        {
-            throw new ArgumentNullException(nameof(managedAccount), $"Managed address for {network.Name} is not setup");
-        }
-
-        var nativeCurrency = network.Tokens.FirstOrDefault(x => x.IsNative);
-
-        if (nativeCurrency == null)
-        {
-            throw new ArgumentNullException(nameof(nativeCurrency), $"Native currency for {network.Name} is not setup");
-        }
-
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var isNative = currency.Id == network.NativeTokenId;
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
         }
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
-            .SetFeePayer(new PublicKey(managedAccount.Address));
+            .SetFeePayer(new PublicKey(solverAccount));
 
         await GetOrCreateAssociatedTokenAccount(
             rpcClient,
             builder,
             currency,
-            new PublicKey(managedAccount.Address),
-            new PublicKey(managedAccount.Address));
+            new PublicKey(solverAccount),
+            new PublicKey(solverAccount));
 
         builder.SetLockTransactionInstruction(
             new PublicKey(htlcContractAddress),
@@ -78,16 +68,16 @@ public static class SolanaTransactionBuilder
             {
                 Hashlock = request.Hashlock.HexToByteArray(),
                 Id = request.Id.HexToByteArray(),
-                SignerPublicKey = new PublicKey(managedAccount.Address),
+                SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.Receiver),
-                Amount = Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                Amount = BigInteger.Parse(request.Amount),
                 Timelock = new BigInteger(request.Timelock),
                 SourceAsset = currency.Asset,
                 DestinationNetwork = request.DestinationNetwork,
                 SourceAddress = request.DestinationAddress,
                 DestinationAsset = request.DestinationAsset,
                 SourceTokenPublicKey = new PublicKey(currency.TokenContract),
-                Reward = Web3.Convert.ToWei(request.Reward, currency.Decimals),
+                Reward = BigInteger.Parse(request.Reward),
                 RewardTimelock = new BigInteger(request.RewardTimelock),
             });
 
@@ -105,24 +95,24 @@ public static class SolanaTransactionBuilder
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Amount = 0,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             AmountInWei = "0",
-            CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString(),
-            CallDataAmount = request.Amount,
+            CallDataAmountInWei = request.Amount,
             CallDataAsset = currency.Asset,
         };
 
-        if (nativeCurrency.Id == currency.Id)
+        if (isNative)
         {
-            response.Amount = request.Amount;
-            response.AmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+            response.AmountInWei = request.Amount;
         }
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCRedeemTransactionAsync(Network network, string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCRedeemTransactionAsync(
+        Network network,
+        string solverAccount,
+        string args)
     {
         var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
 
@@ -140,14 +130,7 @@ public static class SolanaTransactionBuilder
         {
             throw new ArgumentNullException(nameof(request.SenderAddress), "Sender address is required");
         }
-
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
-
-        if (managedAccount == null)
-        {
-            throw new ArgumentNullException(nameof(managedAccount), $"Managed address for {network.Name} is not setup");
-        }
-
+       
         var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
@@ -156,35 +139,29 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var nativeCurrency = network.Tokens.FirstOrDefault(x => x.TokenContract is null);
-
-        if (nativeCurrency == null)
-        {
-            throw new ArgumentNullException(nameof(nativeCurrency), $"Native currency for {network.Name} is not setup");
-        }
-
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var isNative = currency.Id == network.NativeTokenId;
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
         }
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
-            .SetFeePayer(new PublicKey(managedAccount.Address));
+            .SetFeePayer(new PublicKey(solverAccount));
 
         await GetOrCreateAssociatedTokenAccount(
             rpcClient,
             builder,
             currency,
             new PublicKey(request.DestinationAddress),
-            new PublicKey(managedAccount.Address));
+            new PublicKey(solverAccount));
 
         builder.SetRedeemTransactionInstruction(
             new PublicKey(htlcContractAddress),
@@ -193,10 +170,10 @@ public static class SolanaTransactionBuilder
                 Id = request.Id.HexToByteArray(),
                 Secret = BigInteger.Parse(request.Secret).ToHexBigInteger().HexValue.HexToByteArray(),
                 SourceTokenPublicKey = new PublicKey(currency.TokenContract),
-                SignerPublicKey = new PublicKey(managedAccount.Address),
+                SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress),
                 SenderPublicKey = new PublicKey(request.SenderAddress),
-                RewardPublicKey = request.DestinationAddress == managedAccount.Address?
+                RewardPublicKey = request.DestinationAddress == solverAccount?
                     new PublicKey(request.DestinationAddress) :
                     new PublicKey(request.SenderAddress),
             });
@@ -215,18 +192,19 @@ public static class SolanaTransactionBuilder
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Amount = 0,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             AmountInWei = "0",
             CallDataAsset = currency.Asset,
             CallDataAmountInWei = "0",
-            CallDataAmount = 0,
         };
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(Network network, string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(
+        Network network,
+        string solverAccount,
+        string args)
     {
         var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
 
@@ -240,13 +218,6 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.DestinationAddress), "Receiver address is required");
         }
 
-        var managedAddress = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
-
-        if (managedAddress == null)
-        {
-            throw new ArgumentNullException(nameof(managedAddress), $"Managed address for {network.Name} is not setup");
-        }
-
         var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
@@ -254,35 +225,29 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(currency), "Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var nativeCurrency = network.Tokens.FirstOrDefault(x => x.TokenContract is null);
-
-        if (nativeCurrency == null)
-        {
-            throw new ArgumentNullException(nameof(nativeCurrency), $"Native currency for {network.Name} is not setup");
-        }
-
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var isNative = currency.Id == network.NativeTokenId;
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
         }
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
-            .SetFeePayer(new PublicKey(managedAddress.Address));
+            .SetFeePayer(new PublicKey(solverAccount));
 
         await GetOrCreateAssociatedTokenAccount(
             rpcClient,
             builder,
             currency,
             new PublicKey(request.DestinationAddress),
-            new PublicKey(managedAddress.Address));
+            new PublicKey(solverAccount));
 
         builder.SetRefundTransactionInstruction(
             new PublicKey(htlcContractAddress),
@@ -290,7 +255,7 @@ public static class SolanaTransactionBuilder
             {
                 Id = request.Id.HexToByteArray(),
                 SourceTokenPublicKey = new PublicKey(currency.TokenContract),
-                SignerPublicKey = new PublicKey(managedAddress.Address),
+                SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress)
             });
 
@@ -308,12 +273,10 @@ public static class SolanaTransactionBuilder
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Amount = 0,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             AmountInWei = "0",
             CallDataAsset = currency.Asset,
             CallDataAmountInWei = "0",
-            CallDataAmount = 0,
         };
 
         return response;
@@ -329,7 +292,7 @@ public static class SolanaTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
@@ -383,10 +346,8 @@ public static class SolanaTransactionBuilder
         {
             Data = serializedTx,
             ToAddress = request.ToAddress,
-            Amount = request.Amount,
             Asset = request.Asset,
             AmountInWei = amountInBaseUnits.ToString(),
-            CallDataAmount = request.Amount,
             CallDataAmountInWei = amountInBaseUnits.ToString(),
             CallDataAsset = currency.Asset,
         };
@@ -394,7 +355,10 @@ public static class SolanaTransactionBuilder
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCAddlockSigTransactionAsync(Network network, string args)
+    public static async Task<PrepareTransactionResponse> BuildHTLCAddlockSigTransactionAsync(
+        Network network,
+        string solverAccount,
+        string args)
     {
         var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
 
@@ -413,13 +377,6 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.SignerAddress), "Sender address is required");
         }
 
-        var managedAccount = network.ManagedAccounts.FirstOrDefault(x => x.Type == AccountType.Primary);
-
-        if (managedAccount == null)
-        {
-            throw new ArgumentNullException(nameof(managedAccount), $"Managed address for {network.Name} is not setup");
-        }
-
         var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
@@ -428,28 +385,22 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var nativeCurrency = network.Tokens.FirstOrDefault(x => x.TokenContract is null);
-
-        if (nativeCurrency == null)
-        {
-            throw new ArgumentNullException(nameof(nativeCurrency), $"Native currency for {network.Name} is not setup");
-        }
-
-        var node = network.Nodes.SingleOrDefault(x => x.Type == NodeType.Primary);
+        var isNative = currency.Id == network.NativeTokenId;
+        var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
         }
 
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
-            .SetFeePayer(new PublicKey(managedAccount.Address));
+            .SetFeePayer(new PublicKey(solverAccount));
 
         builder.SetAddLockSigInstruction(
             new PublicKey(htlcContractAddress),
@@ -463,7 +414,7 @@ public static class SolanaTransactionBuilder
                     SignerPublicKey = new PublicKey(request.SignerAddress),
                 },
                 Signature = Convert.FromBase64String(request.Signature!),
-                SenderPublicKey = new PublicKey(managedAccount.Address),
+                SenderPublicKey = new PublicKey(solverAccount),
             });
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -480,12 +431,10 @@ public static class SolanaTransactionBuilder
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Amount = 0,
-            Asset = nativeCurrency.Asset,
+            Asset = network.NativeToken.Asset,
             AmountInWei = "0",
             CallDataAsset = currency.Asset,
             CallDataAmountInWei = "0",
-            CallDataAmount = 0,
         };
 
         return response;

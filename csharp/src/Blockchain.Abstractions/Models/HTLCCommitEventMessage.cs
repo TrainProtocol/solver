@@ -8,7 +8,7 @@ public class HTLCCommitEventMessage
 
     public required string Id { get; set; } = null!;
 
-    public required decimal Amount { get; set; }
+    //public required decimal Amount { get; set; }
 
     public required string AmountInWei { get; set; } = null!;
 
@@ -28,7 +28,7 @@ public class HTLCCommitEventMessage
 
     public required long TimeLock { get; set; }
 
-    public required NetworkType DestinationNetworkType { get; set; }
+    //public required NetworkType DestinationNetworkType { get; set; }
 
-    public required NetworkType SourceNetworkType { get; set; }
+    //public required NetworkType SourceNetworkType { get; set; }
 }

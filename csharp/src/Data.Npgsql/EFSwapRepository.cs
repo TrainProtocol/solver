@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 
@@ -6,7 +7,18 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFSwapRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : ISwapRepository
 {
-    public async Task<Swap> CreateAsync(string id, string senderAddress, string destinationAddress, string sourceNetworkName, string sourceAsset, decimal sourceAmount, string destinationNetworkName, string destinationAsset, decimal destinationAmount, string hashlock, decimal feeAmount)
+    public async Task<Swap> CreateAsync(
+        string id, 
+        string senderAddress,
+        string destinationAddress,
+        string sourceNetworkName, 
+        string sourceAsset,
+        string sourceAmount, 
+        string destinationNetworkName, 
+        string destinationAsset,
+        string destinationAmount, 
+        string hashlock,
+        string feeAmount)
     {
 
         var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceAsset);
@@ -25,9 +37,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             SourceAddress = senderAddress,
             DestinationAddress = destinationAddress,
             SourceAmount = sourceAmount,
-            SourceTokenPrice = sourceToken.TokenPrice.PriceInUsd,
             DestinationAmount = destinationAmount,
-            DestinationTokenPrice = destinationToken.TokenPrice.PriceInUsd,
             Hashlock = hashlock,
             FeeAmount = feeAmount,
         };
@@ -80,46 +90,31 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             .ToListAsync();
     }
 
-    public async Task<Transaction> InitiateSwapTransactionAsync(string networkName, string swapId, TransactionType transactionType)
-    {
-        var transaction = new Transaction
-        {
-            SwapId = swapId,
-            NetworkName = networkName,
-            Type = transactionType,
-            Status = TransactionStatus.Initiated,
-        };
-
-        dbContext.Transactions.Add(transaction);
-        await dbContext.SaveChangesAsync();
-
-        return transaction;
-    }
-
     public async Task<Guid> CreateSwapTransactionAsync(
         string networkName,
         string swapId,
         TransactionType transactionType,
         string transactionHash,
         string asset,
-        decimal amount,
+        string amount,
         int confirmations,
         DateTimeOffset timestamp,
         string feeAsset,
-        decimal feeAmount)
+        string feeAmount)
     {
-        var token = await networkRepository.GetTokenAsync(networkName, asset);
+        var network = await networkRepository.GetAsync(networkName);
        
+        if (network == null)
+        {
+            throw new($"Network {networkName} not found.");
+        }
+
+        var token = network.Tokens.FirstOrDefault(x=>x.Asset == asset);
+       
+
         if (token == null)
         {
             throw new($"Token with asset {asset} not found.");
-        }
-
-        var feeToken = await networkRepository.GetTokenAsync(networkName, feeAsset);
-
-        if (feeToken == null)
-        {
-            throw new($"Token with asset {feeAsset} not found.");
         }
 
         var transaction = new Transaction
@@ -129,10 +124,10 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             Confirmations = confirmations,
             Timestamp = timestamp,
             FeeAmount = feeAmount,
-            FeeAsset = feeToken.Asset,
+            FeeAsset = network.NativeToken!.Asset,
             Amount = amount,
             Asset = token.Asset,
-            FeeUsdPrice = feeToken.TokenPrice.PriceInUsd,
+            FeeUsdPrice = network.NativeToken.TokenPrice.PriceInUsd,
             NetworkName = networkName,
             SwapId = swapId,
             Type = transactionType,

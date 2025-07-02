@@ -7,6 +7,12 @@ using Train.Solver.Infrastructure.MarketMaker;
 using Train.Solver.Util.Extensions;
 using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
+using Train.Solver.Util;
+using Train.Solver.Util.Swagger;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -34,26 +40,30 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("latest", new() { Title = "Train Solver Latest API", Version = "latest" });
     c.SwaggerDoc("v1", new() { Title = "Train Solver API v1", Version = "v1" });
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
+    c.SchemaFilter<BigIntegerSchemaFilter>();
 });
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
+    .WithTreasury()
+    .WithCoreServices()
     .WithMarketMaker()
     .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
@@ -78,12 +88,6 @@ app.MapGroup("/api")
     .WithTags("System")
     .Produces(StatusCodes.Status200OK);
 
-app.MapGroup("/api")
-   .MapV1Endpoints()
-   .RequireRateLimiting("Fixed")
-   .WithGroupName("latest")
-   .WithTags("Endpoints");
-
 app.MapGroup("/api/v1")
    .MapV1Endpoints()
    .RequireRateLimiting("Fixed")
@@ -93,11 +97,19 @@ app.MapGroup("/api/v1")
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/latest/swagger.json", "Train Solver Latest API");
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver API v1");
     c.DisplayRequestDuration();
 });
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
+
+var scope = app.Services.CreateScope();
+var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
+
+var klir = await walletService.CreateAsync(new CreateWalletRequest
+{
+    Type = NetworkType.EVM,
+    Name = "Klir Wallet",
+});
 
 await app.RunAsync();

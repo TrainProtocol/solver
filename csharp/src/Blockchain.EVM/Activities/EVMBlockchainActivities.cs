@@ -11,9 +11,7 @@ using Nethereum.Signer.EIP712;
 using Nethereum.Util;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using RedLockNet;
-using StackExchange.Redis;
-using static Train.Solver.Blockchain.Common.Helpers.ResilientNodeHelper;
+using static Train.Solver.Util.Helpers.ResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
@@ -25,13 +23,15 @@ using Train.Solver.Blockchain.EVM.Models;
 using Train.Solver.Blockchain.EVM.Helpers;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Blockchain.Common.Helpers;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using RedLockNet;
+using StackExchange.Redis;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 
 public class EVMBlockchainActivities(
-    INetworkRepository networkRepository,
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
     IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
@@ -59,64 +59,43 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
-        var fee = await feeEstimator.EstimateAsync(network, request);
+        var feeEstimator = FeeEstimatorFactory.Create(request.Network.FeeType);
+        var fee = await feeEstimator.EstimateAsync(request);
 
         var balance = await GetBalanceAsync(new BalanceRequest
         {
-            NetworkName = request.NetworkName,
+            Network = request.Network,
             Address = request.FromAddress,
             Asset = fee.Asset
         });
 
-        var amount = fee.Amount + request.Amount;
+        var amount = BigInteger.Parse(fee.AmountInWei) + BigInteger.Parse(request.Amount);
 
-        if (balance.Amount < amount)
+        if (BigInteger.Parse(balance.AmountInWei) < amount)
         {
-            throw new Exception($"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Required {amount} {fee.Asset}");
+            throw new Exception($"Insufficient funds in {request.Network.DisplayName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
 
         return fee;
     }
 
     [Activity]
-    public async Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request)
+    public Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
+        var feeEstimator = FeeEstimatorFactory.Create(request.Network.FeeType);
+        feeEstimator.Increase(request.Fee, request.Network.FeePercentageIncrease);
 
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
-        feeEstimator.Increase(request.Fee, network.FeePercentageIncrease);
-
-        return request.Fee;
-    }   
+        return Task.FromResult(request.Fee);
+    }
 
     [Activity]
     public virtual async Task<TransactionResponse> GetBatchTransactionAsync(GetBatchTransactionRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
         TransactionResponse? transaction = null;
 
         foreach (var transactionId in request.TransactionHashes)
         {
-            transaction = await GetTransactionAsync(network, transactionId);
+            transaction = await GetTransactionAsync(request.Network, transactionId);
         }
 
         if (transaction == null)
@@ -128,76 +107,57 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
+    public virtual Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
         PrepareTransactionResponse result;
 
         switch (request.Type)
         {
             case TransactionType.Transfer:
-                result = EVMTransactionBuilder.BuildTransferTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.Args);
                 break;
             case TransactionType.Approve:
-                result = EVMTransactionBuilder.BuildApproveTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.Args);
 
                 break;
             case TransactionType.HTLCCommit:
-                result = EVMTransactionBuilder.BuildHTLCCommitTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildHTLCCommitTransaction(request.Network, request.Args);
 
                 break;
             case TransactionType.HTLCLock:
-                result = EVMTransactionBuilder.BuildHTLCLockTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildHTLCLockTransaction(request.Network, request.Args);
 
                 break;
             case TransactionType.HTLCRedeem:
-                result = EVMTransactionBuilder.BuildHTLCRedeemTranaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildHTLCRedeemTranaction(request.Network, request.Args);
 
                 break;
             case TransactionType.HTLCRefund:
-                result = EVMTransactionBuilder.BuildHTLCRefundTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildHTLCRefundTransaction(request.Network, request.Args);
 
                 break;
             case TransactionType.HTLCAddLockSig:
-                result = EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(network, request.Args);
+                result = EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(request.Network, request.Args);
 
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request.Type),
-                    $"Transaction type {request.Type} is not supported for network {network.Name}");
+                    $"Transaction type {request.Type} is not supported for network {request.Network.Name}");
         }
 
-        return result;
+        return Task.FromResult(result);
     }
 
     [Activity]
     public virtual async Task<BalanceResponse> GetBalanceAsync(BalanceRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        if (network is null)
-        {
-            throw new ArgumentException($"Chain is not configured for {request.NetworkName} network");
-        }
-
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = request.Network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         BigInteger balance;
 
-        if (currency.TokenContract is null)
+        if (currency.Contract is null)
         {
-            var result = await GetDataFromNodesAsync(network.Nodes,
+            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
                 async url =>
                     await new Web3(url).Eth.GetBalance.SendRequestAsync(request.Address));
 
@@ -205,9 +165,9 @@ public class EVMBlockchainActivities(
         }
         else
         {
-            var result = await GetDataFromNodesAsync(network.Nodes,
+            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
                 async url => await new Web3(url).Eth.GetContractQueryHandler<BalanceOfFunction>()
-                    .QueryAsync<BigInteger>(currency.TokenContract, new() { Owner = request.Address }));
+                    .QueryAsync<BigInteger>(currency.Contract, new() { Owner = request.Address }));
 
 
             balance = result;
@@ -216,7 +176,6 @@ public class EVMBlockchainActivities(
         var balanceResponse = new BalanceResponse
         {
             AmountInWei = balance.ToString(),
-            Amount = Web3.Convert.FromWei(balance, currency.Decimals),
             Decimals = currency.Decimals,
         };
 
@@ -228,41 +187,23 @@ public class EVMBlockchainActivities(
     {
         var result = new HTLCBlockEventResponse();
 
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var nodes = network!.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.NetworkName} network", nameof(nodes));
+            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
         }
-
-        var solverAccount = network.ManagedAccounts
-            .First(x => x.Type == AccountType.Primary);
-
-        var currencies = await networkRepository.GetTokensAsync();
 
         var contractAddresses = new List<string>();
 
-        var htlcNativeContractAddress = network.Contracts
-            .FirstOrDefault(c => c.Type == ContarctType.HTLCNativeContractAddress);
-
-        if (htlcNativeContractAddress != null)
+        if (!string.IsNullOrEmpty(request.Network.HTLCNativeContractAddress))
         {
-            contractAddresses.Add(htlcNativeContractAddress.Address);
+            contractAddresses.Add(request.Network.HTLCNativeContractAddress);
         }
 
-        var htlcTokenContractAddress = network.Contracts
-            .FirstOrDefault(c => c.Type == ContarctType.HTLCTokenContractAddress);
-
-        if (htlcTokenContractAddress != null)
+        if (!string.IsNullOrEmpty(request.Network.HTLCTokenContractAddress))
         {
-            contractAddresses.Add(htlcTokenContractAddress.Address);
+            contractAddresses.Add(request.Network.HTLCTokenContractAddress);
         }
 
         var filterInput = new NewFilterInput
@@ -294,49 +235,26 @@ public class EVMBlockchainActivities(
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
                 if (FormatAddress(commitedEvent.Receiver)
-                    != FormatAddress(solverAccount.Address))
+                    != FormatAddress(request.WalletAddress))
                 {
                     continue;
                 }
 
                 var commitId = commitedEvent.Id.ToHex(prefix: true);
 
-                var sourceCurrency = currencies
-                    .FirstOrDefault(x =>
-                        x.Asset == commitedEvent.SourceAsset
-                        && x.Network.Name == request.NetworkName);
-
-                if (sourceCurrency is null)
-                {
-                    continue;
-                }
-
-                var destinationCurrency = currencies
-                    .FirstOrDefault(x =>
-                        x.Asset == commitedEvent.DestinationAsset
-                        && x.Network.Name == commitedEvent.DestinationChain);
-
-                if (destinationCurrency is null)
-                {
-                    continue;
-                }
-
                 var message = new HTLCCommitEventMessage
                 {
                     TxId = log.TransactionHash,
                     Id = commitId,
-                    Amount = Web3.Convert.FromWei(commitedEvent.Amount, sourceCurrency.Decimals),
                     AmountInWei = commitedEvent.Amount.ToString(),
-                    SourceAsset = sourceCurrency.Asset,
+                    SourceAsset = commitedEvent.SourceAsset,
                     SenderAddress = commitedEvent.Sender,
-                    SourceNetwork = request.NetworkName,
+                    SourceNetwork = request.Network.Name,
                     DestinationAddress = commitedEvent.DestinationAddress,
-                    DestinationNetwork = destinationCurrency.Network.Name,
-                    DestinationAsset = destinationCurrency.Asset,
+                    DestinationNetwork = commitedEvent.DestinationChain,
+                    DestinationAsset = commitedEvent.DestinationAsset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(solverAccount.Address),
-                    DestinationNetworkType = destinationCurrency.Network.Type,
-                    SourceNetworkType = sourceCurrency.Network.Type
+                    ReceiverAddress = FormatAddress(request.WalletAddress),
                 };
 
                 result.HTLCCommitEventMessages.Add(message);
@@ -364,18 +282,11 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual async Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var nodes = network.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.NetworkName} network", nameof(nodes));
+            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
         }
 
         var blockResult = await GetDataFromNodesAsync(nodes,
@@ -391,29 +302,21 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<decimal> GetSpenderAllowanceAsync(AllowanceRequest request)
+    public virtual async Task<string> GetSpenderAllowanceAsync(AllowanceRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var nodes = network.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.NetworkName} network", nameof(nodes));
+            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
         }
 
-        var currency = network.Tokens.Single(x => x.Asset == request.Asset);
+        var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
-        var spenderAddress = string.IsNullOrEmpty(currency.TokenContract) ?
-           network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-           : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var spenderAddress = string.IsNullOrEmpty(currency.Contract) ?
+           request.Network.HTLCNativeContractAddress : request.Network.HTLCTokenContractAddress;
 
-        if (!string.IsNullOrEmpty(currency.TokenContract))
+        if (!string.IsNullOrEmpty(currency.Contract))
         {
             var allowanceFunctionMessage = new AllowanceFunction
             {
@@ -426,32 +329,27 @@ public class EVMBlockchainActivities(
                     await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<AllowanceFunction>()));
 
             var allowance =
-                await allowanceHandler.QueryAsync<BigInteger>(currency.TokenContract, allowanceFunctionMessage);
-            return Web3.Convert.FromWei(allowance, currency.Decimals);
+                await allowanceHandler.QueryAsync<BigInteger>(currency.Contract, allowanceFunctionMessage);
+            return allowance.ToString();
         }
 
-        return decimal.MaxValue;
+        return (BigInteger.Pow(2, 256) - 1).ToString();
     }
 
     [Activity]
     public virtual async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
+        var currency = request.Network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
+        var isNative = currency.Symbol == request.Network.NativeToken!.Symbol;
 
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
-
-        var htlcContractAddress = currency.IsNative
-            ? network.Contracts.First(c => c.Type == ContarctType.HTLCNativeContractAddress).Address
-            : network.Contracts.First(c => c.Type == ContarctType.HTLCTokenContractAddress).Address;
+        var htlcContractAddress = isNative
+            ? request.Network.HTLCNativeContractAddress
+            : request.Network.HTLCTokenContractAddress;
 
         var signer = new Eip712TypedDataSigner();
         var typedData = GetAddLockMessageTypedDefinition(
-            long.Parse(network.ChainId!),
+            long.Parse(request.Network.ChainId!),
             htlcContractAddress);
 
         var addLockMsg = new AddLockMessage
@@ -461,7 +359,7 @@ public class EVMBlockchainActivities(
             Timelock = (ulong)request.Timelock
         };
 
-        var code = await GetDataFromNodesAsync(network.Nodes,
+        var code = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
             async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
 
         // TODO, make sure this is compatibly with Pectra update
@@ -491,12 +389,12 @@ public class EVMBlockchainActivities(
                 Signature = request.Signature.HexToByteArray()
             };
 
-            var isValidSignatureHandler = await GetDataFromNodesAsync(network.Nodes,
+            var isValidSignatureHandler = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
                 async url => await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
 
             if (isValidSignatureHandler == null)
             {
-                throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {network.Name}");
+                throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {request.Network.Name}");
             }
 
             var isValidSignatureMagicValue = (await isValidSignatureHandler.QueryAsync<byte[]>(request.SignerAddress, isValidSignatureFunction)).ToHex();
@@ -509,19 +407,12 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual async Task<string> GetNextNonceAsync(NextNonceRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var nodes = network.Nodes;
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         request.Address = FormatAddress(request.Address);
 
         await using var distributedLock = await distributedLockFactory.CreateLockAsync(
-            resource: RedisHelper.BuildLockKey(request.NetworkName, request.Address),
+            resource: RedisHelper.BuildLockKey(request.Network.Name, request.Address),
             retryTime: TimeSpan.FromSeconds(1),
             waitTime: TimeSpan.FromSeconds(20),
             expiryTime: TimeSpan.FromSeconds(25));
@@ -533,7 +424,7 @@ public class EVMBlockchainActivities(
 
         var curentNonce = new BigInteger(-1);
 
-        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address));
+        var currentNonceRedis = await cache.StringGetAsync(RedisHelper.BuildNonceKey(request.Network.Name, request.Address));
 
         if (currentNonceRedis != RedisValue.Null)
         {
@@ -555,7 +446,7 @@ public class EVMBlockchainActivities(
             curentNonce = nonce;
         }
 
-        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.NetworkName, request.Address),
+        await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.Network.Name, request.Address),
             curentNonce.ToString(),
             expiry: TimeSpan.FromDays(7));
 
@@ -565,16 +456,9 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual async Task<string> PublishRawTransactionAsync(EVMPublishTransactionRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
         try
         {
-            var result = await GetDataFromNodesAsync(network.Nodes,
+            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
                 async url => await new
                         EthSendRawTransaction(new Web3(url).Client)
                     .SendRequestAsync(request.SignedTransaction.RawTxn));
@@ -597,7 +481,7 @@ public class EVMBlockchainActivities(
                         exInsuffFunds.Message.Contains(x, StringComparison.CurrentCultureIgnoreCase)))
                 {
                     throw new Exception(
-                        $"Insufficient funds in {request.NetworkName}. {request.FromAddress}. Message {exInsuffFunds.Message}",
+                        $"Insufficient funds in {request.Network.Name}. {request.FromAddress}. Message {exInsuffFunds.Message}",
                         innerEx);
                 }
 
@@ -621,21 +505,11 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<SignedTransaction> ComposeSignedRawTransactionAsync(EVMComposeTransactionRequest request)
+    public virtual async Task<Models.SignedTransaction> ComposeSignedRawTransactionAsync(EVMComposeTransactionRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
-        var privateKeyResult = await privateKeyProvider.GetAsync(request.FromAddress);
-
-        var account = new Account(privateKeyResult, BigInteger.Parse(network.ChainId!));
-
         var transactionInput = new TransactionInput
         {
+            ChainId = BigInteger.Parse(request.Network.ChainId).ToHexBigInteger(),
             From = request.FromAddress,
             To = request.ToAddress,
             Nonce = BigInteger.Parse(request.Nonce).ToHexBigInteger(),
@@ -660,7 +534,9 @@ public class EVMBlockchainActivities(
             transactionInput.Type = new HexBigInteger((int)Nethereum.Model.TransactionType.EIP1559);
         }
 
-        return SignTransaction(account, transactionInput);
+        var signedTransaction = await SignTransaction(request.FromAddress, transactionInput);
+
+        return signedTransaction;
     }
 
     private static string FormatAddress(string address) => address.ToLower();
@@ -688,19 +564,19 @@ public class EVMBlockchainActivities(
         };
     }
 
-    private static SignedTransaction SignTransaction(
-       Account account,
+    private async Task<Models.SignedTransaction> SignTransaction(
+       string signerAddress,
        TransactionInput transaction)
     {
         if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
         if (string.IsNullOrWhiteSpace(transaction.From))
-            transaction.From = account.Address;
+            transaction.From = signerAddress;
 
-        else if (!transaction.From.IsTheSameAddress(account.Address))
+        else if (!transaction.From.IsTheSameAddress(signerAddress))
             throw new Exception("Invalid account used for signing, does not match the transaction input");
 
-        var chainId = account.ChainId;
+        var chainId = transaction.ChainId;
 
         var nonce = transaction.Nonce;
         if (nonce == null)
@@ -710,6 +586,8 @@ public class EVMBlockchainActivities(
         var value = transaction.Value ?? new HexBigInteger(0);
 
         if (chainId == null) throw new ArgumentException("ChainId required for TransactionType 0X02 EIP1559");
+
+        string unsignedRawTransaction;
 
         if (transaction.Type != null && transaction.Type.Value == Nethereum.Model.TransactionTypeExtensions.AsByte(Nethereum.Model.TransactionType.EIP1559))
         {
@@ -727,15 +605,7 @@ public class EVMBlockchainActivities(
                 transaction.Data,
                 transaction.AccessList.ToSignerAccessListItemArray());
 
-            var transaction1559Signer = new Transaction1559Signer();
-
-            var rawTxnHex = transaction1559Signer.SignTransaction(new EthECKey(account.PrivateKey), transaction1559);
-
-            return new()
-            {
-                RawTxn = rawTxnHex,
-                Hash = transaction1559.Hash.ToHex(),
-            };
+            unsignedRawTransaction = transaction1559.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
         }
         else
         {
@@ -748,20 +618,33 @@ public class EVMBlockchainActivities(
                 transaction.Data,
                 chainId.Value);
 
-            var signature = new EthECKey(account.PrivateKey.HexToByteArray(), true).SignAndCalculateV(transactionLegacy.RawHash, transactionLegacy.GetChainIdAsBigInteger());
-            transactionLegacy.SetSignature(new Nethereum.Model.Signature() { R = signature.R, S = signature.S, V = signature.V });
-
-            return new()
-            {
-                Hash = transactionLegacy.Hash.ToHex(),
-                RawTxn = transactionLegacy.GetRLPEncoded().ToHex(),
-            };
+            unsignedRawTransaction = transactionLegacy.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
         }
+
+        var signedTransaction = await privateKeyProvider.SignAsync(
+            NetworkType.EVM,
+            signerAddress,
+            unsignedRawTransaction);
+
+        if (string.IsNullOrEmpty(signedTransaction))
+        {
+            throw new Exception($"Failed to sign transaction for {signerAddress} on {transaction.ChainId}");
+        }
+
+        var decodedTransaction = Nethereum.Model.TransactionFactory.CreateTransaction(signedTransaction);
+
+        var txHash = decodedTransaction.Hash.ToHex();
+
+        return new SignedTransaction
+        {
+            RawTxn = signedTransaction,
+            Hash = txHash,
+        };
     }
 
-    private async Task<TransactionResponse> GetTransactionAsync(Network network, string transactionId)
+    private static async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
     {
-        var nodes = network.Nodes;
+        var nodes = network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
@@ -769,7 +652,7 @@ public class EVMBlockchainActivities(
         }
 
         var nativeCurrency = network.Tokens
-            .Single(x => x.TokenContract is null);
+            .Single(x => x.Contract is null);
 
         var transaction = await GetDataFromNodesAsync(nodes,
                 async url =>
@@ -833,11 +716,13 @@ public class EVMBlockchainActivities(
 
         var transactionModel = new TransactionResponse
         {
+            Decimals = nativeCurrency.Decimals,
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transaction.TransactionHash,
-            FeeAmount = Web3.Convert.FromWei(transactionFee, nativeCurrency.Decimals),
-            FeeAsset = nativeCurrency!.Asset,
+            FeeAmount = transactionFee.ToString(),
+            FeeDecimals = nativeCurrency.Decimals,
+            FeeAsset = nativeCurrency!.Symbol,
             Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlock.Timestamp.Value * 1000),
             Confirmations = (int)(currentBlockNumber.Value - transaction.BlockNumber.Value) + 1
         };

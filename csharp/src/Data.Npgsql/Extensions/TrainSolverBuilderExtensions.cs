@@ -33,6 +33,7 @@ public static class TrainSolverBuilderExtensions
         builder.Services.AddTransient<IFeeRepository, EFFeeRepository>();
         builder.Services.AddTransient<ISwapRepository, EFSwapRepository>();
         builder.Services.AddTransient<IRouteRepository, EFRouteRepository>();
+        builder.Services.AddTransient<IWalletRepository, EFWalletRepository>();
 
         if (options.MigrateDatabase)
         {
