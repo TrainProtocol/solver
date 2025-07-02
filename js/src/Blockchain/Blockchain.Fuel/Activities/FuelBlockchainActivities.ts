@@ -23,7 +23,7 @@ import { BaseRequest } from "../../Blockchain.Abstraction/Models/BaseRequest";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
 import { utils } from "ethers";
 import TrackBlockEventsAsync from "./Helper/FuelEventTracker";
-import { CreateAddLockSigCallData, CreateRefundCallData, CreateLockCallData, CreateRedeemCallData } from "./Helper/FuelTransactionBuilder";
+import { CreateAddLockSigCallData, CreateRefundCallData, CreateLockCallData, CreateRedeemCallData, CreateCommitCallData } from "./Helper/FuelTransactionBuilder";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
@@ -55,6 +55,8 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
           return CreateRefundCallData(network, request.Args);
         case TransactionType.HTLCAddLockSig:
           return CreateAddLockSigCallData(network, request.Args);
+        case TransactionType.HTLCCommit:
+          return CreateCommitCallData(network, request.Args);
         default:
           throw new Error(`Unknown function name ${request.TransactionType}`);
       }
