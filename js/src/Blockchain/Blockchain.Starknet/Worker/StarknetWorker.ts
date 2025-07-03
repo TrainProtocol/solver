@@ -27,8 +27,9 @@ export default async function run() {
       address: process.env.TrainSolver__TemporalServerHost,
     });
 
+    const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
     const worker = await Worker.create({
-      namespace: 'atomic',
+      namespace: namespace,
       taskQueue: NetworkType[NetworkType.Starknet],
       workflowsPath: require.resolve('../Workflows'),
       activities: activities,
