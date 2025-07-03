@@ -75,9 +75,19 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
     const provider = new Provider(node.url);
     const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
     const commitId = generateUint256Hex().toString()
+    const receiverAddress = { bits: commitRequest.Receiever };
 
     const callConfig = contractInstance.functions
-        .commit(commitRequest.HopChains, commitRequest.HopAssets, commitRequest.HopAddresses, commitRequest.DestinationChain, commitRequest.DestinationAddress, commitRequest.SourceAsset, commitId, commitRequest.Receiever, commitRequest.Timelock)
+        .commit(
+            commitRequest.HopChains,
+            commitRequest.HopAssets,
+            commitRequest.HopAddresses, 
+            commitRequest.DestinationChain.padEnd(64, ' '), 
+            commitRequest.DestinationAddress.padEnd(64, ' '), 
+            commitRequest.SourceAsset.padEnd(64, ' '), 
+            commitId, 
+            receiverAddress, 
+            DateTime.fromUnixSeconds(commitRequest.Timelock).toTai64())
         .callParams({
             forward: [Number(formatUnits(commitRequest.Amount, token.decimals)), await provider.getBaseAssetId()]
         })
