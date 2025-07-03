@@ -6,7 +6,7 @@ public class TrainSolverOptions
 
     public string TemporalServerHost { get; set; } = null!;
 
-    public string TemporalNamespace { get; set; } = "atomic";
+    public string TemporalNamespace { get; set; } = "prepare";
 
     public string RedisConnectionString { get; set; } = null!;
 

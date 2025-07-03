@@ -5,6 +5,5 @@ namespace Train.Solver.Blockchain.Abstractions.Workflows;
 
 public interface ITransactionBuilderWorkflow
 {
-    [WorkflowRun]
     Task<PrepareTransactionResponse> RunAsync(TransactionBuilderRequest message);
 }

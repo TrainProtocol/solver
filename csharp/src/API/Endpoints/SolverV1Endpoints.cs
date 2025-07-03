@@ -41,7 +41,7 @@ public static class SolverV1Endpoints
         group.MapGet("/swaps/{commitId}", GetSwapAsync)
             .Produces<ApiResponse<SwapDto>>();
 
-        group.MapGet("/transactions/build", BuildTransactionAsync)
+        group.MapPost("/transactions/build", BuildTransactionAsync)
             .Produces<ApiResponse<PrepareTransactionResponse>>();
 
         group.MapPost("/swaps/{commitId}/addLockSig", AddLockSigAsync)
@@ -300,9 +300,9 @@ public static class SolverV1Endpoints
     {
         var prepareTransactionResponse = await temporalClient
             .ExecuteWorkflowAsync<PrepareTransactionResponse>(
-                nameof(ITransactionBuilderWorkflow), 
-                args: [request], 
-                new());
+                "TransactionBuilderWorkflow", 
+                args: [request],
+                new(id: Guid.CreateVersion7().ToString(), taskQueue: "Core"));
 
         return Results.Ok(new ApiResponse<PrepareTransactionResponse> { Data = prepareTransactionResponse });
     }
