@@ -1,7 +1,9 @@
-﻿ using Train.Solver.Data.Abstractions.Entities;
+﻿using Microsoft.Extensions.Options;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
@@ -12,7 +14,8 @@ public class RouteService(
     IRouteRepository routeRepository,
     INetworkRepository networkRepository,
     IFeeRepository feeRepository,
-    IRateService rateService) : IRouteService
+    IRateService rateService,
+    IOptions<TrainSolverOptions> options) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
@@ -195,7 +198,7 @@ public class RouteService(
 
         var expenseFee = await CalculateExpenseFeeAsync(route);
 
-        if (expenseFee is not null)
+        if (expenseFee is not null && !options.Value.DisableExpenseFee)
         {
             fixedFee += expenseFee.ExpenseFeeInSource;
         }
@@ -304,7 +307,6 @@ public class RouteService(
     private async Task<ExpenseFeeDto?> CalculateExpenseFeeAsync(Route route)
     {
         var expenses = await feeRepository.GetExpensesAsync();
-
 
         var filterredExpenses = expenses
             .Where(x =>
