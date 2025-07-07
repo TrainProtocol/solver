@@ -25,6 +25,7 @@ export default async function run() {
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
     });
+    const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
 
     const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
 
