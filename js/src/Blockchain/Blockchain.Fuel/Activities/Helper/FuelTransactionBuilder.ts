@@ -79,9 +79,9 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
 
     const callConfig = contractInstance.functions
         .commit(
-            commitRequest.HopChains,
-            commitRequest.HopAssets,
-            commitRequest.HopAddresses, 
+            PadStringsTo64(commitRequest.HopChains),
+            PadStringsTo64(commitRequest.HopAssets),
+            PadStringsTo64(commitRequest.HopAddresses), 
             commitRequest.DestinationChain.padEnd(64, ' '), 
             commitRequest.DestinationAddress.padEnd(64, ' '), 
             commitRequest.SourceAsset.padEnd(64, ' '), 
@@ -248,9 +248,15 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
 export function generateUint256Hex() {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
+
     // turn into a 64-char hex string
     const hex = Array.from(bytes)
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
+
     return '0x' + hex;
+}
+
+function PadStringsTo64(input: string[]): string[] {
+  return input.map(str => str.padEnd(64, ' '));
 }
