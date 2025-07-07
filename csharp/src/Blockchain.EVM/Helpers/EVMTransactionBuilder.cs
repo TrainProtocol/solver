@@ -176,6 +176,7 @@ public static class EVMTransactionBuilder
 
             response.Data = new ERC20CommitFunction
             {
+                Id = request.Id.ToBytes32(),
                 Chains = request.HopChains,
                 DestinationAddresses = request.HopAddresses,
                 DestinationChain = request.DestinationChain,
@@ -201,6 +202,7 @@ public static class EVMTransactionBuilder
 
             response.Data = new CommitFunction
             {
+                Id = request.Id.ToBytes32(),
                 HopChains = request.HopChains,
                 HopAssets = request.HopAssets,
                 HopAddresses = request.HopAddresses,

@@ -21,4 +21,6 @@ public class HTLCCommitTransactionPrepareRequest
     public long Timelock { get; set; }
 
     public decimal Amount { get; set; }
+
+    public string Id { get; set; } = null!;
 }

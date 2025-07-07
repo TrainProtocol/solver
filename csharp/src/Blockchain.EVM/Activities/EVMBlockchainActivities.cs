@@ -137,42 +137,18 @@ public class EVMBlockchainActivities(
             throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
         }
 
-        PrepareTransactionResponse result;
-
-        switch (request.Type)
+        var result = request.Type switch
         {
-            case TransactionType.Transfer:
-                result = EVMTransactionBuilder.BuildTransferTransaction(network, request.Args);
-                break;
-            case TransactionType.Approve:
-                result = EVMTransactionBuilder.BuildApproveTransaction(network, request.Args);
-
-                break;
-            case TransactionType.HTLCCommit:
-                result = EVMTransactionBuilder.BuildHTLCCommitTransaction(network, request.Args);
-
-                break;
-            case TransactionType.HTLCLock:
-                result = EVMTransactionBuilder.BuildHTLCLockTransaction(network, request.Args);
-
-                break;
-            case TransactionType.HTLCRedeem:
-                result = EVMTransactionBuilder.BuildHTLCRedeemTranaction(network, request.Args);
-
-                break;
-            case TransactionType.HTLCRefund:
-                result = EVMTransactionBuilder.BuildHTLCRefundTransaction(network, request.Args);
-
-                break;
-            case TransactionType.HTLCAddLockSig:
-                result = EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(network, request.Args);
-
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(request.Type),
-                    $"Transaction type {request.Type} is not supported for network {network.Name}");
-        }
-
+            TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(network, request.Args),
+            TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(network, request.Args),
+            TransactionType.HTLCCommit => EVMTransactionBuilder.BuildHTLCCommitTransaction(network, request.Args),
+            TransactionType.HTLCLock => EVMTransactionBuilder.BuildHTLCLockTransaction(network, request.Args),
+            TransactionType.HTLCRedeem => EVMTransactionBuilder.BuildHTLCRedeemTranaction(network, request.Args),
+            TransactionType.HTLCRefund => EVMTransactionBuilder.BuildHTLCRefundTransaction(network, request.Args),
+            TransactionType.HTLCAddLockSig => EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(network, request.Args),
+            _ => throw new ArgumentOutOfRangeException(nameof(request.Type),
+                                $"Transaction type {request.Type} is not supported for network {network.Name}"),
+        };
         return result;
     }
 

@@ -28,6 +28,7 @@ export default async function run() {
     });
 
     const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
+
     const worker = await Worker.create({
       namespace: namespace,
       taskQueue: NetworkType[NetworkType.Starknet],

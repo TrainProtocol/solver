@@ -51,7 +51,7 @@ export async function StarknetTransactionProcessor(
     const preparedTransaction = await defaultActivities.BuildTransaction({
         NetworkName: request.NetworkName,
         Args: request.PrepareArgs,
-        TransactionType: request.Type,
+        Type: request.Type,
     });
     try {
 
