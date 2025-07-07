@@ -19,7 +19,7 @@ import Redis from "ioredis";
 import Redlock from "redlock";
 import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
-import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData } from "./Helper/StarknetTransactionBuilder";
+import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData, CreateCommitCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 import { BuildLockKey, BuildNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
@@ -376,6 +376,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     return CreateApproveCallData(network, request.Args);
                 case TransactionType.Transfer:
                     return CreateTransferCallData(network, request.Args);
+                case TransactionType.HTLCCommit:
+                    return CreateCommitCallData(network, request.Args);
                 default:
                     throw new Error(`Unknown function name ${request.Type}`);
             }

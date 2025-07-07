@@ -10,6 +10,7 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
+import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 
 export function CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
 
@@ -181,7 +182,7 @@ export function CreateApproveCallData(network: Networks, args: string): PrepareT
 
     const approveRequest = decodeJson<ApprovePrepareRequest>(args);
     const token = network.tokens.find(t => t.asset === approveRequest.Asset);
-    
+
     if (!token) {
         throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.Asset}`);
     }
@@ -242,5 +243,46 @@ export function CreateTransferCallData(network: Networks, args: string): Prepare
         CallDataAmountInWei: Number(utils.parseUnits(transferRequest.Amount.toString(), token.decimals)).toString(),
         CallDataAmount: transferRequest.Amount,
         ToAddress: token.tokenContract,
+    };
+}
+
+export function CreateCommitCallData(network: Networks, args: string): PrepareTransactionResponse {
+
+    const commitRequest = decodeJson<HTLCCommitTransactionPrepareRequest>(args);
+
+    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+
+    const token = network.tokens.find(t => t.asset === commitRequest.SourceAsset);
+    if (!token) {
+        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.SourceAsset}`);
+    }
+
+    const callData = [
+        cairo.uint256(commitRequest.Id),
+        cairo.uint256(Number(utils.parseUnits(commitRequest.Amount.toString(), token.decimals))),
+        shortString.encodeShortString(commitRequest.DestinationChain),
+        shortString.encodeShortString(commitRequest.SourceAsset),
+        byteArray.byteArrayFromString(commitRequest.DestinationAddress),
+        shortString.encodeShortString(commitRequest.SourceAsset),
+        commitRequest.Receiver,
+        cairo.uint256(commitRequest.Timelock),
+        token.tokenContract
+    ];
+
+    const methodCall: Call = {
+        contractAddress: htlcContractAddress.address,
+        entrypoint: "commit",
+        calldata: callData
+    };
+
+    return {
+        Data: JSON.stringify(methodCall),
+        Amount: 0,
+        AmountInWei: "0",
+        Asset: commitRequest.SourceAsset,
+        CallDataAsset: commitRequest.SourceAsset,
+        CallDataAmountInWei: utils.parseUnits((commitRequest.Amount).toString(), token.decimals).toString(),
+        CallDataAmount: commitRequest.Amount,
+        ToAddress: htlcContractAddress.address,
     };
 }
