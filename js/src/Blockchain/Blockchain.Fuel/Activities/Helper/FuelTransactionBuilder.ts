@@ -74,8 +74,7 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
 
     const provider = new Provider(node.url);
     const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
-    const commitId = generateUint256Hex().toString()
-    const receiverAddress = { bits: commitRequest.Receiever };
+    const receiverAddress = { bits: commitRequest.Receiver };
 
     const callConfig = contractInstance.functions
         .commit(
@@ -85,7 +84,7 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
             commitRequest.DestinationChain.padEnd(64, ' '), 
             commitRequest.DestinationAddress.padEnd(64, ' '), 
             commitRequest.SourceAsset.padEnd(64, ' '), 
-            commitId, 
+            commitRequest.Id, 
             receiverAddress, 
             DateTime.fromUnixSeconds(commitRequest.Timelock).toTai64())
         .callParams({
@@ -243,18 +242,6 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
         CallDataAmount: 0,
         ToAddress: htlcContractAddress.address,
     };
-}
-
-export function generateUint256Hex() {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-
-    // turn into a 64-char hex string
-    const hex = Array.from(bytes)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-
-    return '0x' + hex;
 }
 
 function PadStringsTo64(input: string[]): string[] {
