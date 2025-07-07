@@ -25,15 +25,18 @@ public class ERC20CommitFunction : FunctionMessage
     [Parameter("string", "srcAsset", 6)]
     public string SourceAsset { get; set; }
 
-    [Parameter("address", "receiver", 7)]
+    [Parameter("bytes32", "Id", 7)]
+    public byte[] Id { get; set; }
+
+    [Parameter("address", "receiver", 8)]
     public string Receiver { get; set; }
 
-    [Parameter("uint48", "timelock", 8)]
+    [Parameter("uint48", "timelock", 9)]
     public long Timelock { get; set; }
 
-    [Parameter("uint256", "amount", 9)]
+    [Parameter("uint256", "amount", 10)]
     public BigInteger Amount { get; set; }
 
-    [Parameter("string", "tokenContract", 10)]
+    [Parameter("string", "tokenContract", 11)]
     public string TokenContract { get; set; }
 }
