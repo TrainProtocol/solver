@@ -46,7 +46,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
         .getOneOrFail();
 
-      switch (request.TransactionType) {
+      switch (request.Type) {
         case TransactionType.HTLCLock:
           return CreateLockCallData(network, request.Args);
         case TransactionType.HTLCRedeem:
@@ -58,7 +58,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         case TransactionType.HTLCCommit:
           return CreateCommitCallData(network, request.Args);
         default:
-          throw new Error(`Unknown function name ${request.TransactionType}`);
+          throw new Error(`Unknown function name ${request.Type}`);
       }
     }
     catch (error) {

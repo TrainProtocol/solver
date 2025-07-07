@@ -1,7 +1,7 @@
 import { TransactionType } from "../TransacitonModels/TransactionType";
 
 export interface TransactionBuilderRequest {
-    TransactionType: TransactionType;
+    Type: TransactionType;
     NetworkName: string;
     Args: string;
 }
