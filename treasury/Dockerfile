@@ -4,7 +4,8 @@ FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /usr/src/app
 RUN npm install -g npm@11
 
-COPY package*.json ./
+COPY package.json ./
+COPY package-lock.json ./
 
 RUN npm ci
 
