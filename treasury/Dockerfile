@@ -5,19 +5,19 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm ci --only=production=false
+RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
 # Production stage with production dependencies only
-FROM node:22-alpine AS production
+FROM node:${NODE_VERSION}-alpine AS production
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --production && npm cache clean --force
 
 COPY --from=builder /usr/src/app/dist ./dist
 
