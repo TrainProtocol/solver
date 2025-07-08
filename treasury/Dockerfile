@@ -3,7 +3,7 @@ FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /usr/src/app
 
-COPY treasury/package*.json ./
+COPY package*.json ./
 
 RUN npm ci
 

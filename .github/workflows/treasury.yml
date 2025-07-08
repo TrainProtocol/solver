@@ -50,8 +50,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: treasury/Dockerfile
+          context: ./treasury
+          file: ./treasury/Dockerfile
           push: ${{github.ref_name == 'main' || github.ref_name == 'dev'}}
           build-args: |
             NODE_VERSION=${{ env.NODE_VERSION }}
