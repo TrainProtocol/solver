@@ -40,3 +40,6 @@ jobs:
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           build-args: |
             DOTNET_VERSION=${{ env.DOTNET_VERSION }}
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}-${{ env.VERSION }}
+            ${{ env.DOCKER_IMAGE }}:${{ env.SANITIZED_REF_NAME }}
