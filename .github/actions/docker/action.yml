@@ -4,6 +4,7 @@ inputs:
   context:
     description: 'Docker build context path'
     required: true
+    default: .
   file:
     description: 'Dockerfile path'
     required: true
