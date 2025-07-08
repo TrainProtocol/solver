@@ -2,16 +2,13 @@ ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /usr/src/app
-RUN npm install -g npm@11
 
-COPY package.json ./
-COPY package-lock.json ./
+COPY treasury/package*.json ./
 
 RUN npm ci
 
 COPY . .
 
-RUN npm run
 RUN npm run build
 
 # Production stage with production dependencies only
