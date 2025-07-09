@@ -6,7 +6,18 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFSwapRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : ISwapRepository
 {
-    public async Task<Swap> CreateAsync(string id, string senderAddress, string destinationAddress, string sourceNetworkName, string sourceAsset, decimal sourceAmount, string destinationNetworkName, string destinationAsset, decimal destinationAmount, string hashlock, decimal feeAmount)
+    public async Task<Swap> CreateAsync(
+        string id,
+        string senderAddress,
+        string destinationAddress,
+        string sourceNetworkName,
+        string sourceAsset,
+        decimal sourceAmount,
+        string destinationNetworkName,
+        string destinationAsset,
+        decimal destinationAmount,
+        string hashlock,
+        decimal feeAmount)
     {
 
         var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceAsset);
@@ -80,7 +91,10 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             .ToListAsync();
     }
 
-    public async Task<Transaction> InitiateSwapTransactionAsync(string networkName, string swapId, TransactionType transactionType)
+    public async Task<Transaction> InitiateSwapTransactionAsync(
+        string networkName,
+        string swapId,
+        TransactionType transactionType)
     {
         var transaction = new Transaction
         {

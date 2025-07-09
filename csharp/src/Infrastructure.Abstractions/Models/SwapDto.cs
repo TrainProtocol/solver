@@ -4,6 +4,8 @@ public class SwapDto
 {
     public string CommitId { get; set; } = null!;
 
+    public string Hashlock { get; set; } = null!;
+
     public string SourceNetwork { get; set; } = null!;
 
     public string SourceToken { get; set; } = null!;
