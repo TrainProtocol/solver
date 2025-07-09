@@ -22,6 +22,7 @@ public static class MapperExtensions
             DestinationAmountInUsd = swap.DestinationTokenPrice * swap.DestinationAmount,
             DestinationAddress = swap.DestinationAddress,
             FeeAmount = swap.FeeAmount,
+            Hashlock = swap.Hashlock,
             Transactions = swap.Transactions.Select(t => t.ToDto())
         };
     }

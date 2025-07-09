@@ -13,7 +13,6 @@ public enum TransactionType
     HTLCAddLockSig,
 }
 
-
 public enum TransactionStatus
 {
     Completed,
