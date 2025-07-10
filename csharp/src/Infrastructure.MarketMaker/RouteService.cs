@@ -10,6 +10,7 @@ using Train.Solver.Util.Helpers;
 using Nethereum.Util;
 using Train.Solver.Util;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using System.Numerics;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
