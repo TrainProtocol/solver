@@ -1,15 +1,13 @@
-﻿using System.Numerics;
-using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Web3;
+﻿using Nethereum.Hex.HexConvertors.Extensions;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
-using Solnet.Rpc.Models;
 using Solnet.Wallet;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Blockchain.Solana.Models;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 
@@ -18,7 +16,7 @@ public static class EventDecoder
     public static async Task<HTLCBlockEventResponse> GetBlockEventsAsync(
         IRpcClient rpcClient,
         int block,
-        Network network,        
+        DetailedNetworkDto network,        
         List<Token> currencies,
         string solverAccount)
     {
@@ -85,7 +83,7 @@ public static class EventDecoder
                     }
 
                     var sourceCurrency = network.Tokens
-                        .FirstOrDefault(x => x.Asset == commitEvent.SourceAsset);
+                        .FirstOrDefault(x => x.Symbol == commitEvent.SourceAsset);
 
                     if (sourceCurrency is null)
                     {
@@ -105,8 +103,8 @@ public static class EventDecoder
                         DestinationAsset = commitEvent.DestinationAsset,
                         SenderAddress = commitEvent.SenderAddress,
                         TimeLock = commitEvent.TimeLock,
-                        DestinationNetworkType = destinationCurrency.Network.Type,
-                        SourceNetworkType = sourceCurrency.Network.Type
+                        //DestinationNetworkType = destinationCurrency.Network.Type,
+                        //SourceNetworkType = sourceCurrency.Network.Type
                     };
 
                     result.HTLCCommitEventMessages.Add(commitEventMessage);
@@ -147,7 +145,7 @@ public static class EventDecoder
     private static async Task<SolanaHTLCCommitEventModel> DeserializeCommitEventDataAsync(
         IRpcClient rpcClient,
         string commitId,
-        Network network,
+        DetailedNetworkDto network,
         string solverAccount)
     {
         if (solverAccount is null)
@@ -200,7 +198,7 @@ public static class EventDecoder
     private static async Task<HTLCLockEventMessage?> DeserializeAddLockEventDataAsync(
         IRpcClient rpcClient,
         string id,
-        Network network,
+        DetailedNetworkDto network,
         string solverAccount)
     {
         try

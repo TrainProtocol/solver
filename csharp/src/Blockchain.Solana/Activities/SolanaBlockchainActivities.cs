@@ -41,13 +41,6 @@ public class SolanaBlockchainActivities(
     [Activity]
     public virtual async Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.NetworkName} not found");
-        }
-
         var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
 
         if (solverAccount is null)
@@ -336,25 +329,11 @@ public class SolanaBlockchainActivities(
     [Activity]
     public virtual async Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request)
     {
-        var network = await networkRepository.GetAsync(request.NetworkName);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Chain for network: {request.NetworkName} is not configured");
-        }
-
-        var node = network!.Nodes.FirstOrDefault();
+        var node = request.Network!.Nodes.FirstOrDefault();
 
         if (node is null)
         {
-            throw new ArgumentNullException(nameof(node), $"Node for network: {request.NetworkName} is not configured");
-        }
-
-        var solverAccount = await networkRepository.GetSolverAccountAsync(network.Name);
-
-        if (solverAccount is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Solver account for {request.NetworkName} not found");
+            throw new ArgumentNullException(nameof(node), $"Node for network: {request.Network} is not configured");
         }
 
         var rpcClient = ClientFactory.GetClient(node.Url);
@@ -372,9 +351,9 @@ public class SolanaBlockchainActivities(
                 blockProcessingTasks[currentBlock] = EventDecoder.GetBlockEventsAsync(
                     rpcClient,
                     currentBlock,
-                    network,
+                    request.Network,
                     currencies,
-                    solverAccount);
+                    request.WalletAddress);
             }
 
             await Task.WhenAll(blockProcessingTasks.Values);
