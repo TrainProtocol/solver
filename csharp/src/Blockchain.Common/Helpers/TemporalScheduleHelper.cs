@@ -28,13 +28,9 @@ public static class TemporalScheduleHelper
 
         foreach (var type in temporalJobTypes)
         {
-            var scheduleAttribute = type
-                .GetCustomAttribute<TemporalJobScheduleAttribute>()!;
-
             await CreateOrUpdateScheduleAsync(
                 temporalClient,
                 type,
-                scheduleAttribute,
                 existingSchedules);
         }
     }
@@ -42,9 +38,11 @@ public static class TemporalScheduleHelper
     private static async Task CreateOrUpdateScheduleAsync(
         ITemporalClient temporalClient,
         Type type,
-        TemporalJobScheduleAttribute scheduleAttribute,
         List<ScheduleListDescription> existingSchedules)
     {
+        var scheduleAttribute = type
+                .GetCustomAttribute<TemporalJobScheduleAttribute>()!;
+
         if (!type.Name.EndsWith(nameof(Workflow)))
             return;
 
