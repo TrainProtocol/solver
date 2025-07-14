@@ -10,7 +10,7 @@ using Train.Solver.Blockchain.EVM.Models;
 using static Temporalio.Workflows.Workflow;
 using System.Numerics;
 using Train.Solver.Blockchain.Common.Helpers;
-using Train.Solver.Blockchain.Abstractions.Extensions;
+using Train.Solver.Blockchain.Common.Extensions;
 
 namespace Train.Solver.Blockchain.EVM.Workflows;
 
