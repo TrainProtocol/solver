@@ -104,7 +104,7 @@ public class RouteService(
         {
             ReceiveAmount = receiveAmount,
             TotalFee = totalFee,
-            SolverAddress = route.SourceWallet.Address,
+            SolverAddress = route.DestinationWallet.Address,
             ContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
                 ? route.SourceToken.Network.HTLCNativeContractAddress
