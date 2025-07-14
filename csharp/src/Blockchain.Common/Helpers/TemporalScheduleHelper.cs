@@ -97,5 +97,7 @@ public static class TemporalScheduleHelper
                     .DeleteAsync();
             }
         }
+
+        scheduleDescriptions.RemoveAll(x => !scheduleNames.Contains(x.Id));
     }
 }
