@@ -12,7 +12,7 @@ public static class TemporalScheduleHelper
        this ITemporalClient temporalClient)
     {
         var temporalJobTypes = Assembly
-            .GetExecutingAssembly()
+            .GetEntryAssembly()!
             .GetTypes()
             .Where(x => x.GetCustomAttribute<TemporalJobScheduleAttribute>() != null);
 
