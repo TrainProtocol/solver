@@ -16,89 +16,11 @@ namespace Train.Solver.Infrastructure.MarketMaker;
 
 public class RouteService(
     IRouteRepository routeRepository,
-    IWalletRepository walletRepository,
-    INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRateService rateService,
     IOptions<TrainSolverOptions> options) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
-
-    //public async Task<IEnumerable<DetailedNetworkDto>?> GetSourcesAsync(string? networkName, string? token)
-    //{
-    //    return await GetReachablePointsAsync(
-    //        fromSrcToDest: false,
-    //        networkName: networkName,
-    //        asset: token);
-    //}
-
-    //public async Task<IEnumerable<DetailedNetworkDto>?> GetDestinationsAsync(string? networkName, string? token)
-    //{
-    //    return await GetReachablePointsAsync(
-    //       fromSrcToDest: true,
-    //       networkName: networkName,
-    //       asset: token);
-    //}
-
-    //private async Task<IEnumerable<DetailedNetworkDto>?> GetReachablePointsAsync(
-    //    bool fromSrcToDest,
-    //    string? networkName,
-    //    string? asset)
-    //{
-    //    if (!string.IsNullOrEmpty(asset) && string.IsNullOrEmpty(networkName)
-    //        || !string.IsNullOrEmpty(networkName) && string.IsNullOrEmpty(asset))
-    //    {
-    //        throw new Exception($"{(fromSrcToDest ? "Source" : "Destination")} network and token should be provided");
-    //    }
-
-    //    Token? reuqestedPoint = null;
-
-    //    if (!string.IsNullOrEmpty(asset) && !string.IsNullOrEmpty(networkName))
-    //    {
-    //        reuqestedPoint = await networkRepository.GetTokenAsync(networkName, asset);
-
-    //        if (reuqestedPoint == null)
-    //        {
-    //            return null;
-    //        }
-    //    }
-
-    //    var reachablePoints = await routeRepository.GetReachablePointsAsync(
-    //        [RouteStatus.Active],
-    //        fromSrcToDest,
-    //        reuqestedPoint?.Id);
-
-    //    if (reachablePoints == null || !reachablePoints.Any())
-    //    {
-    //        return null;
-    //    }
-
-    //    var tokens = await networkRepository.GetTokensAsync(reachablePoints.ToArray());
-
-    //    var networksWithAmounts = tokens
-    //        .GroupBy(x => x.Network.Name)
-    //        .Select(x =>
-    //        {
-    //            var network = x.First().Network;
-    //            var networkWithTokens = new DetailedNetworkDto
-    //            {
-    //                Name = x.Key,
-    //                Type = network.Type,
-    //                ChainId = network.ChainId,
-    //                DisplayName = network.DisplayName,
-    //                HTLCNativeContractAddress = network.HTLCNativeContractAddress,
-    //                HTLCTokenContractAddress = network.HTLCTokenContractAddress,
-    //                Tokens = x.Select(x => x.ToDto()),
-    //                Nodes = network.Nodes.Select(x => x.ToDto()),
-    //                NativeToken = network.NativeToken?.ToDto(),
-    //            };
-
-    //            return networkWithTokens;
-
-    //        });
-
-    //    return networksWithAmounts;
-    //}
 
     public virtual async Task<LimitDto> GetLimitAsync(SourceDestinationRequest request)
     {
@@ -135,9 +57,7 @@ public class RouteService(
         return new LimitDto
         {
             MinAmount = minAmount,
-            //MinAmountInUsd = (TokenUnitConverter.FromBaseUnits(minAmount, route.SourceToken.Decimals) * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
             MaxAmount = TokenUnitConverter.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
-            //MaxAmountInUsd = (route.MaxAmountInSource * route.SourceToken.TokenPrice.PriceInUsd).Truncate(2),
         };
     }
 
@@ -180,22 +100,11 @@ public class RouteService(
         var actualAmountToSwap = amount - totalFee;
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
 
-        var wallet = await walletRepository.GetDefaultAsync(route.SourceToken.Network.Type);
-
-        if (wallet == null)
-        {
-            throw new Exception($"Solver account not found for network {route.SourceToken.Network.Name}");
-        }
-
         var quote = new QuoteWithSolverDto
         {
-            //SourceAmount = request.Amount,
-            //SourceAmountInUsd = request.Amount.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals).Truncate(2),
             ReceiveAmount = receiveAmount,
-            //ReceiveAmountInUsd = receiveAmount.ToUsd(route.DestinationToken.TokenPrice.PriceInUsd, route.DestinationToken.Decimals),
             TotalFee = totalFee,
-            //TotalFeeInUsd = totalFee.ToUsd(route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals),
-            SolverAddress = wallet.Address,
+            SolverAddress = route.SourceWallet.Address,
             ContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
                 ? route.SourceToken.Network.HTLCNativeContractAddress
