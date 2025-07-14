@@ -17,6 +17,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services
             .AddTrainSolver(hostContext.Configuration)
+            .WithTemporalSchedules()
             .WithOpenTelemetryLogging("Swap Core Runner")
             .WithCoreServices()
             .WithNpgsqlRepositories()
