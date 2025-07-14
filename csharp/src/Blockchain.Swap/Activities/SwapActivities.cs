@@ -40,7 +40,7 @@ public class SwapActivities(
             hashlock,
             feeAmount);
 
-        return swap.Id;
+        return swap.CommitId;
     }
 
     [Activity]
@@ -58,7 +58,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction)
+    public virtual async Task<int> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction)
     {
         return await swapRepository.CreateSwapTransactionAsync(
             transaction.NetworkName,

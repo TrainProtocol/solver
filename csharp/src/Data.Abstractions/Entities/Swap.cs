@@ -3,8 +3,10 @@ using Train.Solver.Data.Abstractions.Entities.Base;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Swap : EntityBase<string>
+public class Swap : EntityBase
 {
+    public string CommitId { get; set; } = null!;
+
     public int SourceTokenId { get; set; }
 
     public Token SourceToken { get; set; } = null!;

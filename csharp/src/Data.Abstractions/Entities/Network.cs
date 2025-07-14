@@ -18,7 +18,7 @@ public enum TransactionFeeType
     OptimismEIP1559,
 }
 
-public class Network : EntityBase<int>
+public class Network : EntityBase
 {
     public string Name { get; set; } = null!;
 

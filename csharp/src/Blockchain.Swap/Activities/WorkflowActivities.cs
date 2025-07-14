@@ -91,13 +91,13 @@ public class WorkflowActivities(
                 {
                     PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
-                        Id = swap.Id,
+                        Id = swap.CommitId,
                         Asset = swap.DestinationToken.Asset,
                     }),
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
                     FromAddress = wallet.Address,
-                    SwapId = swap.Id,
+                    SwapId = swap.CommitId,
             }],
             new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())
             {
@@ -119,7 +119,7 @@ public class WorkflowActivities(
 
             if (existingSwap != null)
             {
-                return existingSwap.Id;
+                return existingSwap.CommitId;
             }
 
             var workflowHandle = await temporalClient.StartWorkflowAsync<ISwapWorkflow>(

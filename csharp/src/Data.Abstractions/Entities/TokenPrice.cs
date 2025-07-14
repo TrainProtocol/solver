@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class TokenPrice : EntityBase<int>
+public class TokenPrice : EntityBase
 {
     public decimal PriceInUsd { get; set; }
 

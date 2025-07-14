@@ -89,7 +89,7 @@ public static class SolverV1Endpoints
                 {
                     Asset = swap.SourceToken.Asset,
                     Hashlock = swap.Hashlock,
-                    Id = swap.Id,
+                    Id = swap.CommitId,
                     SignerAddress = swap.SourceAddress,
                     Signature = addLockSignature.Signature,
                     SignatureArray = addLockSignature.SignatureArray,

@@ -9,7 +9,7 @@ public enum RouteStatus
     Archived,
 }
 
-public class Route : EntityBase<int>
+public class Route : EntityBase
 {
     public decimal MaxAmountInSource { get; set; }
 

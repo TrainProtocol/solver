@@ -10,7 +10,7 @@ public interface ISwapActivities
     Task<string> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
 
     [Activity]
-    Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction);
+    Task<int> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction);
 
     [Activity]
     Task<HashlockModel> GenerateHashlockAsync();

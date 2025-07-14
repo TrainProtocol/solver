@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Wallet : EntityBase<int>
+public class Wallet : EntityBase
 {
     public string Name { get; set; }
 

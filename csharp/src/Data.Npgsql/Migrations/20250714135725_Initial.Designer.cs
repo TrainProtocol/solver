@@ -9,11 +9,11 @@ using Train.Solver.Data.Npgsql;
 
 #nullable disable
 
-namespace Train.Solver.Data.EF.Migrations
+namespace Train.Solver.Data.Npgsql.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    [Migration("20250407131436_IndexTokenAsset")]
-    partial class IndexTokenAsset
+    [Migration("20250714135725_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,45 +23,7 @@ namespace Train.Solver.Data.EF.Migrations
                 .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Contract", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("NetworkId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasComment("HTLCNativeContractAddress=0,HTLCTokenContractAddress=1,GasPriceOracleContract=2,EvmMultiCallContract=3");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NetworkId");
-
-                    b.ToTable("Contracts");
-                });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Expense", b =>
                 {
@@ -79,9 +41,9 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("FeeTokenId")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<decimal[]>("LastFeeValues")
+                    b.PrimitiveCollection<string[]>("LastFeeValues")
                         .IsRequired()
-                        .HasColumnType("numeric[]");
+                        .HasColumnType("text[]");
 
                     b.Property<int>("TokenId")
                         .HasColumnType("integer");
@@ -106,45 +68,6 @@ namespace Train.Solver.Data.EF.Migrations
                     b.ToTable("Expenses");
                 });
 
-            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.ManagedAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("NetworkId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasComment("LP=0,Charging=1");
-
-                    b.Property<uint>("Version")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Address");
-
-                    b.HasIndex("NetworkId");
-
-                    b.ToTable("ManagedAccounts");
-                });
-
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Network", b =>
                 {
                     b.Property<int>("Id")
@@ -153,11 +76,8 @@ namespace Train.Solver.Data.EF.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AccountExplorerTemplate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("ChainId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedDate")
@@ -175,19 +95,11 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("FeeType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("FixedGasPriceInGwei")
+                    b.Property<string>("HTLCNativeContractAddress")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("GasLimitPercentageIncrease")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsExternal")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsTestnet")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Logo")
+                    b.Property<string>("HTLCTokenContractAddress")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -195,16 +107,12 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ReplacementFeePercentage")
+                    b.Property<int?>("NativeTokenId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("TransactionExplorerTemplate")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")
-                        .HasComment("EVM=0,Solana=1,Starknet=2");
+                        .HasComment("EVM=0,Solana=1,Starknet=2,Fuel=3");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -216,6 +124,8 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("NativeTokenId");
 
                     b.ToTable("Networks");
                 });
@@ -236,16 +146,6 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("NetworkId")
                         .HasColumnType("integer");
 
-                    b.Property<double>("Priority")
-                        .HasColumnType("double precision");
-
-                    b.Property<bool>("TraceEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasComment("Primary=0,DepositTracking=1,Public=2,Secondary=3");
-
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("text");
@@ -259,9 +159,6 @@ namespace Train.Solver.Data.EF.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NetworkId");
-
-                    b.HasIndex("Type", "NetworkId")
-                        .IsUnique();
 
                     b.ToTable("Nodes");
                 });
@@ -352,7 +249,14 @@ namespace Train.Solver.Data.EF.Migrations
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Swap", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CommitId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedDate")
@@ -364,14 +268,16 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("DestinationAmount")
-                        .HasColumnType("numeric");
+                    b.Property<string>("DestinationAmount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("DestinationTokenId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("FeeAmount")
-                        .HasColumnType("numeric");
+                    b.Property<string>("FeeAmount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Hashlock")
                         .IsRequired()
@@ -381,8 +287,9 @@ namespace Train.Solver.Data.EF.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("SourceAmount")
-                        .HasColumnType("numeric");
+                    b.Property<string>("SourceAmount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("SourceTokenId")
                         .HasColumnType("integer");
@@ -394,6 +301,9 @@ namespace Train.Solver.Data.EF.Migrations
                         .HasColumnName("xmin");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommitId")
+                        .IsUnique();
 
                     b.HasIndex("CreatedDate");
 
@@ -428,21 +338,14 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<int>("Decimals")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsNative")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Logo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("NetworkId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Precision")
                         .HasColumnType("integer");
 
                     b.Property<string>("TokenContract")
                         .HasColumnType("text");
+
+                    b.Property<int?>("TokenGroupId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TokenPriceId")
                         .HasColumnType("integer");
@@ -457,12 +360,42 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.HasIndex("Asset");
 
+                    b.HasIndex("TokenGroupId");
+
                     b.HasIndex("TokenPriceId");
 
                     b.HasIndex("NetworkId", "Asset")
                         .IsUnique();
 
                     b.ToTable("Tokens");
+                });
+
+            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.TokenGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Asset")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TokenGroups");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.TokenPrice", b =>
@@ -501,15 +434,14 @@ namespace Train.Solver.Data.EF.Migrations
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Transaction", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("integer");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Asset")
+                    b.Property<string>("Amount")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Confirmations")
@@ -520,14 +452,12 @@ namespace Train.Solver.Data.EF.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<decimal?>("FeeAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("FeeAsset")
+                    b.Property<string>("FeeAmount")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("FeeUsdPrice")
-                        .HasColumnType("numeric");
+                    b.Property<int>("FeeTokenId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("NetworkName")
                         .IsRequired()
@@ -540,18 +470,22 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Property<string>("SwapId")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("Timestamp")
+                    b.Property<int?>("SwapId1")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TransactionId")
+                    b.Property<int>("TokenId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TransactionHash")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")
                         .HasComment("Transfer=0,Approve=1,HTLCCommit=2,HTLCLock=3,HTLCRedeem=4,HTLCRefund=5,HTLCAddLockSig=6");
-
-                    b.Property<decimal>("UsdPrice")
-                        .HasColumnType("numeric");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -561,29 +495,62 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FeeTokenId");
+
                     b.HasIndex("Status");
 
-                    b.HasIndex("SwapId");
+                    b.HasIndex("SwapId1");
 
-                    b.HasIndex("TransactionId");
+                    b.HasIndex("TokenId");
+
+                    b.HasIndex("TransactionHash");
 
                     b.HasIndex("Type");
 
-                    b.HasIndex("TransactionId", "NetworkName")
+                    b.HasIndex("TransactionHash", "NetworkName")
                         .IsUnique();
 
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Contract", b =>
+            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Wallet", b =>
                 {
-                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Network", "Network")
-                        .WithMany("Contracts")
-                        .HasForeignKey("NetworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Navigation("Network");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NetworkType")
+                        .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Address", "NetworkType");
+
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Expense", b =>
@@ -605,15 +572,13 @@ namespace Train.Solver.Data.EF.Migrations
                     b.Navigation("Token");
                 });
 
-            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.ManagedAccount", b =>
+            modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Network", b =>
                 {
-                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Network", "Network")
-                        .WithMany("ManagedAccounts")
-                        .HasForeignKey("NetworkId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "NativeToken")
+                        .WithMany()
+                        .HasForeignKey("NativeTokenId");
 
-                    b.Navigation("Network");
+                    b.Navigation("NativeToken");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Node", b =>
@@ -673,6 +638,11 @@ namespace Train.Solver.Data.EF.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.TokenGroup", "TokenGroup")
+                        .WithMany()
+                        .HasForeignKey("TokenGroupId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.TokenPrice", "TokenPrice")
                         .WithMany()
                         .HasForeignKey("TokenPriceId")
@@ -681,25 +651,39 @@ namespace Train.Solver.Data.EF.Migrations
 
                     b.Navigation("Network");
 
+                    b.Navigation("TokenGroup");
+
                     b.Navigation("TokenPrice");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Transaction", b =>
                 {
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "FeeToken")
+                        .WithMany()
+                        .HasForeignKey("FeeTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.Swap", "Swap")
                         .WithMany("Transactions")
-                        .HasForeignKey("SwapId")
+                        .HasForeignKey("SwapId1")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "Token")
+                        .WithMany()
+                        .HasForeignKey("TokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FeeToken");
+
                     b.Navigation("Swap");
+
+                    b.Navigation("Token");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Network", b =>
                 {
-                    b.Navigation("Contracts");
-
-                    b.Navigation("ManagedAccounts");
-
                     b.Navigation("Nodes");
 
                     b.Navigation("Tokens");

@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Token : EntityBase<int>
+public class Token : EntityBase
 {
     public string Asset { get; set; } = null!;
 

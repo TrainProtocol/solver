@@ -12,7 +12,7 @@ public static class MapperExtensions
     {
         return new SwapDto
         {
-            CommitId = swap.Id,
+            CommitId = swap.CommitId,
             SourceNetwork = swap.SourceToken.Network.Name,
             SourceToken = swap.SourceToken.Asset,
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
@@ -33,7 +33,7 @@ public static class MapperExtensions
         return new TransactionDto
         {
             Type = tx.Type,
-            Hash = tx.TransactionId ?? string.Empty,
+            Hash = tx.TransactionHash ?? string.Empty,
             Network = tx.NetworkName
         };
     }
