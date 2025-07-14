@@ -12,7 +12,7 @@ using Train.Solver.Data.Npgsql;
 namespace Train.Solver.Data.Npgsql.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    [Migration("20250714135725_Initial")]
+    [Migration("20250714145653_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -179,10 +179,19 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     b.Property<int>("DestinationTokenId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("DestinationWalletId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("MaxAmountInSource")
                         .HasColumnType("numeric");
 
+                    b.Property<int?>("ServiceFeeId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SourceTokenId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SourceWalletId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Status")
@@ -198,6 +207,12 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DestinationTokenId");
+
+                    b.HasIndex("DestinationWalletId");
+
+                    b.HasIndex("ServiceFeeId");
+
+                    b.HasIndex("SourceWalletId");
 
                     b.HasIndex("SourceTokenId", "DestinationTokenId")
                         .IsUnique();
@@ -218,23 +233,11 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("DestinationAsset")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DestinationNetwork")
-                        .HasColumnType("text");
-
                     b.Property<decimal>("FeeInUsd")
                         .HasColumnType("numeric");
 
                     b.Property<decimal>("FeePercentage")
                         .HasColumnType("numeric");
-
-                    b.Property<string>("SourceAsset")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceNetwork")
-                        .HasColumnType("text");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -467,10 +470,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         .HasColumnType("integer")
                         .HasComment("Completed=0,Initiated=1,Failed=2");
 
-                    b.Property<string>("SwapId")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("SwapId1")
+                    b.Property<int?>("SwapId")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("Timestamp")
@@ -499,7 +499,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("SwapId1");
+                    b.HasIndex("SwapId");
 
                     b.HasIndex("TokenId");
 
@@ -600,15 +600,37 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Wallet", "DestinationWallet")
+                        .WithMany()
+                        .HasForeignKey("DestinationWalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.ServiceFee", "ServiceFee")
+                        .WithMany()
+                        .HasForeignKey("ServiceFeeId");
+
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "SourceToken")
                         .WithMany()
                         .HasForeignKey("SourceTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Train.Solver.Data.Abstractions.Entities.Wallet", "SourceWallet")
+                        .WithMany()
+                        .HasForeignKey("SourceWalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("DestinationToken");
 
+                    b.Navigation("DestinationWallet");
+
+                    b.Navigation("ServiceFee");
+
                     b.Navigation("SourceToken");
+
+                    b.Navigation("SourceWallet");
                 });
 
             modelBuilder.Entity("Train.Solver.Data.Abstractions.Entities.Swap", b =>
@@ -666,7 +688,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.Swap", "Swap")
                         .WithMany("Transactions")
-                        .HasForeignKey("SwapId1")
+                        .HasForeignKey("SwapId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "Token")

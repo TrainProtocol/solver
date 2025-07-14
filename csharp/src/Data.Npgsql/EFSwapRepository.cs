@@ -92,7 +92,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
     public async Task<int> CreateSwapTransactionAsync(
         string networkName,
-        string swapId,
+        int? swapId,
         TransactionType transactionType,
         string transactionHash,
         string asset,

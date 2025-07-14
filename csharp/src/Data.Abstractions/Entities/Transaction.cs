@@ -47,7 +47,7 @@ public class Transaction : EntityBase
 
     public TransactionStatus Status { get; set; }
 
-    public string? SwapId { get; set; }
+    public int? SwapId { get; set; }
 
     public virtual Swap? Swap { get; set; }
 }

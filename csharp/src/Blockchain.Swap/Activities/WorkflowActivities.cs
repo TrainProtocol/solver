@@ -97,7 +97,7 @@ public class WorkflowActivities(
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
                     FromAddress = wallet.Address,
-                    SwapId = swap.CommitId,
+                    SwapId = swap.Id,
             }],
             new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())
             {

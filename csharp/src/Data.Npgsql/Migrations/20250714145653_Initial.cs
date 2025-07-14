@@ -18,10 +18,6 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SourceNetwork = table.Column<string>(type: "text", nullable: true),
-                    DestinationNetwork = table.Column<string>(type: "text", nullable: true),
-                    SourceAsset = table.Column<string>(type: "text", nullable: true),
-                    DestinationAsset = table.Column<string>(type: "text", nullable: true),
                     FeeInUsd = table.Column<decimal>(type: "numeric", nullable: false),
                     FeePercentage = table.Column<decimal>(type: "numeric", nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -190,6 +186,9 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     MaxAmountInSource = table.Column<decimal>(type: "numeric", nullable: false),
                     SourceTokenId = table.Column<int>(type: "integer", nullable: false),
                     DestinationTokenId = table.Column<int>(type: "integer", nullable: false),
+                    SourceWalletId = table.Column<int>(type: "integer", nullable: false),
+                    DestinationWalletId = table.Column<int>(type: "integer", nullable: false),
+                    ServiceFeeId = table.Column<int>(type: "integer", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false, comment: "Active=0,Inactive=1,Archived=2"),
                     CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
@@ -197,6 +196,11 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Routes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Routes_ServiceFees_ServiceFeeId",
+                        column: x => x.ServiceFeeId,
+                        principalTable: "ServiceFees",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Routes_Tokens_DestinationTokenId",
                         column: x => x.DestinationTokenId,
@@ -207,6 +211,18 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         name: "FK_Routes_Tokens_SourceTokenId",
                         column: x => x.SourceTokenId,
                         principalTable: "Tokens",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Routes_Wallets_DestinationWalletId",
+                        column: x => x.DestinationWalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Routes_Wallets_SourceWalletId",
+                        column: x => x.SourceWalletId,
+                        principalTable: "Wallets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -262,8 +278,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     FeeAmount = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false, comment: "Transfer=0,Approve=1,HTLCCommit=2,HTLCLock=3,HTLCRedeem=4,HTLCRefund=5,HTLCAddLockSig=6"),
                     Status = table.Column<int>(type: "integer", nullable: false, comment: "Completed=0,Initiated=1,Failed=2"),
-                    SwapId = table.Column<string>(type: "text", nullable: true),
-                    SwapId1 = table.Column<int>(type: "integer", nullable: true),
+                    SwapId = table.Column<int>(type: "integer", nullable: true),
                     CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
@@ -271,8 +286,8 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transactions_Swaps_SwapId1",
-                        column: x => x.SwapId1,
+                        name: "FK_Transactions_Swaps_SwapId",
+                        column: x => x.SwapId,
                         principalTable: "Swaps",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -323,10 +338,25 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 column: "DestinationTokenId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Routes_DestinationWalletId",
+                table: "Routes",
+                column: "DestinationWalletId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Routes_ServiceFeeId",
+                table: "Routes",
+                column: "ServiceFeeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Routes_SourceTokenId_DestinationTokenId",
                 table: "Routes",
                 columns: new[] { "SourceTokenId", "DestinationTokenId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Routes_SourceWalletId",
+                table: "Routes",
+                column: "SourceWalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Swaps_CommitId",
@@ -391,9 +421,9 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_SwapId1",
+                name: "IX_Transactions_SwapId",
                 table: "Transactions",
-                column: "SwapId1");
+                column: "SwapId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_TokenId",
@@ -462,10 +492,10 @@ namespace Train.Solver.Data.Npgsql.Migrations
                 name: "Routes");
 
             migrationBuilder.DropTable(
-                name: "ServiceFees");
+                name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "Transactions");
+                name: "ServiceFees");
 
             migrationBuilder.DropTable(
                 name: "Wallets");

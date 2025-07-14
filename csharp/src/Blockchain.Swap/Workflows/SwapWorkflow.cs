@@ -30,7 +30,7 @@ public class SwapWorkflow : ISwapWorkflow
     private string? _solverManagedAccountInSource;
     private DetailedNetworkDto? _sourceNetwork;
     private DetailedNetworkDto? _destinationNetwork;
-    private string? _swapId;
+    private int? _swapId;
     private DateTimeOffset _lpTimeLock;
 
     [WorkflowRun]

@@ -217,7 +217,7 @@ public class RouteService(
             fixedFee += expenseFee.ExpenseFee;
         }
 
-        var serviceFee = await CalculateServiceFeeAsync(route);
+        var serviceFee = CalculateServiceFee(route);
 
         if (serviceFee is not null)
         {
@@ -230,97 +230,24 @@ public class RouteService(
         return totalFee;
     }
 
-    private async Task<ServiceFeeDto> CalculateServiceFeeAsync(
+    private ServiceFeeDto CalculateServiceFee(
         Route route)
     {
-        var serviceFees = await feeRepository.GetServiceFeesAsync();
-
         var fee = new ServiceFeeDto()
         {
             ServiceFee = BigInteger.Zero,
             ServiceFeePercentage = default
         };
 
-        if (serviceFees.Any())
+        if (route.ServiceFee != null)
         {
-            var serviceFee = MatchServiceFee(
-                serviceFees,
-                new SourceDestinationRequest()
-                {
-                    SourceNetwork = route.SourceToken.Network.Name,
-                    SourceToken = route.SourceToken.Asset,
-                    DestinationNetwork = route.DestinationToken.Network.Name,
-                    DestinationToken = route.DestinationToken.Asset,
-                });
-
-            if (serviceFee != null)
-            {
-                fee.ServiceFeePercentage = serviceFee.FeePercentage;
-                fee.ServiceFee = TokenUnitConverter.ToBaseUnits(
-                    serviceFee.FeeInUsd / route.SourceToken.TokenPrice.PriceInUsd,
-                    route.SourceToken.Decimals);
-
-            }
+            fee.ServiceFeePercentage = route.ServiceFee.FeePercentage;
+            fee.ServiceFee = TokenUnitConverter.ToBaseUnits(
+                route.ServiceFee.FeeInUsd / route.SourceToken.TokenPrice.PriceInUsd,
+                route.SourceToken.Decimals);
         }
 
         return fee;
-    }
-
-    private static ServiceFee? MatchServiceFee(
-        List<ServiceFee> feeSettings,
-        SourceDestinationRequest request)
-    {
-        if (feeSettings.Any())
-        {
-            // Helper methods to check matches and nullity
-            bool matches(string? a, string? b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-
-            // Consolidated match checkers
-            bool matchesSource(ServiceFee x) => matches(x.SourceNetwork, request.SourceNetwork) &&
-                                                matches(x.SourceAsset, request.SourceToken);
-
-            bool matchesDestination(ServiceFee x) => matches(x.DestinationNetwork, request.DestinationNetwork) &&
-                                                     matches(x.DestinationAsset, request.DestinationToken);
-
-            bool isSourceNull(ServiceFee x) => x.SourceNetwork is null && x.SourceAsset is null;
-            bool isDestinationNull(ServiceFee x) => x.DestinationNetwork is null && x.DestinationAsset is null;
-
-            // Specific scenario matchers using the helper and consolidated methods
-            bool matchExactSourceDestNetworkAssets(ServiceFee x) => matchesSource(x) && matchesDestination(x);
-            bool matchSourceAssetNullOthers(ServiceFee x) => matchesSource(x) && isDestinationNull(x);
-            bool matchDestAssetNullOthers(ServiceFee x) => isSourceNull(x) && matchesDestination(x);
-
-            bool matchSourceNetworkNullOthers(ServiceFee x) => matches(x.SourceNetwork, request.SourceNetwork) &&
-                                                               isDestinationNull(x) && x.SourceAsset is null;
-
-            bool matchDestNetworkNullOthers(ServiceFee x) => isSourceNull(x) &&
-                                                             matches(x.DestinationNetwork,
-                                                                 request.DestinationNetwork) &&
-                                                             x.DestinationAsset is null;
-
-            bool matchGlobalFee(ServiceFee x) => isSourceNull(x) && isDestinationNull(x);
-
-            var matchers = new Func<ServiceFee, bool>[]
-            {
-                matchExactSourceDestNetworkAssets,
-                matchSourceAssetNullOthers,
-                matchDestAssetNullOthers,
-                matchSourceNetworkNullOthers,
-                matchDestNetworkNullOthers,
-                matchGlobalFee
-            };
-
-            foreach (var matcher in matchers)
-            {
-                var feeSetting = feeSettings.FirstOrDefault(matcher);
-                if (feeSetting != null)
-                {
-                    return feeSetting;
-                }
-            }
-        }
-
-        return null;
     }
 
     private async Task<ExpenseFeeDto?> CalculateExpenseFeeAsync(Route route)

@@ -16,12 +16,11 @@ namespace Train.Solver.Blockchain.Swap.Activities;
 public class SwapActivities(
     ISwapRepository swapRepository,
     IWalletRepository walletRepository,
-    INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRouteService routeService) : ISwapActivities
 {
     [Activity]
-    public virtual async Task<string> CreateSwapAsync(
+    public virtual async Task<int> CreateSwapAsync(
         HTLCCommitEventMessage commitEventMessage,
         string outputAmount,
         string feeAmount,
@@ -40,7 +39,7 @@ public class SwapActivities(
             hashlock,
             feeAmount);
 
-        return swap.CommitId;
+        return swap.Id;
     }
 
     [Activity]
@@ -58,7 +57,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<int> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction)
+    public virtual async Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction)
     {
         return await swapRepository.CreateSwapTransactionAsync(
             transaction.NetworkName,

@@ -121,7 +121,10 @@ var routes = new[]
         SourceTokenId = 1,
         DestinationTokenId = 2,
         MaxAmountInSource = 1.0m,
-        Status = RouteStatus.Active
+        Status = RouteStatus.Active,
+        SourceWalletId = accounts[0].Id,
+        DestinationWalletId = accounts[0].Id,
+        ServiceFeeId = serviceFee.Id
     },
     new Route
     {
@@ -129,7 +132,10 @@ var routes = new[]
         SourceTokenId = 2,
         DestinationTokenId = 1,
         MaxAmountInSource = 1.0m,
-        Status = RouteStatus.Active
+        Status = RouteStatus.Active,
+        SourceWalletId = accounts[0].Id,
+        DestinationWalletId = accounts[0].Id,
+        ServiceFeeId = serviceFee.Id
     }
 };
 

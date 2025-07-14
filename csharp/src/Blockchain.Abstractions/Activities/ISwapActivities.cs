@@ -7,10 +7,10 @@ namespace Train.Solver.Blockchain.Abstractions.Activities;
 public interface ISwapActivities
 {
     [Activity]
-    Task<string> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
+    Task<int> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
 
     [Activity]
-    Task<int> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction);
+    Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction);
 
     [Activity]
     Task<HashlockModel> GenerateHashlockAsync();
