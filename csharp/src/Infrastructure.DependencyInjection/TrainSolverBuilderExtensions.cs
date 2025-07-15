@@ -37,7 +37,8 @@ public static class TrainSolverBuilderExtensions
 
     private static IServiceCollection AddTemporalWorkerClient(
      this IServiceCollection services,
-     string serverHost, string @namespace)
+     string serverHost, 
+     string @namespace)
     {
         services.AddTemporalClient(serverHost, @namespace);
 

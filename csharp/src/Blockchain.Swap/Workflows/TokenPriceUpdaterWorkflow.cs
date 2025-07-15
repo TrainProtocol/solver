@@ -9,6 +9,7 @@ using static Temporalio.Workflows.Workflow;
 namespace Train.Solver.Blockchain.Swap.Workflows;
 
 [Workflow]
+[TemporalJobSchedule(Chron = "*/5 * * * *")]
 public class TokenPriceUpdaterWorkflow : IScheduledWorkflow
 {
     public static ActivityOptions GetMarketPriceActivityOptions = new()
