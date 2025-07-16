@@ -6,12 +6,14 @@ public interface IFeeRepository
 {
     Task<List<Expense>> GetExpensesAsync();
 
+    Task<List<ServiceFee>> GetServiceFeesAsync();
+
+    Task<ServiceFee?> CreateServiceFeeAsync(decimal feeInUsd, decimal percentageFee);
+
     Task UpdateExpenseAsync(
         string networkName,
         string token,
         string feeToken,
         string fee,
         TransactionType transactionType);
-
-    Task<List<ServiceFee>> GetServiceFeesAsync();
 }

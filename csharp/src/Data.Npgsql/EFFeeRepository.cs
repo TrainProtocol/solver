@@ -6,6 +6,20 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFFeeRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : IFeeRepository
 {
+    public async Task<ServiceFee?> CreateServiceFeeAsync(decimal feeInUsd, decimal percentageFee)
+    {
+        var serviceFee = new ServiceFee
+        {
+            FeeInUsd = feeInUsd,
+            FeePercentage = percentageFee
+        };
+
+        dbContext.ServiceFees.Add(serviceFee);
+        await dbContext.SaveChangesAsync();
+
+        return serviceFee;
+    }
+
     public async Task<List<Expense>> GetExpensesAsync()
     {
         return await dbContext.Expenses

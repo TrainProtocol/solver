@@ -16,7 +16,10 @@ public interface INetworkRepository
         string chainId,
         int feePercentageIncrease,
         string htlcNativeContractAddress,
-        string htlcTokenContractAddress);
+        string htlcTokenContractAddress,
+        string nativeTokenSymbol,
+        string nativeTokenContract,
+        int nativeTokenDecimals);
 
     Task<Node?> CreateNodeAsync(
         string networkName,
@@ -26,8 +29,7 @@ public interface INetworkRepository
        string networkName,
        string symbol,
        string? contract,
-       int decimals, 
-       bool isNative = false);
+       int decimals);
 
     Task<Token?> CreateNativeTokenAsync(
         string networkName,
