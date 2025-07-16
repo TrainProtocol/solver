@@ -104,7 +104,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         return node;
     }
 
-    public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals)
+    public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals, bool isNative = false)
     {
         var network = await GetAsync(networkName);
 
@@ -127,6 +127,12 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
 
         network.Tokens.Add(token);
         await dbContext.SaveChangesAsync();
+
+        if(isNative)
+        {
+            network.NativeTokenId = token.Id;
+            await dbContext.SaveChangesAsync();
+        }
 
         return token;
     }
