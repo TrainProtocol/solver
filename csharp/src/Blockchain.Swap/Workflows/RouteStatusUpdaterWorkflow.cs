@@ -6,8 +6,8 @@ using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Swap.Activities;
-using Train.Solver.Util.Enums;
-using Train.Solver.Util.Helpers;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Blockchain.Swap.Workflows;
@@ -26,9 +26,9 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
         var groupedByNetworkAndAsset = allRoutes
             .GroupBy(route => new
             {
-                route.Destionation.Network.Name,
-                route.Destionation.Network.Type,
-                route.Destionation.Token.Symbol
+                route.Destination.Network.Name,
+                route.Destination.Network.Type,
+                route.Destination.Token.Symbol
             });
 
         foreach (var group in groupedByNetworkAndAsset)

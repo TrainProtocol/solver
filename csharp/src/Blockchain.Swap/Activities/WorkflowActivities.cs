@@ -10,7 +10,7 @@ using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 

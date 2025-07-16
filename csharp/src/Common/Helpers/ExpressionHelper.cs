@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Train.Solver.Util.Helpers;
+namespace Train.Solver.Common.Helpers;
 
 public static class ExpressionHelper
 {

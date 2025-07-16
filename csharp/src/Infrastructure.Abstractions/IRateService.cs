@@ -1,9 +1,8 @@
-using System;
-using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.Abstractions;
 
 public interface IRateService
 {
-    Task<decimal> GetRateAsync(Route route);
+    Task<decimal> GetRateAsync(RouteDetailedDto route);
 }

@@ -10,7 +10,7 @@ using static Temporalio.Workflows.Workflow;
 using System.Numerics;
 using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Common.Extensions;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.EVM.Workflows;
 

@@ -1,5 +1,4 @@
 ﻿using Train.Solver.Blockchain.Swap.Extensions;
-using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;

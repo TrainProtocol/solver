@@ -1,6 +1,5 @@
-﻿using System.Numerics;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Util.Enums;
+﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 

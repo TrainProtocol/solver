@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities.Base;
-using Train.Solver.Util.Enums;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 

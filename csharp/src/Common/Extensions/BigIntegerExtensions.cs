@@ -2,7 +2,7 @@
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 
-namespace Train.Solver.Util.Extensions;
+namespace Train.Solver.Common.Extensions;
 
 public static class BigIntegerExtensions
 {
@@ -69,7 +69,7 @@ public static class BigIntegerExtensions
 
         // Convert divisor to decimal manually
         var divisor = BigInteger.Pow(10, decimals);
-        decimal normalizedAmount = (decimal)(amount / divisor) + ((decimal)(amount % divisor) / (decimal)divisor);
+        decimal normalizedAmount = (decimal)(amount / divisor) + (decimal)(amount % divisor) / (decimal)divisor;
 
         return (normalizedAmount * priceUsd).Truncate(2);
     }
@@ -82,7 +82,7 @@ public static class BigIntegerExtensions
         const int scale = 10000;
         var scaledPercent = (BigInteger)(percent * scale);
 
-        return (value * scaledPercent) / scale / 100;
+        return value * scaledPercent / scale / 100;
     }
 
     public static BigInteger ConvertTokenAmount(this BigInteger amountIn, decimal rate, int sourceDecimals, int destDecimals)
@@ -96,7 +96,7 @@ public static class BigIntegerExtensions
 
         // amountIn * rate * destScale / sourceScale
         var numerator = BigInteger.Multiply(amountIn, (BigInteger)(rate * 1_000_000_000m)); // scale rate for precision
-        var scaled = (numerator * scaleDest) / (scaleSource * 1_000_000_000);
+        var scaled = numerator * scaleDest / (scaleSource * 1_000_000_000);
 
         return scaled;
     }

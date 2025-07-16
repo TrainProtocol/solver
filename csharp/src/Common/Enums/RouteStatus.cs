@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Util.Enums;
+﻿namespace Train.Solver.Common.Enums;
 
 public enum RouteStatus
 {

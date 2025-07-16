@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Binance.Net.Clients;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
@@ -15,22 +15,22 @@ public class RateService : IRateService
         _binanceClient = new BinanceRestClient();
     }
 
-    public async Task<decimal> GetRateAsync(Route route)
+    public async Task<decimal> GetRateAsync(RouteDetailedDto route)
     {
-        if (route.DestinationToken.TokenGroupId != null
-        && route.SourceToken.TokenGroupId != null && route.DestinationToken.TokenGroupId == route.SourceToken.TokenGroupId)
+        if (route.DestinationTokenGroupId != null
+        && route.SourceTokenGroupId != null && route.DestinationTokenGroupId == route.SourceTokenGroupId)
         {
             // Same asset
             return 1;
         }
 
-        var tradingSymbol = await GetTradingSymbol(route.SourceToken.Asset, route.DestinationToken.Asset);
+        var tradingSymbol = await GetTradingSymbol(route.Source.Token.Symbol, route.Destination.Token.Symbol);
 
         // direct traiding pair found
         if (tradingSymbol != null)
         {
             // Direct trading pair exists
-            var isBuying = IsBuyTrade(tradingSymbol, route.SourceToken.Asset, route.DestinationToken.Asset);
+            var isBuying = IsBuyTrade(tradingSymbol, route.Source.Token.Symbol, route.Destination.Token.Symbol);
             var price = await GetLastPriceAsync(tradingSymbol);
 
             return isBuying ? price : 1 / price;
@@ -39,12 +39,12 @@ public class RateService : IRateService
         else 
         {
 
-            var sourceToUsdtPair = await GetTradingSymbol(route.SourceToken.Asset, "USDT");
-            var destinationToUsdtPair = await GetTradingSymbol(route.DestinationToken.Asset, "USDT");
+            var sourceToUsdtPair = await GetTradingSymbol(route.Source.Token.Symbol, "USDT");
+            var destinationToUsdtPair = await GetTradingSymbol(route.Destination.Token.Symbol, "USDT");
 
             if (sourceToUsdtPair == null || destinationToUsdtPair == null)
             {
-                throw new Exception($"No valid trading pairs found for {route.SourceToken.Asset} or {route.DestinationToken.Asset} with USDT.");
+                throw new Exception($"No valid trading pairs found for {route.Source.Token.Symbol} or {route.Destination.Token.Symbol} with USDT.");
             }
 
             var sourceToUsdtPrice = await GetLastPriceAsync(sourceToUsdtPair);

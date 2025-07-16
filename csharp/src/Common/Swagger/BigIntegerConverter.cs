@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
-namespace Train.Solver.Util.Swagger;
+namespace Train.Solver.Common.Swagger;
 
 public class BigIntegerConverter : JsonConverter<BigInteger>
 {

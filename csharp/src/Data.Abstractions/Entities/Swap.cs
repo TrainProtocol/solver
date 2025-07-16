@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Train.Solver.Data.Abstractions.Entities.Base;
+﻿using Train.Solver.Data.Abstractions.Entities.Base;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 

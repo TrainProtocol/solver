@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.Util.Extensions;
+﻿namespace Train.Solver.Common.Extensions;
 
 public static class DecimalExtensions
 {

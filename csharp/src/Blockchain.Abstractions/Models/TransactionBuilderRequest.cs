@@ -1,4 +1,4 @@
-﻿using Train.Solver.Util.Enums;
+﻿using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Abstractions.Models;
 

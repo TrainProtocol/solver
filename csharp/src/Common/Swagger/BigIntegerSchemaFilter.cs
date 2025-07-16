@@ -1,14 +1,9 @@
 ﻿using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Train.Solver.Util.Swagger;
+namespace Train.Solver.Common.Swagger;
 
 public class BigIntegerSchemaFilter : ISchemaFilter
 {

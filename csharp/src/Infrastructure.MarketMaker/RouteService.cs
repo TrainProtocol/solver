@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Util.Extensions;
-using Train.Solver.Util.Helpers;
-using Nethereum.Util;
+using Train.Solver.Common.Extensions;
+using Train.Solver.Common.Helpers;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using System.Numerics;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
@@ -94,7 +93,7 @@ public class RouteService(
             }
         }
 
-        var swapRate = await rateService.GetRateAsync(route);
+        var swapRate = await rateService.GetRateAsync(route.ToDetailedDto());
         var amount = request.Amount;
         var totalFee = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - totalFee;

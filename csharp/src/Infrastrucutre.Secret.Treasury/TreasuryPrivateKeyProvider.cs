@@ -1,8 +1,6 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Train.Solver.Data.Abstractions.Repositories;
-using Train.Solver.Infrastructure.Abstractions;
+﻿using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 

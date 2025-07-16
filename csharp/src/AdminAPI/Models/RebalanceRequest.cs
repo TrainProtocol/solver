@@ -1,6 +1,4 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
-
-namespace Train.Solver.AdminAPI.Models;
+﻿namespace Train.Solver.AdminAPI.Models;
 
 public class RebalanceRequest
 {

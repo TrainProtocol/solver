@@ -1,6 +1,6 @@
 ﻿using Temporalio.Activities;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Abstractions.Activities;
 

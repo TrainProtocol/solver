@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyName>Train.Solver.Util</AssemblyName>
-		<RootNamespace>Train.Solver.Util</RootNamespace>
+		<AssemblyName>Train.Solver.Common</AssemblyName>
+		<RootNamespace>Train.Solver.Common</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

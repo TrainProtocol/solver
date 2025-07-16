@@ -6,9 +6,8 @@ using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;

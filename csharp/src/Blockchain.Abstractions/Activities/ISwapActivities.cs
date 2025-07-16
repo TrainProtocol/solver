@@ -1,7 +1,7 @@
 ﻿using Temporalio.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Abstractions.Activities;
 public interface ISwapActivities

@@ -1,10 +1,7 @@
-﻿using Flurl;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Diagnostics.Contracts;
+﻿using Microsoft.EntityFrameworkCore;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 

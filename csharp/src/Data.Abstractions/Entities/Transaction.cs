@@ -1,15 +1,7 @@
 ﻿using Train.Solver.Data.Abstractions.Entities.Base;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Entities;
-
-
-public enum TransactionStatus
-{
-    Completed,
-    Initiated,
-    Failed,
-}
 
 public class Transaction : EntityBase
 {

@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Extensions;
-using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -112,9 +110,11 @@ public static class MapperExtensions
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithNetworkDto(),
             MaxAmountInSource = route.MaxAmountInSource,
-            Status = route.Status
+            Status = route.Status,
+            SourceTokenGroupId = route.SourceToken.TokenGroupId,
+            DestinationTokenGroupId = route.DestinationToken.TokenGroupId,
         };
     }
 
@@ -123,7 +123,7 @@ public static class MapperExtensions
         return new RouteDto
         {
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithNetworkDto(),
         };
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Nethereum.Hex.HexConvertors.Extensions;
 
-namespace Train.Solver.Util.Extensions;
+namespace Train.Solver.Common.Extensions;
 
 public static class StringExtensions
 {

@@ -6,10 +6,9 @@ using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
-using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 using static Temporalio.Workflows.Workflow;
 using static Train.Solver.Blockchain.Common.Helpers.TemporalHelper;
 

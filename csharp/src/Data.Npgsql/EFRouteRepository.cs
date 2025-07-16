@@ -2,8 +2,8 @@
 using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
-using Train.Solver.Util.Enums;
-using Train.Solver.Util.Helpers;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Data.Npgsql;
 

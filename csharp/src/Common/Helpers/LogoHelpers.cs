@@ -1,6 +1,6 @@
 ﻿using Flurl;
 
-namespace Train.Solver.Util.Helpers;
+namespace Train.Solver.Common.Helpers;
 
 public static class LogoHelpers
 {

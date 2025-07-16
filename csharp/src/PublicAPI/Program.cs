@@ -1,18 +1,13 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.MarketMaker;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Extensions;
 using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
-using Train.Solver.Util;
-using Train.Solver.Util.Swagger;
+using Train.Solver.Common.Swagger;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

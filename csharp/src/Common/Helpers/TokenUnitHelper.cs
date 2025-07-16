@@ -1,12 +1,7 @@
 ﻿using Nethereum.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Train.Solver.Util.Helpers;
+namespace Train.Solver.Common.Helpers;
 
 public static class TokenUnitHelper
 {

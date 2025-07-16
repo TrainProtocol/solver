@@ -12,7 +12,14 @@ public class TokenPriceActivities(
     [Activity]
     public async Task<Dictionary<string, decimal>> GetTokensPricesAsync()
     {
-        return await tokenPriceService.GetPricesAsync();
+        var tokens = await networkRepository.GetTokensAsync();
+
+        var externalIds = tokens
+            .Where(x => x.TokenPrice != null && !string.IsNullOrEmpty(x.TokenPrice.ExternalId))
+            .Select(x => x.TokenPrice.ExternalId)
+            .ToArray();
+
+        return await tokenPriceService.GetPricesAsync(externalIds);
     }
 
     [Activity]

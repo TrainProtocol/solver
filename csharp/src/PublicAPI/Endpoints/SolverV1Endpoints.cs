@@ -7,7 +7,7 @@ using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.PublicAPI.Models;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.PublicAPI.Endpoints;
 

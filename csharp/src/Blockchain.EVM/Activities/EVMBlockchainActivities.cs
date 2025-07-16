@@ -10,13 +10,10 @@ using Nethereum.Signer;
 using Nethereum.Signer.EIP712;
 using Nethereum.Util;
 using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
-using static Train.Solver.Util.Helpers.ResilientNodeHelper;
+using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 using Nethereum.RPC.Eth.Mappers;
 using Temporalio.Activities;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.EVM.Models;
@@ -27,8 +24,8 @@ using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using RedLockNet;
 using StackExchange.Redis;
-using Train.Solver.Util.Helpers;
-using Train.Solver.Util.Enums;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 

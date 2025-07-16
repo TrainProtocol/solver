@@ -9,10 +9,9 @@ using System.Numerics;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.EVM.FunctionMessages;
 using Train.Solver.Blockchain.EVM.Models;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Extensions;
-using static Train.Solver.Util.Helpers.ResilientNodeHelper;
+using Train.Solver.Common.Extensions;
+using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 

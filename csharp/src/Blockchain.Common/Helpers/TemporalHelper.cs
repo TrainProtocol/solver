@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Workflows;
-using Train.Solver.Util.Enums;
-using Train.Solver.Util.Helpers;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Blockchain.Common.Helpers;
 
