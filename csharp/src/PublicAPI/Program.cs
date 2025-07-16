@@ -62,8 +62,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
-    .WithTreasury()
-    .WithCoreServices()
     .WithMarketMaker()
     .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
@@ -102,14 +100,5 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
-var scope = app.Services.CreateScope();
-var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
-
-var klir = await walletService.CreateAsync(new CreateWalletRequest
-{
-    Type = NetworkType.EVM,
-    Name = "Klir Wallet",
-});
 
 await app.RunAsync();
