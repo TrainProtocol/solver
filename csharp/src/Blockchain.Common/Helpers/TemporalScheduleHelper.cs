@@ -46,25 +46,23 @@ public static class TemporalScheduleHelper
         if (!type.Name.EndsWith(nameof(Workflow)))
             return;
 
-        var scheduleName = type.Name[..^nameof(Workflow).Length];
-
-        var descriptor = existingSchedules.FirstOrDefault(x => x.Id == scheduleName);
+        var descriptor = existingSchedules.FirstOrDefault(x => x.Id == type.Name);
 
         if (descriptor is not null
            && !descriptor!.Schedule!.Spec.CronExpressions.Any(x => x == scheduleAttribute.Chron))
         {
             await temporalClient
-                   .GetScheduleHandle(scheduleName)
+                   .GetScheduleHandle(type.Name)
                    .DeleteAsync();
         }
 
         try
         {
-            await temporalClient.CreateScheduleAsync(scheduleName, new(
+            await temporalClient.CreateScheduleAsync(type.Name, new(
                 Action: ScheduleActionStartWorkflow.Create(
-                    scheduleName,
+                    type.Name,
                     args: [],
-                    options: new WorkflowOptions(id: scheduleName, Constants.CoreTaskQueue)),
+                    options: new WorkflowOptions(id: type.Name, Constants.CoreTaskQueue)),
                 Spec: new()
                 {
                     CronExpressions = [scheduleAttribute.Chron],
@@ -83,7 +81,7 @@ public static class TemporalScheduleHelper
     {
         var scheduleNames = jobTypes
             .Where(x => x.Name.EndsWith(nameof(Workflow)))
-            .Select(x => x.Name[..^nameof(Workflow).Length])
+            .Select(x => x.Name)
             .ToHashSet();
 
         foreach (var scheduleDescription in scheduleDescriptions)
