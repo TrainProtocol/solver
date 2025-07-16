@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
-    <ProjectReference Include="..\Util\Common.csproj" />
   </ItemGroup>
 
 </Project>
