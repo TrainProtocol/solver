@@ -6,7 +6,7 @@ using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
 
 namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 
-public class TreasuryPrivateKeyProvider(ITreasuryClient client, IWalletRepository walletRepository) : IPrivateKeyProvider
+public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
 {
     public async Task<string> GenerateAsync(NetworkType type, string label)
     {
@@ -16,11 +16,6 @@ public class TreasuryPrivateKeyProvider(ITreasuryClient client, IWalletRepositor
         {
             throw new Exception($"Failed to generate address. Error:{generateResponse.Error?.Content}");
         }
-
-        var wallet = await walletRepository.CreateAsync(
-            type,
-            generateResponse.Content!.Address,
-            label);
 
         return generateResponse.Content!.Address;
     }
