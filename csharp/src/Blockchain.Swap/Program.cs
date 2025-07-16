@@ -5,6 +5,7 @@ using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Infrastructure.MarketMaker;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -23,7 +24,8 @@ IHost host = Host.CreateDefaultBuilder(args)
             .WithNpgsqlRepositories()
             .WithCoreWorkflows()
             .WithCoingeckoPrices()
-            .WithMarketMaker();
+            .WithMarketMaker()
+            .WithTreasury();
     })
     .Build();
 
