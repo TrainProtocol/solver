@@ -11,12 +11,12 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Extensions;
 
-namespace Train.Solver.Infrastructure.MarketMaker;
+namespace Train.Solver.Infrastructure.Services;
 
 public class RouteService(
     IRouteRepository routeRepository,
     IFeeRepository feeRepository,
-    IRateService rateService,
+    KeyedServiceResolver<IRateProvider> rateProviderResolver,
     IOptions<TrainSolverOptions> options) : IRouteService
 {
     public const decimal MinUsdAmount = 0.69m;
@@ -93,7 +93,8 @@ public class RouteService(
             }
         }
 
-        var swapRate = await rateService.GetRateAsync(route.ToDetailedDto());
+        var rateProvider = rateProviderResolver.Resolve(route.RateProvider.Name);
+        var swapRate = await rateProvider.GetRateAsync(route.ToDto());
         var amount = request.Amount;
         var totalFee = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - totalFee;

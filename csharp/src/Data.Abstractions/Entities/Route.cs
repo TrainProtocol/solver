@@ -15,9 +15,13 @@ public class Route : EntityBase
 
     public int DestinationWalletId { get; set; }
 
+    public int RateProviderId { get; set; }
+
     public int? ServiceFeeId { get; set; }
 
     public RouteStatus Status { get; set; }
+
+    public RateProvider RateProvider { get; set; } = null!;
 
     public Token SourceToken { get; set; } = null!;
 

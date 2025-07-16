@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{408D96B3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtoGenerator", "tools\ProtoGenerator\ProtoGenerator.csproj", "{F122706F-7858-4A1C-84C2-21FE9B27A432}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.MarketMaker", "src\Infrastructure.MarketMaker\Infrastructure.MarketMaker.csproj", "{19D6E10A-5408-42AE-9078-616BDEA91B83}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Rate.SameAsset", "src\Infrastructure.MarketMaker\Infrastructure.Rate.SameAsset.csproj", "{19D6E10A-5408-42AE-9078-616BDEA91B83}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicAPI", "src\PublicAPI\PublicAPI.csproj", "{F2C096C2-8763-B7B1-D14A-CC3DBD77B410}"
 EndProject
@@ -68,6 +68,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastrucutre.Secret.Treasury", "src\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj", "{22FA2335-A3BB-77D1-10BB-28CFF9354DB3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "src\Common\Common.csproj", "{3F3044DC-A9F8-DE16-79DD-4A0C1649CD06}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Rate.Binance", "src\Infrastructure.Rate.Binance\Infrastructure.Rate.Binance.csproj", "{041B9715-9086-44B2-8AEA-D280983E6B11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -295,6 +297,18 @@ Global
 		{3F3044DC-A9F8-DE16-79DD-4A0C1649CD06}.Release|x64.Build.0 = Release|Any CPU
 		{3F3044DC-A9F8-DE16-79DD-4A0C1649CD06}.Release|x86.ActiveCfg = Release|Any CPU
 		{3F3044DC-A9F8-DE16-79DD-4A0C1649CD06}.Release|x86.Build.0 = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|x64.Build.0 = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Debug|x86.Build.0 = Debug|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|x64.ActiveCfg = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|x64.Build.0 = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|x86.ActiveCfg = Release|Any CPU
+		{041B9715-9086-44B2-8AEA-D280983E6B11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -322,6 +336,7 @@ Global
 		{0A150862-4FF3-4C06-987B-7401135ED766} = {408D96B3-44EC-4053-AC45-FD9DFD2F176D}
 		{22FA2335-A3BB-77D1-10BB-28CFF9354DB3} = {A8361F6F-72AD-4A91-A331-F209132B514B}
 		{3F3044DC-A9F8-DE16-79DD-4A0C1649CD06} = {417046CB-2C35-43D3-B887-98E708339594}
+		{041B9715-9086-44B2-8AEA-D280983E6B11} = {A8361F6F-72AD-4A91-A331-F209132B514B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9194A24-3EC3-4F7F-BD7F-8DE45515A2E3}

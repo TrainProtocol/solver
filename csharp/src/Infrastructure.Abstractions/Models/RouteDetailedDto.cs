@@ -10,7 +10,5 @@ public class RouteDetailedDto : RouteDto
 
     public RouteStatus Status { get; set; }
 
-    public int? SourceTokenGroupId { get; set; }
-
-    public int? DestinationTokenGroupId { get; set; }
+    public string RateProviderName { get; set; }
 }

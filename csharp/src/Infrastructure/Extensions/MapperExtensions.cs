@@ -113,8 +113,7 @@ public static class MapperExtensions
             Destination = route.DestinationToken.ToWithNetworkDto(),
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status,
-            SourceTokenGroupId = route.SourceToken.TokenGroupId,
-            DestinationTokenGroupId = route.DestinationToken.TokenGroupId,
+            RateProviderName = route.RateProvider.Name,
         };
     }
 

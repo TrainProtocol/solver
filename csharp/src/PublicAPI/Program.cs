@@ -2,12 +2,14 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Infrastructure.MarketMaker;
 using Train.Solver.Common.Extensions;
 using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
 using Train.Solver.Common.Swagger;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Infrastructure.Rate.SameAsset;
+using Train.Solver.Infrastructure.Rate.Binance;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -57,7 +59,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
-    .WithMarketMaker()
+    .WithCoreServices()
+    .WithSameAssetRateProvider()
+    .WithBinanceRateProvider()
     .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
 

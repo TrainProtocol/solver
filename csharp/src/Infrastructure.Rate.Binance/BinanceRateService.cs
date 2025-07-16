@@ -3,27 +3,17 @@ using Binance.Net.Clients;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 
-namespace Train.Solver.Infrastructure.MarketMaker;
+namespace Train.Solver.Infrastructure.Rate.Binance;
 
-public class RateService : IRateService
+public class BinanceRateService : IRateProvider
 {
-    private readonly BinanceRestClient _binanceClient;
+    private readonly BinanceRestClient _binanceClient = new();
     private static readonly ConcurrentDictionary<string, string> _tradingSymbolCache = new();
 
-    public RateService()
-    {
-        _binanceClient = new BinanceRestClient();
-    }
+    public string ProviderName => Constants.ProviderName;
 
-    public async Task<decimal> GetRateAsync(RouteDetailedDto route)
+    public async Task<decimal> GetRateAsync(RouteDto route)
     {
-        if (route.DestinationTokenGroupId != null
-        && route.SourceTokenGroupId != null && route.DestinationTokenGroupId == route.SourceTokenGroupId)
-        {
-            // Same asset
-            return 1;
-        }
-
         var tradingSymbol = await GetTradingSymbol(route.Source.Token.Symbol, route.Destination.Token.Symbol);
 
         // direct traiding pair found

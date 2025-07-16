@@ -17,8 +17,4 @@ public class Token : EntityBase
     public int TokenPriceId { get; set; }
 
     public virtual TokenPrice TokenPrice { get; set; } = null!;
-
-    public int? TokenGroupId { get; set; }
-
-    public virtual TokenGroup? TokenGroup { get; set; } = null;
 }

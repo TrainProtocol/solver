@@ -65,6 +65,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
 
     private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
         => dbContext.Routes
+            .Include(x => x.RateProvider)
             .Include(x => x.SourceWallet)
             .Include(x => x.DestinationWallet)
             .Include(x => x.ServiceFee)

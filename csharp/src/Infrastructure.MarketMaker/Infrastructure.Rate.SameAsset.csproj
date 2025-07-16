@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<AssemblyName>Train.Solver.Infrastructure.MarketMaker</AssemblyName>
-		<RootNamespace>Train.Solver.Infrastructure.MarketMaker</RootNamespace>
+		<AssemblyName>Train.Solver.Infrastructure.Rate.SameAsset</AssemblyName>
+		<RootNamespace>Train.Solver.Infrastructure.Rate.SameAsset</RootNamespace>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Binance.Net" Version="10.19.1" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
