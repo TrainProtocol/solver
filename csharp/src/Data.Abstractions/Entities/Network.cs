@@ -1,22 +1,7 @@
 ﻿using Train.Solver.Data.Abstractions.Entities.Base;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Data.Abstractions.Entities;
-
-public enum NetworkType
-{
-    EVM,
-    Solana,
-    Starknet,
-    Fuel,
-}
-
-public enum TransactionFeeType
-{
-    Default,
-    EIP1559,
-    ArbitrumEIP1559,
-    OptimismEIP1559,
-}
 
 public class Network : EntityBase
 {

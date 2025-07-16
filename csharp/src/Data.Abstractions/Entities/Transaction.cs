@@ -1,17 +1,7 @@
 ﻿using Train.Solver.Data.Abstractions.Entities.Base;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Data.Abstractions.Entities;
-
-public enum TransactionType
-{
-    Transfer,
-    Approve,
-    HTLCCommit,
-    HTLCLock,
-    HTLCRedeem,
-    HTLCRefund,
-    HTLCAddLockSig,
-}
 
 
 public enum TransactionStatus

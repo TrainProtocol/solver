@@ -42,7 +42,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain.Abstractions", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{417046CB-2C35-43D3-B887-98E708339594}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "src\Util\Util.csproj", "{BED56D0D-6DB0-4124-93EC-97E39150F03F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "src\Util\Common.csproj", "{BED56D0D-6DB0-4124-93EC-97E39150F03F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_build", "_build", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject

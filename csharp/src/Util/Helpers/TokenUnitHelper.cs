@@ -6,9 +6,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Train.Solver.Util;
+namespace Train.Solver.Util.Helpers;
 
-public static class TokenUnitConverter
+public static class TokenUnitHelper
 {
     private static readonly UnitConversion _converter = new();
 

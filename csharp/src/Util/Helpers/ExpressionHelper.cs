@@ -1,9 +1,9 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Train.Solver.Util;
+namespace Train.Solver.Util.Helpers;
 
-public static class ExpressionUtil
+public static class ExpressionHelper
 {
     public static (MethodInfo Method, IReadOnlyCollection<object?> Args) ExtractCall<TDelegate>(
         Expression<TDelegate> expr, bool errorSaysPropertyAccepted = false)

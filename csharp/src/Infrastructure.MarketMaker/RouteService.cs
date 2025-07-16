@@ -8,9 +8,9 @@ using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Util.Extensions;
 using Train.Solver.Util.Helpers;
 using Nethereum.Util;
-using Train.Solver.Util;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using System.Numerics;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Infrastructure.MarketMaker;
 
@@ -47,7 +47,7 @@ public class RouteService(
 
     private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = TokenUnitConverter.ToBaseUnits(
+        var minBufferAmount = TokenUnitHelper.ToBaseUnits(
             MinUsdAmount / route.SourceToken.TokenPrice.PriceInUsd,
             route.SourceToken.Decimals);
 
@@ -57,7 +57,7 @@ public class RouteService(
         return new LimitDto
         {
             MinAmount = minAmount,
-            MaxAmount = TokenUnitConverter.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
+            MaxAmount = TokenUnitHelper.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
         };
     }
 
@@ -151,7 +151,7 @@ public class RouteService(
         if (route.ServiceFee != null)
         {
             fee.ServiceFeePercentage = route.ServiceFee.FeePercentage;
-            fee.ServiceFee = TokenUnitConverter.ToBaseUnits(
+            fee.ServiceFee = TokenUnitHelper.ToBaseUnits(
                 route.ServiceFee.FeeInUsd / route.SourceToken.TokenPrice.PriceInUsd,
                 route.SourceToken.Decimals);
         }
@@ -182,7 +182,7 @@ public class RouteService(
                     transactionCompletionDetail.FeeToken.TokenPrice.PriceInUsd,
                     transactionCompletionDetail.FeeToken.Decimals);
 
-                fee.ExpenseFee += TokenUnitConverter.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
+                fee.ExpenseFee += TokenUnitHelper.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
             }
         }
 

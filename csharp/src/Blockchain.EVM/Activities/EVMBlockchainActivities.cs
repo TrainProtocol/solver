@@ -28,6 +28,7 @@ using Train.Solver.Infrastructure.Abstractions.Models;
 using RedLockNet;
 using StackExchange.Redis;
 using Train.Solver.Util.Helpers;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Blockchain.EVM.Activities;
 

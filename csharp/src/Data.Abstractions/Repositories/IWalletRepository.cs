@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 

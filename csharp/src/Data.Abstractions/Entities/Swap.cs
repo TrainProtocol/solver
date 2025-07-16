@@ -15,10 +15,6 @@ public class Swap : EntityBase
 
     public Token DestinationToken { get; set; } = null!;
 
-    //public decimal SourceTokenPrice { get; set; }
-
-    //public decimal DestinationTokenPrice { get; set; }
-
     public string SourceAddress { get; set; } = null!;
 
     public string DestinationAddress { get; set; } = null!;

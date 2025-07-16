@@ -5,11 +5,11 @@ using Temporalio.Activities;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 

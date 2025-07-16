@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Infrastructure.Abstractions;
 

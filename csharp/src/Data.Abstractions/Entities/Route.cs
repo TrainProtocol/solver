@@ -1,13 +1,7 @@
 ﻿using Train.Solver.Data.Abstractions.Entities.Base;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.Data.Abstractions.Entities;
-
-public enum RouteStatus
-{
-    Active,
-    Inactive,
-    Archived,
-}
 
 public class Route : EntityBase
 {

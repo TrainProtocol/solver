@@ -2,12 +2,12 @@
 using Temporalio.Client;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.PublicAPI.Models;
+using Train.Solver.Util.Enums;
 
 namespace Train.Solver.PublicAPI.Endpoints;
 

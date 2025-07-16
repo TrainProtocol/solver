@@ -2,6 +2,7 @@
 using System;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Npgsql;
+using Train.Solver.Util.Enums;
 
 var options = new DbContextOptionsBuilder<SolverDbContext>()
             .UseNpgsql("Server=dev-ls-psqlserver.postgres.database.azure.com;Database=train_solver;Port=5432;User Id=dbadmin;Password=root41best4U%%;Ssl Mode=Require;Trust Server Certificate=true;").Options;

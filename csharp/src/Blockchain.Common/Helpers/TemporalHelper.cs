@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 using Temporalio.Workflows;
 using Train.Solver.Blockchain.Abstractions.Workflows;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Util;
+using Train.Solver.Util.Enums;
+using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Blockchain.Common.Helpers;
 
@@ -13,7 +13,7 @@ public static class TemporalHelper
        Expression<Func<ITransactionProcessor, Task<TResult>>> workflowRunCall,
        ChildWorkflowOptions? options = null)
     {
-        var (_, args) = ExpressionUtil.ExtractCall(workflowRunCall);
+        var (_, args) = ExpressionHelper.ExtractCall(workflowRunCall);
         var handle = await Workflow.StartChildWorkflowAsync(
             ResolveProcessor(networkType),
             args,
