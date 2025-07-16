@@ -26,7 +26,8 @@ public interface INetworkRepository
        string networkName,
        string symbol,
        string? contract,
-       int decimals);
+       int decimals, 
+       bool isNative = false);
 
     Task<Token?> CreateNativeTokenAsync(
         string networkName,
