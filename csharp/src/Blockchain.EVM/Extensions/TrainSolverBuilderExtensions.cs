@@ -1,17 +1,12 @@
-﻿using Microsoft.Extensions.Options;
-using RedLockNet.SERedis.Configuration;
+﻿using RedLockNet.SERedis.Configuration;
 using RedLockNet.SERedis;
 using RedLockNet;
 using StackExchange.Redis;
 using Temporalio.Extensions.Hosting;
 using Train.Solver.Blockchain.EVM.Activities;
 using Train.Solver.Blockchain.EVM.Workflows;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Temporalio.Client;
-using Temporalio.Exceptions;
-using Temporalio.Api.Cloud.Namespace.V1;
-using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.EVM.Extensions;
 

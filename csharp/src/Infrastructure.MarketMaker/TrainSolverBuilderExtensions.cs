@@ -2,15 +2,14 @@
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
 
-namespace Train.Solver.Infrastructure.MarketMaker;
+namespace Train.Solver.Infrastructure.Rate.SameAsset;
 
 public static class TrainSolverBuilderExtensions
 {
-    public static TrainSolverBuilder WithMarketMaker(
+    public static TrainSolverBuilder WithSameAssetRateProvider(
         this TrainSolverBuilder builder)
     {
-        builder.Services.AddTransient<IRouteService, RouteService>();
-        builder.Services.AddSingleton<IRateService, RateService>();
+        builder.Services.AddKeyedSingleton<IRateProvider, SameAssetRateService>(Constants.ProviderName);
         return builder;
     }
 }

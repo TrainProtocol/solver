@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Node : EntityBase<int>
+public class Node : EntityBase
 {
     public string Url { get; set; } = null!;
 

@@ -1,22 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 
 public class EFSwapRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : ISwapRepository
 {
     public async Task<Swap> CreateAsync(
-        string id, 
+        string commitId,
         string senderAddress,
         string destinationAddress,
-        string sourceNetworkName, 
+        string sourceNetworkName,
         string sourceAsset,
-        string sourceAmount, 
-        string destinationNetworkName, 
+        string sourceAmount,
+        string destinationNetworkName,
         string destinationAsset,
-        string destinationAmount, 
+        string destinationAmount,
         string hashlock,
         string feeAmount)
     {
@@ -31,7 +31,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
         var swap = new Swap
         {
-            Id = id,
+            CommitId = commitId,
             SourceTokenId = sourceToken.Id,
             DestinationTokenId = destinationToken.Id,
             SourceAddress = senderAddress,
@@ -65,7 +65,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             .ToListAsync();
     }
 
-    public async Task<Swap?> GetAsync(string id)
+    public async Task<Swap?> GetAsync(string commitId)
     {
         return await dbContext.Swaps
             .Include(x => x.Transactions)
@@ -73,7 +73,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
             .Include(x => x.SourceToken.TokenPrice)
             .Include(x => x.DestinationToken.Network)
             .Include(x => x.DestinationToken.TokenPrice)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.CommitId == commitId);
     }
 
     public async Task<List<string>> GetNonRefundedSwapIdsAsync()
@@ -86,13 +86,13 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
                 &&
                 x.Transactions.Any(t => t.Type == TransactionType.HTLCLock)
             )
-            .Select(s => s.Id)
+            .Select(s => s.CommitId)
             .ToListAsync();
     }
 
-    public async Task<Guid> CreateSwapTransactionAsync(
+    public async Task<int> CreateSwapTransactionAsync(
         string networkName,
-        string swapId,
+        int? swapId,
         TransactionType transactionType,
         string transactionHash,
         string asset,
@@ -103,14 +103,13 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
         string feeAmount)
     {
         var network = await networkRepository.GetAsync(networkName);
-       
+
         if (network == null)
         {
             throw new($"Network {networkName} not found.");
         }
 
-        var token = network.Tokens.FirstOrDefault(x=>x.Asset == asset);
-       
+        var token = network.Tokens.FirstOrDefault(x => x.Asset == asset);
 
         if (token == null)
         {
@@ -119,19 +118,17 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
         var transaction = new Transaction
         {
-            TransactionId = transactionHash,
+            TransactionHash = transactionHash,
             Status = TransactionStatus.Completed,
             Confirmations = confirmations,
             Timestamp = timestamp,
             FeeAmount = feeAmount,
-            FeeAsset = network.NativeToken!.Asset,
+            FeeTokenId = network.NativeToken!.Id,
             Amount = amount,
-            Asset = token.Asset,
-            FeeUsdPrice = network.NativeToken.TokenPrice.PriceInUsd,
+            TokenId = token.Id,
             NetworkName = networkName,
             SwapId = swapId,
             Type = transactionType,
-            UsdPrice = token.TokenPrice.PriceInUsd
         };
 
         dbContext.Transactions.Add(transaction);

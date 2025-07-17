@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Npgsql;
+using Train.Solver.Common.Enums;
 
 var options = new DbContextOptionsBuilder<SolverDbContext>()
             .UseNpgsql("Server=dev-ls-psqlserver.postgres.database.azure.com;Database=train_solver;Port=5432;User Id=dbadmin;Password=root41best4U%%;Ssl Mode=Require;Trust Server Certificate=true;").Options;
@@ -77,10 +77,10 @@ context.Networks.AddRange(ethereumNetwork, arbitrumNetwork);
 context.Wallets.AddRange(accounts);
 await context.SaveChangesAsync();
 
-var tokenGroup = new TokenGroup
+var rateProvider = new RateProvider
 {
     Id = 1,
-    Asset = "ETH"
+    Name = "SameAsset"
 };
 
 var tokenPrice = new TokenPrice
@@ -97,7 +97,6 @@ var ethereumNativeToken = new Token
     Asset = "ETH",
     Decimals = 18,
     TokenContract = null,
-    TokenGroup = tokenGroup,
     TokenPrice = tokenPrice,
     NetworkId = 1
 };
@@ -108,7 +107,6 @@ var arbitrumNativeToken = new Token
     Asset = "ETH",
     Decimals = 18,
     TokenContract = null,
-    TokenGroup = tokenGroup,
     TokenPrice = tokenPrice,
     NetworkId = 2
 };
@@ -120,16 +118,24 @@ var routes = new[]
         Id = 1,
         SourceTokenId = 1,
         DestinationTokenId = 2,
+        RateProviderId = rateProvider.Id,
         MaxAmountInSource = 1.0m,
-        Status = RouteStatus.Active
+        Status = RouteStatus.Active,
+        SourceWalletId = accounts[0].Id,
+        DestinationWalletId = accounts[0].Id,
+        ServiceFeeId = serviceFee.Id
     },
     new Route
     {
         Id = 2,
         SourceTokenId = 2,
         DestinationTokenId = 1,
+        RateProviderId = rateProvider.Id,
         MaxAmountInSource = 1.0m,
-        Status = RouteStatus.Active
+        Status = RouteStatus.Active,
+        SourceWalletId = accounts[0].Id,
+        DestinationWalletId = accounts[0].Id,
+        ServiceFeeId = serviceFee.Id
     }
 };
 
@@ -137,7 +143,7 @@ ethereumNetwork.NativeTokenId = ethereumNativeToken.Id;
 arbitrumNetwork.NativeTokenId = arbitrumNativeToken.Id;
 
 await context.AddRangeAsync([
-    tokenGroup,
+    rateProvider,
     tokenPrice,
     ethereumNativeToken,
     arbitrumNativeToken,

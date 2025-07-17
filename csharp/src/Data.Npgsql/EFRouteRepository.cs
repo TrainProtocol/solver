@@ -2,7 +2,8 @@
 using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
-using Train.Solver.Util;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Data.Npgsql;
 
@@ -39,7 +40,7 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
         {
             var routeMaxAmount = route.MaxAmountInSource;
 
-            if (amount > TokenUnitConverter.ToBaseUnits(routeMaxAmount, route.SourceToken.Decimals))
+            if (amount > TokenUnitHelper.ToBaseUnits(routeMaxAmount, route.SourceToken.Decimals))
             {
                 return null;
             }
@@ -64,6 +65,10 @@ public class EFRouteRepository(SolverDbContext dbContext) : IRouteRepository
 
     private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
         => dbContext.Routes
+            .Include(x => x.RateProvider)
+            .Include(x => x.SourceWallet)
+            .Include(x => x.DestinationWallet)
+            .Include(x => x.ServiceFee)
             .Include(x => x.SourceToken.Network.Nodes)
             .Include(x => x.SourceToken.TokenPrice)
             .Include(x => x.DestinationToken.Network.Nodes)

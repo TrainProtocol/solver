@@ -1,10 +1,12 @@
 ﻿using Train.Solver.Blockchain.Swap.Extensions;
-using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.TokenPrice.Coingecko;
 using Train.Solver.Data.Npgsql.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Infrastructure.MarketMaker;
+using Train.Solver.Infrastructure.Rate.SameAsset;
+using Train.Solver.Infrastructure.Rate.Binance;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
+using Train.Solver.Infrastructure.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -17,12 +19,15 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services
             .AddTrainSolver(hostContext.Configuration)
-            .WithOpenTelemetryLogging("Swap Core Runner")
             .WithCoreServices()
+            .WithSameAssetRateProvider()
+            .WithBinanceRateProvider()
+            .WithTemporalSchedules()
+            .WithOpenTelemetryLogging("Swap Core Runner")
             .WithNpgsqlRepositories()
             .WithCoreWorkflows()
             .WithCoingeckoPrices()
-            .WithMarketMaker();
+            .WithTreasury();
     })
     .Build();
 

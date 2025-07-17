@@ -1,5 +1,4 @@
 ﻿using Temporalio.Workflows;
-using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Blockchain.Abstractions.Workflows;
 

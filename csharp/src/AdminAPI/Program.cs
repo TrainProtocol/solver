@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
-using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Extensions;
 using Train.Solver.AdminAPI.Endpoints;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
+using Train.Solver.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -39,6 +40,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services
     .AddTrainSolver(builder.Configuration)
     .WithCoreServices()
+    .WithTreasury()
     .WithOpenTelemetryLogging("Solver Admin API")
     .WithNpgsqlRepositories();
 

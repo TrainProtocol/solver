@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Entities.Base;
 using Train.Solver.Data.Npgsql.Extensions;
@@ -17,7 +15,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<TokenPrice> TokenPrices { get; set; }
 
-    public DbSet<TokenGroup> TokenGroups { get; set; }
+    public DbSet<RateProvider> RateProviders { get; set; }
 
     public DbSet<Wallet> Wallets { get; set; }
 
@@ -76,7 +74,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasEnumComment();
 
         modelBuilder.Entity<Transaction>()
-            .HasIndex(x => new { x.TransactionId, x.NetworkName })
+            .HasIndex(x => new { x.TransactionHash, x.NetworkName })
             .IsUnique();
 
         modelBuilder.Entity<Transaction>()
@@ -88,7 +86,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasEnumComment();
 
         modelBuilder.Entity<Transaction>()
-            .HasIndex(x => x.TransactionId);
+            .HasIndex(x => x.TransactionHash);
 
         modelBuilder.Entity<Transaction>()
             .HasIndex(x => x.Type);
@@ -113,16 +111,16 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<Swap>()
             .HasIndex(x => x.CreatedDate);
 
+        modelBuilder.Entity<Swap>()
+          .HasIndex(x => x.CommitId).IsUnique();
+
+        modelBuilder.Entity<RateProvider>()
+            .HasIndex(x => x.Name).IsUnique();
+
         modelBuilder.Entity<Token>()
            .HasOne(t => t.TokenPrice)
            .WithMany()
            .HasForeignKey(t => t.TokenPriceId)
-           .OnDelete(DeleteBehavior.NoAction);
-
-        modelBuilder.Entity<Token>()
-           .HasOne(t => t.TokenGroup)
-           .WithMany()
-           .HasForeignKey(t => t.TokenGroupId)
            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Expense>()
@@ -145,36 +143,25 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     private static void SetupGuidPrimaryKeyAndConcurrencyToken(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("uuid-ossp");
-
-        var entitiesAssambly = typeof(EntityBase<>).Assembly;
+        var entitiesAssambly = typeof(EntityBase).Assembly;
 
         var entities = entitiesAssambly.GetTypes()
             .Where(x =>
-                x.BaseType is { IsGenericType: true }
-                && x.BaseType.GetGenericTypeDefinition() == typeof(EntityBase<>)
+                x.BaseType == typeof(EntityBase)
                 && !x.IsAbstract);
 
         foreach (var entity in entities)
-        {
-            if (entity.BaseType!.GetGenericArguments()[0] == typeof(Guid))
-            {
-                modelBuilder
-                    .Entity(entity)
-                    .Property(nameof(EntityBase<Guid>.Id))
-                    .HasDefaultValueSql("uuid_generate_v4()");
-            }
-
+        {           
             modelBuilder
                 .Entity(entity)
-                .Property(nameof(EntityBase<int>.CreatedDate))
+                .Property(nameof(EntityBase.CreatedDate))
                 .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("now()")
                 .ValueGeneratedOnAdd();
 
             modelBuilder
                 .Entity(entity)
-                .Property(nameof(EntityBase<int>.Version))
+                .Property(nameof(EntityBase.Version))
                 .IsConcurrencyToken()
                 .ValueGeneratedOnAddOrUpdate()
                 .HasColumnType("xid")

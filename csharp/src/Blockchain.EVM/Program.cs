@@ -20,6 +20,4 @@ IHost host = Host.CreateDefaultBuilder(args)
     })
     .Build();
 
-var scope = host.Services.CreateScope();
-
 await host.RunAsync();

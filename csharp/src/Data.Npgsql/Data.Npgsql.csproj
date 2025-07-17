@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Infrastructure.Abstractions\Infrastructure.Abstractions.csproj" />
+	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
 	  <ProjectReference Include="..\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
 	</ItemGroup>
 
@@ -22,6 +22,10 @@
 	  <None Update="appsettings.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Migrations\" />
 	</ItemGroup>
 
 </Project>

@@ -30,17 +30,15 @@ public static class TrainSolverBuilderExtensions
             services.Configure(configureOptions);
         }
 
-        services.AddHttpClient();
-
         services.AddTemporalWorkerClient(options.TemporalServerHost, options.TemporalNamespace);
-
 
         return new TrainSolverBuilder(services, configuration, options);
     }
 
     private static IServiceCollection AddTemporalWorkerClient(
      this IServiceCollection services,
-     string serverHost, string @namespace)
+     string serverHost, 
+     string @namespace)
     {
         services.AddTemporalClient(serverHost, @namespace);
 

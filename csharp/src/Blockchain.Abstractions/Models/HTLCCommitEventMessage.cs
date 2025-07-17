@@ -1,6 +1,4 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
-
-namespace Train.Solver.Blockchain.Abstractions.Models;
+﻿namespace Train.Solver.Blockchain.Abstractions.Models;
 
 public class HTLCCommitEventMessage
 {

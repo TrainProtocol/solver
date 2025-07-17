@@ -17,7 +17,7 @@ export class PrivateKeyConfigService {
     }
 
     get k8sTokenPath(): string {
-        return this.configService.get('VAULT_K8S_SERVICE_ACCOUNT_TOKEN_PATH');
+        return this.configService.get('K8S_SERVICE_ACCOUNT_TOKEN_PATH');
     }
 
     get url(): string {

@@ -1,18 +1,15 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Infrastructure.MarketMaker;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Extensions;
 using Train.Solver.PublicAPI.Endpoints;
 using Train.Solver.PublicAPI.MIddlewares;
-using Train.Solver.Util;
-using Train.Solver.Util.Swagger;
+using Train.Solver.Common.Swagger;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
+using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Infrastructure.Rate.SameAsset;
+using Train.Solver.Infrastructure.Rate.Binance;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -62,9 +59,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
     .AddTrainSolver(builder.Configuration)
-    .WithTreasury()
     .WithCoreServices()
-    .WithMarketMaker()
+    .WithSameAssetRateProvider()
+    .WithBinanceRateProvider()
     .WithOpenTelemetryLogging("Solver API")
     .WithNpgsqlRepositories(opts => opts.MigrateDatabase = true);
 
@@ -102,14 +99,5 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
-var scope = app.Services.CreateScope();
-var walletService = scope.ServiceProvider.GetRequiredService<IWalletService>();
-
-var klir = await walletService.CreateAsync(new CreateWalletRequest
-{
-    Type = NetworkType.EVM,
-    Name = "Klir Wallet",
-});
 
 await app.RunAsync();

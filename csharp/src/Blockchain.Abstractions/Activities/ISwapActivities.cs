@@ -1,16 +1,16 @@
 ﻿using Temporalio.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Abstractions.Activities;
 public interface ISwapActivities
 {
     [Activity]
-    Task<string> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
+    Task<int> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
 
     [Activity]
-    Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction);
+    Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction);
 
     [Activity]
     Task<HashlockModel> GenerateHashlockAsync();

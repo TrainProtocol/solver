@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities.Base;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Expense : EntityBase<int>
+public class Expense : EntityBase
 {
     public string FeeAmount => LastFeeValues.Length > 0 ? LastFeeValues.Select(x => BigInteger.Parse(x)).Average().ToString() : BigInteger.Zero.ToString();
 

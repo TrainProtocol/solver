@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Token : EntityBase<int>
+public class Token : EntityBase
 {
     public string Asset { get; set; } = null!;
 
@@ -17,8 +17,4 @@ public class Token : EntityBase<int>
     public int TokenPriceId { get; set; }
 
     public virtual TokenPrice TokenPrice { get; set; } = null!;
-
-    public int? TokenGroupId { get; set; }
-
-    public virtual TokenGroup? TokenGroup { get; set; } = null;
 }

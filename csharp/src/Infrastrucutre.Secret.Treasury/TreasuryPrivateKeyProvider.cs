@@ -1,12 +1,12 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Infrastructure.Abstractions;
+﻿using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 
 public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
 {
-    public async Task<string> GenerateAsync(NetworkType type)
+    public async Task<string> GenerateAsync(NetworkType type, string label)
     {
         var generateResponse = await client.GenerateAddressAsync(type.ToString());
 

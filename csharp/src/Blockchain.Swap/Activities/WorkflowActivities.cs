@@ -8,9 +8,9 @@ using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Blockchain.Common;
 using Train.Solver.Blockchain.Common.Helpers;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 
@@ -91,7 +91,7 @@ public class WorkflowActivities(
                 {
                     PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
-                        Id = swap.Id,
+                        Id = swap.CommitId,
                         Asset = swap.DestinationToken.Asset,
                     }),
                     Type = TransactionType.HTLCRefund,
@@ -119,7 +119,7 @@ public class WorkflowActivities(
 
             if (existingSwap != null)
             {
-                return existingSwap.Id;
+                return existingSwap.CommitId;
             }
 
             var workflowHandle = await temporalClient.StartWorkflowAsync<ISwapWorkflow>(

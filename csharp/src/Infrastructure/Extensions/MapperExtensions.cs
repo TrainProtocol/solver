@@ -1,8 +1,6 @@
 ﻿using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Extensions;
-using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -12,7 +10,7 @@ public static class MapperExtensions
     {
         return new SwapDto
         {
-            CommitId = swap.Id,
+            CommitId = swap.CommitId,
             SourceNetwork = swap.SourceToken.Network.Name,
             SourceToken = swap.SourceToken.Asset,
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
@@ -33,7 +31,7 @@ public static class MapperExtensions
         return new TransactionDto
         {
             Type = tx.Type,
-            Hash = tx.TransactionId ?? string.Empty,
+            Hash = tx.TransactionHash ?? string.Empty,
             Network = tx.NetworkName
         };
     }
@@ -112,9 +110,10 @@ public static class MapperExtensions
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithNetworkDto(),
             MaxAmountInSource = route.MaxAmountInSource,
-            Status = route.Status
+            Status = route.Status,
+            RateProviderName = route.RateProvider.Name,
         };
     }
 
@@ -123,7 +122,7 @@ public static class MapperExtensions
         return new RouteDto
         {
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithNetworkDto(),
         };
     }
 }

@@ -1,11 +1,8 @@
 ﻿using Nethereum.RPC.Eth.DTOs;
-using Nethereum.Util;
-using Nethereum.Web3;
 using System.Numerics;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.EVM.Models;
-using Train.Solver.Data.Abstractions.Entities;
-using Train.Solver.Util.Extensions;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Blockchain.EVM.Helpers;
 

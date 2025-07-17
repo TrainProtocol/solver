@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<AssemblyName>Train.Solver.Infrastructure.Rate.SameAsset</AssemblyName>
+		<RootNamespace>Train.Solver.Infrastructure.Rate.SameAsset</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Infrastructure.DependencyInjection\Infrastructure.DependencyInjection.csproj" />
+		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	</ItemGroup>
+
+</Project>

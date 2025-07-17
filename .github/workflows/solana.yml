@@ -2,12 +2,12 @@ name: Solana Workflow runner
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ disable ]
     paths:
       - 'csharp/**'
       - '.github/workflows/solana.yml'
   pull_request:
-    branches: [ main, dev ]
+    branches: [ disable ]
     paths:
       - 'csharp/**'
       - '.github/workflows/solana.yml'

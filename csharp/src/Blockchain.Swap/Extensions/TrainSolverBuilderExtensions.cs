@@ -1,5 +1,7 @@
-﻿using Temporalio.Extensions.Hosting;
+﻿using Temporalio.Client;
+using Temporalio.Extensions.Hosting;
 using Train.Solver.Blockchain.Common;
+using Train.Solver.Blockchain.Common.Helpers;
 using Train.Solver.Blockchain.Swap.Activities;
 using Train.Solver.Blockchain.Swap.Workflows;
 using Train.Solver.Infrastructure.DependencyInjection;
@@ -24,6 +26,20 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<RouteStatusUpdaterWorkflow>()
             .AddWorkflow<EventListenerWorkflow>()
             .AddWorkflow<EventListenerUpdaterWorkflow>();
+
+        return builder;
+    }
+
+    public static TrainSolverBuilder WithTemporalSchedules(
+        this TrainSolverBuilder builder)
+    {
+        var client = builder.Services
+            .BuildServiceProvider()
+            .GetRequiredService<ITemporalClient>();
+
+        client.RegisterTemporalSchedulesAsync()
+            .GetAwaiter()
+            .GetResult();
 
         return builder;
     }

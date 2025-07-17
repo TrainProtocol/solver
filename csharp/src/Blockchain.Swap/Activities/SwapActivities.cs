@@ -5,23 +5,22 @@ using Temporalio.Activities;
 using Train.Solver.Blockchain.Abstractions.Activities;
 using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using TransactionResponse = Train.Solver.Blockchain.Abstractions.Models.TransactionResponse;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Blockchain.Swap.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,
     IWalletRepository walletRepository,
-    INetworkRepository networkRepository,
     IFeeRepository feeRepository,
     IRouteService routeService) : ISwapActivities
 {
     [Activity]
-    public virtual async Task<string> CreateSwapAsync(
+    public virtual async Task<int> CreateSwapAsync(
         HTLCCommitEventMessage commitEventMessage,
         string outputAmount,
         string feeAmount,
@@ -58,7 +57,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<Guid> CreateSwapTransactionAsync(string swapId, TransactionType transactionType, TransactionResponse transaction)
+    public virtual async Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction)
     {
         return await swapRepository.CreateSwapTransactionAsync(
             transaction.NetworkName,

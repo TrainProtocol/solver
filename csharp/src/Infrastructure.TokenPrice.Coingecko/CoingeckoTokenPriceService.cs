@@ -1,22 +1,18 @@
 ﻿using Flurl;
 using Flurl.Http;
-using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 
 namespace Train.Solver.Infrastructure.TokenPrice.Coingecko;
 
-public class CoingeckoTokenPriceService(INetworkRepository networkRepository) : ITokenPriceService
+public class CoingeckoTokenPriceService : ITokenPriceService
 {
     private const string CoinGeckoBaseUrl = "https://api.coingecko.com/api";
 
-    public async Task<Dictionary<string, decimal>> GetPricesAsync()
+    public async Task<Dictionary<string, decimal>> GetPricesAsync(string[] externalIds)
     {
-        var tokens = await networkRepository.GetTokensAsync();
-        var tokenExternalIds = tokens.Select(x => x.TokenPrice.ExternalId).ToList();
-
         var coinGeckoResponse = await CoinGeckoBaseUrl
             .AppendPathSegment("v3/simple/price")
-            .SetQueryParam("ids", string.Join(',', tokenExternalIds))
+            .SetQueryParam("ids", string.Join(',', externalIds))
             .SetQueryParam("vs_currencies", "usd")
             .AllowAnyHttpStatus()
             .GetAsync();

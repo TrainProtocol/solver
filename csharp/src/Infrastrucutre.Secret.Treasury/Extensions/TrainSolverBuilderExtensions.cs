@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastrucutre.Secret.Treasury;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Client;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Options;
 

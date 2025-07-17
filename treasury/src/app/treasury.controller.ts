@@ -5,7 +5,7 @@ import { GenerateResponse } from './dto/base.dto';
 import { TREASURIES } from '../treasury/shared/constants.treasury';
 import { SignRequestValidator } from '../common/pipes/sign.pipe';
 
-@Controller('treasury')
+@Controller('api/treasury')
 export class TreasuryController {
   constructor(
     @Inject(TREASURIES)

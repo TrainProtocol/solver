@@ -1,8 +1,7 @@
-﻿using Flurl;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Contracts;
+﻿using Microsoft.EntityFrameworkCore;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 
@@ -61,31 +60,61 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<Network?> CreateAsync(string networkName, string displayName, NetworkType type, TransactionFeeType feeType, string chainId, int feePercentageIncrease, string htlcNativeContractAddress, string htlcTokenContractAddress)
+    public async Task<Network?> CreateAsync(
+       string networkName,
+       string displayName,
+       NetworkType type,
+       TransactionFeeType feeType,
+       string chainId,
+       int feePercentageIncrease,
+       string htlcNativeContractAddress,
+       string htlcTokenContractAddress,
+       string nativeTokenSymbol,
+       string nativeTokenContract,
+       int nativeTokenDecimals)
     {
         var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
 
         if (networkExists)
+            return null;
+
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        try
         {
+            var network = new Network
+            {
+                Name = networkName,
+                ChainId = chainId,
+                DisplayName = displayName,
+                FeePercentageIncrease = feePercentageIncrease,
+                FeeType = feeType,
+                HTLCNativeContractAddress = htlcNativeContractAddress,
+                HTLCTokenContractAddress = htlcTokenContractAddress,
+                Type = type,
+            };
+
+            dbContext.Networks.Add(network);
+            await dbContext.SaveChangesAsync();
+
+            var token = new Token
+            {
+                Asset = nativeTokenSymbol,
+                Decimals = nativeTokenDecimals,
+                TokenContract = nativeTokenContract,
+            };
+
+            network.NativeToken = token;
+            await dbContext.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return network;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
             return null;
         }
-
-        var network = new Network
-        {
-            Name = networkName,
-            ChainId = chainId,
-            DisplayName = displayName,
-            FeePercentageIncrease = feePercentageIncrease,
-            FeeType = feeType,
-            HTLCNativeContractAddress = htlcNativeContractAddress,
-            HTLCTokenContractAddress = htlcTokenContractAddress,
-            Type = type,
-        };
-
-        dbContext.Networks.Add(network);
-        await dbContext.SaveChangesAsync();
-
-        return network;
     }
 
     public async Task<Node?> CreateNodeAsync(string networkName, string url)

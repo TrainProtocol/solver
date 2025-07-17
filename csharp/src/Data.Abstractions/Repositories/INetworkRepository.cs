@@ -1,4 +1,5 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -16,7 +17,10 @@ public interface INetworkRepository
         string chainId,
         int feePercentageIncrease,
         string htlcNativeContractAddress,
-        string htlcTokenContractAddress);
+        string htlcTokenContractAddress,
+        string nativeTokenSymbol,
+        string nativeTokenContract,
+        int nativeTokenDecimals);
 
     Task<Node?> CreateNodeAsync(
         string networkName,
