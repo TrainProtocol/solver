@@ -32,7 +32,7 @@ jobs:
         id: docker
         uses: ./.github/actions/docker
         with:
-          file: csharp/src/Blockchain.Solana/Dockerfile
+          file: csharp/src/Workflows.Solana/Dockerfile
           docker-image: ${{ env.DOCKER_IMAGE }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
