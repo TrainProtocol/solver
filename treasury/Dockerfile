@@ -3,11 +3,11 @@ FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY ./treasury/package*.json ./
 
 RUN npm ci
 
-COPY . .
+COPY ./treasury .
 
 RUN npm run build
 
@@ -15,7 +15,7 @@ RUN npm run build
 FROM node:${NODE_VERSION}-alpine AS production
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY ./treasury/package*.json ./
 
 RUN npm ci --production && npm cache clean --force
 
