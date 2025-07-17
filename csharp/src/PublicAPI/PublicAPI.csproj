@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
+	  <ProjectReference Include="..\Workflows.Abstractions\Workflows.Abstractions.csproj" />
 	  <ProjectReference Include="..\Infrastructure.Rate.Binance\Infrastructure.Rate.Binance.csproj" />
 	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 	  <ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
