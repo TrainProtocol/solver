@@ -104,11 +104,15 @@ public class RouteService(
         {
             ReceiveAmount = receiveAmount,
             TotalFee = totalFee,
-            SolverAddress = route.DestinationWallet.Address,
-            ContractAddress =
+            DestinationSolverAddress = route.DestinationWallet.Address,
+            SourceContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
                 ? route.SourceToken.Network.HTLCNativeContractAddress
                 : route.SourceToken.Network.HTLCTokenContractAddress,
+            DestinationContractAddress =
+                route.SourceToken.Id == route.DestinationToken.Network.NativeTokenId
+                ? route.DestinationToken.Network.HTLCNativeContractAddress
+                : route.DestinationToken.Network.HTLCTokenContractAddress,
         };
 
         return quote;

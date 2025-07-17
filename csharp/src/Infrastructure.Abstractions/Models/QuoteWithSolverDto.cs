@@ -2,7 +2,10 @@
 
 public class QuoteWithSolverDto : QuoteDto
 {
-    public string SolverAddress { get; set; } = null!;
+    public string DestinationSolverAddress { get; set; } = null!;
 
-    public string ContractAddress { get; set; } = null!;
+    public string SourceContractAddress { get; set; } = null!;
+
+    public string DestinationContractAddress { get; set; } = null!;
+
 }

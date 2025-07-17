@@ -19,7 +19,7 @@ public static class SolverV1Endpoints
            .Produces<ApiResponse<List<RouteDto>>>();
 
         group.MapGet("/quote", GetQuoteAsync)
-            .Produces<ApiResponse<QuoteDto>>();
+            .Produces<ApiResponse<QuoteWithSolverDto>>();
 
         group.MapGet("/swaps/{commitId}", GetSwapAsync)
             .Produces<ApiResponse<SwapDto>>();
