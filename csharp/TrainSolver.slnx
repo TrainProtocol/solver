@@ -1,0 +1,52 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/AdminAPI/AdminAPI.csproj" />
+    <Project Path="src/PublicAPI/PublicAPI.csproj" />
+  </Folder>
+  <Folder Name="/src/Blockchain/">
+    <Project Path="src/Blockchain.Abstractions/Blockchain.Abstractions.csproj" />
+    <Project Path="src/Blockchain.Common/Blockchain.Common.csproj" />
+    <Project Path="src/Blockchain.EVM/Blockchain.EVM.csproj" />
+    <Project Path="src/Blockchain.Swap/Blockchain.Swap.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/">
+    <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
+    <Project Path="src/Data.Npgsql/Data.Npgsql.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure.Abstractions/Infrastructure.Abstractions.csproj" />
+    <Project Path="src/Infrastructure.DependencyInjection/Infrastructure.DependencyInjection.csproj" />
+    <Project Path="src/Infrastructure.Logging.OpenTelemetry/Infrastructure.Logging.OpenTelemetry.csproj" />
+    <Project Path="src/Infrastructure.MarketMaker/Infrastructure.Rate.SameAsset.csproj" />
+    <Project Path="src/Infrastructure.Rate.Binance/Infrastructure.Rate.Binance.csproj" />
+    <Project Path="src/Infrastructure.TokenPrice.Coingecko/Infrastructure.TokenPrice.Coingecko.csproj" />
+    <Project Path="src/Infrastructure/Infrastructure.csproj" />
+    <Project Path="src/Infrastrucutre.Secret.Treasury/Infrastrucutre.Secret.Treasury.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Common/Common.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/DataSeeder/DataSeeder.csproj" />
+    <Project Path="tools/ProtoGenerator/ProtoGenerator.csproj" />
+  </Folder>
+  <Folder Name="/_build/">
+    <File Path="../.github/workflows/api.yml" />
+    <File Path="../.github/workflows/evm.yml" />
+    <File Path="../.github/workflows/js.yml" />
+    <File Path="../.github/workflows/solana.yml" />
+    <File Path="../.github/workflows/swap.yml" />
+    <File Path="../build/.env" />
+    <File Path="../build/docker-compose.yml" />
+  </Folder>
+  <Folder Name="/_config/">
+    <File Path="../.gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="nuget.config" />
+  </Folder>
+</Solution>
