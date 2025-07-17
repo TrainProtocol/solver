@@ -24,7 +24,7 @@ services:
   solver.swap:
     build:
       context: ../..
-      dockerfile: csharp/src/Workflows.Swap/Dockerfile
+      dockerfile: csharp/src/Workflow.Swap/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.swap
@@ -47,7 +47,7 @@ services:
   solver.evm:
     build:
       context: ../..
-      dockerfile: csharp/src/Workflows.EVM/Dockerfile
+      dockerfile: csharp/src/Workflow.EVM/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.evm
@@ -70,7 +70,7 @@ services:
   solver.solana:
     build:
       context: ../..
-      dockerfile: csharp/src/Workflows.Solana/Dockerfile
+      dockerfile: csharp/src/Workflow.Solana/Dockerfile
       args:
         DOTNET_VERSION: ${DOTNET_VERSION}
     container_name: solver.solana

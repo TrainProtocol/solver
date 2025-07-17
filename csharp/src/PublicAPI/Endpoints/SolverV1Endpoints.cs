@@ -6,8 +6,8 @@ using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.PublicAPI.Models;
 using Train.Solver.Common.Enums;
-using Train.Solver.Workflows.Abstractions.Models;
-using Train.Solver.Workflows.Abstractions.Workflows;
+using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Workflows;
 
 namespace Train.Solver.PublicAPI.Endpoints;
 

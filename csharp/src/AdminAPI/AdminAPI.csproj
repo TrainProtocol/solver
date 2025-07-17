@@ -14,8 +14,8 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\Workflows.Abstractions\Workflows.Abstractions.csproj" />
-		<ProjectReference Include="..\Workflows.Common\Workflows.Common.csproj" />
+		<ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+		<ProjectReference Include="..\Workflow.Common\Workflow.Common.csproj" />
 		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
 		<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />

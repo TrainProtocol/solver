@@ -25,11 +25,11 @@
   <Folder Name="/src/Shared/">
     <Project Path="src/Common/Common.csproj" />
   </Folder>
-  <Folder Name="/src/Workflows/">
-    <Project Path="src/Workflows.Abstractions/Workflows.Abstractions.csproj" />
-    <Project Path="src/Workflows.Common/Workflows.Common.csproj" />
-    <Project Path="src/Workflows.EVM/Workflows.EVM.csproj" />
-    <Project Path="src/Workflows.Swap/Workflows.Swap.csproj" />
+  <Folder Name="/src/Workflow/">
+    <Project Path="src/Workflow.Abstractions/Workflow.Abstractions.csproj" />
+    <Project Path="src/Workflow.Common/Workflow.Common.csproj" />
+    <Project Path="src/Workflow.EVM/Workflow.EVM.csproj" />
+    <Project Path="src/Workflow.Swap/Workflow.Swap.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/DataSeeder/DataSeeder.csproj" />

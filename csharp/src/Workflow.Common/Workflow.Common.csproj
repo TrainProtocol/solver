@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+		<AssemblyName>Train.Solver.Workflow.Common</AssemblyName>
+		<RootNamespace>Train.Solver.Workflow.Common</RootNamespace>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

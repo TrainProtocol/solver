@@ -9,9 +9,9 @@
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
 | API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
-| Runner (Swap Core) | `csharp/src/Blockchain.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
-| Runner (EVM) | `csharp/src/Blockchain.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
-| Runner (Solana) | `csharp/src/Blockchain.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
+| Runner (Swap Core) | `csharp/src/Workflow.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Runner (EVM) | `csharp/src/Workflow.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
+| Runner (Solana) | `csharp/src/Workflow.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
 | Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
 | Runner (Fuel) | `js/Dockerfile ARG fuel` | [![Fuel](https://img.shields.io/docker/v/trainprotocol/solver-fuel?label=Fuel&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-Fuel) |
 
@@ -64,13 +64,13 @@ This ensures a uniform and secure experience regardless of the underlying blockc
 TrainSolver.sln
 └── src/
     ├── API/                             # Entry point / HTTP Interface
-    ├── Blockchain/
-    │   ├── Blockchain.Abstractions/    # Workflow & Activity interfaces
-    │   ├── Blockchain.Common/          # Shared blockchain logic
-    │   ├── Blockchain.EVM/             # EVM implementation
+    ├── Workflow/
+    │   ├── Workflow.Abstractions/    # Workflow & Activity interfaces
+    │   ├── Workflow.Common/          # Shared workflow logic
+    │   ├── Workflow.EVM/             # EVM implementation
     │   ├── Blockchain.Starknet/        # Starknet implementation
-    │   ├── Blockchain.Solana/          # Solana implementation
-    │   ├── Blockchain.Swap/            # Core swap workflow
+    │   ├── Workflow.Solana/          # Solana implementation
+    │   ├── Workflow.Swap/            # Core swap workflow
     │   └── Blockchain.Helpers/
     ├── Data/
     │   ├── Data.Abstractions/          # Repository interfaces
