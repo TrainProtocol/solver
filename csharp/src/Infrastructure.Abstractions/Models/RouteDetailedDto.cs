@@ -4,11 +4,15 @@ namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class RouteDetailedDto : RouteDto
 {
-    public int Id { get; set; }
-   
-    public decimal MaxAmountInSource { get; set; }
+    public required int Id { get; set; }
 
-    public RouteStatus Status { get; set; }
+    public required string MaxAmountInSource { get; set; } 
 
-    public string RateProviderName { get; set; }
+    public required RouteStatus Status { get; set; }
+
+    public required string RateProviderName { get; set; } 
+
+    public required string SourceWallet { get; set; } 
+
+    public required string DestinationWallet { get; set; } 
 }

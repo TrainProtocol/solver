@@ -6,13 +6,9 @@ public class Swap : EntityBase
 {
     public string CommitId { get; set; } = null!;
 
-    public int SourceTokenId { get; set; }
+    public int RouteId { get; set; }
 
-    public Token SourceToken { get; set; } = null!;
-
-    public int DestinationTokenId { get; set; }
-
-    public Token DestinationToken { get; set; } = null!;
+    public Route Route { get; set; } = null!;
 
     public string SourceAddress { get; set; } = null!;
 

@@ -5,7 +5,10 @@ using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 
-public class EFSwapRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : ISwapRepository
+public class EFSwapRepository(
+    INetworkRepository networkRepository,
+    IRouteRepository routeRepository,
+    SolverDbContext dbContext) : ISwapRepository
 {
     public async Task<Swap> CreateAsync(
         string commitId,
@@ -20,20 +23,22 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
         string hashlock,
         string feeAmount)
     {
+        var route = await routeRepository.GetAsync(
+            sourceNetworkName,
+            sourceAsset,
+            destinationNetworkName,
+            destinationAsset,
+            null);
 
-        var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceAsset);
-        var destinationToken = await networkRepository.GetTokenAsync(destinationNetworkName, destinationAsset);
-
-        if (sourceToken == null || destinationToken == null)
+        if (route == null)
         {
-            throw new("Invalid source or destination token");
+            throw new("Invalid route");
         }
 
         var swap = new Swap
         {
             CommitId = commitId,
-            SourceTokenId = sourceToken.Id,
-            DestinationTokenId = destinationToken.Id,
+            RouteId = route.Id,
             SourceAddress = senderAddress,
             DestinationAddress = destinationAddress,
             SourceAmount = sourceAmount,
@@ -50,12 +55,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
     public async Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20, string[]? addresses = null)
     {
-        return await dbContext.Swaps
-            .Include(x => x.SourceToken.Network)
-            .Include(x => x.SourceToken.TokenPrice)
-            .Include(x => x.DestinationToken.Network)
-            .Include(x => x.DestinationToken.TokenPrice)
-            .Include(x => x.Transactions)
+        return await GetBaseQuery()
             .Where(x => addresses == null
                 || addresses.Contains(x.SourceAddress.ToLower())
                 || addresses.Contains(x.DestinationAddress.ToLower()))
@@ -67,13 +67,7 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
     public async Task<Swap?> GetAsync(string commitId)
     {
-        return await dbContext.Swaps
-            .Include(x => x.Transactions)
-            .Include(x => x.SourceToken.Network)
-            .Include(x => x.SourceToken.TokenPrice)
-            .Include(x => x.DestinationToken.Network)
-            .Include(x => x.DestinationToken.TokenPrice)
-            .FirstOrDefaultAsync(x => x.CommitId == commitId);
+        return await GetBaseQuery().FirstOrDefaultAsync(x => x.CommitId == commitId);
     }
 
     public async Task<List<string>> GetNonRefundedSwapIdsAsync()
@@ -136,4 +130,14 @@ public class EFSwapRepository(INetworkRepository networkRepository, SolverDbCont
 
         return transaction.Id;
     }
+
+    private IQueryable<Swap> GetBaseQuery()
+      => dbContext.Swaps
+            .Include(x => x.Transactions)
+            .Include(x => x.Route.SourceWallet)
+            .Include(x => x.Route.SourceToken.Network)
+            .Include(x => x.Route.SourceToken.TokenPrice)
+            .Include(x => x.Route.DestinationWallet)
+            .Include(x => x.Route.DestinationToken.Network)
+            .Include(x => x.Route.DestinationToken.TokenPrice);
 }

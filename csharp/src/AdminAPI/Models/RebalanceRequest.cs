@@ -8,5 +8,7 @@ public class RebalanceRequest
 
     public decimal Amount { get; set; }
 
+    public string From { get; set; } = null!;
+
     public string To { get; set; } = null!;
 }

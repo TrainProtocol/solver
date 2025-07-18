@@ -7,14 +7,7 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
 {
-    public async Task<Token?> GetTokenAsync(string networkName, string asset)
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .FirstOrDefaultAsync(x => x.Asset == asset && x.Network.Name == networkName);
-    }
-
+   
     public async Task<Network?> GetAsync(string networkName)
     {
         return await dbContext.Networks
@@ -31,34 +24,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ThenInclude(x => x.TokenPrice)
             .Include(x => x.Nodes)
             .ToListAsync();
-    }
-
-    public async Task<List<Token>> GetTokensAsync()
-    {
-        return await dbContext.Tokens
-            .Include(x => x.Network)
-            .Include(x => x.TokenPrice)
-            .ToListAsync();
-    }
-
-    public async Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices)
-    {
-        var externalIds = prices.Keys.ToArray();
-
-        var tokenPrices = await dbContext.TokenPrices
-            .Where(x => externalIds.Contains(x.ExternalId))
-            .ToDictionaryAsync(x => x.ExternalId);
-
-        foreach (var externalId in prices.Keys)
-        {
-            if (tokenPrices.TryGetValue(externalId, out var token))
-            {
-                token.PriceInUsd = prices[externalId];
-            }
-        }
-
-        await dbContext.SaveChangesAsync();
-    }
+    }  
 
     public async Task<Network?> CreateAsync(
        string networkName,
@@ -189,12 +155,9 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
 
     public async Task DeleteTokenAsync(string networkName, string symbol)
     {
-        var tokenToDelete = await GetTokenAsync(networkName, symbol);
-
-        if (tokenToDelete != null)
-        {
-            dbContext.Tokens.Remove(tokenToDelete);
-            await dbContext.SaveChangesAsync();
-        }
+        await dbContext.Tokens
+            .Where(x => x.Network.Name == networkName && x.Asset == symbol)
+            .ExecuteDeleteAsync();
     }
+
 }

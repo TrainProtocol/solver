@@ -15,9 +15,9 @@ namespace Train.Solver.Workflow.Swap.Activities;
 
 public class SwapActivities(
     ISwapRepository swapRepository,
-    IWalletRepository walletRepository,
     IFeeRepository feeRepository,
-    IRouteService routeService) : ISwapActivities
+    IRouteRepository routeRepository,
+    IQuoteService routeService) : ISwapActivities
 {
     [Activity]
     public virtual async Task<int> CreateSwapAsync(
@@ -43,17 +43,17 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<string> GetSolverAddressAsync(NetworkType type)
+    public virtual async Task<string[]> GetRouteSourceWalletsAsync(NetworkType type)
     {
+        var routes = await routeRepository.GetAllAsync([RouteStatus.Active]);
 
-        var wallet = await walletRepository.GetDefaultAsync(type);
+        var wallets = routes
+            .Where(x => x.SourceWallet.NetworkType == type)
+            .Select(x => x.SourceWallet.Address)
+            .Distinct()
+            .ToArray();
 
-        if (wallet == null)
-        {
-            throw new ArgumentNullException(nameof(wallet));
-        }
-
-        return wallet.Address;
+        return wallets;
     }
 
     [Activity]
@@ -86,7 +86,7 @@ public class SwapActivities(
     }
 
     [Activity]
-    public virtual async Task<QuoteDto> GetQuoteAsync(QuoteRequest request)
+    public virtual async Task<QuoteWithSolverDto> GetQuoteAsync(QuoteRequest request)
     {
         var quoteResult = await routeService.GetQuoteAsync(request);
 

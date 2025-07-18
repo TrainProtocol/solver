@@ -64,17 +64,7 @@ public class SwapWorkflow : ISwapWorkflow
         {
             throw new ApplicationFailureException("Source or destination asset is not supported in the network");
         }
-
-        _solverManagedAccountInDestination = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressAsync(
-                _destinationNetwork.Type),
-                       DefaultActivityOptions(Constants.CoreTaskQueue));
-
-        _solverManagedAccountInSource = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressAsync(
-                _sourceNetwork.Type),
-                       DefaultActivityOptions(Constants.CoreTaskQueue));
-
+       
         // Validate limit
         var limit = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetLimitAsync(new()
@@ -117,6 +107,9 @@ public class SwapWorkflow : ISwapWorkflow
         {
             throw new ApplicationFailureException("Output amount is less than the fee");
         }
+
+        _solverManagedAccountInDestination = quote.DestinationSolverAddress;
+        _solverManagedAccountInSource = quote.SourceSolverAddress;
 
         // Generate hashlock       
         var hashlock = await ExecuteLocalActivityAsync(

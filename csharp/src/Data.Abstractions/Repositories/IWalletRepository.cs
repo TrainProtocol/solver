@@ -5,9 +5,7 @@ namespace Train.Solver.Data.Abstractions.Repositories;
 
 public interface IWalletRepository
 {
-    public Task<Wallet?> GetDefaultAsync(NetworkType type);
-
-    public Task<IEnumerable<Wallet>> GetAsync(NetworkType type);
+    public Task<Wallet?> GetAsync(NetworkType type, string address);
 
     public Task<IEnumerable<Wallet>> GetAllAsync();
 

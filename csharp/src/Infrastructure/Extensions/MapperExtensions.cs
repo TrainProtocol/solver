@@ -11,18 +11,20 @@ public static class MapperExtensions
         return new SwapDto
         {
             CommitId = swap.CommitId,
-            SourceNetwork = swap.SourceToken.Network.Name,
-            SourceToken = swap.SourceToken.Asset,
+            Source = swap.Route.SourceToken.ToWithNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
-            //SourceAmountInUsd = BigInteger.Parse(swap.SourceAmount).ToUsd(swap.SourceTokenPrice, swap.SourceToken.Decimals),
             SourceAddress = swap.SourceAddress,
-            DestinationNetwork = swap.DestinationToken.Network.Name,
-            DestinationToken = swap.DestinationToken.Asset,
-            DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
-            //DestinationAmountInUsd = BigInteger.Parse(swap.DestinationAmount).ToUsd(swap.DestinationTokenPrice, swap.DestinationToken.Decimals),
+            SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ? 
+                swap.Route.SourceToken.Network.HTLCNativeContractAddress :
+                swap.Route.SourceToken.Network.HTLCTokenContractAddress,
+            Destination = swap.Route.DestinationToken.ToWithNetworkDto(),
             DestinationAddress = swap.DestinationAddress,
+            DestinationContractAddress = swap.Route.DestinationTokenId == swap.Route.DestinationToken.Network.NativeTokenId ?
+                swap.Route.DestinationToken.Network.HTLCNativeContractAddress :
+                swap.Route.DestinationToken.Network.HTLCTokenContractAddress,
             FeeAmount = BigInteger.Parse(swap.FeeAmount),
-            Transactions = swap.Transactions.Select(t => t.ToDto())
+            Transactions = swap.Transactions.Select(t => t.ToDto()),
+            DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
         };
     }
 
@@ -110,7 +112,9 @@ public static class MapperExtensions
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
+            SourceWallet = route.SourceWallet.Address,
             Destination = route.DestinationToken.ToWithNetworkDto(),
+            DestinationWallet = route.DestinationWallet.Address,
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status,
             RateProviderName = route.RateProvider.Name,

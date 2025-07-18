@@ -35,7 +35,7 @@ public static class AdminV1Endpoints
             return Results.NotFound($"Token {rebalanceRequest.Token} not found in network {rebalanceRequest.NetworkName}");
         }
 
-        var wallet = await walletRepository.GetDefaultAsync(network.Type);
+        var wallet = await walletRepository.GetAsync(network.Type, rebalanceRequest.From);
 
         if (wallet is null)
         {

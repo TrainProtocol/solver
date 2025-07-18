@@ -2,7 +2,7 @@
 
 public class RouteDto
 {
-    public TokenNetworkDto Source { get; set; } = null!;
+    public required TokenNetworkDto Source { get; set; } = null!;
 
-    public TokenNetworkDto Destination { get; set; } = null!;
+    public required TokenNetworkDto Destination { get; set; } = null!;
 }

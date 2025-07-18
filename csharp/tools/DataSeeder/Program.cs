@@ -2,6 +2,7 @@
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Npgsql;
 using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
 
 var options = new DbContextOptionsBuilder<SolverDbContext>()
             .UseNpgsql("Server=dev-ls-psqlserver.postgres.database.azure.com;Database=train_solver;Port=5432;User Id=dbadmin;Password=root41best4U%%;Ssl Mode=Require;Trust Server Certificate=true;").Options;
@@ -119,7 +120,8 @@ var routes = new[]
         SourceTokenId = 1,
         DestinationTokenId = 2,
         RateProviderId = rateProvider.Id,
-        MaxAmountInSource = 1.0m,
+        MinAmountInSource = TokenUnitHelper.ToBaseUnits(0.000001m, 18).ToString(),
+        MaxAmountInSource = TokenUnitHelper.ToBaseUnits(1.0m, 18).ToString(),
         Status = RouteStatus.Active,
         SourceWalletId = accounts[0].Id,
         DestinationWalletId = accounts[0].Id,
@@ -131,7 +133,8 @@ var routes = new[]
         SourceTokenId = 2,
         DestinationTokenId = 1,
         RateProviderId = rateProvider.Id,
-        MaxAmountInSource = 1.0m,
+        MinAmountInSource = TokenUnitHelper.ToBaseUnits(0.000001m, 18).ToString(),
+        MaxAmountInSource = TokenUnitHelper.ToBaseUnits(1.0m, 18).ToString(),
         Status = RouteStatus.Active,
         SourceWalletId = accounts[0].Id,
         DestinationWalletId = accounts[0].Id,

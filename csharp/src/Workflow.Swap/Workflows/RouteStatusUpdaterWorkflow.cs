@@ -27,24 +27,19 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             .GroupBy(route => new
             {
                 route.Destination.Network.Name,
-                route.Destination.Network.Type,
+                route.DestinationWallet,
                 route.Destination.Token.Symbol
             });
 
         foreach (var group in groupedByNetworkAndAsset)
         {
             var networkName = group.Key.Name;
-            var networkType = group.Key.Type;
+            var wallet = group.Key.DestinationWallet;
             var asset = group.Key.Symbol;
 
             var network = await ExecuteActivityAsync(
                 (INetworkActivities x) => x.GetNetworkAsync(networkName),
                 TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
-
-            var solverAccount = await ExecuteActivityAsync(
-                (ISwapActivities x) => x.GetSolverAddressAsync(
-                    networkType),
-                           TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
             BalanceResponse balance;
 
@@ -53,20 +48,19 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
                 {
                     Network = network,
-                    Address = solverAccount!,
+                    Address = wallet!,
                     Asset = asset
-                }), TemporalHelper.DefaultActivityOptions(networkType));
+                }), TemporalHelper.DefaultActivityOptions(network.Type));
             }
             catch (Exception ex)
             {
                 continue;
             }
 
-            var balanceInDecimal = TokenUnitHelper
-                .FromBaseUnits(BigInteger.Parse(balance.AmountInWei), balance.Decimals);
+            var balanceInWei = BigInteger.Parse(balance.AmountInWei);
 
             var routesToDisable = group
-                .Where(route => route.Status == RouteStatus.Active && route.MaxAmountInSource > balanceInDecimal)
+                .Where(route => route.Status == RouteStatus.Active && BigInteger.Parse(route.MaxAmountInSource) > balanceInWei)
                 .ToList();
 
             if (routesToDisable.Any())
@@ -79,7 +73,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             }
 
             var routesToEnable = group
-                .Where(route => route.Status == RouteStatus.Inactive && route.MaxAmountInSource <= balanceInDecimal)
+                .Where(route => route.Status == RouteStatus.Inactive && BigInteger.Parse(route.MaxAmountInSource) <= balanceInWei)
                 .ToList();
 
             if (routesToEnable.Any())

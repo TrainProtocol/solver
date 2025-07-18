@@ -5,7 +5,9 @@ namespace Train.Solver.Data.Abstractions.Entities;
 
 public class Route : EntityBase
 {
-    public decimal MaxAmountInSource { get; set; }
+    public string MinAmountInSource { get; set; } = null!;
+
+    public string MaxAmountInSource { get; set; } = null!;
 
     public int SourceTokenId { get; set; }
 

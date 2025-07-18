@@ -13,14 +13,12 @@ using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Infrastructure.Services;
 
-public class RouteService(
+public class QuoteService(
     IRouteRepository routeRepository,
     IFeeRepository feeRepository,
     KeyedServiceResolver<IRateProvider> rateProviderResolver,
-    IOptions<TrainSolverOptions> options) : IRouteService
+    IOptions<TrainSolverOptions> options) : IQuoteService
 {
-    public const decimal MinUsdAmount = 0.69m;
-
     public virtual async Task<LimitDto> GetLimitAsync(SourceDestinationRequest request)
     {
         var route = await routeRepository.GetAsync(
@@ -46,17 +44,16 @@ public class RouteService(
 
     private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = TokenUnitHelper.ToBaseUnits(
-            MinUsdAmount / route.SourceToken.TokenPrice.PriceInUsd,
-            route.SourceToken.Decimals);
+        var minBufferAmount = BigInteger.Parse(route.MinAmountInSource);
 
         var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
+        var maxAmount = BigInteger.Parse(route.MaxAmountInSource);
 
         return new LimitDto
         {
             MinAmount = minAmount,
-            MaxAmount = TokenUnitHelper.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
+            MaxAmount = maxAmount,
         };
     }
 
@@ -104,6 +101,7 @@ public class RouteService(
         {
             ReceiveAmount = receiveAmount,
             TotalFee = totalFee,
+            SourceSolverAddress = route.SourceWallet.Address,
             DestinationSolverAddress = route.DestinationWallet.Address,
             SourceContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
