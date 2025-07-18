@@ -9,11 +9,11 @@ WORKDIR /build
 COPY csharp/ csharp/
 
 FROM build AS publish
-RUN dotnet publish "csharp/src/PublicAPI/PublicAPI.csproj" -c Release -o /app/publish
+RUN dotnet publish "csharp/src/API/API.csproj" -c Release -o /app/publish
 
 FROM base AS final
 
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Train.Solver.PublicAPI.dll"]
+ENTRYPOINT ["dotnet", "Train.Solver.API.dll"]
 EXPOSE 8080

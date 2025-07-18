@@ -6,7 +6,7 @@
   </Configurations>
   <Folder Name="/src/">
     <Project Path="src/AdminAPI/AdminAPI.csproj" />
-    <Project Path="src/PublicAPI/PublicAPI.csproj" />
+    <Project Path="src/API/API.csproj" />
   </Folder>
   <Folder Name="/src/Data/">
     <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
