@@ -17,8 +17,6 @@ public class RouteService(
     IRateService rateService,
     IOptions<TrainSolverOptions> options) : IRouteService
 {
-    public const decimal MinUsdAmount = 0.69m;
-
     public async Task<IEnumerable<DetailedNetworkDto>?> GetSourcesAsync(string? networkName, string? token)
     {
         return await GetReachablePointsAsync(
@@ -122,7 +120,7 @@ public class RouteService(
 
     private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = MinUsdAmount / route.SourceToken.TokenPrice.PriceInUsd;
+        var minBufferAmount = options.Value.MinAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd;
         var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
 
