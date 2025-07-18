@@ -6,7 +6,7 @@ public class RouteDetailedDto : RouteDto
 {
     public int Id { get; set; }
    
-    public decimal MaxAmountInSource { get; set; }
+    public string MaxAmountInSource { get; set; } = null!;
 
     public RouteStatus Status { get; set; }
 

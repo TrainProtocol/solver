@@ -19,8 +19,6 @@ public class QuoteService(
     KeyedServiceResolver<IRateProvider> rateProviderResolver,
     IOptions<TrainSolverOptions> options) : IQuoteService
 {
-    public const decimal MinUsdAmount = 0.69m;
-
     public virtual async Task<LimitDto> GetLimitAsync(SourceDestinationRequest request)
     {
         var route = await routeRepository.GetAsync(
@@ -46,17 +44,16 @@ public class QuoteService(
 
     private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = TokenUnitHelper.ToBaseUnits(
-            MinUsdAmount / route.SourceToken.TokenPrice.PriceInUsd,
-            route.SourceToken.Decimals);
+        var minBufferAmount = BigInteger.Parse(route.MinAmountInSource);
 
         var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
+        var maxAmount = BigInteger.Parse(route.MaxAmountInSource);
 
         return new LimitDto
         {
             MinAmount = minAmount,
-            MaxAmount = TokenUnitHelper.ToBaseUnits(route.MaxAmountInSource, route.SourceToken.Decimals),
+            MaxAmount = maxAmount,
         };
     }
 
