@@ -38,11 +38,4 @@ public interface INetworkRepository
         int decimals);
 
     Task DeleteTokenAsync(string networkName, string symbol);
-
-    Task<Token?> GetTokenAsync(string networkName, string asset);
-
-
-    Task<List<Token>> GetTokensAsync();
-
-    Task UpdateTokenPricesAsync(Dictionary<string, decimal> prices);
 }

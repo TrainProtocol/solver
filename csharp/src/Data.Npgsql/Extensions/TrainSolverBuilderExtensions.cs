@@ -44,6 +44,7 @@ public static class TrainSolverBuilderExtensions
         builder.Services.AddTransient<ISwapRepository, EFSwapRepository>();
         builder.Services.AddTransient<IRouteRepository, EFRouteRepository>();
         builder.Services.AddTransient<IWalletRepository, EFWalletRepository>();
+        builder.Services.AddTransient<ITokenPriceRepository, EFTokenPriceRepository>();
 
         if (options.MigrateDatabase)
         {
