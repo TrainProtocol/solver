@@ -120,7 +120,7 @@ public class RouteService(
 
     private async Task<LimitDto> GetLimitAsync(Route route)
     {
-        var minBufferAmount = options.Value.SwapMinAmount / route.SourceToken.TokenPrice.PriceInUsd;
+        var minBufferAmount = options.Value.MinAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd;
         var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + totalFee;
 
