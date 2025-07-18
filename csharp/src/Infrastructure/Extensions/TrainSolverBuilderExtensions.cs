@@ -10,7 +10,7 @@ public static class TrainSolverBuilderExtensions
     public static TrainSolverBuilder WithCoreServices(
         this TrainSolverBuilder builder)
     {
-        builder.Services.AddTransient<IRouteService, RouteService>();
+        builder.Services.AddTransient<IQuoteService, QuoteService>();
         builder.Services.AddTransient(typeof(KeyedServiceResolver<>));
 
         return builder;

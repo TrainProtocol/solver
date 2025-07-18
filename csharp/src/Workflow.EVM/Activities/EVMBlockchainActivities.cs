@@ -232,8 +232,10 @@ public class EVMBlockchainActivities(
             {
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
-                if (FormatAddress(commitedEvent.Receiver)
-                    != FormatAddress(request.WalletAddress))
+                var wallet = request.WalletAddresses.Where(x =>
+                    FormatAddress(x) == FormatAddress(commitedEvent.Sender)).FirstOrDefault();
+
+                if (wallet == null)
                 {
                     continue;
                 }
@@ -252,7 +254,7 @@ public class EVMBlockchainActivities(
                     DestinationNetwork = commitedEvent.DestinationChain,
                     DestinationAsset = commitedEvent.DestinationAsset,
                     TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(request.WalletAddress),
+                    ReceiverAddress = FormatAddress(wallet),
                 };
 
                 result.HTLCCommitEventMessages.Add(message);

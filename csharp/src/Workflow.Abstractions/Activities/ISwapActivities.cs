@@ -22,10 +22,10 @@ public interface ISwapActivities
     Task<List<string>> GetNonRefundedSwapIdsAsync();
 
     [Activity]
-    Task<QuoteDto> GetQuoteAsync(QuoteRequest request);
+    Task<QuoteWithSolverDto> GetQuoteAsync(QuoteRequest request);
 
     [Activity]
-    Task<string> GetSolverAddressAsync(NetworkType type);
+    Task<string[]> GetRouteSourceWalletsAsync(NetworkType type);
 
     [Activity]
     Task UpdateExpensesAsync(string networkName, string feeAsset, string currentFee, string callDataAsset, TransactionType callDataType);

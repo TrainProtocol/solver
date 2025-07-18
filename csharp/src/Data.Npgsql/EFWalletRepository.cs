@@ -35,21 +35,16 @@ public class EFWalletRepository(SolverDbContext dbContext) : IWalletRepository
         return wallets;
     }
 
-    public async Task<IEnumerable<Wallet>> GetAsync(NetworkType type)
+    public async Task<Wallet?> GetAsync(NetworkType type, string address)
     {
-        var wallets = await dbContext.Wallets.Where(x => x.NetworkType == type).ToListAsync();
-        return wallets;
-    }
-
-    public async Task<Wallet?> GetDefaultAsync(NetworkType type)
-    {
-        var wallet = await dbContext.Wallets.FirstOrDefaultAsync(x => x.NetworkType == type);
+        var wallet = await dbContext.Wallets.FirstOrDefaultAsync(x => x.NetworkType == type && x.Address == address);
         return wallet;
     }
 
     public async Task<Wallet?> UpdateAsync(NetworkType type, string address, string name)
     {
-        var wallet = await dbContext.Wallets.SingleOrDefaultAsync(x => x.Address == address && x.NetworkType == type);
+        var wallet = await GetAsync(type, address);
+
 
         if (wallet == null)
         {

@@ -72,34 +72,27 @@ public class WorkflowActivities(
             throw new ArgumentException("Swap not found", nameof(swapId));
         }
 
-        var wallet = await walletRepository.GetDefaultAsync(swap.DestinationToken.Network.Type);
-
-        if (wallet == null)
-        {
-            throw new InvalidOperationException($"Solver account not found for network: {swap.DestinationToken.Network.Name}");
-        }
-
-        var destinationNetwork = await networkRepository.GetAsync(swap.DestinationToken.Network.Name);
+        var destinationNetwork = await networkRepository.GetAsync(swap.Route.DestinationToken.Network.Name);
 
         if (destinationNetwork == null)
         {
-            throw new InvalidOperationException($"Network not found: {swap.DestinationToken.Network.Name}");
+            throw new ArgumentException($"Destination network {swap.Route.DestinationToken.Network.Name} not found", nameof(swapId));
         }
 
         await temporalClient.StartWorkflowAsync(
-            TemporalHelper.ResolveProcessor(swap.DestinationToken.Network.Type), [new TransactionRequest()
+            TemporalHelper.ResolveProcessor(swap.Route.DestinationToken.Network.Type), [new TransactionRequest()
                 {
                     PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
                         Id = swap.CommitId,
-                        Asset = swap.DestinationToken.Asset,
+                        Asset = swap.Route.DestinationToken.Asset,
                     }),
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
-                    FromAddress = wallet.Address,
+                    FromAddress = swap.Route.DestinationWallet.Address,
                     SwapId = swap.Id,
             }],
-            new(id: TemporalHelper.BuildProcessorId(swap.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.DestinationToken.Network.Type.ToString())
+            new(id: TemporalHelper.BuildProcessorId(swap.Route.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.Route.DestinationToken.Network.Type.ToString())
             {
                 IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
             });

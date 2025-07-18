@@ -51,7 +51,7 @@ public static class SolverV1Endpoints
             });
         }
 
-        var sourceNetwork = await networkRepository.GetAsync(swap.SourceToken.Network.Name);
+        var sourceNetwork = await networkRepository.GetAsync(swap.Route.SourceToken.Network.Name);
 
         if (sourceNetwork is null)
         {
@@ -70,7 +70,7 @@ public static class SolverV1Endpoints
             .ExecuteUpdateAsync((x) => x.SetAddLockSigAsync(
                 new AddLockSignatureRequest
                 {
-                    Asset = swap.SourceToken.Asset,
+                    Asset = swap.Route.SourceToken.Asset,
                     Hashlock = swap.Hashlock,
                     Id = swap.CommitId,
                     SignerAddress = swap.SourceAddress,
@@ -130,7 +130,7 @@ public static class SolverV1Endpoints
     }
 
     private static async Task<IResult> GetQuoteAsync(
-        IRouteService routeService,
+        IQuoteService routeService,
         HttpContext httpContext,
         [AsParameters] GetQuoteQueryParams queryParams)
     {

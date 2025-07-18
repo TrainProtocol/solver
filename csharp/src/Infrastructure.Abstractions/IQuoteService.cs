@@ -1,7 +1,7 @@
 ﻿using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.Abstractions;
-public interface IRouteService
+public interface IQuoteService
 {
     Task<LimitDto> GetLimitAsync(SourceDestinationRequest request);
 

@@ -42,8 +42,8 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 }
             });
 
-        var solverWallet = await ExecuteActivityAsync(
-            (ISwapActivities x) => x.GetSolverAddressAsync(
+        var solverWallets = await ExecuteActivityAsync(
+            (ISwapActivities x) => x.GetRouteSourceWalletsAsync(
                 network.Type),
                        new()
                        {
@@ -113,7 +113,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 {
                     foreach (var blockChunk in blockRanges.Chunk(_maxConcurrentTaskCount))
                     {
-                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(network, solverWallet, x)));
+                        await Task.WhenAll(blockChunk.Select(x => ProcessBlockRangeAsync(network, solverWallets, x)));
 
                         _lastProcessedBlockNumber = blockChunk.Last().To;
                     }
@@ -135,7 +135,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
     private async Task ProcessBlockRangeAsync(
         DetailedNetworkDto network,
-        string solverWallet,
+        string[] solverWallets,
         BlockRangeModel blockRange)
     {
         var result = await ExecuteActivityAsync(
@@ -144,7 +144,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
                 Network = network,
                 FromBlock = blockRange.From,
                 ToBlock = blockRange.To,
-                WalletAddress = solverWallet,
+                WalletAddresses = solverWallets,
             }),
             new()
             {

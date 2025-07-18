@@ -13,11 +13,11 @@ using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Infrastructure.Services;
 
-public class RouteService(
+public class QuoteService(
     IRouteRepository routeRepository,
     IFeeRepository feeRepository,
     KeyedServiceResolver<IRateProvider> rateProviderResolver,
-    IOptions<TrainSolverOptions> options) : IRouteService
+    IOptions<TrainSolverOptions> options) : IQuoteService
 {
     public const decimal MinUsdAmount = 0.69m;
 
@@ -104,6 +104,7 @@ public class RouteService(
         {
             ReceiveAmount = receiveAmount,
             TotalFee = totalFee,
+            SourceSolverAddress = route.SourceWallet.Address,
             DestinationSolverAddress = route.DestinationWallet.Address,
             SourceContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
