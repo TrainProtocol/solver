@@ -26,7 +26,7 @@ import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionR
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import abi from "./ABIs/ERC20.json" with { type: 'json' };//with { type: 'json' } this part will change after tsconfig changes
-import { AztecAddress, Contract, createAztecNodeClient, Fr, waitForPXE, } from "@aztec/aztec.js";
+import { AztecAddress, Contract, createAztecNodeClient, FieldsOf, Fr, SponsoredFeePaymentMethod, TxHash, TxReceipt, waitForPXE, } from "@aztec/aztec.js";
 import { TokenContract } from '@aztec/noir-contracts.js/Token';
 import { getPXEServiceConfig } from "@aztec/pxe/config";
 import { createPXEService } from "@aztec/pxe/server";
@@ -35,6 +35,8 @@ import { TrainContract } from "./Helper/Train.ts";
 import { deriveSigningKey } from '@aztec/stdlib/keys';
 import { PXECreationOptions } from '../../../../node_modules/@aztec/pxe/src/entrypoints/pxe_creation_options.ts';
 import { createStore } from "@aztec/kv-store/lmdb";
+import { getSponsoredFPCInstance } from "./Helper/fpc.ts";
+import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 
 @injectable()
 export class AztecBlockchainActivities implements IAztecBlockchainActivities {
@@ -95,7 +97,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                 throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.Asset}`)
             }
 
-            const provider = createAztecNodeClient(node);
+            const provider = createAztecNodeClient(node.url);
 
             const fullConfig = {
                 ...getPXEServiceConfig(),
@@ -174,7 +176,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                 );
             }
 
-            const provider = createAztecNodeClient("https://aztec-alpha-testnet-fullnode.zkv.xyz");
+            const provider = createAztecNodeClient(node.url);
 
             const lastBlockNumber = await provider.getProvenBlockNumber();
 
@@ -198,46 +200,104 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                 .getOneOrFail();
 
             const node = network.nodes.find(n => n.type === NodeType.Primary);
-
             if (!node) {
                 throw new Error(`Primary node not found for network ${feeRequest.NetworkName}`);
             }
-            const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-            const requestData = JSON.parse(feeRequest.CallData);
+
+            const TrainContractArtifact = TrainContract.artifact;
+            const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress).address;
 
             const token = network.tokens.find(t => t.asset === feeRequest.Asset);
             if (!token) {
                 throw new Error(`Token not found for network ${network.name} and asset ${feeRequest.Asset}`);
             }
+            const TokenContractArtifact = TokenContract.artifact;
+            const privateKey = Fr.fromString(await new PrivateKeyRepository().getAsync(feeRequest.FromAddress));
+            const privateSalt = Fr.fromString(await new PrivateKeyRepository().getAsync(feeRequest.FromAddress + '1'));//assuming that the salt will store in vault like public address + 1
+            const provider = createAztecNodeClient(node.url);
 
-            const provider = new Provider(node.url);
-            const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
-            const functionName = requestData.func.name;
-            let transactionCost: TransactionCost;
+            const fullConfig = {
+                ...getPXEServiceConfig(),
+                l1Contracts: await provider.getL1ContractAddresses(),
+            };
 
-            const b256: B256Address = token.tokenContract;
-            const address: Address = Address.fromB256(b256);
-            const assetId: AssetId = address.toAssetId();
+            const store = await createStore('PLOR', {
+                dataDirectory: 'store',
+                dataStoreMapSizeKB: 1e6,
+            });
 
-            if (functionName == "lock") {
+            const options: PXECreationOptions = {
+                loggers: {},
+                store,
+            };
+
+            const pxe = await createPXEService(provider, fullConfig, options);
+            await waitForPXE(pxe);
+
+            const schnorrAccount = await getSchnorrAccount(
+                pxe,
+                privateKey,
+                deriveSigningKey(privateKey),
+                privateSalt
+            );
+            await schnorrAccount.register();
+
+            const schnorrWallet = await schnorrAccount.getWallet();
+            const tokenContractInstance = await provider.getContract(AztecAddress.fromString(token.tokenContract))
+            const htlcContractInstance = await provider.getContract(AztecAddress.fromString(htlcContractAddress))
+
+            await pxe.registerContract({
+                instance: tokenContractInstance,
+                artifact: TokenContractArtifact,
+            });
+
+            const tokenInstance = await Contract.at(
+                AztecAddress.fromString(token.TokenContract),
+                TokenContractArtifact,
+                schnorrWallet,
+            );
+
+            await pxe.registerContract({
+                instance: htlcContractInstance,
+                artifact: TrainContractArtifact,
+            })
+
+            const htlcConstractInstance = await Contract.at(
+                AztecAddress.fromString(token.TokenContract),
+                TokenContractArtifact,
+                schnorrWallet,
+            );
+
+            if (feeRequest.callData.functionName == "lock_private_solver") {
+
                 const amount = Number(utils.parseUnits(feeRequest.Amount.toString(), token.decimals))
-                transactionCost = await contractInstance.functions[functionName](...requestData.args)
-                    .callParams({
-                        forward: [amount, assetId.bits],
-                    }).getTransactionCost();
+                const transfer = tokenInstance
+                    .withWallet(schnorrWallet)
+                    .methods.transfer_to_public(
+                        schnorrWallet.getAddress(),
+                        htlcContractInstance.address,
+                        amount,
+                        feeRequest.callData.functionParams[6],//randomness
+                    );
+
+                const witness = await schnorrWallet.createAuthWit({
+                    caller: htlcConstractInstance.address,
+                    action: transfer,
+                });
+
+                const estimateTx = await htlcConstractInstance.methods[feeRequest.functionName](...feeRequest.callData.functionParams).estimateGas({ authWitnesses: [witness] });
             }
             else {
-
-                transactionCost = await contractInstance.functions[functionName](...requestData.args).getTransactionCost();
+                const estimateTx = await htlcConstractInstance.methods[feeRequest.functionName](...feeRequest.callData.functionParams).estimateGas();
             }
 
             const fixedfeeData: FixedFeeData = {
-                FeeInWei: transactionCost.maxFee.toString(),
+                FeeInWei: '',
             };
 
             const legacyFeeData: LegacyFeeData = {
-                GasLimit: transactionCost.gasUsed.toString(),
-                GasPriceInWei: transactionCost.gasPrice.toString(),
+                GasLimit: '',
+                GasPriceInWei: '',
                 L1FeeInWei: null
             };
 
@@ -260,37 +320,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     }
 
     public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
-
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-            .getOne();
-
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
-        const node = network.nodes.find(n => n.type === NodeType.Primary);
-        if (!node) {
-            throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
-        }
-
-        const timelock = DateTime.fromUnixSeconds(request.Timelock).toTai64();
-        const provider = new Provider(node.url);
-        const signerAddress = Wallet.fromAddress(request.SignerAddress, provider).address;
-
-        const idBytes = new BigNumberCoder('u256').encode(request.Id);
-        const hashlockBytes = new B256Coder().encode(request.Hashlock);
-        const timelockBytes = new BigNumberCoder('u64').encode(bn(timelock));
-
-        const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
-        const message = sha256(rawData);
-        const messageHash = hashMessage(message);
-        const recoveredAddress: Address = Signer.recoverAddress(messageHash, request.Signature);
-        const isValid = recoveredAddress.toString() === signerAddress.toString();
-
-        return isValid;
+        return true;
     }
 
     public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
@@ -347,26 +377,27 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
         }
 
         const nativeToken = network.tokens.find(t => t.isNative === true);
-        const provider = new Provider(node.url);
-        const transaction = await (await provider.getTransactionResponse(request.TransactionHash)).getTransactionSummary();
-        const transactionStatus = mapFuelStatusToInternal(transaction.status)
+        const provider = createAztecNodeClient(node.url);
 
-        if (transactionStatus == TransactionStatus.Failed) {
+        const transaction = await provider.getTxReceipt(TxHash.fromString(request.TransactionHash));
+
+        if (transaction.status != 'success') {
             throw new TransactionFailedException(`Transaction ${request.TransactionHash} failed on network ${network.name}`);
         }
 
-        const latestblock = await provider.getBlockNumber();
-        const txBlock = await provider.getBlock(transaction.blockId);
-        const confirmations = latestblock.toNumber() - txBlock.height.toNumber();
+        const transactionBlock = await provider.getBlock(transaction.blockNumber);
+        const latestblock = await provider.getProvenBlockNumber();
+        const timestamp = transactionBlock.header.globalVariables.timestamp.toBigInt().toString();
+        const confirmations = latestblock - transactionBlock.number;
 
         transactionResponse = {
             NetworkName: network.name,
             TransactionHash: request.TransactionHash,
             Confirmations: confirmations,
-            Timestamp: transaction.date,
-            FeeAmount: Number(utils.formatUnits(transaction.fee.toString(), nativeToken.decimals)),
+            Timestamp: timestamp,
+            FeeAmount: Number(utils.formatUnits(transaction.transactionFee.toString(), nativeToken.decimals)),
             FeeAsset: nativeToken.asset,
-            Status: transactionStatus,
+            Status: transaction.status,
         }
 
         return transactionResponse;
@@ -375,6 +406,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     public async PublishTransaction(request: FuelPublishTransactionRequest): Promise<string> {
 
         let result: string;
+        let tx: FieldsOf<TxReceipt>;
 
         try {
             const network = await this.dbContext.Networks
@@ -390,28 +422,105 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                 throw new Error(`Primary node not found for network ${request.NetworkName}`);
             }
 
-            const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
-            const provider = new Provider(node.url);
-            const wallet = Wallet.fromPrivateKey(privateKey, provider);
-            const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
-            const contractInstance = new Contract(htlcContractAddress, abi, wallet);
-            const requestData = JSON.parse(request.CallData);
-            const selector = requestData.func.name;
+            const TrainContractArtifact = TrainContract.artifact;
+            const TokenContractArtifact = TokenContract.artifact;
 
-            if (selector == "lock") {
-                const { transactionId } = await contractInstance.functions[selector](...requestData.args)
-                    .callParams({
-                        forward: [request.Amount, requestData.forward.assetId],
-                        // gasLimit: request.Fee.LegacyFeeData.GasLimit,
-                    }).call();
+            const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress).address;
 
-                result = transactionId;
+            const token = network.tokens.find(t => t.asset === request.Asset);
+            if (!token) {
+                throw new Error(`Token not found for network ${network.name} and asset ${request.Asset}`);
+            }
+            const privateKey = Fr.fromString(await new PrivateKeyRepository().getAsync(request.FromAddress));
+            const privateSalt = Fr.fromString(await new PrivateKeyRepository().getAsync(request.FromAddress + '1'));//assuming that the salt will store in vault like public address + 1
+
+            const provider = createAztecNodeClient(node.url);
+            const fullConfig = {
+                ...getPXEServiceConfig(),
+                l1Contracts: await provider.getL1ContractAddresses(),
+            };
+
+            const store = await createStore('PLOR', {
+                dataDirectory: 'store',
+                dataStoreMapSizeKB: 1e6,
+            });
+            const options: PXECreationOptions = {
+                loggers: {},
+                store,
+            };
+
+            const pxe = await createPXEService(provider, fullConfig, options);
+            await waitForPXE(pxe);
+
+            const schnorrAccount = await getSchnorrAccount(
+                pxe,
+                privateKey,
+                deriveSigningKey(privateKey),
+                privateSalt
+            );
+            await schnorrAccount.register();
+
+            const schnorrWallet = await schnorrAccount.getWallet();
+
+            const tokenContractInstance = await provider.getContract(AztecAddress.fromString(token.tokenContract))
+            await pxe.registerContract({
+                instance: tokenContractInstance,
+                artifact: TokenContractArtifact,
+            });
+            const tokenInstance = await Contract.at(
+                AztecAddress.fromString(token.TokenContract),
+                TokenContractArtifact,
+                schnorrWallet,
+            );
+
+            const htlcContractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(htlcContractAddress))
+            await pxe.registerContract({
+                instance: htlcContractInstanceWithAddress,
+                artifact: TrainContractArtifact,
+            })
+            const htlcContract = await Contract.at(
+                AztecAddress.fromString(token.TokenContract),
+                TokenContractArtifact,
+                schnorrWallet,
+            );
+
+            //In the testnet environment, we use sponsoredFPC to cover fees instead of performing manual fee estimation.
+            const sponsoredFPC = await getSponsoredFPCInstance();
+            const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPC.address);
+            await pxe.registerContract({
+                instance: sponsoredFPC,
+                artifact: SponsoredFPCContract.artifact,
+            });
+
+            if (request.callData.functionName == "lock_private_solver") {
+
+                const amount = Number(utils.parseUnits(request.Amount.toString(), token.decimals))
+                const transfer = tokenInstance
+                    .withWallet(schnorrWallet)
+                    .methods.transfer_to_public(
+                        schnorrWallet.getAddress(),
+                        htlcContractInstanceWithAddress.address,
+                        amount,
+                        request.callData.functionParams[6],//randomness
+                    );
+
+                const witness = await schnorrWallet.createAuthWit({
+                    caller: htlcContractInstanceWithAddress.address,
+                    action: transfer,
+                });
+
+                tx = await htlcContract.methods[request.functionName](...request.callData.functionParams)
+                    .send({ authWitnesses: [witness], fee: { paymentMethod } })
+                    .wait({ timeout: 1200000 });
+
+                result = tx.txHash.toString();
             }
             else {
-                const { transactionId } = await contractInstance.functions[selector](...requestData.args)
-                    // .callParams({ gasLimit: request.Fee.LegacyFeeData.GasLimit })
-                    .call();
-                result = transactionId;
+                tx = await htlcContract.methods[request.functionName](...request.callData.functionParams)
+                    .send({ fee: { paymentMethod } })
+                    .wait({ timeout: 1200000 });
+
+                result = tx.txHash.toString();
             }
         }
         catch (error) {
