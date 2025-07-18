@@ -14,5 +14,5 @@ public class TrainSolverOptions
 
     public bool DisableExpenseFee { get; set; } = false;
 
-    public decimal SwapMinAmount { get; set; } = 0.69m;
+    public decimal MinAmountInUsd { get; set; } = 0.69m;
 }
