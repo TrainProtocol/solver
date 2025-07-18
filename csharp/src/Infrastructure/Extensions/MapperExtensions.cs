@@ -112,7 +112,9 @@ public static class MapperExtensions
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
+            SourceWallet = route.SourceWallet.Address,
             Destination = route.DestinationToken.ToWithNetworkDto(),
+            DestinationWallet = route.DestinationWallet.Address,
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status,
             RateProviderName = route.RateProvider.Name,

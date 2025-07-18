@@ -1,6 +1,14 @@
+using System.Numerics;
 using Temporalio.Workflows;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Helpers;
+using Train.Solver.Workflow.Abstractions.Activities;
+using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Workflows;
 using Train.Solver.Workflow.Common;
+using Train.Solver.Workflow.Common.Helpers;
+using Train.Solver.Workflow.Swap.Activities;
+using static Temporalio.Workflows.Workflow;
 
 namespace Train.Solver.Workflow.Swap.Workflows;
 
@@ -11,77 +19,71 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
     [WorkflowRun]
     public async Task RunAsync()
     {
-        //var allRoutes = await ExecuteActivityAsync(
-        //    (RouteActivities x) => x.GetAllRoutesAsync(),
-        //    TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+        var allRoutes = await ExecuteActivityAsync(
+            (RouteActivities x) => x.GetAllRoutesAsync(),
+            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        //var groupedByNetworkAndAsset = allRoutes
-        //    .GroupBy(route => new
-        //    {
-        //        route.Destination.Network.Name,
-        //        route.Destination.Network.Type,
-        //        route.Destination.Token.Symbol
-        //    });
+        var groupedByNetworkAndAsset = allRoutes
+            .GroupBy(route => new
+            {
+                route.Destination.Network.Name,
+                route.DestinationWallet,
+                route.Destination.Token.Symbol
+            });
 
-        //foreach (var group in groupedByNetworkAndAsset)
-        //{
-        //    var networkName = group.Key.Name;
-        //    var networkType = group.Key.Type;
-        //    var asset = group.Key.Symbol;
+        foreach (var group in groupedByNetworkAndAsset)
+        {
+            var networkName = group.Key.Name;
+            var wallet = group.Key.DestinationWallet;
+            var asset = group.Key.Symbol;
 
-        //    var network = await ExecuteActivityAsync(
-        //        (INetworkActivities x) => x.GetNetworkAsync(networkName),
-        //        TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            var network = await ExecuteActivityAsync(
+                (INetworkActivities x) => x.GetNetworkAsync(networkName),
+                TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        //    var solverAccount = await ExecuteActivityAsync(
-        //        (ISwapActivities x) => x.GetSolverAddressAsync(
-        //            networkType),
-        //                   TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            BalanceResponse balance;
 
-        //    BalanceResponse balance;
+            try
+            {
+                balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
+                {
+                    Network = network,
+                    Address = wallet!,
+                    Asset = asset
+                }), TemporalHelper.DefaultActivityOptions(network.Type));
+            }
+            catch (Exception ex)
+            {
+                continue;
+            }
 
-        //    try
-        //    {
-        //        balance = await ExecuteActivityAsync((IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest
-        //        {
-        //            Network = network,
-        //            Address = solverAccount!,
-        //            Asset = asset
-        //        }), TemporalHelper.DefaultActivityOptions(networkType));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        continue;
-        //    }
+            var balanceInWei = BigInteger.Parse(balance.AmountInWei);
 
-        //    var balanceInDecimal = TokenUnitHelper
-        //        .FromBaseUnits(BigInteger.Parse(balance.AmountInWei), balance.Decimals);
+            var routesToDisable = group
+                .Where(route => route.Status == RouteStatus.Active && BigInteger.Parse(route.MaxAmountInSource) > balanceInWei)
+                .ToList();
 
-        //    var routesToDisable = group
-        //        .Where(route => route.Status == RouteStatus.Active && route.MaxAmountInSource > balanceInDecimal)
-        //        .ToList();
+            if (routesToDisable.Any())
+            {
+                await ExecuteActivityAsync(
+                    (IRouteActivities x) => x.UpdateRoutesStatusAsync(
+                        group.Select(route => route.Id).ToArray(),
+                        RouteStatus.Inactive),
+                    TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            }
 
-        //    if (routesToDisable.Any())
-        //    {
-        //        await ExecuteActivityAsync(
-        //            (IRouteActivities x) => x.UpdateRoutesStatusAsync(
-        //                group.Select(route => route.Id).ToArray(),
-        //                RouteStatus.Inactive),
-        //            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
-        //    }
+            var routesToEnable = group
+                .Where(route => route.Status == RouteStatus.Inactive && BigInteger.Parse(route.MaxAmountInSource) <= balanceInWei)
+                .ToList();
 
-        //    var routesToEnable = group
-        //        .Where(route => route.Status == RouteStatus.Inactive && route.MaxAmountInSource <= balanceInDecimal)
-        //        .ToList();
-
-        //    if (routesToEnable.Any())
-        //    {
-        //        await ExecuteActivityAsync(
-        //            (IRouteActivities x) => x.UpdateRoutesStatusAsync(
-        //                group.Select(route => route.Id).ToArray(),
-        //                RouteStatus.Active),
-        //            TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
-        //    }
-        //}
+            if (routesToEnable.Any())
+            {
+                await ExecuteActivityAsync(
+                    (IRouteActivities x) => x.UpdateRoutesStatusAsync(
+                        group.Select(route => route.Id).ToArray(),
+                        RouteStatus.Active),
+                    TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+            }
+        }
     }
 }
