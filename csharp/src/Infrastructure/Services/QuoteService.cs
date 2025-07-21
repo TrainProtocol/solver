@@ -52,8 +52,8 @@ public class QuoteService(
 
         return new LimitDto
         {
-            MinAmount = minAmount,
-            MaxAmount = maxAmount,
+            MinAmount = minAmount.ToString(),
+            MaxAmount = maxAmount.ToString(),
         };
     }
 
@@ -79,12 +79,12 @@ public class QuoteService(
         {
             var limit = await validatelimit!(route);
 
-            if (request.Amount < limit.MinAmount)
+            if (request.Amount < BigInteger.Parse(limit.MinAmount))
             {
                 throw new InvalidAmountException($"Amount is less than min amount {limit.MinAmount}.");
             }
 
-            if (request.Amount > limit.MaxAmount)
+            if (request.Amount > BigInteger.Parse(limit.MaxAmount))
             {
                 throw new InvalidAmountException($"Amount is greater than max amount {limit.MaxAmount}.");
             }
