@@ -4,7 +4,7 @@ namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class AddLockSignatureRequest : AddLockSignatureModel
 {
-    public required string Id { get; set; } = null!;
+    public required string CommitId { get; set; } = null!;
 
     public required string Hashlock { get; set; } = null!;
 

@@ -27,7 +27,7 @@ public class SwapActivities(
         string hashlock)
     {
         var swap = await swapRepository.CreateAsync(
-            commitEventMessage.Id,
+            commitEventMessage.CommitId,
             commitEventMessage.SenderAddress,
             commitEventMessage.DestinationAddress,
             commitEventMessage.SourceNetwork,

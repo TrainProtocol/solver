@@ -6,7 +6,7 @@ public class HTLCCommitEventMessage
 {
     public required string TxId { get; set; } = null!;
 
-    public required string Id { get; set; } = null!;
+    public required string CommitId { get; set; } = null!;
 
     public required BigInteger Amount { get; set; }
 

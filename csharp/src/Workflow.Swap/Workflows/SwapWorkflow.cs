@@ -140,7 +140,7 @@ public class SwapWorkflow : ISwapWorkflow
                 DestinationAddress = _solverManagedAccountInSource,
                 SourceNetwork = _htlcCommitMessage.DestinationNetwork,
                 Amount = quote.ReceiveAmount,
-                Id = _htlcCommitMessage.Id,
+                CommitId = _htlcCommitMessage.CommitId,
                 Timelock = _lpTimeLock.ToUnixTimeSeconds(),
                 RewardTimelock = rewardTimelock.ToUnixTimeSeconds(),
                 Reward = BigInteger.Zero,
@@ -177,7 +177,7 @@ public class SwapWorkflow : ISwapWorkflow
                 {
                     PrepareArgs = JsonSerializer.Serialize(new AddLockSigTransactionPrepareRequest
                     {
-                        Id = _htlcCommitMessage.Id,
+                        CommitId = _htlcCommitMessage.CommitId,
                         Hashlock = hashlock.Hash,
                         Signature = _htlcAddLockSigMessage.Signature,
                         SignatureArray = _htlcAddLockSigMessage.SignatureArray,
@@ -218,7 +218,7 @@ public class SwapWorkflow : ISwapWorkflow
             {
                 PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
-                    Id = _htlcCommitMessage!.Id,
+                    CommitId = _htlcCommitMessage!.CommitId,
                     Asset = _htlcCommitMessage.DestinationAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _htlcCommitMessage.DestinationAddress,
@@ -235,7 +235,7 @@ public class SwapWorkflow : ISwapWorkflow
             {
                 PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
                 {
-                    Id = _htlcCommitMessage!.Id,
+                    CommitId = _htlcCommitMessage!.CommitId,
                     Asset = _htlcCommitMessage.SourceAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _solverManagedAccountInSource,
@@ -272,7 +272,7 @@ public class SwapWorkflow : ISwapWorkflow
         {
             PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
             {
-                Id = _htlcCommitMessage!.Id,
+                CommitId = _htlcCommitMessage!.CommitId,
                 Asset = _htlcCommitMessage.DestinationAsset,
             }),
             Type = TransactionType.HTLCRefund,

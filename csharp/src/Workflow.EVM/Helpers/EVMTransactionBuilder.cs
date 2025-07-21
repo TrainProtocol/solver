@@ -65,14 +65,7 @@ public static class EVMTransactionBuilder
         }
 
         var response = new PrepareTransactionResponse();
-        string memoHex = "";
-
-        if (!string.IsNullOrEmpty(request.Memo))
-        {
-            memoHex = BigInteger.Parse(request.Memo).ToHexBigInteger().HexValue;
-            response.Data = memoHex;
-        }
-
+      
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.Contract));
@@ -80,11 +73,11 @@ public static class EVMTransactionBuilder
 
         if (currency.Symbol != nativeCurrency.Symbol)
         {
-            response.Data = $"{new TransferFunction
+            response.Data = new TransferFunction
             {
                 To = request.ToAddress,
                 Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
-            }.GetCallData().ToHex().EnsureEvenLengthHex()}{memoHex.RemoveHexPrefix()}".EnsureHexPrefix();
+            }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.Amount = BigInteger.Zero;
             response.ToAddress = currency.Contract!;
@@ -128,7 +121,7 @@ public static class EVMTransactionBuilder
             {
                 Message = new AddLockMessage
                 {
-                    Id = request.Id.ToBytes32(),
+                    Id = request.CommitId.ToBytes32(),
                     Hashlock = hashlock,
                     Timelock = (ulong)request.Timelock
                 },
@@ -241,7 +234,7 @@ public static class EVMTransactionBuilder
             {
                 LockParams = new ERC20LockMessage
                 {
-                    Id = request.Id.ToBytes32(),
+                    Id = request.CommitId.ToBytes32(),
                     SourceReceiver = request.Receiver,
                     Hashlock = hashlock,
                     Timelock = request.Timelock,
@@ -265,7 +258,7 @@ public static class EVMTransactionBuilder
         {
             response.Data = new LockFunction
             {
-                Id = request.Id.ToBytes32(),
+                Id = request.CommitId.ToBytes32(),
                 Hashlock = hashlock,
                 Timelock = request.Timelock,
                 SourceReceiver = request.Receiver,
@@ -306,7 +299,7 @@ public static class EVMTransactionBuilder
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
         var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
-        var lockId = request.Id.ToBytes32();
+        var lockId = request.CommitId.ToBytes32();
         var secret = BigInteger.Parse(request.Secret);
 
         var htlcContractAddress = isNative
@@ -340,7 +333,7 @@ public static class EVMTransactionBuilder
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
         var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
-        var htlcId = request.Id.ToBytes32();
+        var htlcId = request.CommitId.ToBytes32();
 
         var htlcContractAddress = isNative
             ? network.HTLCTokenContractAddress

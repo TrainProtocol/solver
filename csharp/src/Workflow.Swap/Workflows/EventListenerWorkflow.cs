@@ -180,7 +180,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
 
             try
             {
-                await GetExternalWorkflowHandle<ISwapWorkflow>(lockMessage.Id)
+                await GetExternalWorkflowHandle<ISwapWorkflow>(lockMessage.CommitId)
                     .SignalAsync((x) => x.LockCommitedAsync(lockMessage));
             }
             catch

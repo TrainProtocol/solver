@@ -220,7 +220,7 @@ public class EVMBlockchainActivities(
                 var message = new HTLCCommitEventMessage
                 {
                     TxId = log.TransactionHash,
-                    Id = commitId,
+                    CommitId = commitId,
                     Amount = commitedEvent.Amount,
                     SourceAsset = commitedEvent.SourceAsset,
                     SenderAddress = commitedEvent.Sender,
@@ -242,7 +242,7 @@ public class EVMBlockchainActivities(
                 var message = new HTLCLockEventMessage
                 {
                     TxId = log.TransactionHash,
-                    Id = commitId.ToHex().EnsureHexPrefix(),
+                    CommitId = commitId.ToHex().EnsureHexPrefix(),
                     HashLock = lockAddedEvent.Hashlock.ToHex().EnsureHexPrefix(),
                     TimeLock = (long)lockAddedEvent.Timelock,
                 };
@@ -330,7 +330,7 @@ public class EVMBlockchainActivities(
         var addLockMsg = new AddLockMessage
         {
             Hashlock = request.Hashlock.HexToByteArray(),
-            Id = request.Id.HexToByteArray(),
+            Id = request.CommitId.HexToByteArray(),
             Timelock = (ulong)request.Timelock
         };
 

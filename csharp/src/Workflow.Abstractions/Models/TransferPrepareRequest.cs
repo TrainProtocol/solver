@@ -10,7 +10,6 @@ public class TransferPrepareRequest
 
     public BigInteger Amount { get; set; }
 
-    public string? Memo { get; set; }
-
+    // Solana specific
     public string? FromAddress { get; set; }
 }

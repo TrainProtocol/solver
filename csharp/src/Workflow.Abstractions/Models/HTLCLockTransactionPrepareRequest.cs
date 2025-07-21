@@ -20,7 +20,7 @@ public class HTLCLockTransactionPrepareRequest
 
     public string DestinationAsset { get; set; } = null!;
 
-    public string Id { get; set; } = null!;
+    public string CommitId { get; set; } = null!;
 
     public BigInteger Amount { get; set; }
 

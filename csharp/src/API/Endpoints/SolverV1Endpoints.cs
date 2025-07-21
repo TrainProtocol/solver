@@ -72,7 +72,7 @@ public static class SolverV1Endpoints
                 {
                     Asset = swap.Route.SourceToken.Asset,
                     Hashlock = swap.Hashlock,
-                    Id = swap.CommitId,
+                    CommitId = swap.CommitId,
                     SignerAddress = swap.SourceAddress,
                     Signature = addLockSignature.Signature,
                     SignatureArray = addLockSignature.SignatureArray,

@@ -2,7 +2,7 @@
 
 public class AddLockSigTransactionPrepareRequest
 {
-    public string Id { get; set; } = null!;
+    public string CommitId { get; set; } = null!;
 
     public string Hashlock { get; set; } = null!;
 

@@ -2,7 +2,7 @@
 
 public class HTLCRefundTransactionPrepareRequest
 {
-    public string Id { get; set; } = null!;
+    public string CommitId { get; set; } = null!;
 
     public string Asset { get; set; } = null!;
 

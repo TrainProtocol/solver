@@ -84,7 +84,7 @@ public class WorkflowActivities(
                 {
                     PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
                     {
-                        Id = swap.CommitId,
+                        CommitId = swap.CommitId,
                         Asset = swap.Route.DestinationToken.Asset,
                     }),
                     Type = TransactionType.HTLCRefund,
@@ -108,7 +108,7 @@ public class WorkflowActivities(
 
         try
         {
-            var existingSwap = await swapRepository.GetAsync(signal.Id);
+            var existingSwap = await swapRepository.GetAsync(signal.CommitId);
 
             if (existingSwap != null)
             {
@@ -119,7 +119,7 @@ public class WorkflowActivities(
                 workflow => workflow.RunAsync(signal),
                 new WorkflowOptions
                 {
-                    Id = $"{signal.Id}",
+                    Id = $"{signal.CommitId}",
                     TaskQueue = Constants.CoreTaskQueue,
                 });
 
@@ -127,7 +127,7 @@ public class WorkflowActivities(
         }
         catch (WorkflowAlreadyStartedException)
         {
-            return signal.Id;
+            return signal.CommitId;
         }
     }
 }
