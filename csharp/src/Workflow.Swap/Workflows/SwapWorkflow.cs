@@ -87,7 +87,7 @@ public class SwapWorkflow : ISwapWorkflow
                 },
             });
 
-        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > BigInteger.Parse(limit.MaxAmount))
+        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > limit.MaxAmount)
         {
             throw new ApplicationFailureException($"Amount is greater than max amount");
         }
