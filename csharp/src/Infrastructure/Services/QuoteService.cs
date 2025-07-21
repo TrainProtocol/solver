@@ -108,7 +108,7 @@ public class QuoteService(
                 ? route.SourceToken.Network.HTLCNativeContractAddress
                 : route.SourceToken.Network.HTLCTokenContractAddress,
             DestinationContractAddress =
-                route.SourceToken.Id == route.DestinationToken.Network.NativeTokenId
+                route.DestinationToken.Id == route.DestinationToken.Network.NativeTokenId
                 ? route.DestinationToken.Network.HTLCNativeContractAddress
                 : route.DestinationToken.Network.HTLCTokenContractAddress,
         };

@@ -65,7 +65,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
 
         var maxFeePerGas = baseFee + priorityFee;
 
-        var l1FeeInWei = await GetDataFromNodesAsync(nodes,
+        var l1Fee = await GetDataFromNodesAsync(nodes,
             async url => await GetL1FeeAsync(
                 new Web3(url),
                 request.Network.NativeToken,
@@ -87,7 +87,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 priorityFee.Value,
                 baseFee,
                 gasLimit,
-                l1FeeInWei.PercentageIncrease(100)));
+                l1Fee.PercentageIncrease(100)));
     }
 
     private static async Task<BigInteger> GetL1FeeAsync(

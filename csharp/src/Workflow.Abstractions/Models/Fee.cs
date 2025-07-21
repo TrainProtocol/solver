@@ -135,12 +135,12 @@ public abstract class EVMFeeDataBase(BigInteger gasLimit, BigInteger? l1Fee)
 public class EIP1559Data : EVMFeeDataBase
 {
     public EIP1559Data(
-        BigInteger maxPriorityFeeInWei,
+        BigInteger maxPriorityFee,
         BigInteger baseFee,
         BigInteger gasLimit,
         BigInteger? l1Fee = null) : base(gasLimit, l1Fee)
     {
-        MaxPriorityFee = maxPriorityFeeInWei;
+        MaxPriorityFee = maxPriorityFee;
         BaseFee = baseFee;
         L1Fee = l1Fee;
     }
