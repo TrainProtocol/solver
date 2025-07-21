@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Train.Solver.Common.Swagger;
+namespace Train.Solver.Common.Serialization;
 
 public class BigIntegerConverter : JsonConverter<BigInteger>
 {

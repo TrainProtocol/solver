@@ -10,6 +10,7 @@ using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.Infrastructure.Rate.SameAsset;
 using Train.Solver.Infrastructure.Rate.Binance;
+using Train.Solver.Common.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

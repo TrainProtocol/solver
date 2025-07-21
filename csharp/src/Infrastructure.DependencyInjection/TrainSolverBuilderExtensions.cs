@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using Temporalio.Client;
+using Temporalio.Converters;
 using Temporalio.Exceptions;
+using Train.Solver.Common.Serialization;
 
 namespace Train.Solver.Infrastructure.DependencyInjection;
 
@@ -40,7 +43,17 @@ public static class TrainSolverBuilderExtensions
      string serverHost, 
      string @namespace)
     {
-        services.AddTemporalClient(serverHost, @namespace);
+        var dataConverter = new DataConverter(new DefaultPayloadConverter(new JsonSerializerOptions
+        {
+            Converters = { new BigIntegerConverter() },
+        }), new DefaultFailureConverter());
+
+        services.AddTemporalClient(otps =>
+        {
+            otps.TargetHost = serverHost;
+            otps.Namespace = @namespace;
+            otps.DataConverter = dataConverter;
+        });
 
         var temporalClient = services.BuildServiceProvider().GetRequiredService<ITemporalClient>();
 

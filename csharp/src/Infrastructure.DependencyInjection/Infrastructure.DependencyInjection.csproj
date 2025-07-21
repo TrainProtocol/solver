@@ -11,4 +11,8 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Common\Common.csproj" />
+	</ItemGroup>
 </Project>
