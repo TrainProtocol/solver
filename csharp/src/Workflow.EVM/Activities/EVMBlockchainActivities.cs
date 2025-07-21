@@ -107,42 +107,18 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
     {
-        PrepareTransactionResponse result;
-
-        switch (request.Type)
+        PrepareTransactionResponse result = request.Type switch
         {
-            case TransactionType.Transfer:
-                result = EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.Args);
-                break;
-            case TransactionType.Approve:
-                result = EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.Args);
-
-                break;
-            case TransactionType.HTLCCommit:
-                result = EVMTransactionBuilder.BuildHTLCCommitTransaction(request.Network, request.Args);
-
-                break;
-            case TransactionType.HTLCLock:
-                result = EVMTransactionBuilder.BuildHTLCLockTransaction(request.Network, request.Args);
-
-                break;
-            case TransactionType.HTLCRedeem:
-                result = EVMTransactionBuilder.BuildHTLCRedeemTranaction(request.Network, request.Args);
-
-                break;
-            case TransactionType.HTLCRefund:
-                result = EVMTransactionBuilder.BuildHTLCRefundTransaction(request.Network, request.Args);
-
-                break;
-            case TransactionType.HTLCAddLockSig:
-                result = EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(request.Network, request.Args);
-
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(request.Type),
-                    $"Transaction type {request.Type} is not supported for network {request.Network.Name}");
-        }
-
+            TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.Args),
+            TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.Args),
+            TransactionType.HTLCCommit => EVMTransactionBuilder.BuildHTLCCommitTransaction(request.Network, request.Args),
+            TransactionType.HTLCLock => EVMTransactionBuilder.BuildHTLCLockTransaction(request.Network, request.Args),
+            TransactionType.HTLCRedeem => EVMTransactionBuilder.BuildHTLCRedeemTranaction(request.Network, request.Args),
+            TransactionType.HTLCRefund => EVMTransactionBuilder.BuildHTLCRefundTransaction(request.Network, request.Args),
+            TransactionType.HTLCAddLockSig => EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(request.Network, request.Args),
+            _ => throw new ArgumentOutOfRangeException(nameof(request.Type),
+                                $"Transaction type {request.Type} is not supported for network {request.Network.Name}"),
+        };
         return Task.FromResult(result);
     }
 
@@ -189,7 +165,7 @@ public class EVMBlockchainActivities(
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
         var contractAddresses = new List<string>();
@@ -208,7 +184,7 @@ public class EVMBlockchainActivities(
         {
             FromBlock = new BlockParameter(request.FromBlock),
             ToBlock = new BlockParameter(request.ToBlock),
-            Address = contractAddresses.ToArray(),
+            Address = [.. contractAddresses],
         };
 
         var logsResult = await GetDataFromNodesAsync(nodes,
@@ -233,7 +209,7 @@ public class EVMBlockchainActivities(
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
                 var wallet = request.WalletAddresses.Where(x =>
-                    FormatAddress(x) == FormatAddress(commitedEvent.Sender)).FirstOrDefault();
+                    FormatAddress(x) == FormatAddress(commitedEvent.Receiver)).FirstOrDefault();
 
                 if (wallet == null)
                 {
@@ -286,7 +262,7 @@ public class EVMBlockchainActivities(
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
         var blockResult = await GetDataFromNodesAsync(nodes,
@@ -308,7 +284,7 @@ public class EVMBlockchainActivities(
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {request.Network.Name} network", nameof(nodes));
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
         var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
@@ -585,7 +561,7 @@ public class EVMBlockchainActivities(
         var gasLimit = transaction.Gas;
         var value = transaction.Value ?? new HexBigInteger(0);
 
-        if (chainId == null) throw new ArgumentException("ChainId required for TransactionType 0X02 EIP1559");
+        if (chainId == null) throw new Exception("ChainId required for TransactionType 0X02 EIP1559");
 
         string unsignedRawTransaction;
 
@@ -648,7 +624,7 @@ public class EVMBlockchainActivities(
 
         if (!nodes.Any())
         {
-            throw new ArgumentException($"Node is not configured on {network.Name} network", nameof(nodes));
+            throw new Exception($"Node is not configured on {network.Name} network");
         }
 
         var nativeCurrency = network.Tokens
