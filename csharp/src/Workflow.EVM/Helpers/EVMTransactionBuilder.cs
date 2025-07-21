@@ -1,9 +1,7 @@
 ﻿using System.Numerics;
-using System.Text.Json;
 using Nethereum.Contracts;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Train.Solver.Workflow.EVM.FunctionMessages;
 using Train.Solver.Common.Extensions;
@@ -16,7 +14,7 @@ public static class EVMTransactionBuilder
 {
     public static PrepareTransactionResponse BuildApproveTransaction(DetailedNetworkDto network, string args)
     {
-        var request = JsonSerializer.Deserialize<ApprovePrepareRequest>(args);
+        var request = args.FromJson<ApprovePrepareRequest>();
 
         if (request is null)
         {
@@ -59,7 +57,7 @@ public static class EVMTransactionBuilder
         DetailedNetworkDto network,
         string args)
     {
-        var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
+        var request = args.FromJson<TransferPrepareRequest>();
 
         if (request is null)
         {
@@ -99,7 +97,7 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(DetailedNetworkDto network, string args)
     {
-        var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
+        var request = args.FromJson<AddLockSigTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -144,7 +142,7 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCCommitTransaction(DetailedNetworkDto network, string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCCommitTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCCommitTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -212,7 +210,7 @@ public static class EVMTransactionBuilder
         DetailedNetworkDto network,
         string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCLockTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -291,7 +289,7 @@ public static class EVMTransactionBuilder
         DetailedNetworkDto network,
         string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCRedeemTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -325,7 +323,7 @@ public static class EVMTransactionBuilder
 
     public static PrepareTransactionResponse BuildHTLCRefundTransaction(DetailedNetworkDto network, string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCRefundTransactionPrepareRequest>();
 
         if (request is null)
         {

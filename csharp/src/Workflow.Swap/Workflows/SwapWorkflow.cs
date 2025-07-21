@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Text.Json;
 using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Workflow.Abstractions.Models;
@@ -11,6 +10,7 @@ using static Train.Solver.Workflow.Common.Helpers.TemporalHelper;
 using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Workflows;
 using Train.Solver.Workflow.Common;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Workflow.Swap.Workflows;
 
@@ -132,7 +132,7 @@ public class SwapWorkflow : ISwapWorkflow
         // Lock in destination network
         await ExecuteTransactionAsync(new TransactionRequest()
         {
-            PrepareArgs = JsonSerializer.Serialize(new HTLCLockTransactionPrepareRequest
+            PrepareArgs = new HTLCLockTransactionPrepareRequest
             {
                 SourceAsset = _htlcCommitMessage.DestinationAsset,
                 DestinationAsset = _htlcCommitMessage.SourceAsset,
@@ -146,7 +146,7 @@ public class SwapWorkflow : ISwapWorkflow
                 Reward = BigInteger.Zero,
                 Receiver = _htlcCommitMessage.DestinationAddress,
                 Hashlock = hashlock.Hash,
-            }),
+            }.ToJson(),
             Type = TransactionType.HTLCLock,
             Network = _destinationNetwork,
             FromAddress = _solverManagedAccountInDestination!,
@@ -175,7 +175,7 @@ public class SwapWorkflow : ISwapWorkflow
 
                 var childWorkflowTask = ExecuteTransactionAsync(new TransactionRequest()
                 {
-                    PrepareArgs = JsonSerializer.Serialize(new AddLockSigTransactionPrepareRequest
+                    PrepareArgs = new AddLockSigTransactionPrepareRequest
                     {
                         CommitId = _htlcCommitMessage.CommitId,
                         Hashlock = hashlock.Hash,
@@ -187,7 +187,7 @@ public class SwapWorkflow : ISwapWorkflow
                         V = _htlcAddLockSigMessage.V,
                         Asset = _htlcCommitMessage.SourceAsset,
                         SignerAddress = _htlcAddLockSigMessage.SignerAddress,
-                    }),
+                    }.ToJson(),
                     Type = TransactionType.HTLCAddLockSig,
                     Network = _sourceNetwork,
                     FromAddress = _solverManagedAccountInSource!,
@@ -216,14 +216,14 @@ public class SwapWorkflow : ISwapWorkflow
             // Redeem user funds
             var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionRequest()
             {
-                PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
+                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
                 {
                     CommitId = _htlcCommitMessage!.CommitId,
                     Asset = _htlcCommitMessage.DestinationAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _htlcCommitMessage.DestinationAddress,
                     SenderAddress = _solverManagedAccountInDestination
-                }),
+                }.ToJson(),
                 Type = TransactionType.HTLCRedeem,
                 Network = _destinationNetwork,
                 FromAddress = _solverManagedAccountInDestination!,
@@ -233,14 +233,14 @@ public class SwapWorkflow : ISwapWorkflow
             // Redeem LP funds
             var redeemInSourceTask = ExecuteTransactionAsync(new TransactionRequest()
             {
-                PrepareArgs = JsonSerializer.Serialize(new HTLCRedeemTransactionPrepareRequest
+                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
                 {
                     CommitId = _htlcCommitMessage!.CommitId,
                     Asset = _htlcCommitMessage.SourceAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _solverManagedAccountInSource,
                     SenderAddress = _htlcCommitMessage.SenderAddress
-                }),
+                }.ToJson(),
                 Type = TransactionType.HTLCRedeem,
                 Network = _sourceNetwork,
                 FromAddress = _solverManagedAccountInSource!,
@@ -270,11 +270,11 @@ public class SwapWorkflow : ISwapWorkflow
 
         await ExecuteTransactionAsync(new TransactionRequest()
         {
-            PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
+            PrepareArgs = new HTLCRefundTransactionPrepareRequest
             {
                 CommitId = _htlcCommitMessage!.CommitId,
                 Asset = _htlcCommitMessage.DestinationAsset,
-            }),
+            }.ToJson(),
             Type = TransactionType.HTLCRefund,
             Network = network,
             FromAddress = _solverManagedAccountInDestination!,

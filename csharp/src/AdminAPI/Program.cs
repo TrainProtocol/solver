@@ -6,6 +6,7 @@ using Train.Solver.AdminAPI.Endpoints;
 using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Common.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -20,11 +21,13 @@ builder.Configuration
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new BigIntegerConverter());
 });
 
 builder.Services.AddSwaggerGen(c =>

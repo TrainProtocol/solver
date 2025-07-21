@@ -11,6 +11,7 @@ using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Workflows;
 using Train.Solver.Workflow.Common.Helpers;
 using Train.Solver.Workflow.Common;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Workflow.Swap.Activities;
 
@@ -82,11 +83,11 @@ public class WorkflowActivities(
         await temporalClient.StartWorkflowAsync(
             TemporalHelper.ResolveProcessor(swap.Route.DestinationToken.Network.Type), [new TransactionRequest()
                 {
-                    PrepareArgs = JsonSerializer.Serialize(new HTLCRefundTransactionPrepareRequest
+                    PrepareArgs = new HTLCRefundTransactionPrepareRequest
                     {
                         CommitId = swap.CommitId,
                         Asset = swap.Route.DestinationToken.Asset,
-                    }),
+                    }.ToJson(),
                     Type = TransactionType.HTLCRefund,
                     Network = destinationNetwork.ToDetailedDto(),
                     FromAddress = swap.Route.DestinationWallet.Address,

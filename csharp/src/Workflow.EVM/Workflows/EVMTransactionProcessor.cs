@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Temporalio.Exceptions;
+﻿using Temporalio.Exceptions;
 using Temporalio.Workflows;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
@@ -11,6 +10,7 @@ using Train.Solver.Workflow.Abstractions.Workflows;
 using Train.Solver.Workflow.Common.Helpers;
 using Train.Solver.Workflow.Common.Extensions;
 using Train.Solver.Workflow.EVM.Activities;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Workflow.EVM.Workflows;
 
@@ -182,12 +182,12 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         {
                             Network = request.Network,
                             FromAddress = request.FromAddress,
-                            PrepareArgs = JsonSerializer.Serialize(new TransferPrepareRequest
+                            PrepareArgs = new TransferPrepareRequest
                             {
                                 Amount = 0,
                                 Asset = context.Fee!.Asset,
                                 ToAddress = request.FromAddress,
-                            }, (JsonSerializerOptions?)null),
+                            }.ToJson(),
                             Type = TransactionType.Transfer,
                             SwapId = request.SwapId,
                         }, new TransactionExecutionContext
@@ -226,7 +226,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
     private async Task CheckAllowanceAsync(
         TransactionRequest context)
     {
-        var lockRequest = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
+        var lockRequest = context.PrepareArgs.FromJson<HTLCLockTransactionPrepareRequest>();
 
         if (lockRequest is null)
         {
@@ -249,11 +249,11 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
             await ExecuteChildWorkflowAsync<EVMTransactionProcessor>((x) => x.RunAsync(new TransactionRequest()
             {
-                PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
+                PrepareArgs = new ApprovePrepareRequest
                 {
                     Amount = _unlimitApproveAmount,
                     Asset = lockRequest.SourceAsset,
-                }, (JsonSerializerOptions?)null),
+                }.ToJson(),
                 Type = TransactionType.Approve,
                 FromAddress = context.FromAddress,
                 Network = context.Network,
