@@ -8,7 +8,7 @@ namespace Train.Solver.Workflow.EVM.FunctionMessages;
 public class ERC20LockMessage
 {
     [Parameter("bytes32", "Id", 1)]
-    public byte[] Id { get; set; }
+    public byte[] CommitId { get; set; }
 
     [Parameter("bytes32", "hashlock", 2)]
     public byte[] Hashlock { get; set; }

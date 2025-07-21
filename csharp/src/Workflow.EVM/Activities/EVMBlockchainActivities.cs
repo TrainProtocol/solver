@@ -288,15 +288,18 @@ public class EVMBlockchainActivities(
 
         var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
-        var spenderAddress = string.IsNullOrEmpty(currency.Contract) ?
-           request.Network.HTLCNativeContractAddress : request.Network.HTLCTokenContractAddress;
+        var isNative = currency.Symbol == request.Network.NativeToken!.Symbol;
+
+        var htlcContractAddress = isNative
+            ? request.Network.HTLCNativeContractAddress
+            : request.Network.HTLCTokenContractAddress;
 
         if (!string.IsNullOrEmpty(currency.Contract))
         {
             var allowanceFunctionMessage = new AllowanceFunction
             {
                 Owner = request.OwnerAddress,
-                Spender = spenderAddress,
+                Spender = htlcContractAddress,
             };
 
             var allowanceHandler = await GetDataFromNodesAsync(nodes,

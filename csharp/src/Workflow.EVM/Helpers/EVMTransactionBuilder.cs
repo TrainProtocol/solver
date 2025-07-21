@@ -27,9 +27,11 @@ public static class EVMTransactionBuilder
 
         var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.Contract));
 
-        var spenderAddress = string.IsNullOrEmpty(currency.Contract) ?
-           network.HTLCTokenContractAddress
-           : network.HTLCTokenContractAddress;
+        var isNative = currency.Symbol == network.NativeToken!.Symbol;
+
+        var htlcContractAddress = isNative
+            ? network.HTLCNativeContractAddress
+            : network.HTLCTokenContractAddress;
 
         if (currency.Symbol != nativeCurrency.Symbol)
         {
@@ -40,7 +42,7 @@ public static class EVMTransactionBuilder
                 Asset = nativeCurrency.Symbol,
                 Data = new FunctionMessages.ApproveFunction
                 {
-                    Spender = spenderAddress,
+                    Spender = htlcContractAddress,
                     Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
                 CallDataAsset = nativeCurrency.Symbol,
@@ -108,7 +110,7 @@ public static class EVMTransactionBuilder
         var isNative = currency.Symbol == network.NativeToken!.Symbol;
 
         var htlcContractAddress = isNative
-            ? network.HTLCTokenContractAddress
+            ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
         var nativeCurrency = network.Tokens.First(x => x.Contract is null);
@@ -181,7 +183,7 @@ public static class EVMTransactionBuilder
         }
         else
         {
-            response.ToAddress = network.HTLCTokenContractAddress;
+            response.ToAddress = network.HTLCNativeContractAddress;
 
             response.Data = new CommitFunction
             {
@@ -234,7 +236,7 @@ public static class EVMTransactionBuilder
             {
                 LockParams = new ERC20LockMessage
                 {
-                    Id = request.CommitId.ToBytes32(),
+                    CommitId = request.CommitId.ToBytes32(),
                     SourceReceiver = request.Receiver,
                     Hashlock = hashlock,
                     Timelock = request.Timelock,
@@ -277,7 +279,7 @@ public static class EVMTransactionBuilder
         }
 
         var htlcContractAddress = isNative
-            ? network.HTLCTokenContractAddress
+            ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
         response.ToAddress = htlcContractAddress;
@@ -303,7 +305,7 @@ public static class EVMTransactionBuilder
         var secret = BigInteger.Parse(request.Secret);
 
         var htlcContractAddress = isNative
-            ? network.HTLCTokenContractAddress
+            ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
         return new PrepareTransactionResponse
@@ -336,7 +338,7 @@ public static class EVMTransactionBuilder
         var htlcId = request.CommitId.ToBytes32();
 
         var htlcContractAddress = isNative
-            ? network.HTLCTokenContractAddress
+            ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
         return new PrepareTransactionResponse
