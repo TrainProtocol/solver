@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class TransferPrepareRequest 
 {
@@ -6,7 +8,7 @@ public class TransferPrepareRequest
 
     public string Asset { get; set; } = null!;
 
-    public decimal Amount { get; set; }
+    public BigInteger Amount { get; set; }
 
     public string? Memo { get; set; }
 

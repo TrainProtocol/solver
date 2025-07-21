@@ -87,7 +87,7 @@ public class SwapWorkflow : ISwapWorkflow
                 },
             });
 
-        if (BigInteger.Parse(_htlcCommitMessage.AmountInWei) > limit.MaxAmount)
+        if (_htlcCommitMessage.Amount > limit.MaxAmount)
         {
             throw new ApplicationFailureException($"Amount is greater than max amount");
         }
@@ -100,7 +100,7 @@ public class SwapWorkflow : ISwapWorkflow
                SourceNetwork = _htlcCommitMessage.SourceNetwork,
                DestinationToken = _htlcCommitMessage.DestinationAsset,
                DestinationNetwork = _htlcCommitMessage.DestinationNetwork,
-               Amount = BigInteger.Parse(_htlcCommitMessage.AmountInWei)
+               Amount = _htlcCommitMessage.Amount
            }), DefaultActivityOptions(Constants.CoreTaskQueue));
 
         if (quote.ReceiveAmount <= 0)
@@ -139,11 +139,11 @@ public class SwapWorkflow : ISwapWorkflow
                 DestinationNetwork = _htlcCommitMessage.SourceNetwork,
                 DestinationAddress = _solverManagedAccountInSource,
                 SourceNetwork = _htlcCommitMessage.DestinationNetwork,
-                Amount = quote.ReceiveAmount.ToString(),
+                Amount = quote.ReceiveAmount,
                 Id = _htlcCommitMessage.Id,
                 Timelock = _lpTimeLock.ToUnixTimeSeconds(),
                 RewardTimelock = rewardTimelock.ToUnixTimeSeconds(),
-                Reward = BigInteger.Zero.ToString(),
+                Reward = BigInteger.Zero,
                 Receiver = _htlcCommitMessage.DestinationAddress,
                 Hashlock = hashlock.Hash,
             }),
@@ -343,7 +343,7 @@ public class SwapWorkflow : ISwapWorkflow
             (ISwapActivities x) => x.UpdateExpensesAsync(
                 confirmedTransaction.NetworkName,
                 confirmedTransaction.FeeAsset,
-                confirmedTransaction.FeeAmount,
+                confirmedTransaction.FeeAmount.ToString(),
                 confirmedTransaction.Asset,
                 transactionRequest.Type),
             DefaultActivityOptions(Constants.CoreTaskQueue));

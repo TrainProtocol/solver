@@ -39,7 +39,7 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
         return new Fee(
             request.Network.NativeToken!.Symbol,
             request.Network.NativeToken!.Decimals,
-            new LegacyData(gasPrice.ToString(), gasLimitResult.ToString()));
+            new LegacyData(gasPrice, gasLimitResult));
     }
 
     public override void Increase(Fee fee, int percentage)
@@ -49,13 +49,7 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
             throw new ArgumentNullException(nameof(fee.LegacyFeeData), "Legacy fee data is missing");
         }
 
-        fee.LegacyFeeData.GasPriceInWei =
-            BigInteger.Parse(fee.LegacyFeeData.GasPriceInWei)
-                .PercentageIncrease(percentage)
-                .ToString();
+        fee.LegacyFeeData.GasPrice =
+            fee.LegacyFeeData.GasPrice.PercentageIncrease(percentage);
     }
 }
-
-//protected override BigInteger CalculateFee(Block block, Nethereum.RPC.Eth.DTOs.Transaction transaction, EVMTransactionReceipt receipt)
-//    => receipt.GasUsed.Value * receipt.EffectiveGasPrice;
-

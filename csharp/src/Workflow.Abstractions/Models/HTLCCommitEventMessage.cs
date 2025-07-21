@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class HTLCCommitEventMessage
 {
@@ -6,9 +8,7 @@ public class HTLCCommitEventMessage
 
     public required string Id { get; set; } = null!;
 
-    //public required decimal Amount { get; set; }
-
-    public required string AmountInWei { get; set; } = null!;
+    public required BigInteger Amount { get; set; }
 
     public required string ReceiverAddress { get; set; } = null!;
 
@@ -25,8 +25,4 @@ public class HTLCCommitEventMessage
     public required string DestinationAsset { get; set; } = null!;
 
     public required long TimeLock { get; set; }
-
-    //public required NetworkType DestinationNetworkType { get; set; }
-
-    //public required NetworkType SourceNetworkType { get; set; }
 }

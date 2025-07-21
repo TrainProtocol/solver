@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class HTLCLockTransactionPrepareRequest
 {
@@ -20,9 +22,9 @@ public class HTLCLockTransactionPrepareRequest
 
     public string Id { get; set; } = null!;
 
-    public string Amount { get; set; } = null!;
+    public BigInteger Amount { get; set; }
 
-    public string Reward { get; set; } = null!;
+    public BigInteger Reward { get; set; }
 
     public long RewardTimelock { get; set; }
 }

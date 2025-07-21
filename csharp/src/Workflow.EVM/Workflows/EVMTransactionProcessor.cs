@@ -18,6 +18,7 @@ namespace Train.Solver.Workflow.EVM.Workflows;
 public class EVMTransactionProcessor : ITransactionProcessor
 {
     const int MaxRetryCount = 5;
+    private BigInteger _unlimitApproveAmount = BigInteger.Parse("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
     [WorkflowRun]
     public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
@@ -64,7 +65,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 FromAddress = request.FromAddress,
                 ToAddress = preparedTransaction.ToAddress,
                 Nonce = context.Nonce,
-                AmountInWei = preparedTransaction.AmountInWei,
+                Amount = preparedTransaction.Amount,
                 CallData = preparedTransaction.Data,
                 Fee = context.Fee
             }),
@@ -124,7 +125,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
         var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
         confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-        confirmedTransaction.Amount = preparedTransaction.CallDataAmountInWei;
+        confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
 
         return confirmedTransaction;
     }
@@ -143,7 +144,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                     FromAddress = request.FromAddress!,
                     ToAddress = preparedTransaction.ToAddress!,
                     Asset = preparedTransaction.Asset!,
-                    Amount = preparedTransaction.AmountInWei,
+                    Amount = preparedTransaction.Amount,
                     CallData = preparedTransaction.Data,
                 }),
                 new()
@@ -242,7 +243,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
             }),
             TemporalHelper.DefaultActivityOptions(context.Network.Type));
 
-        if (BigInteger.Parse(lockRequest.Amount) > BigInteger.Parse(allowance))
+        if (lockRequest.Amount > BigInteger.Parse(allowance))
         {
             // Initiate approval transaction
 
@@ -250,7 +251,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
             {
                 PrepareArgs = JsonSerializer.Serialize(new ApprovePrepareRequest
                 {
-                    Amount = 1000000000m,
+                    Amount = _unlimitApproveAmount,
                     Asset = lockRequest.SourceAsset,
                 }, (JsonSerializerOptions?)null),
                 Type = TransactionType.Approve,

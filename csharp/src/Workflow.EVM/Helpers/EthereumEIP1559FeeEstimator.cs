@@ -68,8 +68,10 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
             return new Fee(
                 feeCurrency.Symbol,
                 feeCurrency.Decimals,
-                new EIP1559Data(suggestedFees.MaxPriorityFeePerGas.ToString(), increasedBaseFee.ToString(),
-                    gasLimit.ToString()));
+                new EIP1559Data(
+                    suggestedFees.MaxPriorityFeePerGas.Value,
+                    increasedBaseFee,
+                    gasLimit));
         }
     }
 
@@ -80,8 +82,7 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
             throw new InvalidOperationException("Fee data is missing");
         }
 
-        fee.Eip1559FeeData.MaxPriorityFeeInWei = BigInteger.Parse(fee.Eip1559FeeData.MaxPriorityFeeInWei)
-           .PercentageIncrease(percentage)
-           .ToString();
+        fee.Eip1559FeeData.MaxPriorityFee = fee.Eip1559FeeData.MaxPriorityFee
+           .PercentageIncrease(percentage);
     }
 }

@@ -32,7 +32,7 @@ public class SwapActivities(
             commitEventMessage.DestinationAddress,
             commitEventMessage.SourceNetwork,
             commitEventMessage.SourceAsset,
-            commitEventMessage.AmountInWei,
+            commitEventMessage.Amount.ToString(),
             commitEventMessage.DestinationNetwork,
             commitEventMessage.DestinationAsset,
             outputAmount,
@@ -65,11 +65,11 @@ public class SwapActivities(
             transactionType,
             transaction.TransactionHash,
             transaction.Asset,
-            transaction.Amount,
+            transaction.Amount.ToString(),
             transaction.Confirmations,
             transaction.Timestamp,
             transaction.FeeAsset,
-            transaction.FeeAmount);
+            transaction.Amount.ToString());
     }
 
     [Activity]

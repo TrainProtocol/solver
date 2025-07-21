@@ -36,7 +36,7 @@ public static class EVMTransactionBuilder
             var response = new PrepareTransactionResponse
             {
                 ToAddress = currency.Contract!,
-                AmountInWei = BigInteger.Zero.ToString(),
+                Amount = BigInteger.Zero,
                 Asset = nativeCurrency.Symbol,
                 Data = new FunctionMessages.ApproveFunction
                 {
@@ -44,7 +44,7 @@ public static class EVMTransactionBuilder
                     Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
                 CallDataAsset = nativeCurrency.Symbol,
-                CallDataAmountInWei = BigInteger.Zero.ToString(),
+                CallDataAmount = BigInteger.Zero,
             };
 
             return response;
@@ -86,17 +86,17 @@ public static class EVMTransactionBuilder
                 Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
             }.GetCallData().ToHex().EnsureEvenLengthHex()}{memoHex.RemoveHexPrefix()}".EnsureHexPrefix();
 
-            response.AmountInWei = BigInteger.Zero.ToString();
+            response.Amount = BigInteger.Zero;
             response.ToAddress = currency.Contract!;
             response.CallDataAsset = currency.Symbol;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+            response.CallDataAmount = request.Amount;
         }
         else
         {
-            response.AmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+            response.Amount = request.Amount;
             response.ToAddress = request.ToAddress;
             response.CallDataAsset = currency.Symbol;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+            response.CallDataAmount = request.Amount;
         }
 
         return response;
@@ -137,11 +137,11 @@ public static class EVMTransactionBuilder
                 V = byte.Parse(request.V!)
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
 
-            AmountInWei = BigInteger.Zero.ToString(),
+            Amount = BigInteger.Zero,
             Asset = nativeCurrency.Symbol,
             ToAddress = htlcContractAddress,
             CallDataAsset = request.Asset,
-            CallDataAmountInWei = BigInteger.Zero.ToString()
+            CallDataAmount = BigInteger.Zero
         };
 
         return response;
@@ -178,13 +178,13 @@ public static class EVMTransactionBuilder
                 Receiver = request.Receiever,
                 Timelock = request.Timelock,
                 Amount = Web3.Convert.ToWei(request.Amount, currency.Decimals),
-                TokenContract = currency.Contract
+                TokenContract = currency.Contract!
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.AmountInWei = BigInteger.Zero.ToString();
+            response.Amount = BigInteger.Zero;
             response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, currency.Decimals).ToString();
+            response.CallDataAmount = request.Amount;
         }
         else
         {
@@ -203,10 +203,10 @@ public static class EVMTransactionBuilder
                 Timelock = request.Timelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.AmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
+            response.Amount = request.Amount;
             response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmountInWei = Web3.Convert.ToWei(request.Amount, nativeCurrency.Decimals).ToString();
+            response.CallDataAmount = request.Amount;
         }
 
         return response;
@@ -249,17 +249,17 @@ public static class EVMTransactionBuilder
                     DestinationChain = request.DestinationNetwork,
                     DestinationAddress = request.DestinationAddress,
                     DestinationAsset = request.DestinationAsset,
-                    Reward = BigInteger.Parse(request.Reward),
+                    Reward = request.Reward,
                     RewardTimelock = request.RewardTimelock,
-                    Amount = BigInteger.Parse(request.Amount),
+                    Amount = request.Amount,
                     TokenContract = currency.Contract!,
                 }
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.AmountInWei = "0";
+            response.Amount = BigInteger.Zero;
             response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
+            response.CallDataAmount = request.Amount + request.Reward;
         }
         else
         {
@@ -273,14 +273,14 @@ public static class EVMTransactionBuilder
                 DestinationChain = request.DestinationNetwork,
                 DestinationAddress = request.DestinationAddress,
                 DestinationAsset = request.DestinationAsset,
-                Reward = BigInteger.Parse(request.Reward),
+                Reward = request.Reward,
                 RewardTimelock = request.RewardTimelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
-            response.AmountInWei = request.Amount;
+            response.Amount = request.Amount;
             response.Asset = nativeCurrency.Symbol;
             response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmountInWei = (BigInteger.Parse(request.Amount) + BigInteger.Parse(request.Reward)).ToString();
+            response.CallDataAmount = request.Amount + request.Reward;
         }
 
         var htlcContractAddress = isNative
@@ -320,11 +320,11 @@ public static class EVMTransactionBuilder
                 Id = lockId,
                 Secret = secret
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-            AmountInWei = "0",
+            Amount = BigInteger.Zero,
             ToAddress = htlcContractAddress,
             Asset = network.NativeToken.Symbol,
             CallDataAsset = request.Asset,
-            CallDataAmountInWei = "0",
+            CallDataAmount = BigInteger.Zero,
         };
     }
 
@@ -352,11 +352,11 @@ public static class EVMTransactionBuilder
             {
                 Id = htlcId,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-            AmountInWei = "0",
+            Amount = BigInteger.Zero,
             ToAddress = htlcContractAddress,
             Asset = network.NativeToken.Symbol,
             CallDataAsset = request.Asset,
-            CallDataAmountInWei = "0",
+            CallDataAmount = BigInteger.Zero,
         };
     }
 }

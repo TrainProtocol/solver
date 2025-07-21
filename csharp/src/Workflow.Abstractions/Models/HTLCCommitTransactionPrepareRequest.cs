@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class HTLCCommitTransactionPrepareRequest
 {
@@ -20,5 +22,5 @@ public class HTLCCommitTransactionPrepareRequest
 
     public long Timelock { get; set; }
 
-    public decimal Amount { get; set; }
+    public BigInteger Amount { get; set; }
 }

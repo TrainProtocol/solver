@@ -67,9 +67,9 @@ public class EVMBlockchainActivities(
             Asset = fee.Asset
         });
 
-        var amount = BigInteger.Parse(fee.AmountInWei) + BigInteger.Parse(request.Amount);
+        var amount = fee.Amount + request.Amount;
 
-        if (BigInteger.Parse(balance.AmountInWei) < amount)
+        if (balance.Amount < amount)
         {
             throw new Exception($"Insufficient funds in {request.Network.DisplayName}. {request.FromAddress}. Required {amount} {fee.Asset}");
         }
@@ -149,8 +149,7 @@ public class EVMBlockchainActivities(
 
         var balanceResponse = new BalanceResponse
         {
-            AmountInWei = balance.ToString(),
-            Decimals = currency.Decimals,
+            Amount = balance,
         };
 
         return balanceResponse;
@@ -222,7 +221,7 @@ public class EVMBlockchainActivities(
                 {
                     TxId = log.TransactionHash,
                     Id = commitId,
-                    AmountInWei = commitedEvent.Amount.ToString(),
+                    Amount = commitedEvent.Amount,
                     SourceAsset = commitedEvent.SourceAsset,
                     SenderAddress = commitedEvent.Sender,
                     SourceNetwork = request.Network.Name,
@@ -489,22 +488,21 @@ public class EVMBlockchainActivities(
             From = request.FromAddress,
             To = request.ToAddress,
             Nonce = BigInteger.Parse(request.Nonce).ToHexBigInteger(),
-            Value = BigInteger.Parse(request.AmountInWei).ToHexBigInteger(),
+            Value = request.Amount.ToHexBigInteger(),
             Data = request.CallData?.EnsureHexPrefix()
         };
 
         if (request.Fee?.LegacyFeeData is not null)
         {
-            var gasPrice = BigInteger.Parse(request.Fee.LegacyFeeData.GasPriceInWei);
-            transactionInput.GasPrice = gasPrice.ToHexBigInteger();
-            transactionInput.Gas = BigInteger.Parse(request.Fee.LegacyFeeData.GasLimit).ToHexBigInteger();
+            transactionInput.GasPrice = request.Fee.LegacyFeeData.GasPrice.ToHexBigInteger();
+            transactionInput.Gas = request.Fee.LegacyFeeData.GasLimit.ToHexBigInteger();
         }
         else if (request.Fee?.Eip1559FeeData is not null)
         {
-            var maxFeePerGas = BigInteger.Parse(request.Fee.Eip1559FeeData.MaxFeePerGasInWei);
-            var maxPriorityFeePerGas = BigInteger.Parse(request.Fee.Eip1559FeeData.MaxPriorityFeeInWei);
+            var maxFeePerGas = request.Fee.Eip1559FeeData.MaxFeePerGas;
+            var maxPriorityFeePerGas = request.Fee.Eip1559FeeData.MaxPriorityFee;
 
-            transactionInput.Gas = BigInteger.Parse(request.Fee.Eip1559FeeData.GasLimit).ToHexBigInteger();
+            transactionInput.Gas = request.Fee.Eip1559FeeData.GasLimit.ToHexBigInteger();
             transactionInput.MaxFeePerGas = maxFeePerGas.ToHexBigInteger();
             transactionInput.MaxPriorityFeePerGas = maxPriorityFeePerGas.ToHexBigInteger();
             transactionInput.Type = new HexBigInteger((int)Nethereum.Model.TransactionType.EIP1559);
@@ -696,7 +694,7 @@ public class EVMBlockchainActivities(
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transaction.TransactionHash,
-            FeeAmount = transactionFee.ToString(),
+            FeeAmount = transactionFee,
             FeeDecimals = nativeCurrency.Decimals,
             FeeAsset = nativeCurrency!.Symbol,
             Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlock.Timestamp.Value * 1000),

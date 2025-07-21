@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class EstimateFeeRequest : BaseRequest
 {
@@ -8,7 +10,7 @@ public class EstimateFeeRequest : BaseRequest
 
     public required string ToAddress { get; set; } = null!;
 
-    public required string Amount { get; set; }
+    public required BigInteger Amount { get; set; }
 
     public string? CallData { get; set; }
 }

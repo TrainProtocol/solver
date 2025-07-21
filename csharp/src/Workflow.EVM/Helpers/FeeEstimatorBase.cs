@@ -31,14 +31,14 @@ public abstract class FeeEstimatorBase : IFeeEstimator
         string fromAddress,
         string toAddress,
         string? tokenContract,
-        string amount,
+        BigInteger amount,
         string? callData = null)
     {
         var callInput = new CallInput
         {
             From = fromAddress,
             To = toAddress,
-            Value = BigInteger.Parse(amount).ToHexBigInteger(),
+            Value = amount.ToHexBigInteger(),
         };
 
         if (!string.IsNullOrEmpty(callData))
@@ -54,7 +54,7 @@ public abstract class FeeEstimatorBase : IFeeEstimator
             {
                 FromAddress = fromAddress,
                 To = toAddress,
-                Value = BigInteger.Parse(amount)
+                Value = amount
             }.GetCallData().ToHex();
         }
 

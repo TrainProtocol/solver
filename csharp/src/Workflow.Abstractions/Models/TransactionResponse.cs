@@ -1,10 +1,11 @@
-﻿using Train.Solver.Common.Enums;
+﻿using System.Numerics;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class TransactionResponse
 {
-    public string Amount { get; set; } = null!;
+    public BigInteger Amount { get; set; }
 
     public string Asset { get; set; } = null!;
 
@@ -18,7 +19,7 @@ public class TransactionResponse
 
     public required DateTimeOffset Timestamp { get; set; }
 
-    public required string FeeAmount { get; set; }
+    public required BigInteger FeeAmount { get; set; }
 
     public required string FeeAsset { get; set; }
 

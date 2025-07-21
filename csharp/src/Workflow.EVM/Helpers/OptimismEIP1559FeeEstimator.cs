@@ -76,7 +76,7 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 GasPriceOracleContract,
                 request.FromAddress,
                 request.ToAddress,
-                BigInteger.Parse(request.Amount),
+                request.Amount,
                 request.CallData));
 
 
@@ -84,10 +84,10 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
             request.Network.NativeToken!.Symbol,
             request.Network.NativeToken!.Decimals,
             new EIP1559Data(
-                priorityFee.Value.ToString(),
-                baseFee.ToString(),
-                gasLimit.ToString(),
-                l1FeeInWei.PercentageIncrease(100).ToString()));
+                priorityFee.Value,
+                baseFee,
+                gasLimit,
+                l1FeeInWei.PercentageIncrease(100)));
     }
 
     private static async Task<BigInteger> GetL1FeeAsync(

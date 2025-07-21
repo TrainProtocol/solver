@@ -36,13 +36,13 @@ public class Fee
         SolanaFeeData = feeData;
     }
 
-    private decimal Amount
+    public BigInteger Amount
     {
         get
         {
             if (FixedFeeData != null)
             {
-                return UnitConversion.Convert.FromWei(BigInteger.Parse(FixedFeeData.FeeInWei), Decimals);
+                return FixedFeeData.Fee;
             }
             else if (Eip1559FeeData != null)
             {
@@ -61,14 +61,6 @@ public class Fee
         }
     }
 
-    public string AmountInWei
-    {
-        get
-        {
-            return UnitConversion.Convert.ToWei(Amount, Decimals).ToString();
-        }
-    }
-
     public string Asset { get; set; } = null!;
 
     public int Decimals { get; set; }
@@ -81,43 +73,43 @@ public class Fee
 
     public SolanaFeeData? SolanaFeeData { get; set; }
 
-    private decimal CalculateLegacyFeeAmount()
+    private BigInteger CalculateLegacyFeeAmount()
     {
         var amount = BigInteger.Multiply(
-                       BigInteger.Parse(LegacyFeeData!.GasPriceInWei),
-                                  BigInteger.Parse(LegacyFeeData.GasLimit));
+                       LegacyFeeData!.GasPrice,
+                       LegacyFeeData.GasLimit);
 
-        if (LegacyFeeData.L1FeeInWei != null)
+        if (LegacyFeeData.L1Fee != null)
         {
-            amount += BigInteger.Parse(LegacyFeeData.L1FeeInWei);
+            amount += LegacyFeeData.L1Fee.Value;
         }
 
-        return UnitConversion.Convert.FromWei(amount, Decimals);
+        return amount;
     }
 
-    private decimal CalculateEip1559Amount()
+    private BigInteger CalculateEip1559Amount()
     {
         var amount =
             BigInteger.Multiply(
-                BigInteger.Parse(Eip1559FeeData!.MaxFeePerGasInWei),
-                BigInteger.Parse(Eip1559FeeData.GasLimit));
+                Eip1559FeeData!.MaxFeePerGas,
+                Eip1559FeeData.GasLimit);
 
-        if (Eip1559FeeData.L1FeeInWei != null)
+        if (Eip1559FeeData.L1Fee != null)
         {
-            amount += BigInteger.Parse(Eip1559FeeData.L1FeeInWei);
+            amount += Eip1559FeeData.L1Fee.Value;
         }
 
-        return UnitConversion.Convert.FromWei(amount, Decimals);
+        return amount;
     }
 
-    private decimal CalculateSolanaFeeAmount()
+    private BigInteger CalculateSolanaFeeAmount()
     {
         var amount =
             decimal.Parse(SolanaFeeData!.BaseFee) +
             decimal.Parse(SolanaFeeData!.ComputeUnitPrice) *
             decimal.Parse(SolanaFeeData.ComputeUnitLimit);
 
-        return UnitConversion.Convert.FromWei(new BigInteger(amount), Decimals);
+        return new BigInteger(amount);
     }
 }
 
@@ -128,47 +120,47 @@ public class SolanaFeeData(string computeUnitPrice, string computeUnitLimit, str
     public string BaseFee { get; set; } = baseFee;
 }
 
-public class FixedFeeData(string feeInWei)
+public class FixedFeeData(BigInteger fee)
 {
-    public string FeeInWei { get; set; } = feeInWei;
+    public BigInteger Fee { get; set; } = fee;
 }
 
-public abstract class EVMFeeDataBase(string gasLimit, string? l1FeeInWei)
+public abstract class EVMFeeDataBase(BigInteger gasLimit, BigInteger? l1Fee)
 {
-    public string GasLimit { get; set; } = gasLimit;
+    public BigInteger GasLimit { get; set; } = gasLimit;
 
-    public string? L1FeeInWei { get; set; } = l1FeeInWei;
+    public BigInteger? L1Fee { get; set; } = l1Fee;
 }
 
 public class EIP1559Data : EVMFeeDataBase
 {
     public EIP1559Data(
-        string maxPriorityFeeInWei,
-        string baseFeeInWei,
-        string gasLimit,
-        string? l1FeeInWei = null) : base(gasLimit, l1FeeInWei)
+        BigInteger maxPriorityFeeInWei,
+        BigInteger baseFee,
+        BigInteger gasLimit,
+        BigInteger? l1Fee = null) : base(gasLimit, l1Fee)
     {
-        MaxPriorityFeeInWei = maxPriorityFeeInWei;
-        BaseFeeInWei = baseFeeInWei;
-        L1FeeInWei = l1FeeInWei;
+        MaxPriorityFee = maxPriorityFeeInWei;
+        BaseFee = baseFee;
+        L1Fee = l1Fee;
     }
 
-    public string MaxFeePerGasInWei
+    public BigInteger MaxFeePerGas
     {
         get
         {
-            return (BigInteger.Parse(MaxPriorityFeeInWei) + BigInteger.Parse(BaseFeeInWei)).ToString();
+            return MaxPriorityFee + BaseFee;
         }
     }
 
-    public string MaxPriorityFeeInWei { get; set; }
+    public BigInteger MaxPriorityFee { get; set; }
 
-    public string BaseFeeInWei { get; set; }
+    public BigInteger BaseFee { get; set; }
 }
 
-public class LegacyData(string gasPriceInWei,
-    string gasLimit,
-    string? l1FeeInWei = null) : EVMFeeDataBase(gasLimit, l1FeeInWei)
+public class LegacyData(BigInteger gasPrice,
+    BigInteger gasLimit,
+    BigInteger? l1Fee = null) : EVMFeeDataBase(gasLimit, l1Fee)
 {
-    public string GasPriceInWei { get; set; } = gasPriceInWei;
+    public BigInteger GasPrice { get; set; } = gasPrice;
 }

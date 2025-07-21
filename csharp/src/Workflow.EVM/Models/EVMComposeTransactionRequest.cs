@@ -1,4 +1,5 @@
-﻿using Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.Workflow.EVM.Models;
 public class EVMComposeTransactionRequest : BaseRequest
@@ -11,7 +12,7 @@ public class EVMComposeTransactionRequest : BaseRequest
 
     public required string Nonce { get; set; } = null!;
 
-    public required string AmountInWei { get; set; } = null!;
+    public required BigInteger Amount { get; set; }
 
     public required Fee Fee { get; set; } = null!;
 }

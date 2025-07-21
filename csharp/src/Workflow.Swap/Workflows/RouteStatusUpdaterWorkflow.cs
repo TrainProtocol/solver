@@ -57,10 +57,8 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 continue;
             }
 
-            var balanceInWei = BigInteger.Parse(balance.AmountInWei);
-
             var routesToDisable = group
-                .Where(route => route.Status == RouteStatus.Active && BigInteger.Parse(route.MaxAmountInSource) > balanceInWei)
+                .Where(route => route.Status == RouteStatus.Active && BigInteger.Parse(route.MaxAmountInSource) > balance.Amount)
                 .ToList();
 
             if (routesToDisable.Any())
@@ -73,7 +71,7 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
             }
 
             var routesToEnable = group
-                .Where(route => route.Status == RouteStatus.Inactive && BigInteger.Parse(route.MaxAmountInSource) <= balanceInWei)
+                .Where(route => route.Status == RouteStatus.Inactive && BigInteger.Parse(route.MaxAmountInSource) <= balance.Amount)
                 .ToList();
 
             if (routesToEnable.Any())

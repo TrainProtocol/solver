@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class PrepareTransactionResponse
 {
@@ -6,15 +8,11 @@ public class PrepareTransactionResponse
 
     public string? Data { get; set; }
 
-    //public decimal Amount { get; set; }
-
     public string Asset { get; set; } = null!;
 
-    public string AmountInWei { get; set; } = null!;
+    public BigInteger Amount { get; set; }
 
     public string CallDataAsset { get; set; } = null!;
 
-    public string CallDataAmountInWei { get; set; } = null!;
-
-    //public decimal CallDataAmount { get; set; } 
+    public BigInteger CallDataAmount { get; set; } 
 }

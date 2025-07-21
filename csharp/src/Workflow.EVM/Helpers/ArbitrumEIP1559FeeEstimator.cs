@@ -21,11 +21,8 @@ public class ArbitrumEIP1559FeeEstimator : EthereumEIP1559FeeEstimator
             throw new Exception("EIP-1559 fee data is null");
         }
 
-        fee.Eip1559FeeData.MaxPriorityFeeInWei = "1";
+        fee.Eip1559FeeData.MaxPriorityFee = BigInteger.One;
 
         return fee;
     }
 }
-
-//protected override BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt)
-//        => receipt.GasUsed.Value * receipt.EffectiveGasPrice;
