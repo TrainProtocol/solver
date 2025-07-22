@@ -13,7 +13,21 @@ public interface IRouteRepository
         string sourceToken,
         string destinationNetworkName,
         string destinationToken,
-        BigInteger? amount);
+        BigInteger? maxAmount);
+
+    Task<Route?> CreateAsync(
+        string sourceNetworkName,
+        string sourceToken,
+        string sourceWalletAddress,
+        NetworkType sourceWalletType,
+        string destinationNetworkName,
+        string destinationToken,
+        string destinationWalletAddress,
+        NetworkType destinationWalletType,
+        string rateProvider,
+        BigInteger minAmount,
+        BigInteger maxAmount,
+        string? serviceFee);
 
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
 }

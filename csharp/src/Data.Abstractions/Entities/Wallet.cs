@@ -10,6 +10,4 @@ public class Wallet : EntityBase
     public string Address { get; set; } = null!;
 
     public NetworkType NetworkType { get; set; }
-
-    public bool IsDefault { get; set; }
 }

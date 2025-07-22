@@ -62,11 +62,6 @@ var app = builder.Build();
 app.UseCors();
 
 app.MapGroup("/api")
-    .MapGet("/health", () => Results.Ok())
-    .WithTags("System")
-    .Produces(StatusCodes.Status200OK);
-
-app.MapGroup("/api")
    .MapNetworkEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Network");

@@ -4,6 +4,8 @@ namespace Train.Solver.Data.Abstractions.Entities;
 
 public class ServiceFee : EntityBase
 {
+    public string Name { get; set; }
+
     public decimal FeeInUsd { get; set; }
 
     public decimal FeePercentage { get; set; } 

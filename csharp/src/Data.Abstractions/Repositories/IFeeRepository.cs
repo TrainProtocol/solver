@@ -9,7 +9,9 @@ public interface IFeeRepository
 
     Task<List<ServiceFee>> GetServiceFeesAsync();
 
-    Task<ServiceFee?> CreateServiceFeeAsync(decimal feeInUsd, decimal percentageFee);
+    Task<ServiceFee> GetServiceFeeAsync(string name);
+
+    Task<ServiceFee?> CreateServiceFeeAsync(string name, decimal feeInUsd, decimal percentageFee);
 
     Task UpdateExpenseAsync(
         string networkName,

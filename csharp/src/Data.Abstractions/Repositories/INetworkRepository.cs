@@ -7,6 +7,8 @@ public interface INetworkRepository
 {
     Task<Network?> GetAsync(string networkName);
 
+    Task<Token?> GetTokenAsync(string networkName, string symbol);
+
     Task<IEnumerable<Network>> GetAllAsync();
 
     Task<Network?> CreateAsync(

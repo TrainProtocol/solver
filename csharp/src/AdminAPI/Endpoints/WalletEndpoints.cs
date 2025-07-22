@@ -15,10 +15,6 @@ public static class WalletEndpoints
         group.MapGet("/wallets", GetAllAsync)
             .Produces<IEnumerable<WalletDto>>();
 
-        //group.MapGet("/wallets/{networkType}/{address}", GetAsync)
-        //    .Produces<WalletDto>()
-        //    .Produces(StatusCodes.Status404NotFound);
-
         group.MapPost("/wallets", CreateAsync)
             .Produces<WalletDto>()
             .Produces(StatusCodes.Status400BadRequest);
@@ -30,17 +26,6 @@ public static class WalletEndpoints
     {
         var wallets = await repository.GetAllAsync();
         return Results.Ok(wallets.Select(x=> x.ToDto()));
-    }
-
-    private static async Task<IResult> GetAsync(
-        IWalletRepository repository,
-        NetworkType networkType,
-        string address)
-    {
-        var wallet = await repository.GetAsync(networkType, address);
-        return wallet is null
-            ? Results.NotFound($"Wallet '{address}' not found on network type '{networkType}'")
-            : Results.Ok(wallet.ToDto());
     }
 
     private static async Task<IResult> CreateAsync(

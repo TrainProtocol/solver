@@ -160,4 +160,10 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ExecuteDeleteAsync();
     }
 
+    public Task<Token?> GetTokenAsync(string networkName, string symbol)
+    {
+        return dbContext.Tokens
+            .Include(x => x.TokenPrice)
+            .FirstOrDefaultAsync(x => x.Network.Name == networkName && x.Asset == symbol);
+    }
 }

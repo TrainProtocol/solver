@@ -7,10 +7,14 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFFeeRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : IFeeRepository
 {
-    public async Task<ServiceFee?> CreateServiceFeeAsync(decimal feeInUsd, decimal percentageFee)
+    public async Task<ServiceFee?> CreateServiceFeeAsync(
+        string name, 
+        decimal feeInUsd,
+        decimal percentageFee)
     {
         var serviceFee = new ServiceFee
         {
+            Name = name,
             FeeInUsd = feeInUsd,
             FeePercentage = percentageFee
         };
@@ -32,6 +36,19 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
     public async Task<List<ServiceFee>> GetServiceFeesAsync()
     {
         return await dbContext.ServiceFees.ToListAsync();
+    }
+
+    public async Task<ServiceFee> GetServiceFeeAsync(string name)
+    {
+        var serviceFee = await dbContext.ServiceFees
+            .FirstOrDefaultAsync(x => x.Name == name);
+
+        if (serviceFee == null)
+        {
+            throw new Exception($"Service fee {name} not found");
+        }
+
+        return serviceFee;
     }
 
     public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)

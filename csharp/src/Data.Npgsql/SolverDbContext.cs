@@ -69,6 +69,12 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<Wallet>()
             .HasIndex(x => new { x.Address, x.NetworkType });
 
+        modelBuilder.Entity<Wallet>()
+            .HasIndex(x => x.Name).IsUnique();
+
+        modelBuilder.Entity<ServiceFee>()
+            .HasIndex(x => x.Name).IsUnique();
+
         modelBuilder.Entity<Route>()
             .Property(b => b.Status)
             .HasEnumComment();

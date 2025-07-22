@@ -24,14 +24,14 @@ public static class FeeEndpoints
     private static async Task<IResult> GetServiceFeesAsync(IFeeRepository repository)
     {
         var fees = await repository.GetServiceFeesAsync();
-        return Results.Ok(fees.Select(x=>x.ToDto()));
+        return Results.Ok(fees.Select(x => x.ToDto()));
     }
 
     private static async Task<IResult> CreateServiceFeeAsync(
         IFeeRepository repository,
         [FromBody] CreateServiceFeeRequest request)
     {
-        var fee = await repository.CreateServiceFeeAsync(request.FeeInUsd, request.PercentageFee);
+        var fee = await repository.CreateServiceFeeAsync(request.Name, request.FeeInUsd, request.PercentageFee);
         return fee is null
             ? Results.BadRequest("Failed to create service fee")
             : Results.Ok(fee.ToDto());
