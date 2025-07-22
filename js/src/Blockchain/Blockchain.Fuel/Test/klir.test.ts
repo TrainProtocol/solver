@@ -1,5 +1,5 @@
 import { BigNumber, utils } from "ethers";
-import { RpcProvider } from "starknet";
+import { Account, BigNumberish, cairo, Call, Invocation, InvocationsSignerDetails, RpcProvider, Signer, stark, transaction, types, UniversalDetails } from "starknet";
 import 'reflect-metadata';
 import { TrackBlockEventsAsync } from "../../Blockchain.Starknet/Activities/Helper/StarknetEventTracker";
 import { Address, AssetId, B256Address, BN, bn, Contract, DateTime, formatUnits, Provider, ScriptTransactionRequest, transactionRequestify, Wallet } from "fuels";
@@ -101,6 +101,62 @@ describe("Test for klir", () => {
             console.error("Error sending transaction:", error);
             throw error;
         }
+    });
+});
+
+describe("Test for Starknet's Klir", () => {
+    it('returns correct signed klir estimate', async () => {
+        // Prepare section
+        const provider = new RpcProvider({
+            nodeUrl: "https://starknet-sepolia.blastapi.io/b80cc803-ddc6-4582-9e56-481ec38ec039/rpc/v0_7"
+         });
+         
+         const publicKey = "0x03bd42ec6bc6fa63f376db9da3df346bfca470bf88a66fdd5389695860497fa2";
+         const privateKey = "{KLIR_PRIVATE_KEY_HERE}";  
+
+         const callData = [
+            publicKey,
+            cairo.uint256(BigNumber.from(1).toHexString())
+        ];
+         
+        const methodCall: Call = {
+            contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            entrypoint: "transfer",
+            calldata: callData
+        };
+         
+        const call = JSON.stringify(methodCall)
+
+        var parsedCall: Call = JSON.parse(call);
+
+        const nonce = await provider.getNonceForAddress(publicKey);
+        const chainId = await provider.getChainId();
+
+        // Signer API code full offline without node usage
+        const signerDetails: InvocationsSignerDetails = {
+            ...stark.v3Details({}),
+            walletAddress: publicKey,
+            nonce,
+            version: "0x3",
+            chainId,
+            cairoVersion: '1',
+            skipValidate: false
+        };
+
+        let calls = [parsedCall];
+
+        const calldata = transaction.getExecuteCalldata(calls, signerDetails.cairoVersion);
+        const signature =  await new Signer(privateKey).signTransaction(calls, signerDetails);
+
+        const response: Invocation = {
+            ...stark.v3Details(signerDetails),
+            contractAddress: publicKey,
+            calldata,
+            signature,
+        };
+
+        const feeEstimateResponse = await provider.getInvokeEstimateFee(response, signerDetails);
+        console.log("Estimated fee:", feeEstimateResponse);
     });
 });
 
