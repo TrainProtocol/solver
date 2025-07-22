@@ -10,7 +10,7 @@ import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
 import { NodeType } from "../../../../Data/Entities/Nodes";
-import abi from '../ABIs/ERC20.json';
+import abi from '../ABIs/train.json';
 
 export async function CreateRefundCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
 
