@@ -6,7 +6,7 @@ namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 
 public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
 {
-    public async Task<string> GenerateAsync(NetworkType type, string label)
+    public async Task<string> GenerateAsync(NetworkType type)
     {
         var generateResponse = await client.GenerateAddressAsync(type.ToString());
 

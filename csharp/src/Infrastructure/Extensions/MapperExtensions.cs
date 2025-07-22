@@ -38,15 +38,6 @@ public static class MapperExtensions
         };
     }
 
-    public static ManagedAccountDto ToDto(this Wallet account)
-    {
-        return new ManagedAccountDto
-        {
-            Address = account.Address,
-            NetworkType = account.NetworkType
-        };
-    }
-
     public static NodeDto ToDto(this Node node)
     {
         return new NodeDto
@@ -127,6 +118,25 @@ public static class MapperExtensions
         {
             Source = route.SourceToken.ToWithNetworkDto(),
             Destination = route.DestinationToken.ToWithNetworkDto(),
+        };
+    }
+
+    public static WalletDto ToDto(this Wallet wallet)
+    {
+        return new WalletDto
+        {
+            Name = wallet.Name,
+            Address = wallet.Address,
+            NetworkType = wallet.NetworkType
+        };
+    }
+
+    public static ServiceFeeDto ToDto(this ServiceFee serviceFee)
+    {
+        return new ServiceFeeDto
+        {
+           Percentage = serviceFee.FeePercentage,
+           UsdAmount = serviceFee.FeeInUsd,
         };
     }
 }

@@ -125,43 +125,37 @@ public class QuoteService(
 
         if (expenseFee is not null && !options.Value.DisableExpenseFee)
         {
-            fixedFee += expenseFee.ExpenseFee;
+            fixedFee += expenseFee.Value;
         }
 
-        var serviceFee = CalculateServiceFee(route);
+        var (Fee, Percentage) = CalculateServiceFee(route);
 
-        if (serviceFee is not null)
-        {
-            fixedFee += serviceFee.ServiceFee;
-            percentageFee = amount.PercentOf(serviceFee.ServiceFeePercentage);
-        }
+        fixedFee += Fee;
+        percentageFee = amount.PercentOf(Percentage);
 
         var totalFee = fixedFee + percentageFee;
 
         return totalFee;
     }
 
-    private ServiceFeeDto CalculateServiceFee(
+    private static (BigInteger Fee, decimal Percentage) CalculateServiceFee(
         Route route)
     {
-        var fee = new ServiceFeeDto()
-        {
-            ServiceFee = BigInteger.Zero,
-            ServiceFeePercentage = default
-        };
+        var fee = BigInteger.Zero;
+        var percentage = default(decimal);
 
         if (route.ServiceFee != null)
         {
-            fee.ServiceFeePercentage = route.ServiceFee.FeePercentage;
-            fee.ServiceFee = TokenUnitHelper.ToBaseUnits(
+            percentage = route.ServiceFee.FeePercentage;
+            fee = TokenUnitHelper.ToBaseUnits(
                 route.ServiceFee.FeeInUsd / route.SourceToken.TokenPrice.PriceInUsd,
                 route.SourceToken.Decimals);
         }
 
-        return fee;
+        return (fee, percentage);
     }
 
-    private async Task<ExpenseFeeDto?> CalculateExpenseFeeAsync(Route route)
+    private async Task<BigInteger?> CalculateExpenseFeeAsync(Route route)
     {
         var expenses = await feeRepository.GetExpensesAsync();
 
@@ -172,7 +166,7 @@ public class QuoteService(
                 || x.TokenId == route.DestinationTokenId && x.TransactionType == TransactionType.HTLCRedeem
                 || x.TokenId == route.SourceTokenId && x.TransactionType == TransactionType.HTLCRedeem);
 
-        ExpenseFeeDto? fee = null;
+        BigInteger? fee = null;
 
         if (filterredExpenses.Any())
         {
@@ -184,7 +178,7 @@ public class QuoteService(
                     transactionCompletionDetail.FeeToken.TokenPrice.PriceInUsd,
                     transactionCompletionDetail.FeeToken.Decimals);
 
-                fee.ExpenseFee += TokenUnitHelper.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
+                fee += TokenUnitHelper.ToBaseUnits(expenseFeeAmountInUsd / route.SourceToken.TokenPrice.PriceInUsd, route.SourceToken.Decimals);
             }
         }
 

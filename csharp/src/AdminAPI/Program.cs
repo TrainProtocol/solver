@@ -32,7 +32,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Train Solver Admin API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Train Solver Admin API" });
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
@@ -66,16 +66,25 @@ app.MapGroup("/api")
     .WithTags("System")
     .Produces(StatusCodes.Status200OK);
 
-app.MapGroup("/api/v1")
-   .MapAdminEndpoints()
+app.MapGroup("/api")
+   .MapNetworkEndpoints()
    .RequireRateLimiting("Fixed")
-   .WithGroupName("v1")
-   .WithTags("Endpoints");
+   .WithTags("Network");
+
+app.MapGroup("/api")
+   .MapWalletEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Wallet");
+
+app.MapGroup("/api")
+   .MapFeeEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Fee");
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver Admin API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Train Solver Admin API");
     c.DisplayRequestDuration();
 });
 
