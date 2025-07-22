@@ -30,4 +30,6 @@ public interface IRouteRepository
         string? serviceFee);
 
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
+
+    Task<List<RateProvider>> GetAllRateProvidersAsync();
 }

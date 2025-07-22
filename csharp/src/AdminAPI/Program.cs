@@ -1,12 +1,13 @@
 using System.Text.Json.Serialization;
-using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Data.Npgsql.Extensions;
-using Train.Solver.Common.Extensions;
 using Train.Solver.AdminAPI.Endpoints;
-using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
-using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Common.Serialization;
+using Train.Solver.Common.Swagger;
+using Train.Solver.Data.Npgsql.Extensions;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Infrastructure.Logging.OpenTelemetry;
+using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -36,6 +37,7 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
     c.CustomSchemaIds(i => i.FriendlyId());
     c.SupportNonNullableReferenceTypes();
+    c.SchemaFilter<BigIntegerSchemaFilter>();
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -75,6 +77,17 @@ app.MapGroup("/api")
    .MapFeeEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Fee");
+
+app.MapGroup("/api")
+   .MapRouteEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Route");
+
+app.MapGroup("/api")
+   .MapRateProviderEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Rate Provider");
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

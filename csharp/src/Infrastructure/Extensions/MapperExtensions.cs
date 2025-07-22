@@ -135,8 +135,17 @@ public static class MapperExtensions
     {
         return new ServiceFeeDto
         {
-           Percentage = serviceFee.FeePercentage,
+           Name = serviceFee.Name,
+            Percentage = serviceFee.FeePercentage,
            UsdAmount = serviceFee.FeeInUsd,
+        };
+    }
+
+    public static RateProviderDto ToDto(this RateProvider rateProvider)
+    {
+        return new RateProviderDto
+        {
+            Name = rateProvider.Name,
         };
     }
 }

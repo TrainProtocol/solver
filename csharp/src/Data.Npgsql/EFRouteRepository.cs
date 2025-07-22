@@ -95,6 +95,11 @@ public class EFRouteRepository(
         return GetBaseQuery(statuses).ToListAsync();
     }
 
+    public Task<List<RateProvider>> GetAllRateProvidersAsync()
+    {
+         return dbContext.RateProviders.ToListAsync();
+    }
+
     public async Task<Route?> GetAsync(
         string sourceNetworkName,
         string sourceToken,
