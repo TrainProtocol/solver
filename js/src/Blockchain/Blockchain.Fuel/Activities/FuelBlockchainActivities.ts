@@ -11,7 +11,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, formatUnits, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
+import { Contract, BigNumberCoder, Provider, TransactionCost, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
 import abi from './ABIs/train.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
