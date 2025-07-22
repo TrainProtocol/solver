@@ -8,6 +8,7 @@ namespace Train.Solver.Data.Npgsql;
 public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbContext(options)
 {
     public DbSet<Swap> Swaps { get; set; }
+    public DbSet<SwapMetric> SwapMetrics { get; set; }
 
     public DbSet<Network> Networks { get; set; }
 
@@ -18,6 +19,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
     public DbSet<RateProvider> RateProviders { get; set; }
 
     public DbSet<Wallet> Wallets { get; set; }
+
+    public DbSet<TrustedWallet> TrustedWallets { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
 
@@ -119,6 +122,21 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
         modelBuilder.Entity<Swap>()
           .HasIndex(x => x.CommitId).IsUnique();
+
+        modelBuilder.Entity<SwapMetric>()
+            .HasOne(m => m.Swap)
+            .WithOne(s => s.Metric)
+            .HasForeignKey<SwapMetric>(m => m.SwapId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SwapMetric>()
+            .HasIndex(m => m.SourceNetwork);
+
+        modelBuilder.Entity<SwapMetric>()
+            .HasIndex(m => m.DestinationNetwork);
+
+        modelBuilder.Entity<SwapMetric>()
+            .HasIndex(m => m.CreatedDate);
 
         modelBuilder.Entity<RateProvider>()
             .HasIndex(x => x.Name).IsUnique();
