@@ -2,13 +2,17 @@
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Workflow.Abstractions.Models;
+using System.Numerics;
 
 namespace Train.Solver.Workflow.Abstractions.Activities;
 public interface ISwapActivities
 {
     [Activity]
     Task<int> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
-
+    
+    [Activity]
+    Task CreateSwapMetricAsync(string commitId, BigInteger totalFee);
+    
     [Activity]
     Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction);
 

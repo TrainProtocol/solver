@@ -10,6 +10,8 @@ using TransactionResponse = Train.Solver.Workflow.Abstractions.Models.Transactio
 using Train.Solver.Common.Enums;
 using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Models;
+using System.Numerics;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Workflow.Swap.Activities;
 
@@ -133,5 +135,37 @@ public class SwapActivities(
     public async Task<List<string>> GetNonRefundedSwapIdsAsync()
     {
         return await swapRepository.GetNonRefundedSwapIdsAsync();
+    }
+
+    [Activity]
+    public async Task CreateSwapMetricAsync(
+        string commitId,
+        BigInteger totalFee)
+    {
+        var swap = await swapRepository.GetAsync(commitId);
+
+        if (swap is null)
+        {
+            throw new Exception($"Swap with commitId {commitId} not found.");
+        }
+
+        var sourceAmount = BigInteger.Parse(swap.SourceAmount);
+
+        var profit = TokenUnitHelper.FromBaseUnits(sourceAmount - totalFee, swap.Route.SourceToken.Decimals);
+        var profitInUsd = profit * swap.Route.SourceToken.TokenPrice.PriceInUsd;
+
+        var volume = TokenUnitHelper.FromBaseUnits(sourceAmount, swap.Route.SourceToken.Decimals);
+        var volumeInUsd = volume * swap.Route.SourceToken.TokenPrice.PriceInUsd;
+
+        await swapRepository.CreateSwapMetricAsync(
+            swap.Id,
+            swap.Route.SourceToken.Network.Name,
+            swap.Route.SourceToken.Asset,
+            swap.Route.DestinationToken.Network.Name,
+            swap.Route.DestinationToken.Asset,
+            volume,
+            volumeInUsd,
+            profit,
+            profitInUsd);
     }
 }

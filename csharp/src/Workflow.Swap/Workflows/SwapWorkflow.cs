@@ -257,6 +257,10 @@ public class SwapWorkflow : ISwapWorkflow
             await RefundSolverLockedFundsAsync(_destinationNetwork);
             throw;
         }
+
+        await ExecuteActivityAsync(
+            (ISwapActivities x) => x.CreateSwapMetricAsync(_htlcCommitMessage.CommitId, quote.TotalFee),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
     }
 
     private async Task RefundSolverLockedFundsAsync(DetailedNetworkDto network)
