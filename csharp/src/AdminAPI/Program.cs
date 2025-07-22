@@ -93,6 +93,12 @@ app.MapGroup("/api")
    .RequireRateLimiting("Fixed")
    .WithTags("Rate Provider");
 
+app.MapGroup("/api")
+   .MapSwapMetricEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Swap Metric");
+
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
