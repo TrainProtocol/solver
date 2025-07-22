@@ -1,5 +1,6 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Entities;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -7,7 +8,7 @@ public interface IWalletRepository
 {
     public Task<Wallet?> GetAsync(NetworkType type, string address);
 
-    public Task<IEnumerable<Wallet>> GetAllAsync();
+    public Task<IEnumerable<Wallet>> GetAllAsync(NetworkType[] types);
 
     public Task<Wallet?> CreateAsync(NetworkType type, string address, string name);
 

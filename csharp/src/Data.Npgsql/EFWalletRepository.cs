@@ -29,9 +29,9 @@ public class EFWalletRepository(SolverDbContext dbContext) : IWalletRepository
         return wallet;
     }
 
-    public async Task<IEnumerable<Wallet>> GetAllAsync()
+    public async Task<IEnumerable<Wallet>> GetAllAsync(NetworkType[] types)
     {
-        var wallets = await dbContext.Wallets.ToListAsync();
+        var wallets = await dbContext.Wallets.Where(x => types.Contains(x.NetworkType)).ToListAsync();
         return wallets;
     }
 

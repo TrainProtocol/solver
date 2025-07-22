@@ -27,9 +27,11 @@ public static class WalletEndpoints
         return group;
     }
 
-    private static async Task<IResult> GetAllAsync(IWalletRepository repository)
+    private static async Task<IResult> GetAllAsync(
+        IWalletRepository repository,
+        [FromQuery] NetworkType[] types)
     {
-        var wallets = await repository.GetAllAsync();
+        var wallets = await repository.GetAllAsync(types);
         return Results.Ok(wallets.Select(x=> x.ToDto()));
     }
 

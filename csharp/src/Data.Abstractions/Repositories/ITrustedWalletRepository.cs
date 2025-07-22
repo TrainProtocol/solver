@@ -7,7 +7,7 @@ public interface ITrustedWalletRepository
 {
     public Task<TrustedWallet?> GetAsync(NetworkType type, string address);
 
-    public Task<IEnumerable<TrustedWallet>> GetAllAsync();
+    public Task<IEnumerable<TrustedWallet>> GetAllAsync(NetworkType[] types);
 
     public Task<TrustedWallet?> CreateAsync(NetworkType type, string address, string name);
 
