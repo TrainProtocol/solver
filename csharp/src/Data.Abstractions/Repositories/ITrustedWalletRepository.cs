@@ -5,13 +5,13 @@ namespace Train.Solver.Data.Abstractions.Repositories;
 
 public interface ITrustedWalletRepository
 {
-    public Task<Wallet?> GetAsync(NetworkType type, string address);
+    public Task<TrustedWallet?> GetAsync(NetworkType type, string address);
 
-    public Task<IEnumerable<Wallet>> GetAllAsync();
+    public Task<IEnumerable<TrustedWallet>> GetAllAsync();
 
-    public Task<Wallet?> CreateAsync(NetworkType type, string address, string name);
+    public Task<TrustedWallet?> CreateAsync(NetworkType type, string address, string name);
 
-    public Task<Wallet?> UpdateAsync(NetworkType type, string address, string name);
+    public Task<TrustedWallet?> UpdateAsync(NetworkType type, string address, string name);
 
-    public Task<Wallet?> DeleteAsync(NetworkType type, string address);
+    public Task DeleteAsync(NetworkType type, string address);
 }

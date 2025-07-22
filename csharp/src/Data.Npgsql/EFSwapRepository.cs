@@ -131,6 +131,36 @@ public class EFSwapRepository(
         return transaction.Id;
     }
 
+    public async Task<int> CreateSwapMetricAsync(
+        int swapId,
+        string sourceNetwork,
+        string sourceToken,
+        string destinationNetwork,
+        string destinationToken,
+        decimal volume, 
+        decimal volumeInUsd,
+        decimal profit, 
+        decimal profitInUsd)
+    {
+        var swapMetric = new SwapMetric
+        {
+            SwapId = swapId,
+            SourceNetwork = sourceNetwork,
+            SourceToken = sourceToken,
+            DestinationNetwork = destinationNetwork,
+            DestinationToken = destinationToken,
+            Volume = volume,
+            VolumeInUsd = volumeInUsd,
+            Profit = profit,
+            ProfitInUsd = profitInUsd
+        };  
+
+        dbContext.SwapMetrics.Add(swapMetric);
+        await dbContext.SaveChangesAsync();
+
+        return swapMetric.Id;
+    }
+
     private IQueryable<Swap> GetBaseQuery()
       => dbContext.Swaps
             .Include(x => x.Transactions)

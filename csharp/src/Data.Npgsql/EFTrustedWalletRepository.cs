@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,30 +10,64 @@ using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Data.Npgsql;
 
-public class EFTrustedWalletRepository : ITrustedWalletRepository
+public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWalletRepository
 {
-    public Task<Wallet?> CreateAsync(NetworkType type, string address, string name)
+    public async Task<TrustedWallet?> CreateAsync(NetworkType type, string address, string name)
     {
-        throw new NotImplementedException();
+        var trustedWalletExists = await dbContext.TrustedWallets.AnyAsync(x => x.Address == address);
+
+        if (trustedWalletExists)
+        {
+            return null;
+        }
+
+        var trustedWallet = new TrustedWallet
+        {
+            Address = address,
+            Name = name,
+            NetworkType = type,
+        };
+
+        dbContext.TrustedWallets.Add(trustedWallet);
+        await dbContext.SaveChangesAsync();
+
+        return trustedWallet;
     }
 
-    public Task<Wallet?> DeleteAsync(NetworkType type, string address)
+    public async Task DeleteAsync(NetworkType type, string address)
     {
-        throw new NotImplementedException();
+        await dbContext.TrustedWallets
+            .Where(x => x.NetworkType == type && x.Address == address)
+            .ExecuteDeleteAsync();
     }
 
-    public Task<IEnumerable<Wallet>> GetAllAsync()
+    public async Task<IEnumerable<TrustedWallet>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        var trustedWallets = await dbContext.TrustedWallets.ToListAsync();
+        return trustedWallets;
     }
 
-    public Task<Wallet?> GetAsync(NetworkType type, string address)
+    public async Task<TrustedWallet?> GetAsync(NetworkType type, string address)
     {
-        throw new NotImplementedException();
+        var trustedWallet = await dbContext.TrustedWallets.FirstOrDefaultAsync(x => x.NetworkType == type && x.Address == address);
+        return trustedWallet;
     }
 
-    public Task<Wallet?> UpdateAsync(NetworkType type, string address, string name)
+    public async Task<TrustedWallet?> UpdateAsync(NetworkType type, string address, string name)
     {
-        throw new NotImplementedException();
+        var trustedWallet = await GetAsync(type, address);
+
+
+        if (trustedWallet == null)
+        {
+            return null;
+        }
+
+        trustedWallet.Name = name;
+        await dbContext.SaveChangesAsync();
+
+        return trustedWallet;
     }
+
+
 }

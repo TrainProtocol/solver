@@ -35,4 +35,15 @@ public interface ISwapRepository
         DateTimeOffset timestamp,
         string feeAsset,
         string feeAmount);
+
+    Task<int> CreateSwapMetricAsync(
+        int swapId,
+        string sourceNetwork,
+        string sourceToken,
+        string destinationNetwork,
+        string destinationToken,
+        decimal volume,
+        decimal volumeInUsd,
+        decimal profit,
+        decimal profitInUsd);
 }

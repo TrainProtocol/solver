@@ -75,6 +75,12 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<Wallet>()
             .HasIndex(x => x.Name).IsUnique();
 
+        modelBuilder.Entity<TrustedWallet>()
+          .HasIndex(x => new { x.Address, x.NetworkType });
+
+        modelBuilder.Entity<TrustedWallet>()
+            .HasIndex(x => x.Name).IsUnique();
+
         modelBuilder.Entity<ServiceFee>()
             .HasIndex(x => x.Name).IsUnique();
 
