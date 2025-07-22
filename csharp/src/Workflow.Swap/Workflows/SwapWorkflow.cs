@@ -259,7 +259,7 @@ public class SwapWorkflow : ISwapWorkflow
         }
 
         await ExecuteActivityAsync(
-            (ISwapActivities x) => x.CreateSwapMetricAsync(_htlcCommitMessage.CommitId, quote.TotalFee),
+            (ISwapActivities x) => x.CreateSwapMetricAsync(_htlcCommitMessage.CommitId, quote.TotalServiceFee),
             DefaultActivityOptions(Constants.CoreTaskQueue));
     }
 

@@ -46,8 +46,8 @@ public class QuoteService(
     {
         var minBufferAmount = BigInteger.Parse(route.MinAmountInSource);
 
-        var totalFee = await CalculateTotalFeeAsync(route, minBufferAmount);
-        var minAmount = minBufferAmount + totalFee;
+        var (TotalFee, _) = await CalculateTotalFeeAsync(route, minBufferAmount);
+        var minAmount = minBufferAmount + TotalFee;
         var maxAmount = BigInteger.Parse(route.MaxAmountInSource);
 
         return new LimitDto
@@ -93,14 +93,15 @@ public class QuoteService(
         var rateProvider = rateProviderResolver.Resolve(route.RateProvider.Name);
         var swapRate = await rateProvider.GetRateAsync(route.ToDto());
         var amount = request.Amount;
-        var totalFee = await CalculateTotalFeeAsync(route, amount);
-        var actualAmountToSwap = amount - totalFee;
+        var (TotalFee, TotalServiceFee) = await CalculateTotalFeeAsync(route, amount);
+        var actualAmountToSwap = amount - TotalFee;
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
 
         var quote = new QuoteWithSolverDto
         {
             ReceiveAmount = receiveAmount,
-            TotalFee = totalFee,
+            TotalFee = TotalFee,
+            TotalServiceFee = TotalServiceFee,
             SourceSolverAddress = route.SourceWallet.Address,
             DestinationSolverAddress = route.DestinationWallet.Address,
             SourceContractAddress =
@@ -116,7 +117,7 @@ public class QuoteService(
         return quote;
     }
 
-    private async Task<BigInteger> CalculateTotalFeeAsync(Route route, BigInteger amount)
+    private async Task<(BigInteger TotalFee, BigInteger TotalServiceFee)> CalculateTotalFeeAsync(Route route, BigInteger amount)
     {
         BigInteger fixedFee = default;
         BigInteger percentageFee = default;
@@ -134,8 +135,9 @@ public class QuoteService(
         percentageFee = amount.PercentOf(Percentage);
 
         var totalFee = fixedFee + percentageFee;
+        var totalServiceFee = Fee + percentageFee;
 
-        return totalFee;
+        return (totalFee, totalServiceFee);
     }
 
     private static (BigInteger Fee, decimal Percentage) CalculateServiceFee(

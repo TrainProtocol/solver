@@ -140,7 +140,7 @@ public class SwapActivities(
     [Activity]
     public async Task CreateSwapMetricAsync(
         string commitId,
-        BigInteger totalFee)
+        BigInteger totalServiceFee)
     {
         var swap = await swapRepository.GetAsync(commitId);
 
@@ -151,7 +151,7 @@ public class SwapActivities(
 
         var sourceAmount = BigInteger.Parse(swap.SourceAmount);
 
-        var profit = TokenUnitHelper.FromBaseUnits(sourceAmount - totalFee, swap.Route.SourceToken.Decimals);
+        var profit = TokenUnitHelper.FromBaseUnits(totalServiceFee, swap.Route.SourceToken.Decimals);
         var profitInUsd = profit * swap.Route.SourceToken.TokenPrice.PriceInUsd;
 
         var volume = TokenUnitHelper.FromBaseUnits(sourceAmount, swap.Route.SourceToken.Decimals);
