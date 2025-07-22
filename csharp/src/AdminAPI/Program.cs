@@ -74,6 +74,11 @@ app.MapGroup("/api")
    .WithTags("Wallet");
 
 app.MapGroup("/api")
+   .MapTrustedWalletEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Trusted Wallet");
+
+app.MapGroup("/api")
    .MapFeeEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Fee");

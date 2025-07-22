@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -18,6 +19,10 @@ public static class WalletEndpoints
         group.MapPost("/wallets", CreateAsync)
             .Produces<WalletDto>()
             .Produces(StatusCodes.Status400BadRequest);
+
+        group.MapPut("/wallets/{networkType}/{address}", UpdateAsync)
+          .Produces<WalletDto>()
+          .Produces(StatusCodes.Status404NotFound);
 
         return group;
     }
@@ -38,6 +43,22 @@ public static class WalletEndpoints
         var wallet = await repository.CreateAsync(request.NetworkType, generatedAddress, request.Name);
         return wallet is null
             ? Results.BadRequest("Could not create wallet")
+            : Results.Ok(wallet.ToDto());
+    }
+
+    private static async Task<IResult> UpdateAsync(
+      IWalletRepository repository,
+      NetworkType networkType,
+      string address,
+      [FromBody] UpdateWalletRequest request)
+    {
+        var wallet = await repository.UpdateAsync(
+            networkType,
+            address,
+            request.Name);
+
+        return wallet is null
+            ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")
             : Results.Ok(wallet.ToDto());
     }
 }

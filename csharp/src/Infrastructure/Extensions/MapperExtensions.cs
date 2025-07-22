@@ -131,6 +131,16 @@ public static class MapperExtensions
         };
     }
 
+    public static TrustedWalletDto ToDto(this TrustedWallet wallet)
+    {
+        return new TrustedWalletDto
+        {
+            Name = wallet.Name,
+            Address = wallet.Address,
+            NetworkType = wallet.NetworkType
+        };
+    }
+
     public static ServiceFeeDto ToDto(this ServiceFee serviceFee)
     {
         return new ServiceFeeDto
