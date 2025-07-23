@@ -10,7 +10,7 @@ import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
 import { NodeType } from "../../../../Data/Entities/Nodes";
-import abi from '../ABIs/ERC20.json';
+import abi from '../ABIs/train.json';
 
 export async function CreateRefundCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
 
@@ -38,7 +38,9 @@ export async function CreateRefundCallData(network: Networks, args: string): Pro
 
     const callConfig = contractInstance.functions
         .refund(refundRequest.Id)
-        .getCallConfig();
+        .txParams({
+            maxFee: bn(1000000),
+        });
 
     return {
         Data: JSON.stringify(callConfig),
@@ -80,17 +82,19 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
         .commit(
             PadStringsTo64(commitRequest.HopChains),
             PadStringsTo64(commitRequest.HopAssets),
-            PadStringsTo64(commitRequest.HopAddresses), 
-            commitRequest.DestinationChain.padEnd(64, ' '), 
-            commitRequest.DestinationAddress.padEnd(64, ' '), 
-            commitRequest.SourceAsset.padEnd(64, ' '), 
-            commitRequest.Id, 
-            receiverAddress, 
+            PadStringsTo64(commitRequest.HopAddresses),
+            commitRequest.DestinationChain.padEnd(64, ' '),
+            commitRequest.DestinationAddress.padEnd(64, ' '),
+            commitRequest.SourceAsset.padEnd(64, ' '),
+            commitRequest.Id,
+            receiverAddress,
             DateTime.fromUnixSeconds(commitRequest.Timelock).toTai64())
         .callParams({
             forward: [Number(formatUnits(commitRequest.Amount, token.decimals)), await provider.getBaseAssetId()]
         })
-        .getCallConfig();
+        .txParams({
+            maxFee: bn(1000000),
+        });
 
     return {
         Data: JSON.stringify(callConfig),
@@ -132,7 +136,9 @@ export async function CreateRedeemCallData(network: Networks, args: string): Pro
 
     const callConfig = contractInstance.functions
         .redeem(redeemRequest.Id, redeemRequest.Secret)
-        .getCallConfig();
+        .txParams({
+            maxFee: bn(1000000),
+        });
 
     return {
         Data: JSON.stringify(callConfig),
@@ -185,7 +191,9 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
         ).callParams({
             forward: [Number(formatUnits(lockRequest.Amount + lockRequest.Reward, token.decimals)), assetId.bits],
         })
-        .getCallConfig();
+        .txParams({
+            maxFee: bn(1000000),
+        });
 
     return {
         Data: JSON.stringify(callConfig),
@@ -230,7 +238,9 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
             addLockSigRequest.Hashlock,
             DateTime.fromUnixSeconds(addLockSigRequest.Timelock).toTai64()
         )
-        .getCallConfig();
+        .txParams({
+            maxFee: bn(1000000),
+        });
 
     return {
         Data: JSON.stringify(callConfig),
@@ -245,5 +255,5 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
 }
 
 function PadStringsTo64(input: string[]): string[] {
-  return input.map(str => str.padEnd(64, ' '));
+    return input.map(str => str.padEnd(64, ' '));
 }
