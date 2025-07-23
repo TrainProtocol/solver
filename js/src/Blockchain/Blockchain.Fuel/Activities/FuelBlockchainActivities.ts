@@ -350,7 +350,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         throw new Error("Transaction is not of type Script");
       }
 
-      const txRequest = transactionRequestify(requestData) as ScriptTransactionRequest;
+      const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
 
       const { coins } = await wallet.getCoins(requestData.forward.assetId);
 
