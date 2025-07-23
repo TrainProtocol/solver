@@ -12,7 +12,7 @@ public static class NetworkEndpoints
     public static RouteGroupBuilder MapNetworkEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/networks", GetAllAsync)
-            .Produces<IEnumerable<NetworkDto>>();
+            .Produces<IEnumerable<DetailedNetworkDto>>();
 
         group.MapGet("/networks/{networkName}", GetAsync)
             .Produces<DetailedNetworkDto>()
@@ -36,7 +36,7 @@ public static class NetworkEndpoints
     private static async Task<IResult> GetAllAsync(INetworkRepository repository)
     {
         var networks = await repository.GetAllAsync();
-        return Results.Ok(networks.Select(x=>x.ToDto()));
+        return Results.Ok(networks.Select(x=>x.ToDetailedDto()));
     }
 
     private static async Task<IResult> GetAsync(
