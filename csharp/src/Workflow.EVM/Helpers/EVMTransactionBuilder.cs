@@ -12,7 +12,7 @@ namespace Train.Solver.Workflow.EVM.Helpers;
 
 public static class EVMTransactionBuilder
 {
-    public static PrepareTransactionResponse BuildApproveTransaction(DetailedNetworkDto network, string args)
+    public static PrepareTransactionDto BuildApproveTransaction(DetailedNetworkDto network, string args)
     {
         var request = args.FromJson<ApprovePrepareRequest>();
 
@@ -33,7 +33,7 @@ public static class EVMTransactionBuilder
 
         if (currency.Symbol != nativeCurrency.Symbol)
         {
-            var response = new PrepareTransactionResponse
+            var response = new PrepareTransactionDto
             {
                 ToAddress = currency.Contract!,
                 Amount = BigInteger.Zero,
@@ -53,7 +53,7 @@ public static class EVMTransactionBuilder
         throw new Exception("Requested currency does not have contract address");
     }
 
-    public static PrepareTransactionResponse BuildTransferTransaction(
+    public static PrepareTransactionDto BuildTransferTransaction(
         DetailedNetworkDto network,
         string args)
     {
@@ -64,7 +64,7 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var response = new PrepareTransactionResponse();
+        var response = new PrepareTransactionDto();
       
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
@@ -95,7 +95,7 @@ public static class EVMTransactionBuilder
         return response;
     }
 
-    public static PrepareTransactionResponse BuildHTLCAddLockSigTransaction(DetailedNetworkDto network, string args)
+    public static PrepareTransactionDto BuildHTLCAddLockSigTransaction(DetailedNetworkDto network, string args)
     {
         var request = args.FromJson<AddLockSigTransactionPrepareRequest>();
 
@@ -115,7 +115,7 @@ public static class EVMTransactionBuilder
 
         var hashlock = request.Hashlock.ToBytes32();
 
-        var response = new PrepareTransactionResponse
+        var response = new PrepareTransactionDto
         {
             Data = new AddLockSigFunction
             {
@@ -140,7 +140,7 @@ public static class EVMTransactionBuilder
         return response;
     }
 
-    public static PrepareTransactionResponse BuildHTLCCommitTransaction(DetailedNetworkDto network, string args)
+    public static PrepareTransactionDto BuildHTLCCommitTransaction(DetailedNetworkDto network, string args)
     {
         var request = args.FromJson<HTLCCommitTransactionPrepareRequest>();
 
@@ -153,7 +153,7 @@ public static class EVMTransactionBuilder
 
         var nativeCurrency = network.Tokens.First(x => x.Contract is null);
 
-        var response = new PrepareTransactionResponse();
+        var response = new PrepareTransactionDto();
 
         //ERC20 HTLC call
         if (currency.Symbol != nativeCurrency.Symbol)
@@ -208,7 +208,7 @@ public static class EVMTransactionBuilder
 
     }
 
-    public static PrepareTransactionResponse BuildHTLCLockTransaction(
+    public static PrepareTransactionDto BuildHTLCLockTransaction(
         DetailedNetworkDto network,
         string args)
     {
@@ -219,7 +219,7 @@ public static class EVMTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var response = new PrepareTransactionResponse();
+        var response = new PrepareTransactionDto();
 
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.SourceAsset.ToUpper());
         var isNative = currency.Symbol == network.NativeToken!.Symbol;
@@ -287,7 +287,7 @@ public static class EVMTransactionBuilder
         return response;
     }
 
-    public static PrepareTransactionResponse BuildHTLCRedeemTranaction(
+    public static PrepareTransactionDto BuildHTLCRedeemTranaction(
         DetailedNetworkDto network,
         string args)
     {
@@ -308,7 +308,7 @@ public static class EVMTransactionBuilder
             ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
-        return new PrepareTransactionResponse
+        return new PrepareTransactionDto
         {
             Data = new RedeemFunction
             {
@@ -323,7 +323,7 @@ public static class EVMTransactionBuilder
         };
     }
 
-    public static PrepareTransactionResponse BuildHTLCRefundTransaction(DetailedNetworkDto network, string args)
+    public static PrepareTransactionDto BuildHTLCRefundTransaction(DetailedNetworkDto network, string args)
     {
         var request = args.FromJson<HTLCRefundTransactionPrepareRequest>();
 
@@ -341,7 +341,7 @@ public static class EVMTransactionBuilder
             ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
-        return new PrepareTransactionResponse
+        return new PrepareTransactionDto
         {
             Data = new RefundFunction
             {

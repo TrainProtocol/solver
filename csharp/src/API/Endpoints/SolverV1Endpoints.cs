@@ -26,7 +26,7 @@ public static class SolverV1Endpoints
             .Produces<ApiResponse<SwapDto>>();
 
         group.MapPost("/transactions/build", BuildTransactionAsync)
-            .Produces<ApiResponse<PrepareTransactionResponse>>();
+            .Produces<ApiResponse<PrepareTransactionDto>>();
 
         group.MapPost("/swaps/{commitId}/addLockSig", AddLockSigAsync)
             .Produces<ApiResponse>();
@@ -157,11 +157,11 @@ public static class SolverV1Endpoints
         [FromBody] PrepareTransactionRequest request)
     {
         var prepareTransactionResponse = await temporalClient
-            .ExecuteWorkflowAsync<PrepareTransactionResponse>(
+            .ExecuteWorkflowAsync<PrepareTransactionDto>(
                 "TransactionBuilderWorkflow", 
                 args: [request],
                 new(id: Guid.CreateVersion7().ToString(), taskQueue: "Core"));
 
-        return Results.Ok(new ApiResponse<PrepareTransactionResponse> { Data = prepareTransactionResponse });
+        return Results.Ok(new ApiResponse<PrepareTransactionDto> { Data = prepareTransactionResponse });
     }
 }

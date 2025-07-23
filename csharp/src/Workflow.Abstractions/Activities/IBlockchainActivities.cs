@@ -1,4 +1,5 @@
 ﻿using Temporalio.Activities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.Workflow.Abstractions.Activities;
@@ -18,5 +19,5 @@ public interface IBlockchainActivities
     Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
 
     [Activity]
-    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
+    Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
 }

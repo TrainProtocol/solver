@@ -11,6 +11,7 @@ using Train.Solver.Workflow.Common.Helpers;
 using Train.Solver.Workflow.Common.Extensions;
 using Train.Solver.Workflow.EVM.Activities;
 using Train.Solver.Common.Extensions;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Workflow.EVM.Workflows;
 
@@ -133,7 +134,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
     private async Task<Fee> GetFeeAsync(
         TransactionRequest request,
         TransactionExecutionContext context,
-        PrepareTransactionResponse preparedTransaction)
+        PrepareTransactionDto preparedTransaction)
     {
         try
         {

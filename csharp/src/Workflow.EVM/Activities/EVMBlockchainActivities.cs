@@ -105,9 +105,9 @@ public class EVMBlockchainActivities(
     }
 
     [Activity]
-    public virtual Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request)
+    public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
     {
-        PrepareTransactionResponse result = request.Type switch
+        PrepareTransactionDto result = request.Type switch
         {
             TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.Args),
             TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.Args),

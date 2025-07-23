@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 
-namespace Train.Solver.Workflow.Abstractions.Models;
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class PrepareTransactionResponse
+public class PrepareTransactionDto
 {
     public string ToAddress { get; set; } = null!;
 

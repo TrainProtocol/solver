@@ -1,4 +1,5 @@
 ﻿using Temporalio.Activities;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
 
@@ -13,7 +14,7 @@ public interface IEVMBlockchainActivities
     Task<string> GetNextNonceAsync(NextNonceRequest request);
 
     [Activity]
-    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
+    Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
 
     [Activity]
     Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request);
