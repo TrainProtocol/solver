@@ -445,6 +445,22 @@ public class EVMBlockchainActivities(
         }
         catch (AggregateException e)
         {
+            TransactionResponse? transactionResponse = null;
+
+            try
+            {
+                transactionResponse = await GetTransactionAsync(request.Network, request.SignedTransaction.Hash);
+
+                if (transactionResponse != null)
+                {
+                    return transactionResponse.TransactionHash.EnsureHexPrefix();
+                }
+            }
+            catch (TransactionNotComfirmedException)
+            {
+                return request.SignedTransaction.Hash;
+            }
+
             foreach (var innerEx in e.InnerExceptions)
             {
                 if (innerEx is RpcResponseException exNonceTooLow
