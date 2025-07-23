@@ -1,6 +1,6 @@
 
 import { bn, Contract, DateTime, formatUnits, Provider, ReceiptType } from "fuels";
-import abi from '../ABIs/ERC20.json';
+import abi from '../ABIs/train.json';
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
 import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";

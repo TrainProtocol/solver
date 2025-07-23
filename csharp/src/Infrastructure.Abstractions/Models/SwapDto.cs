@@ -6,6 +6,8 @@ public class SwapDto
 {
     public string CommitId { get; set; } = null!;
 
+    public string Hashlock { get; set; } = null!;
+
     public TokenNetworkDto Source { get; set; } = null!;
 
     public BigInteger SourceAmount { get; set; }

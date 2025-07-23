@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Client;
-using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Common.Enums;
 using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Data.Npgsql;
 using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
 using Train.Solver.PublicAPI.Models;
-using Train.Solver.Common.Enums;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Workflows;
 
@@ -23,6 +24,9 @@ public static class SolverV1Endpoints
 
         group.MapGet("/swaps/{commitId}", GetSwapAsync)
             .Produces<ApiResponse<SwapDto>>();
+
+        group.MapPost("/transactions/build", BuildTransactionAsync)
+            .Produces<ApiResponse<PrepareTransactionResponse>>();
 
         group.MapPost("/swaps/{commitId}/addLockSig", AddLockSigAsync)
             .Produces<ApiResponse>();
@@ -146,5 +150,18 @@ public static class SolverV1Endpoints
         var quote = await routeService.GetValidatedQuoteAsync(quoteRequest);
 
         return Results.Ok(new ApiResponse<QuoteWithSolverDto> { Data = quote });
+    }
+
+    private static async Task<IResult> BuildTransactionAsync(
+        ITemporalClient temporalClient,
+        [FromBody] PrepareTransactionRequest request)
+    {
+        var prepareTransactionResponse = await temporalClient
+            .ExecuteWorkflowAsync<PrepareTransactionResponse>(
+                "TransactionBuilderWorkflow", 
+                args: [request],
+                new(id: Guid.CreateVersion7().ToString(), taskQueue: "Core"));
+
+        return Results.Ok(new ApiResponse<PrepareTransactionResponse> { Data = prepareTransactionResponse });
     }
 }

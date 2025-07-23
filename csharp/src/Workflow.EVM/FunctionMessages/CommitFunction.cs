@@ -28,9 +28,12 @@ public class CommitFunction : FunctionMessage
     [Parameter("string", "srcAsset", 7)]
     public string SourceAsset { get; set; }
 
-    [Parameter("address", "srcReceiver", 8)]
+    [Parameter("bytes32", "Id", 8)]
+    public byte[] Id { get; set; }
+
+    [Parameter("address", "srcReceiver", 9)]
     public string Receiver { get; set; }
 
-    [Parameter("uint48", "timelock", 9)]
+    [Parameter("uint48", "timelock", 10)]
     public BigInteger Timelock { get; set; }
 }

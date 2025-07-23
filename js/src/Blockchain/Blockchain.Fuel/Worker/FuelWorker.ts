@@ -25,9 +25,10 @@ export default async function run() {
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
     });
+    const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
 
     const worker = await Worker.create({
-      namespace: 'atomic',
+      namespace: namespace,
       taskQueue: NetworkType[NetworkType.Fuel],
       workflowsPath: require.resolve('../Workflows'),
       activities: activities,

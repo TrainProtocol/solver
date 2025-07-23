@@ -36,7 +36,7 @@ export async function FuelTransactionProcessor(
     const preparedTransaction = await defaultActivities.BuildTransaction({
         NetworkName: request.NetworkName,
         Args: request.PrepareArgs,
-        TransactionType: request.Type,
+        Type: request.Type,
     });
 
     if (!context.Fee) {
