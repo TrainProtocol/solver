@@ -11,8 +11,8 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { AssetFuel, Contract, BigNumberCoder, getAssetFuel, Provider, rawAssets, ReceiptType, TransactionCost, Wallet, hexlify, arrayify, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, formatUnits } from "fuels";
-import abi from './ABIs/ERC20.json';
+import { Contract, BigNumberCoder, Provider, TransactionCost, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
+import abi from './ABIs/train.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { inject, injectable } from "tsyringe";
@@ -23,7 +23,7 @@ import { BaseRequest } from "../../Blockchain.Abstraction/Models/BaseRequest";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
 import { utils } from "ethers";
 import TrackBlockEventsAsync from "./Helper/FuelEventTracker";
-import { CreateAddLockSigCallData, CreateRefundCallData, CreateLockCallData, CreateRedeemCallData } from "./Helper/FuelTransactionBuilder";
+import { CreateAddLockSigCallData, CreateRefundCallData, CreateLockCallData, CreateRedeemCallData, CreateCommitCallData } from "./Helper/FuelTransactionBuilder";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
@@ -46,7 +46,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
         .getOneOrFail();
 
-      switch (request.TransactionType) {
+      switch (request.Type) {
         case TransactionType.HTLCLock:
           return CreateLockCallData(network, request.Args);
         case TransactionType.HTLCRedeem:
@@ -55,8 +55,10 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
           return CreateRefundCallData(network, request.Args);
         case TransactionType.HTLCAddLockSig:
           return CreateAddLockSigCallData(network, request.Args);
+        case TransactionType.HTLCCommit:
+          return CreateCommitCallData(network, request.Args);
         default:
-          throw new Error(`Unknown function name ${request.TransactionType}`);
+          throw new Error(`Unknown function name ${request.Type}`);
       }
     }
     catch (error) {
@@ -258,7 +260,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     if (!node) {
       throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
     }
-    
+
     const solverAddress = network.managedAccounts.find(m => m.type === AccountType.Primary)?.address;
     const htlcAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
 
@@ -340,26 +342,32 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
       const provider = new Provider(node.url);
       const wallet = Wallet.fromPrivateKey(privateKey, provider);
-      const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
-      const contractInstance = new Contract(htlcContractAddress, abi, wallet);
       const requestData = JSON.parse(request.CallData);
-      const selector = requestData.func.name;
 
-      if (selector == "lock") {
-        const { transactionId } = await contractInstance.functions[selector](...requestData.args)
-          .callParams({
-            forward: [request.Amount, requestData.forward.assetId],
-           // gasLimit: request.Fee.LegacyFeeData.GasLimit,
-          }).call();
+      const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.CallData));
 
-        result = transactionId;
+      if (!isTxnTypeScript) {
+        throw new Error("Transaction is not of type Script");
       }
-      else {
-        const { transactionId } = await contractInstance.functions[selector](...requestData.args)
-         // .callParams({ gasLimit: request.Fee.LegacyFeeData.GasLimit })
-          .call();
-        result = transactionId;
+
+      const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
+
+      const { coins } = await wallet.getCoins(requestData.forward.assetId);
+
+      for (const coin of coins) {
+        txRequest.addCoinInput(coin);
       }
+
+      const estimatedDependencies = await wallet.provider.estimateTxDependencies(txRequest);
+
+      txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee);
+      txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas);
+
+      txRequest.addAccountWitnesses(wallet);
+
+      const transactionId = await wallet.sendTransaction(txRequest);
+
+      result = transactionId.id;
     }
     catch (error) {
       throw error;
@@ -368,4 +376,3 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return result;
   }
 }
-

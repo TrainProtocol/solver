@@ -23,4 +23,6 @@ public class HTLCCommitTransactionPrepareRequest
     public long Timelock { get; set; }
 
     public BigInteger Amount { get; set; }
+
+    public string Id { get; set; } = null!;
 }

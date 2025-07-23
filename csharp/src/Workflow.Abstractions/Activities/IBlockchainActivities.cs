@@ -16,4 +16,7 @@ public interface IBlockchainActivities
 
     [Activity]
     Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
+
+    [Activity]
+    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
 }

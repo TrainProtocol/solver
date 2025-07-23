@@ -11,6 +11,7 @@ public static class MapperExtensions
         return new SwapDto
         {
             CommitId = swap.CommitId,
+            Hashlock = swap.Hashlock,
             Source = swap.Route.SourceToken.ToWithNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
             SourceAddress = swap.SourceAddress,
