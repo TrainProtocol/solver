@@ -9,7 +9,7 @@ import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
 import { NodeType } from "../../../../Data/Entities/Nodes";
-import abi from '../ABIs/ERC20.json';
+import abi from '../ABIs/ERC20.json' with { type: 'json' };
 
 export async function CreateRefundCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
 
@@ -142,51 +142,6 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
         CallDataAsset: lockRequest.SourceAsset,
         CallDataAmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
         CallDataAmount: lockRequest.Amount + lockRequest.Reward,
-        ToAddress: htlcContractAddress.address,
-    };
-}
-
-export async function CreateAddLockSigCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
-
-    const addLockSigRequest = decodeJson<HTLCAddLockSigTransactionPrepareRequest>(args);
-
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-    const token = network.tokens.find(t => t.asset === addLockSigRequest.Asset);
-    if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${addLockSigRequest.Asset}`);
-    }
-
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
-
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
-
-    const provider = new Provider(node.url);
-
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
-
-    const callConfig = contractInstance.functions
-        .add_lock_sig(
-            addLockSigRequest.Signature,
-            addLockSigRequest.Id,
-            addLockSigRequest.Hashlock,
-            DateTime.fromUnixSeconds(addLockSigRequest.Timelock).toTai64()
-        )
-        .getCallConfig();
-
-    return {
-        Data: JSON.stringify(callConfig),
-        Amount: 0,
-        AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
-        CallDataAmountInWei: '0',
-        CallDataAmount: 0,
         ToAddress: htlcContractAddress.address,
     };
 }
