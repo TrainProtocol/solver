@@ -344,9 +344,9 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       const wallet = Wallet.fromPrivateKey(privateKey, provider);
       const requestData = JSON.parse(request.CallData);
 
-      const isTypeScript = isTransactionTypeScript(JSON.parse(request.CallData));
+      const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.CallData));
 
-      if (!isTypeScript) {
+      if (!isTxnTypeScript) {
         throw new Error("Transaction is not of type Script");
       }
 
