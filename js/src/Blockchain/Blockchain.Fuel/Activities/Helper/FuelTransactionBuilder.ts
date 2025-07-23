@@ -43,14 +43,14 @@ export async function CreateRefundCallData(network: Networks, args: string): Pro
         });
 
     return {
-        Data: JSON.stringify(callConfig),
-        Amount: 0,
+        data: JSON.stringify(callConfig),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: "0",
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -97,14 +97,14 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
         });
 
     return {
-        Data: JSON.stringify(callConfig),
-        Amount: 0,
+        data: JSON.stringify(callConfig),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: "0",
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -141,14 +141,14 @@ export async function CreateRedeemCallData(network: Networks, args: string): Pro
         });
 
     return {
-        Data: JSON.stringify(callConfig),
-        Amount: 0,
+        data: JSON.stringify(callConfig),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: "0",
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -196,14 +196,14 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
         });
 
     return {
-        Data: JSON.stringify(callConfig),
-        Amount: lockRequest.Amount + lockRequest.Reward,
+        data: JSON.stringify(callConfig),
+        amount: lockRequest.Amount + lockRequest.Reward,
         AmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
-        Asset: lockRequest.SourceAsset,
-        CallDataAsset: lockRequest.SourceAsset,
+        asset: lockRequest.SourceAsset,
+        callDataAsset: lockRequest.SourceAsset,
         CallDataAmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
-        CallDataAmount: lockRequest.Amount + lockRequest.Reward,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: lockRequest.Amount + lockRequest.Reward,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -243,14 +243,14 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
         });
 
     return {
-        Data: JSON.stringify(callConfig),
-        Amount: 0,
+        data: JSON.stringify(callConfig),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: '0',
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 

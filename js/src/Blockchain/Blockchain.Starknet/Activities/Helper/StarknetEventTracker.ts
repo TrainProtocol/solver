@@ -20,8 +20,8 @@ export async function TrackBlockEventsAsync(
     htlcContractAddress: string): Promise<HTLCBlockEventResponse> {
 
     const response: HTLCBlockEventResponse = {
-        HTLCCommitEventMessages: [],
-        HTLCLockEventMessages: [],
+        htlcCommitEventMessages: [],
+        htlcLockEventMessages: [],
     };
 
     const tokenCommittedSelector = num.toHex(hash.starknetKeccak("TokenCommitted"));
@@ -62,35 +62,35 @@ export async function TrackBlockEventsAsync(
             if (!sourceToken || !destToken) continue;
 
             const commitMsg: HTLCCommitEventMessage = {
-                TxId: parsed.transaction_hash,
-                Id: ToHex(data.Id),
-                Amount: Number(formatUnits(data.amount, 18)),
-                AmountInWei: data.amount.toString(),
-                ReceiverAddress: solverAddress,
-                SourceNetwork: networkName,
-                SenderAddress: FormatAddress(ToHex(data.sender)),
-                SourceAsset: BigIntToAscii(data.srcAsset),
-                DestinationAddress: data.dstAddress,
-                DestinationNetwork: BigIntToAscii(data.dstChain),
-                DestinationAsset: BigIntToAscii(data.dstAsset),
-                TimeLock: Number(data.timelock),
+                txId: parsed.transaction_hash,
+                commitId: ToHex(data.Id),
+                amount: Number(formatUnits(data.amount, 18)),
+                amountInWei: data.amount.toString(),
+                receiverAddress: solverAddress,
+                sourceNetwork: networkName,
+                senderAddress: FormatAddress(ToHex(data.sender)),
+                sourceAsset: BigIntToAscii(data.srcAsset),
+                destinationAddress: data.dstAddress,
+                destinationNetwork: BigIntToAscii(data.dstChain),
+                destinationAsset: BigIntToAscii(data.dstAsset),
+                timeLock: Number(data.timelock),
                 DestinationNetworkType: destToken.network.type,
                 SourceNetworkType: sourceToken.network.type,
             };
 
-            response.HTLCCommitEventMessages.push(commitMsg);
+            response.htlcCommitEventMessages.push(commitMsg);
         }
         else if (eventName.endsWith("TokenLockAdded")) {
             const data = eventData as unknown as TokenLockAddedEvent;
 
             const lockMsg: HTLCLockEventMessage = {
-                TxId: parsed.transaction_hash,
+                txId: parsed.transaction_hash,
                 Id: ToHex(data.Id),
                 HashLock: ToHex(data.hashlock),
                 TimeLock: Number(data.timelock),
             };
 
-            response.HTLCLockEventMessages.push(lockMsg);
+            response.htlcLockEventMessages.push(lockMsg);
         }
     }
 

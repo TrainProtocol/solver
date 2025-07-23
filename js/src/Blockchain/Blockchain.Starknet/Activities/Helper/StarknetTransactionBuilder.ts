@@ -39,14 +39,14 @@ export function CreateRefundCallData(network: Networks, args: string): PrepareTr
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: "0",
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -80,14 +80,14 @@ export function CreateRedeemCallData(network: Networks, args: string): PrepareTr
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: "0",
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -125,14 +125,14 @@ export function CreateLockCallData(network: Networks, args: string): PrepareTran
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: lockRequest.SourceAsset,
-        CallDataAsset: lockRequest.SourceAsset,
+        asset: lockRequest.SourceAsset,
+        callDataAsset: lockRequest.SourceAsset,
         CallDataAmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
-        CallDataAmount: lockRequest.Amount + lockRequest.Reward,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: lockRequest.Amount + lockRequest.Reward,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -167,14 +167,14 @@ export function CreateAddLockSigCallData(network: Networks, args: string): Prepa
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: nativeToken.asset,
-        CallDataAsset: token.asset,
+        asset: nativeToken.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: '0',
-        CallDataAmount: 0,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: 0,
+        toAddress: htlcContractAddress.address,
     };
 }
 
@@ -203,14 +203,14 @@ export function CreateApproveCallData(network: Networks, args: string): PrepareT
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: token.asset,
-        CallDataAsset: token.asset,
+        asset: token.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: '0',
-        CallDataAmount: 0,
-        ToAddress: token.tokenContract,
+        callDataAmount: 0,
+        toAddress: token.tokenContract,
     };
 }
 
@@ -235,14 +235,14 @@ export function CreateTransferCallData(network: Networks, args: string): Prepare
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: token.asset,
-        CallDataAsset: token.asset,
+        asset: token.asset,
+        callDataAsset: token.asset,
         CallDataAmountInWei: Number(utils.parseUnits(transferRequest.Amount.toString(), token.decimals)).toString(),
-        CallDataAmount: transferRequest.Amount,
-        ToAddress: token.tokenContract,
+        callDataAmount: transferRequest.Amount,
+        toAddress: token.tokenContract,
     };
 }
 
@@ -276,13 +276,13 @@ export function CreateCommitCallData(network: Networks, args: string): PrepareTr
     };
 
     return {
-        Data: JSON.stringify(methodCall),
-        Amount: 0,
+        data: JSON.stringify(methodCall),
+        amount: 0,
         AmountInWei: "0",
-        Asset: commitRequest.SourceAsset,
-        CallDataAsset: commitRequest.SourceAsset,
+        asset: commitRequest.SourceAsset,
+        callDataAsset: commitRequest.SourceAsset,
         CallDataAmountInWei: utils.parseUnits((commitRequest.Amount).toString(), token.decimals).toString(),
-        CallDataAmount: commitRequest.Amount,
-        ToAddress: htlcContractAddress.address,
+        callDataAmount: commitRequest.Amount,
+        toAddress: htlcContractAddress.address,
     };
 }

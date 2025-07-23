@@ -20,8 +20,8 @@ export default async function TrackBlockEventsAsync(
   const tokenLockAddedSelector = "12557029732458786074";
 
   const response: HTLCBlockEventResponse = {
-    HTLCCommitEventMessages: [],
-    HTLCLockEventMessages: [],
+    htlcCommitEventMessages: [],
+    htlcLockEventMessages: [],
   };
 
   try {
@@ -101,23 +101,23 @@ export default async function TrackBlockEventsAsync(
         const commitId = bn(data.Id).toHex();
         
         const commitMsg: HTLCCommitEventMessage = {
-          TxId: transaction.id,
-          Id: commitId,
-          Amount: Number(formatUnits(data.amount, sourceToken.decimals)),
-          AmountInWei: data.amount.toString(),
-          ReceiverAddress: solverAddress,
-          SourceNetwork: networkName,
-          SenderAddress: data.sender.bits,
-          SourceAsset: data.srcAsset.trim(),
-          DestinationAddress: data.dstAddress.trim(),
-          DestinationNetwork: data.dstChain.trim(),
-          DestinationAsset: data.dstAsset.trim(),
-          TimeLock: timelock.toUnixSeconds(),
+          txId: transaction.id,
+          commitId: commitId,
+          amount: Number(formatUnits(data.amount, sourceToken.decimals)),
+          amountInWei: data.amount.toString(),
+          receiverAddress: solverAddress,
+          sourceNetwork: networkName,
+          senderAddress: data.sender.bits,
+          sourceAsset: data.srcAsset.trim(),
+          destinationAddress: data.dstAddress.trim(),
+          destinationNetwork: data.dstChain.trim(),
+          destinationAsset: data.dstAsset.trim(),
+          timeLock: timelock.toUnixSeconds(),
           DestinationNetworkType: destToken.network.type,
           SourceNetworkType: sourceToken.network.type,
         };
 
-        response.HTLCCommitEventMessages.push(commitMsg);
+        response.htlcCommitEventMessages.push(commitMsg);
 
       }
       else if (transactionSelector === tokenLockAddedSelector) {
@@ -134,13 +134,13 @@ export default async function TrackBlockEventsAsync(
         const commitId = bn(data.Id).toHex();
 
         const lockMsg: HTLCLockEventMessage = {
-          TxId: transaction.id,
+          txId: transaction.id,
           Id: commitId,
           HashLock: hashlock,
           TimeLock: timelock.toUnixSeconds(),
         };
 
-        response.HTLCLockEventMessages.push(lockMsg);
+        response.htlcLockEventMessages.push(lockMsg);
       }
     }
 

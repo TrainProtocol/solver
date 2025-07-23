@@ -91,7 +91,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
       let result: BalanceResponse =
       {
-        Amount: Number(utils.formatUnits(balanceInWei, token.decimals)),
+        amount: Number(utils.formatUnits(balanceInWei, token.decimals)),
         AmountInWei: balanceInWei,
         Decimals: token.decimals
       }
@@ -225,18 +225,18 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
     }
 
-    const timelock = DateTime.fromUnixSeconds(request.Timelock).toTai64();
+    const timelock = DateTime.fromUnixSeconds(request.timelock).toTai64();
     const provider = new Provider(node.url);
-    const signerAddress = Wallet.fromAddress(request.SignerAddress, provider).address;
+    const signerAddress = Wallet.fromAddress(request.signerAddress, provider).address;
 
-    const idBytes = new BigNumberCoder('u256').encode(request.Id);
-    const hashlockBytes = new B256Coder().encode(request.Hashlock);
+    const idBytes = new BigNumberCoder('u256').encode(request.commitId);
+    const hashlockBytes = new B256Coder().encode(request.hashlock);
     const timelockBytes = new BigNumberCoder('u64').encode(bn(timelock));
 
     const rawData = concat([idBytes, hashlockBytes, timelockBytes]);
     const message = sha256(rawData);
     const messageHash = hashMessage(message);
-    const recoveredAddress: Address = Signer.recoverAddress(messageHash, request.Signature);
+    const recoveredAddress: Address = Signer.recoverAddress(messageHash, request.signature);
     const isValid = recoveredAddress.toString() === signerAddress.toString();
 
     return isValid;
@@ -269,7 +269,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       .leftJoinAndSelect("currencies.network", "n")
       .getMany();
 
-    const result = await TrackBlockEventsAsync(network.name, node.url, request.FromBlock, request.ToBlock, htlcAddress, solverAddress, tokens);
+    const result = await TrackBlockEventsAsync(network.name, node.url, request.fromBlock, request.toBlock, htlcAddress, solverAddress, tokens);
 
     return result;
   }

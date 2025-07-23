@@ -96,20 +96,20 @@ async function processBlockRange(
 ): Promise<void> {
     const result = await blockchainActivities.GetEvents({
         NetworkName: networkName,
-        FromBlock: blockRange.From,
-        ToBlock: blockRange.To,
+        fromBlock: blockRange.From,
+        toBlock: blockRange.To,
     });
 
-    for (const commit of result.HTLCCommitEventMessages) {
-        if (!processedTransactionHashes.has(commit.TxId)) {
-            processedTransactionHashes.add(commit.TxId);
+    for (const commit of result.htlcCommitEventMessages) {
+        if (!processedTransactionHashes.has(commit.txId)) {
+            processedTransactionHashes.add(commit.txId);
             await workflowActivities.StartSwapWorkflow(commit);
         }
     }
 
-    for (const lock of result.HTLCLockEventMessages) {
-        if (!processedTransactionHashes.has(lock.TxId)) {
-            processedTransactionHashes.add(lock.TxId);
+    for (const lock of result.htlcLockEventMessages) {
+        if (!processedTransactionHashes.has(lock.txId)) {
+            processedTransactionHashes.add(lock.txId);
             try {
 
                 const handle = getExternalWorkflowHandle(lock.Id);

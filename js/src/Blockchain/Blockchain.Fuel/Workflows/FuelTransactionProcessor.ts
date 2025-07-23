@@ -42,18 +42,18 @@ export async function FuelTransactionProcessor(
     if (!context.Fee) {
         context.Fee = await nonRetryableActivities.EstimateFee({
             NetworkName: request.NetworkName,
-            ToAddress: preparedTransaction.ToAddress,
-            Amount: preparedTransaction.Amount,
+            ToAddress: preparedTransaction.toAddress,
+            Amount: preparedTransaction.amount,
             FromAddress: request.FromAddress,
-            Asset: preparedTransaction.Asset,
-            CallData: preparedTransaction.Data,
+            Asset: preparedTransaction.asset,
+            CallData: preparedTransaction.data,
         });
     }
 
     const publishedTransaction = await defaultActivities.PublishTransaction({
         NetworkName: request.NetworkName,
         FromAddress: request.FromAddress,
-        CallData: preparedTransaction.Data,
+        CallData: preparedTransaction.data,
         Fee: context.Fee,
         Amount: preparedTransaction.AmountInWei,
     });
@@ -63,8 +63,8 @@ export async function FuelTransactionProcessor(
         TransactionHash: publishedTransaction,
     });
 
-    transactionResponse.Asset = preparedTransaction.CallDataAsset;
-    transactionResponse.Amount = preparedTransaction.CallDataAmount;
+    transactionResponse.Asset = preparedTransaction.callDataAsset;
+    transactionResponse.Amount = preparedTransaction.callDataAmount;
     
     return transactionResponse;
 }

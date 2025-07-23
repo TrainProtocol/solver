@@ -1,30 +1,25 @@
-import { NetworkType } from "../../../../Data/Entities/Networks";
-
 export interface HTLCBlockEventResponse {
-  HTLCCommitEventMessages: HTLCCommitEventMessage[];
-  HTLCLockEventMessages: HTLCLockEventMessage[];
+  htlcCommitEventMessages: HTLCCommitEventMessage[];
+  htlcLockEventMessages: HTLCLockEventMessage[];
 }
 
 export interface HTLCCommitEventMessage {
-  TxId: string;
-  Id: string;
-  Amount: number;
-  AmountInWei: string;
-  ReceiverAddress: string;
-  SourceNetwork: string;
-  SenderAddress: string;
-  SourceAsset: string;
-  DestinationAddress: string;
-  DestinationNetwork: string;
-  DestinationAsset: string;
-  TimeLock: number;
-  DestinationNetworkType: NetworkType;
-  SourceNetworkType: NetworkType;
+  txId: string;
+  commitId: string;
+  amount: number;
+  receiverAddress: string;
+  sourceNetwork: string;
+  senderAddress: string;
+  sourceAsset: string;
+  destinationAddress: string;
+  destinationNetwork: string;
+  destinationAsset: string;
+  timeLock: number;
 }
 
 export interface HTLCLockEventMessage {
-  TxId: string;
-  Id: string;
-  HashLock: string;
-  TimeLock: number;
+  txId: string;
+  commitId: string;
+  hashLock: string;
+  timeLock: number;
 }

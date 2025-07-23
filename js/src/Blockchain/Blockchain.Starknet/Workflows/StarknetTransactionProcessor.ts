@@ -58,11 +58,11 @@ export async function StarknetTransactionProcessor(
         if (!context.Fee) {
             context.Fee = await nonRetryableActivities.EstimateFee({
                 NetworkName: request.NetworkName,
-                ToAddress: preparedTransaction.ToAddress,
-                Amount: preparedTransaction.Amount,
+                ToAddress: preparedTransaction.toAddress,
+                Amount: preparedTransaction.amount,
                 FromAddress: request.FromAddress,
-                Asset: preparedTransaction.Asset!,
-                CallData: preparedTransaction.Data,
+                Asset: preparedTransaction.asset!,
+                CallData: preparedTransaction.data,
             });
         }
 
@@ -77,7 +77,7 @@ export async function StarknetTransactionProcessor(
             NetworkName: request.NetworkName,
             FromAddress: request.FromAddress,
             Nonce: context.Nonce,
-            CallData: preparedTransaction.Data,
+            CallData: preparedTransaction.data,
             Fee: context.Fee,
         });
 
@@ -87,7 +87,7 @@ export async function StarknetTransactionProcessor(
             NetworkName: request.NetworkName,
             FromAddress: request.FromAddress,
             Nonce: context.Nonce,
-            CallData: preparedTransaction.Data,
+            CallData: preparedTransaction.data,
             Fee: context.Fee,
         });
 
@@ -98,8 +98,8 @@ export async function StarknetTransactionProcessor(
             TransactionHashes: context.PublishedTransactionIds,
         });
 
-        confirmed.Asset = preparedTransaction.CallDataAsset;
-        confirmed.Amount = preparedTransaction.CallDataAmount;
+        confirmed.Asset = preparedTransaction.callDataAsset;
+        confirmed.Amount = preparedTransaction.callDataAmount;
 
         return confirmed;
 

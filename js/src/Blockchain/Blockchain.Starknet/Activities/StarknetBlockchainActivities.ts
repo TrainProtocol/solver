@@ -4,16 +4,11 @@ import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 import { BigNumber, utils } from "ethers";
-import { ContractType } from "../../../Data/Entities/Contracts";
-import { NodeType } from "../../../Data/Entities/Nodes";
-import { SolverContext } from "../../../Data/SolverContext";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
-import { Networks } from "../../../Data/Entities/Networks";
-import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
@@ -47,7 +42,6 @@ import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/E
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
-        @inject(SolverContext) private dbContext: SolverContext,
         @inject("Redis") private redis: Redis,
         @inject("Redlock") private lockFactory: Redlock
     ) { }
@@ -224,8 +218,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             provider,
             tokens,
             solverAddress,
-            request.FromBlock,
-            request.ToBlock,
+            request.fromBlock,
+            request.toBlock,
             htlcAddress,
         );
     }
@@ -420,7 +414,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             let result: BalanceResponse = {
                 Decimals: this.FeeDecimals,
                 AmountInWei: balanceInWei.toString(),
-                Amount: Number(utils.formatUnits(balanceInWei.toString(), this.FeeDecimals)),
+                amount: Number(utils.formatUnits(balanceInWei.toString(), this.FeeDecimals)),
             }
 
             return result;
@@ -618,13 +612,13 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     ],
                 },
                 message: {
-                    Id: cairo.uint256(request.Id),
-                    hashlock: cairo.uint256(request.Hashlock),
-                    timelock: cairo.uint256(request.Timelock),
+                    Id: cairo.uint256(request.commitId),
+                    hashlock: cairo.uint256(request.hashlock),
+                    timelock: cairo.uint256(request.timelock),
                 },
             }
 
-            return await provider.verifyMessageInStarknet(addlockData, request.SignatureArray, request.SignerAddress);
+            return await provider.verifyMessageInStarknet(addlockData, request.signatureArray, request.signerAddress);
         }
         catch (error) {
             throw error;
