@@ -90,7 +90,6 @@ public class EFSwapRepository(
         TransactionType transactionType,
         string transactionHash,
         DateTimeOffset timestamp,
-        string amount,
         string feeAmount)
     {
         var network = await networkRepository.GetAsync(networkName);
@@ -106,7 +105,6 @@ public class EFSwapRepository(
             Status = TransactionStatus.Completed,
             Timestamp = timestamp,
             FeeAmount = feeAmount,
-            Amount = amount,
             NetworkId = network.Id,
             SwapId = swapId,
             Type = transactionType,
@@ -124,9 +122,7 @@ public class EFSwapRepository(
         string sourceToken,
         string destinationNetwork,
         string destinationToken,
-        decimal volume, 
         decimal volumeInUsd,
-        decimal profit, 
         decimal profitInUsd)
     {
         var swapMetric = new SwapMetric
@@ -136,9 +132,7 @@ public class EFSwapRepository(
             SourceToken = sourceToken,
             DestinationNetwork = destinationNetwork,
             DestinationToken = destinationToken,
-            Volume = volume,
             VolumeInUsd = volumeInUsd,
-            Profit = profit,
             ProfitInUsd = profitInUsd
         };  
 

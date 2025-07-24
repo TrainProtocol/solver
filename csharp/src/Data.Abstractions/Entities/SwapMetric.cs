@@ -17,11 +17,7 @@ public class SwapMetric : EntityBase
 
     public string DestinationToken { get; set; } = null!;
 
-    public decimal Volume { get; set; }
-
     public decimal VolumeInUsd { get; set; }
-
-    public decimal Profit { get; set; }
 
     public decimal ProfitInUsd { get; set; }
 

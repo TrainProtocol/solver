@@ -30,7 +30,6 @@ public interface ISwapRepository
         TransactionType transactionType,
         string transactionHash,
         DateTimeOffset timestamp,
-        string amount,
         string feeAmount);
 
     Task<int> CreateSwapMetricAsync(
@@ -39,8 +38,6 @@ public interface ISwapRepository
         string sourceToken,
         string destinationNetwork,
         string destinationToken,
-        decimal volume,
         decimal volumeInUsd,
-        decimal profit,
         decimal profitInUsd);
 }

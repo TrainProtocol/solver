@@ -13,8 +13,6 @@ public class Transaction : EntityBase
 
     public DateTimeOffset Timestamp { get; set; }
 
-    public string Amount { get; set; } = null!;
-
     public string FeeAmount { get; set; } = null!;
 
     public TransactionType Type { get; set; }

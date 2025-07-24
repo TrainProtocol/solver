@@ -67,7 +67,6 @@ public class SwapActivities(
             transactionType,
             transaction.TransactionHash,
             transaction.Timestamp,
-            transaction.Amount.ToString(),
             transaction.FeeAmount.ToString());
     }
 
@@ -173,9 +172,7 @@ public class SwapActivities(
             swap.Route.SourceToken.Asset,
             swap.Route.DestinationToken.Network.Name,
             swap.Route.DestinationToken.Asset,
-            volume,
             volumeInUsd,
-            serviceFee,
             profitInUsd);
     }
 }
