@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.AdminAPI.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.AdminAPI.Models;
 
 public class RebalanceRequest
 {
@@ -6,9 +8,9 @@ public class RebalanceRequest
 
     public string Token { get; set; } = null!;
 
-    public decimal Amount { get; set; }
+    public BigInteger Amount { get; set; }
 
-    public string From { get; set; } = null!;
+    public string FromAddress { get; set; } = null!;
 
-    public string To { get; set; } = null!;
+    public string ToAddress { get; set; } = null!;
 }

@@ -99,6 +99,11 @@ app.MapGroup("/api")
    .WithTags("Swap Metric");
 
 app.MapGroup("/api")
+   .MapRebalanceEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Rebalance");
+
+app.MapGroup("/api")
     .MapGet("/health", () => Results.Ok())
     .WithTags("System")
     .Produces(StatusCodes.Status200OK);
