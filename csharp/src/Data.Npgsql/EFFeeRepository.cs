@@ -51,7 +51,8 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
         return serviceFee;
     }
 
-    public async Task UpdateExpenseAsync(string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)
+    public async Task UpdateExpenseAsync(
+        string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)
     {
         var network = await networkRepository.GetAsync(networkName);
 

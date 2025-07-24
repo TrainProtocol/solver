@@ -46,7 +46,7 @@ public class QuoteService(
     {
         var minBufferAmount = BigInteger.Parse(route.MinAmountInSource);
 
-        var (TotalFee, _) = await CalculateTotalFeeAsync(route, minBufferAmount);
+        var (TotalFee, _, __) = await CalculateTotalFeeAsync(route, minBufferAmount);
         var minAmount = minBufferAmount + TotalFee;
         var maxAmount = BigInteger.Parse(route.MaxAmountInSource);
 
@@ -93,7 +93,7 @@ public class QuoteService(
         var rateProvider = rateProviderResolver.Resolve(route.RateProvider.Name);
         var swapRate = await rateProvider.GetRateAsync(route.ToDto());
         var amount = request.Amount;
-        var (TotalFee, TotalServiceFee) = await CalculateTotalFeeAsync(route, amount);
+        var (TotalFee, TotalServiceFee, TotalExpenseFee) = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - TotalFee;
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
 
@@ -102,6 +102,7 @@ public class QuoteService(
             ReceiveAmount = receiveAmount,
             TotalFee = TotalFee,
             TotalServiceFee = TotalServiceFee,
+            TotalExpenseFee = TotalExpenseFee,
             SourceSolverAddress = route.SourceWallet.Address,
             DestinationSolverAddress = route.DestinationWallet.Address,
             SourceContractAddress =
@@ -117,14 +118,14 @@ public class QuoteService(
         return quote;
     }
 
-    private async Task<(BigInteger TotalFee, BigInteger TotalServiceFee)> CalculateTotalFeeAsync(Route route, BigInteger amount)
+    private async Task<(BigInteger TotalFee, BigInteger TotalServiceFee, BigInteger TotalExpenseFee)> CalculateTotalFeeAsync(Route route, BigInteger amount)
     {
         BigInteger fixedFee = default;
         BigInteger percentageFee = default;
 
         var expenseFee = await CalculateExpenseFeeAsync(route);
 
-        if (expenseFee is not null && !options.Value.DisableExpenseFee)
+        if (expenseFee is not null && !route.IgnoreExpenseFee)
         {
             fixedFee += expenseFee.Value;
         }
@@ -137,7 +138,7 @@ public class QuoteService(
         var totalFee = fixedFee + percentageFee;
         var totalServiceFee = Fee + percentageFee;
 
-        return (totalFee, totalServiceFee);
+        return (totalFee, totalServiceFee, expenseFee.GetValueOrDefault());
     }
 
     private static (BigInteger Fee, decimal Percentage) CalculateServiceFee(

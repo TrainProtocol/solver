@@ -23,6 +23,8 @@ public class Route : EntityBase
 
     public RouteStatus Status { get; set; }
 
+    public bool IgnoreExpenseFee { get; set; }
+
     public RateProvider RateProvider { get; set; } = null!;
 
     public Token SourceToken { get; set; } = null!;

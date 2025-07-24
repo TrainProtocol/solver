@@ -35,7 +35,7 @@ public static class MapperExtensions
         {
             Type = tx.Type,
             Hash = tx.TransactionHash ?? string.Empty,
-            Network = tx.NetworkName
+            Network = tx.Network.Name
         };
     }
 

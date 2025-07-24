@@ -89,11 +89,8 @@ public class EFSwapRepository(
         int? swapId,
         TransactionType transactionType,
         string transactionHash,
-        string asset,
-        string amount,
-        int confirmations,
         DateTimeOffset timestamp,
-        string feeAsset,
+        string amount,
         string feeAmount)
     {
         var network = await networkRepository.GetAsync(networkName);
@@ -103,24 +100,14 @@ public class EFSwapRepository(
             throw new($"Network {networkName} not found.");
         }
 
-        var token = network.Tokens.FirstOrDefault(x => x.Asset == asset);
-
-        if (token == null)
-        {
-            throw new($"Token with asset {asset} not found.");
-        }
-
         var transaction = new Transaction
         {
             TransactionHash = transactionHash,
             Status = TransactionStatus.Completed,
-            Confirmations = confirmations,
             Timestamp = timestamp,
             FeeAmount = feeAmount,
-            FeeTokenId = network.NativeToken!.Id,
             Amount = amount,
-            TokenId = token.Id,
-            NetworkName = networkName,
+            NetworkId = network.Id,
             SwapId = swapId,
             Type = transactionType,
         };
@@ -163,7 +150,7 @@ public class EFSwapRepository(
 
     private IQueryable<Swap> GetBaseQuery()
       => dbContext.Swaps
-            .Include(x => x.Transactions)
+            .Include(x => x.Transactions).ThenInclude(x => x.Network.NativeToken!.TokenPrice)
             .Include(x => x.Route.SourceWallet)
             .Include(x => x.Route.SourceToken.Network)
             .Include(x => x.Route.SourceToken.TokenPrice)

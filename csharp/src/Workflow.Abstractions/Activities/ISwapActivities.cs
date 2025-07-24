@@ -11,7 +11,7 @@ public interface ISwapActivities
     Task<int> CreateSwapAsync(HTLCCommitEventMessage commitEventMessage, string outputAmount, string feeAmount, string hashlock);
     
     [Activity]
-    Task CreateSwapMetricAsync(string commitId, BigInteger totalServiceFee);
+    Task CreateSwapMetricAsync(string commitId, QuoteDto quote);
     
     [Activity]
     Task<int> CreateSwapTransactionAsync(int? swapId, TransactionType transactionType, TransactionResponse transaction);

@@ -29,11 +29,8 @@ public interface ISwapRepository
         int? swapId,
         TransactionType transactionType,
         string transactionHash,
-        string asset,
-        string amount,
-        int confirmations,
         DateTimeOffset timestamp,
-        string feeAsset,
+        string amount,
         string feeAmount);
 
     Task<int> CreateSwapMetricAsync(

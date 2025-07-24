@@ -66,12 +66,9 @@ public class SwapActivities(
             swapId,
             transactionType,
             transaction.TransactionHash,
-            transaction.Asset,
-            transaction.Amount.ToString(),
-            transaction.Confirmations,
             transaction.Timestamp,
-            transaction.FeeAsset,
-            transaction.Amount.ToString());
+            transaction.Amount.ToString(),
+            transaction.FeeAmount.ToString());
     }
 
     [Activity]
@@ -139,23 +136,36 @@ public class SwapActivities(
 
     [Activity]
     public async Task CreateSwapMetricAsync(
-        string commitId,
-        BigInteger totalServiceFee)
+    string commitId,
+    QuoteDto quote)
     {
         var swap = await swapRepository.GetAsync(commitId);
 
         if (swap is null)
-        {
             throw new Exception($"Swap with commitId {commitId} not found.");
-        }
 
         var sourceAmount = BigInteger.Parse(swap.SourceAmount);
 
-        var profit = TokenUnitHelper.FromBaseUnits(totalServiceFee, swap.Route.SourceToken.Decimals);
-        var profitInUsd = profit * swap.Route.SourceToken.TokenPrice.PriceInUsd;
-
         var volume = TokenUnitHelper.FromBaseUnits(sourceAmount, swap.Route.SourceToken.Decimals);
         var volumeInUsd = volume * swap.Route.SourceToken.TokenPrice.PriceInUsd;
+
+        var serviceFee = TokenUnitHelper.FromBaseUnits(quote.TotalServiceFee, swap.Route.SourceToken.Decimals);
+        var estimatedExpense = TokenUnitHelper.FromBaseUnits(quote.TotalExpenseFee, swap.Route.SourceToken.Decimals);
+
+        var collectedFeeUsd = (serviceFee + estimatedExpense) * swap.Route.SourceToken.TokenPrice.PriceInUsd;
+
+        decimal actualExpenseUsd = 0;
+        foreach (var tx in swap.Transactions)
+        {
+            if (BigInteger.TryParse(tx.FeeAmount, out var feeAmount) &&
+                tx.Network?.NativeToken?.TokenPrice != null)
+            {
+                var feeInUnits = TokenUnitHelper.FromBaseUnits(feeAmount, tx.Network.NativeToken.Decimals);
+                actualExpenseUsd += feeInUnits * tx.Network.NativeToken.TokenPrice.PriceInUsd;
+            }
+        }
+
+        var profitInUsd = collectedFeeUsd - actualExpenseUsd;
 
         await swapRepository.CreateSwapMetricAsync(
             swap.Id,
@@ -165,7 +175,7 @@ public class SwapActivities(
             swap.Route.DestinationToken.Asset,
             volume,
             volumeInUsd,
-            profit,
+            serviceFee,
             profitInUsd);
     }
 }

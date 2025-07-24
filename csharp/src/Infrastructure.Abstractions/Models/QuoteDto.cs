@@ -8,5 +8,7 @@ public class QuoteDto
 
     public BigInteger TotalServiceFee { get; set; } 
 
+    public BigInteger TotalExpenseFee { get; set; } 
+
     public BigInteger ReceiveAmount { get; set; }
 }

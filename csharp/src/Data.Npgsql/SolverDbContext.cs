@@ -89,7 +89,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasEnumComment();
 
         modelBuilder.Entity<Transaction>()
-            .HasIndex(x => new { x.TransactionHash, x.NetworkName })
+            .HasIndex(x => new { x.TransactionHash, x.NetworkId })
             .IsUnique();
 
         modelBuilder.Entity<Transaction>()

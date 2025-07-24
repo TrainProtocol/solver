@@ -11,8 +11,4 @@ public class TrainSolverOptions
     public string RedisConnectionString { get; set; } = null!;
 
     public int RedisDatabaseIndex { get; set; } = 3;
-
-    public bool DisableExpenseFee { get; set; } = false;
-
-    public decimal MinAmountInUsd { get; set; } = 0.69m;
 }
