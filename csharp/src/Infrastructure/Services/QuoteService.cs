@@ -121,13 +121,18 @@ public class QuoteService(
     private async Task<(BigInteger TotalFee, BigInteger TotalServiceFee, BigInteger TotalExpenseFee)> CalculateTotalFeeAsync(Route route, BigInteger amount)
     {
         BigInteger fixedFee = default;
+        BigInteger? expenseFee = default;
         BigInteger percentageFee = default;
 
-        var expenseFee = await CalculateExpenseFeeAsync(route);
 
-        if (expenseFee is not null && !route.IgnoreExpenseFee)
+        if (!route.IgnoreExpenseFee)
         {
-            fixedFee += expenseFee.Value;
+            expenseFee = await CalculateExpenseFeeAsync(route);
+
+            if (expenseFee != null)
+            {
+                fixedFee += expenseFee.Value;
+            }
         }
 
         var (Fee, Percentage) = CalculateServiceFee(route);
