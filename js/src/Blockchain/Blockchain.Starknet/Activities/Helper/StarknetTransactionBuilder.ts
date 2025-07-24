@@ -1,7 +1,5 @@
 import { utils } from "ethers";
 import { cairo, Call, shortString, byteArray } from "starknet";
-import { ContractType } from "../../../../Data/Entities/Contracts";
-import { Networks } from "../../../../Data/Entities/Networks";
 import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { ApprovePrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
 import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
@@ -11,29 +9,26 @@ import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
+import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 
-export function CreateRefundCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateRefundCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const refundRequest = decodeJson<HTLCRefundTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
-    const token = network.tokens.find(t => t.asset === refundRequest.Asset);
+    const token = network.tokens.find(t => t.symbol === refundRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${refundRequest.Asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${refundRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
-
-    const callData = [cairo.uint256(refundRequest.Id)];
+    const callData = [cairo.uint256(refundRequest.commitId)];
 
     const methodCall: Call = {
-        contractAddress: htlcContractAddress.address,
+        contractAddress: htlcContractAddress,
         entrypoint: "refund",
         calldata: callData
     };
@@ -41,40 +36,34 @@ export function CreateRefundCallData(network: Networks, args: string): PrepareTr
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: "0",
+        asset: network.nativeToken.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        callDataAsset: token.symbol,
+        toAddress: htlcContractAddress,
     };
 }
 
-export function CreateRedeemCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateRedeemCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const redeemRequest = decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
-    const token = network.tokens.find(t => t.asset === redeemRequest.Asset);
+    const token = network.tokens.find(t => t.symbol === redeemRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${redeemRequest.Asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${redeemRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
     const callData = [
-        cairo.uint256(redeemRequest.Id),
-        cairo.uint256(redeemRequest.Secret)
+        cairo.uint256(redeemRequest.commitId),
+        cairo.uint256(redeemRequest.secret)
     ];
 
     const methodCall: Call = {
-        contractAddress: htlcContractAddress.address,
+        contractAddress: htlcContractAddress,
         entrypoint: "redeem",
         calldata: callData
     };
@@ -82,44 +71,44 @@ export function CreateRedeemCallData(network: Networks, args: string): PrepareTr
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: "0",
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export function CreateLockCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateLockCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(args);
 
-    const token = network.tokens.find(t => t.asset === lockRequest.SourceAsset);
+    const token = network.tokens.find(t => t.symbol === lockRequest.sourceAsset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${lockRequest.SourceAsset}`)
+        throw new Error(`Token not found for network ${network.name} and asset ${lockRequest.sourceAsset}`)
     };
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
     const callData = [
-        cairo.uint256(lockRequest.Id),
-        cairo.uint256(lockRequest.Hashlock),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.Reward.toString(), token.decimals))),
-        cairo.uint256(lockRequest.RewardTimelock),
-        cairo.uint256(lockRequest.Timelock),
-        lockRequest.Receiver,
-        shortString.encodeShortString(lockRequest.SourceAsset),
-        shortString.encodeShortString(lockRequest.DestinationNetwork),
-        byteArray.byteArrayFromString(lockRequest.DestinationAddress),
-        shortString.encodeShortString(lockRequest.DestinationAsset),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.Amount.toString(), token.decimals))),
-        token.tokenContract
+        cairo.uint256(lockRequest.commitId),
+        cairo.uint256(lockRequest.hashlock),
+        cairo.uint256(Number(utils.parseUnits(lockRequest.reward.toString(), token.decimals))),
+        cairo.uint256(lockRequest.rewardTimelock),
+        cairo.uint256(lockRequest.timelock),
+        lockRequest.receiver,
+        shortString.encodeShortString(lockRequest.sourceAsset),
+        shortString.encodeShortString(lockRequest.destinationNetwork),
+        byteArray.byteArrayFromString(lockRequest.destinationAddress),
+        shortString.encodeShortString(lockRequest.destinationAsset),
+        cairo.uint256(Number(utils.parseUnits(lockRequest.amount.toString(), token.decimals))),
+        token.contract
     ];
 
     const methodCall: Call = {
-        contractAddress: htlcContractAddress.address,
+        contractAddress: htlcContractAddress,
         entrypoint: "lock",
         calldata: callData
     };
@@ -127,41 +116,35 @@ export function CreateLockCallData(network: Networks, args: string): PrepareTran
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: lockRequest.SourceAsset,
-        callDataAsset: lockRequest.SourceAsset,
-        CallDataAmountInWei: utils.parseUnits((lockRequest.Amount + lockRequest.Reward).toString(), token.decimals).toString(),
-        callDataAmount: lockRequest.Amount + lockRequest.Reward,
-        toAddress: htlcContractAddress.address,
+        asset: lockRequest.sourceAsset,
+        callDataAsset: lockRequest.sourceAsset,
+        callDataAmount: lockRequest.amount + lockRequest.reward,
+        toAddress: htlcContractAddress,
     };
 }
 
-export function CreateAddLockSigCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateAddLockSigCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const addLockSigRequest = decodeJson<HTLCAddLockSigTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
-    const token = network.tokens.find(t => t.asset === addLockSigRequest.Asset);
+    const token = network.tokens.find(t => t.symbol === addLockSigRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${addLockSigRequest.Asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${addLockSigRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
     const callData = [
-        cairo.uint256(addLockSigRequest.Id),
-        cairo.uint256(addLockSigRequest.Hashlock),
-        cairo.uint256(addLockSigRequest.Timelock),
-        addLockSigRequest.SignatureArray
+        cairo.uint256(addLockSigRequest.commitId),
+        cairo.uint256(addLockSigRequest.hashlock),
+        cairo.uint256(addLockSigRequest.timelock),
+        addLockSigRequest.signatureArray
     ];
     const methodCall: Call = {
-        contractAddress: htlcContractAddress.address,
+        contractAddress: htlcContractAddress,
         entrypoint: "addLockSig",
         calldata: callData
     };
@@ -169,35 +152,34 @@ export function CreateAddLockSigCallData(network: Networks, args: string): Prepa
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: '0',
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export function CreateApproveCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateApproveCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const approveRequest = decodeJson<ApprovePrepareRequest>(args);
-    const token = network.tokens.find(t => t.asset === approveRequest.Asset);
+
+    const token = network.tokens.find(t => t.symbol === approveRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.Asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.asset}`)
+    };
 
-    const spenderAddress = !token.tokenContract
-        ? network.contracts.find(c => c.type === ContractType.HTLCNativeContractAddress)!.address
-        : network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)!.address;
+    const spenderAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
     const callData = [
         spenderAddress,
-        cairo.uint256(Number(utils.parseUnits(approveRequest.Amount.toString(), token.decimals)))
+        cairo.uint256(Number(utils.parseUnits(approveRequest.amount.toString(), token.decimals)))
     ];
 
     const methodCall: Call = {
-        contractAddress: token.tokenContract,
+        contractAddress: token.contract,
         entrypoint: "approve",
         calldata: callData
     };
@@ -205,31 +187,29 @@ export function CreateApproveCallData(network: Networks, args: string): PrepareT
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: token.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: '0',
+        asset: token.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: token.tokenContract,
+        toAddress: token.contract,
     };
 }
 
-export function CreateTransferCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateTransferCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const transferRequest = decodeJson<TransferPrepareRequest>(args);
-    const token = network.tokens.find(t => t.asset === transferRequest.Asset);
+    const token = network.tokens.find(t => t.symbol === transferRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${transferRequest.Asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${transferRequest.asset}`)
+    };
 
     const callData = [
-        transferRequest.ToAddress,
-        cairo.uint256(Number(utils.parseUnits(transferRequest.Amount.toString(), token.decimals)))
+        transferRequest.toAddress,
+        cairo.uint256(Number(utils.parseUnits(transferRequest.amount.toString(), token.decimals)))
     ];
 
     const methodCall: Call = {
-        contractAddress: token.tokenContract,
+        contractAddress: token.contract,
         entrypoint: "transfer",
         calldata: callData
     };
@@ -237,40 +217,41 @@ export function CreateTransferCallData(network: Networks, args: string): Prepare
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: token.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: Number(utils.parseUnits(transferRequest.Amount.toString(), token.decimals)).toString(),
-        callDataAmount: transferRequest.Amount,
-        toAddress: token.tokenContract,
+        asset: token.symbol,
+        callDataAsset: token.symbol,
+        callDataAmount: transferRequest.amount,
+        toAddress: token.contract,
     };
 }
 
-export function CreateCommitCallData(network: Networks, args: string): PrepareTransactionResponse {
+export function CreateCommitCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const commitRequest = decodeJson<HTLCCommitTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+     const token = network.tokens.find(t => t.symbol === commitRequest.sourceAsset);
 
-    const token = network.tokens.find(t => t.asset === commitRequest.SourceAsset);
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.SourceAsset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.sourceAsset}`)
+    };
+
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
     const callData = [
-        cairo.uint256(commitRequest.Id),
-        cairo.uint256(Number(utils.parseUnits(commitRequest.Amount.toString(), token.decimals))),
-        shortString.encodeShortString(commitRequest.DestinationChain),
-        shortString.encodeShortString(commitRequest.SourceAsset),
-        byteArray.byteArrayFromString(commitRequest.DestinationAddress),
-        shortString.encodeShortString(commitRequest.SourceAsset),
-        commitRequest.Receiver,
-        cairo.uint256(commitRequest.Timelock),
-        token.tokenContract
+        cairo.uint256(commitRequest.commitId),
+        cairo.uint256(Number(utils.parseUnits(commitRequest.amount.toString(), token.decimals))),
+        shortString.encodeShortString(commitRequest.destinationChain),
+        shortString.encodeShortString(commitRequest.sourceAsset),
+        byteArray.byteArrayFromString(commitRequest.destinationAddress),
+        shortString.encodeShortString(commitRequest.sourceAsset),
+        commitRequest.receiver,
+        cairo.uint256(commitRequest.timelock),
+        token.contract
     ];
 
     const methodCall: Call = {
-        contractAddress: htlcContractAddress.address,
+        contractAddress: htlcContractAddress,
         entrypoint: "commit",
         calldata: callData
     };
@@ -278,11 +259,9 @@ export function CreateCommitCallData(network: Networks, args: string): PrepareTr
     return {
         data: JSON.stringify(methodCall),
         amount: 0,
-        AmountInWei: "0",
-        asset: commitRequest.SourceAsset,
-        callDataAsset: commitRequest.SourceAsset,
-        CallDataAmountInWei: utils.parseUnits((commitRequest.Amount).toString(), token.decimals).toString(),
-        callDataAmount: commitRequest.Amount,
-        toAddress: htlcContractAddress.address,
+        asset: commitRequest.sourceAsset,
+        callDataAsset: commitRequest.sourceAsset,
+        callDataAmount: commitRequest.amount,
+        toAddress: htlcContractAddress,
     };
 }

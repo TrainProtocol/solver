@@ -1,5 +1,4 @@
 import { CallData, hash, num, Provider } from "starknet";
-import { Tokens } from "../../../../Data/Entities/Tokens";
 import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../../Models/StarknetTokenLockedEvent";
 import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
@@ -8,16 +7,15 @@ import { formatAddress as FormatAddress } from "../StarknetBlockchainActivities"
 import { formatUnits } from "ethers/lib/utils";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { BigIntToAscii, ToHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 
 
 export async function TrackBlockEventsAsync(
-    networkName: string,
+    network: DetailedNetworkDto,
     provider: Provider,
-    tokens: Tokens[],
-    solverAddress: string,
+    solverAddresses: string[],
     fromBlock: number,
-    toBlock: number,
-    htlcContractAddress: string): Promise<HTLCBlockEventResponse> {
+    toBlock: number): Promise<HTLCBlockEventResponse> {
 
     const response: HTLCBlockEventResponse = {
         htlcCommitEventMessages: [],
@@ -26,6 +24,7 @@ export async function TrackBlockEventsAsync(
 
     const tokenCommittedSelector = num.toHex(hash.starknetKeccak("TokenCommitted"));
     const tokenLockAddedSelector = num.toHex(hash.starknetKeccak("TokenLockAdded"));
+    const htlcContractAddress = network.htlcTokenContractAddress;
 
     const filter = {
         address: htlcContractAddress,
@@ -52,30 +51,26 @@ export async function TrackBlockEventsAsync(
         if (eventName.endsWith("TokenCommitted")) {
             const data = eventData as unknown as TokenCommittedEvent;
 
-            if (FormatAddress(ToHex(data.srcReceiver)) !== FormatAddress(solverAddress)) {
+            const receiverAddress = solverAddresses.find(
+                x => FormatAddress(x) === FormatAddress(ToHex(data.srcReceiver))
+            );
+
+            if (!receiverAddress) {
                 continue;
             }
-
-            const sourceToken = tokens.find(t => t.asset === BigIntToAscii(data.srcAsset) && t.network.name === networkName);
-            const destToken = tokens.find(t => t.asset === BigIntToAscii(data.dstAsset) && t.network.name === BigIntToAscii(data.dstChain));
-
-            if (!sourceToken || !destToken) continue;
 
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
                 commitId: ToHex(data.Id),
                 amount: Number(formatUnits(data.amount, 18)),
-                amountInWei: data.amount.toString(),
-                receiverAddress: solverAddress,
-                sourceNetwork: networkName,
+                receiverAddress: receiverAddress,
+                sourceNetwork: network.displayName,
                 senderAddress: FormatAddress(ToHex(data.sender)),
                 sourceAsset: BigIntToAscii(data.srcAsset),
                 destinationAddress: data.dstAddress,
                 destinationNetwork: BigIntToAscii(data.dstChain),
                 destinationAsset: BigIntToAscii(data.dstAsset),
-                timeLock: Number(data.timelock),
-                DestinationNetworkType: destToken.network.type,
-                SourceNetworkType: sourceToken.network.type,
+                timeLock: Number(data.timelock)
             };
 
             response.htlcCommitEventMessages.push(commitMsg);
@@ -85,9 +80,9 @@ export async function TrackBlockEventsAsync(
 
             const lockMsg: HTLCLockEventMessage = {
                 txId: parsed.transaction_hash,
-                Id: ToHex(data.Id),
-                HashLock: ToHex(data.hashlock),
-                TimeLock: Number(data.timelock),
+                commitId: ToHex(data.Id),
+                hashLock: ToHex(data.hashlock),
+                timeLock: Number(data.timelock),
             };
 
             response.htlcLockEventMessages.push(lockMsg);

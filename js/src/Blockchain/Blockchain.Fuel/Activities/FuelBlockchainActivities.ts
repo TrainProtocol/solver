@@ -80,13 +80,13 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         throw new Error(`Primary node not found for network ${request.NetworkName}`);
       }
 
-      const token = network.tokens.find(t => t.asset === request.Asset);
+      const token = network.tokens.find(t => t.asset === request.asset);
       if (!token) {
-        throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.Asset}`);
+        throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.asset}`);
       }
 
       const provider = new Provider(node.url);
-      const balanceResult = await provider.getBalance(request.Address, token.tokenContract);
+      const balanceResult = await provider.getBalance(request.address, token.tokenContract);
       var balanceInWei = balanceResult.toString();
 
       let result: BalanceResponse =
@@ -152,11 +152,11 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         throw new Error(`Primary node not found for network ${feeRequest.NetworkName}`);
       }
       const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-      const requestData = JSON.parse(feeRequest.CallData);
+      const requestData = JSON.parse(feeRequest.callData);
 
-      const token = network.tokens.find(t => t.asset === feeRequest.Asset);
+      const token = network.tokens.find(t => t.asset === feeRequest.asset);
       if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${feeRequest.Asset}`);
+        throw new Error(`Token not found for network ${network.name} and asset ${feeRequest.asset}`);
       }
 
       const provider = new Provider(node.url);
@@ -169,7 +169,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
       const assetId: AssetId = address.toAssetId();
 
       if (functionName == "lock") {
-        const amount = Number(utils.parseUnits(feeRequest.Amount.toString(), token.decimals))
+        const amount = Number(utils.parseUnits(feeRequest.amount.toString(), token.decimals))
         transactionCost = await contractInstance.functions[functionName](...requestData.args)
           .callParams({
             forward: [amount, assetId.bits],

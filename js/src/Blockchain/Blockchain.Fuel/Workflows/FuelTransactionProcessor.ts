@@ -35,26 +35,26 @@ export async function FuelTransactionProcessor(
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
         NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
+        Args: request.prepareArgs,
+        Type: request.type,
     });
 
-    if (!context.Fee) {
-        context.Fee = await nonRetryableActivities.EstimateFee({
+    if (!context.fee) {
+        context.fee = await nonRetryableActivities.EstimateFee({
             NetworkName: request.NetworkName,
-            ToAddress: preparedTransaction.toAddress,
-            Amount: preparedTransaction.amount,
-            FromAddress: request.FromAddress,
-            Asset: preparedTransaction.asset,
-            CallData: preparedTransaction.data,
+            toAddress: preparedTransaction.toAddress,
+            amount: preparedTransaction.amount,
+            fromAddress: request.fromAddress,
+            asset: preparedTransaction.asset,
+            callData: preparedTransaction.data,
         });
     }
 
     const publishedTransaction = await defaultActivities.PublishTransaction({
         NetworkName: request.NetworkName,
-        FromAddress: request.FromAddress,
+        FromAddress: request.fromAddress,
         CallData: preparedTransaction.data,
-        Fee: context.Fee,
+        Fee: context.fee,
         Amount: preparedTransaction.AmountInWei,
     });
 

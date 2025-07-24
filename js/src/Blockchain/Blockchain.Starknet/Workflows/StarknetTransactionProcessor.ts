@@ -44,58 +44,60 @@ export async function StarknetTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    if (request.Type === TransactionType.HTLCLock) {
+    if (request.type === TransactionType.HTLCLock) {
         await checkAllowance(request);
     }
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
+        network: request.network,
+        prepareArgs: request.prepareArgs,
+        type: request.type,
+        fromAddress: request.fromAddress,
+        swapId: request.swapId,
     });
     try {
 
-        if (!context.Fee) {
-            context.Fee = await nonRetryableActivities.EstimateFee({
-                NetworkName: request.NetworkName,
-                ToAddress: preparedTransaction.toAddress,
-                Amount: preparedTransaction.amount,
-                FromAddress: request.FromAddress,
-                Asset: preparedTransaction.asset!,
-                CallData: preparedTransaction.data,
+        if (!context.fee) {
+            context.fee = await nonRetryableActivities.EstimateFee({
+                network: request.network,
+                toAddress: preparedTransaction.toAddress,
+                amount: preparedTransaction.amount,
+                fromAddress: request.fromAddress,
+                asset: preparedTransaction.asset!,
+                callData: preparedTransaction.data,
             });
         }
 
-        if (!context.Nonce) {
-            context.Nonce = await defaultActivities.GetNextNonce({
-                NetworkName: request.NetworkName,
-                Address: request.FromAddress,
+        if (!context.nonce) {
+            context.nonce = await defaultActivities.GetNextNonce({
+                network: request.network,
+                Address: request.fromAddress,
             });
         }
 
         const simulationTxId = await nonRetryableActivities.SimulateTransaction({
-            NetworkName: request.NetworkName,
-            FromAddress: request.FromAddress,
-            Nonce: context.Nonce,
-            CallData: preparedTransaction.data,
-            Fee: context.Fee,
+            network: request.network,
+            fromAddress: request.fromAddress,
+            nonce: context.nonce,
+            callData: preparedTransaction.data,
+            fee: context.fee,
         });
 
-        context.PublishedTransactionIds.push(simulationTxId);
+        context.publishedTransactionIds.push(simulationTxId);
 
         const txId = await nonRetryableActivities.PublishTransaction({
-            NetworkName: request.NetworkName,
-            FromAddress: request.FromAddress,
-            Nonce: context.Nonce,
-            CallData: preparedTransaction.data,
-            Fee: context.Fee,
+            network: request.network,
+            fromAddress: request.fromAddress,
+            nonce: context.nonce,
+            callData: preparedTransaction.data,
+            fee: context.fee,
         });
 
-        context.PublishedTransactionIds.push(txId);
+        context.publishedTransactionIds.push(txId);
 
         const confirmed = await nonRetryableActivities.GetBatchTransaction({
-            NetworkName: request.NetworkName,
-            TransactionHashes: context.PublishedTransactionIds,
+            network: request.network,
+            TransactionHashes: context.publishedTransactionIds,
         });
 
         confirmed.Asset = preparedTransaction.callDataAsset;
@@ -105,28 +107,34 @@ export async function StarknetTransactionProcessor(
 
     }
     catch (error) {
-        if (error instanceof InvalidTimelockException && context.Nonce) {
+        if (error instanceof InvalidTimelockException && context.nonce) {
+
             const transferArgs: TransferPrepareRequest = {
-                Amount: 0,
-                Asset: context.Fee!.Asset,
-                ToAddress: request.FromAddress,
+                amount: 0,
+                asset: context.fee!.Asset,
+                toAddress: request.fromAddress,
             };
 
-            const processorId = await utilityActivities.BuildProcessorId(request.NetworkName, TransactionType.Transfer);
+            const processorId = await utilityActivities.BuildProcessorId(request.network.name, TransactionType.Transfer);
+
+            const transferRequest: TransactionRequest = {
+                prepareArgs: JSON.stringify(transferArgs),
+                type: TransactionType.Transfer,
+                fromAddress: request.fromAddress,
+                network: request.network,
+                swapId: request.swapId,
+            };
+
+            const childContext: TransactionExecutionContext = {
+                attempts: 0,
+                nonce: context.nonce,
+                fee: null,
+                publishedTransactionIds: [],
+            };
 
             await executeChild(StarknetTransactionProcessor,
                 {
-                    args: [
-                        {
-                            NetworkName: request.NetworkName,
-                            FromAddress: request.FromAddress,
-                            NetworkType: request.NetworkType,
-                            PrepareArgs: JSON.stringify(transferArgs),
-                            Type: TransactionType.Transfer,
-                            SwapId: request.SwapId,
-                        },
-                        { Nonce: context.Nonce }
-                    ],
+                    args: [transferRequest, childContext],
                     workflowId: processorId,
                 });
         }
@@ -136,36 +144,37 @@ export async function StarknetTransactionProcessor(
 }
 
 export async function checkAllowance(context: TransactionRequest): Promise<void> {
-    const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
+    const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.prepareArgs);
 
     const allowance = await defaultActivities.GetSpenderAllowance(
         {
-            NetworkName: lockRequest.SourceNetwork,
-            OwnerAddress: context.FromAddress!,
-            Asset: lockRequest.SourceAsset,
+            network: context.network,
+            ownerAddress: context.fromAddress!,
+            asset: lockRequest.sourceAsset,
         } as AllowanceRequest);
 
-    if (lockRequest.Amount > allowance) {
+    if (lockRequest.amount > allowance) {
+
         const approveRequest: TransactionRequest = {
-            PrepareArgs: JSON.stringify({
+            prepareArgs: JSON.stringify({
                 Amount: 1000000000,
-                Asset: lockRequest.SourceAsset,
+                Asset: lockRequest.sourceAsset,
 
             }),
-            Type: TransactionType.Approve,
-            FromAddress: context.FromAddress,
-            NetworkName: lockRequest.SourceNetwork,
-            NetworkType: context.NetworkType,
-            SwapId: context.SwapId,
+            type: TransactionType.Approve,
+            fromAddress: context.fromAddress,
+            network: context.network,
+            swapId: context.swapId,
         };
 
         const childContext: TransactionExecutionContext = {
-            Attempts: 0,
-            Nonce: null,
-            Fee: null,
-            PublishedTransactionIds: [],
+            attempts: 0,
+            nonce: null,
+            fee: null,
+            publishedTransactionIds: [],
         };
-        const processorId = await utilityActivities.BuildProcessorId(context.NetworkName, context.Type);
+
+        const processorId = await utilityActivities.BuildProcessorId(context.network.name, context.type);
 
         await executeChild(StarknetTransactionProcessor,
             {

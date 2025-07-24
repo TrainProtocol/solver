@@ -1,11 +1,11 @@
 export interface HTLCAddLockSigTransactionPrepareRequest {
-    Id: string;
-    Hashlock: string;
-    Timelock: number;  
-    R?: string;        
-    S?: string;        
-    V?: string;        
-    Signature?: string;
-    Asset: string;
-    SignatureArray?: string[];
+    commitId: string;
+    hashlock: string;
+    timelock: number;  
+    r?: string;        
+    s?: string;        
+    v?: string;        
+    signature?: string;
+    asset: string;
+    signatureArray?: string[];
   }
