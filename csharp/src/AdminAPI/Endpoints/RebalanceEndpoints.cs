@@ -16,7 +16,7 @@ public static class RebalanceEndpoints
 {
     public static RouteGroupBuilder MapRebalanceEndpoints(this RouteGroupBuilder group)
     {
-        group.MapPost("/", RebalanceAsync)
+        group.MapPost("/rebalance", RebalanceAsync)
             .Produces(StatusCodes.Status200OK);
 
         return group;
