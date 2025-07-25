@@ -22,9 +22,9 @@ public static class SwapMetricEndpoints
 
     private static async Task<IResult> GetTotalVolumeAndProfitAsync(
         ISwapMetricRepository repository,
-        [FromQuery] DateTime startFrom)
+        [FromQuery] DateTime? startFrom)
     {
-        var (volume, profit) = await repository.GetTotalVolumeAndProfitAsync(startFrom);
+        var (volume, profit) = await repository.GetTotalVolumeAndProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
         return Results.Ok(new TotalSwapMetrics
         {
             TotalVolumeInUsd = volume,
@@ -34,9 +34,9 @@ public static class SwapMetricEndpoints
 
     private static async Task<IResult> GetDailyVolumeAsync(
         ISwapMetricRepository repository,
-        [FromQuery] DateTime startFrom)
+        [FromQuery] DateTime? startFrom)
     {
-        var data = await repository.GetDailyVolumeAsync(startFrom);
+        var data = await repository.GetDailyVolumeAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
         var result = data.Select(x => new TimeSeriesMetric
         {
             Date = x.Date,
@@ -47,9 +47,9 @@ public static class SwapMetricEndpoints
 
     private static async Task<IResult> GetDailyProfitAsync(
         ISwapMetricRepository repository,
-        [FromQuery] DateTime startFrom)
+        [FromQuery] DateTime? startFrom)
     {
-        var data = await repository.GetDailyProfitAsync(startFrom);
+        var data = await repository.GetDailyProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
         var result = data.Select(x => new TimeSeriesMetric
         {
             Date = x.Date,

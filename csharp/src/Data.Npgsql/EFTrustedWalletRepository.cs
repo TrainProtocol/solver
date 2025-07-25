@@ -41,9 +41,10 @@ public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWall
             .ExecuteDeleteAsync();
     }
 
-    public async Task<IEnumerable<TrustedWallet>> GetAllAsync(NetworkType[] types)
+    public async Task<IEnumerable<TrustedWallet>> GetAllAsync(NetworkType[]? types)
     {
-        var trustedWallets = await dbContext.TrustedWallets.Where(x => types.Contains(x.NetworkType)).ToListAsync();
+        var trustedWallets = await dbContext.TrustedWallets
+            .Where(x => types == null || types.Contains(x.NetworkType)).ToListAsync();
         return trustedWallets;
     }
 

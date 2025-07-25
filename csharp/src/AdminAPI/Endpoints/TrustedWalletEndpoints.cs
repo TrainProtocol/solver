@@ -31,7 +31,7 @@ public static class TrustedWalletEndpoints
 
     private static async Task<IResult> GetAllAsync(
         ITrustedWalletRepository repository,
-        NetworkType[] types)
+        NetworkType[]? types)
     {
         var wallets = await repository.GetAllAsync(types);
         return Results.Ok(wallets.Select(x=>x.ToDto()));
