@@ -2,5 +2,7 @@
 
 public class NodeDto
 {
-    public string Url { get; set; } = null!;
+    public required string ProviderName { get; set; } = null!;
+
+    public required string Url { get; set; } = null!;
 }

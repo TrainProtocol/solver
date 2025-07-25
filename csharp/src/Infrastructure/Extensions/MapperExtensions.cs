@@ -44,6 +44,7 @@ public static class MapperExtensions
         return new NodeDto
         {
             Url = node.Url,
+            ProviderName = node.ProviderName,
         };
     }
 

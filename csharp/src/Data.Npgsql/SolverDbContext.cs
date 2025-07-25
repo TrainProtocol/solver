@@ -8,6 +8,7 @@ namespace Train.Solver.Data.Npgsql;
 public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbContext(options)
 {
     public DbSet<Swap> Swaps { get; set; }
+
     public DbSet<SwapMetric> SwapMetrics { get; set; }
 
     public DbSet<Network> Networks { get; set; }
@@ -83,6 +84,9 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
         modelBuilder.Entity<ServiceFee>()
             .HasIndex(x => x.Name).IsUnique();
+
+        modelBuilder.Entity<Node>()
+           .HasIndex(x => new { x.ProviderName, x.NetworkId }).IsUnique();
 
         modelBuilder.Entity<Route>()
             .Property(b => b.Status)

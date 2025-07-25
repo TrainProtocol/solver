@@ -4,6 +4,8 @@ namespace Train.Solver.Data.Abstractions.Entities;
 
 public class Node : EntityBase
 {
+    public string ProviderName { get; set; } = null!;
+
     public string Url { get; set; } = null!;
 
     public int NetworkId { get; set; }

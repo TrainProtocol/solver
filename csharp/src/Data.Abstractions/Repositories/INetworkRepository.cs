@@ -26,6 +26,7 @@ public interface INetworkRepository
 
     Task<Node?> CreateNodeAsync(
         string networkName,
+        string providerName,
         string url);
 
     Task<Token?> CreateTokenAsync(
@@ -40,4 +41,6 @@ public interface INetworkRepository
         int decimals);
 
     Task DeleteTokenAsync(string networkName, string symbol);
+
+    Task DeleteNodeAsync(string networkName, string providerName);
 }

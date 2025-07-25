@@ -22,11 +22,15 @@ public static class NetworkEndpoints
             .Produces<DetailedNetworkDto>()
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPost("/networks/{networkName}/node", CreateNodeAsync)
+        group.MapPost("/networks/{networkName}/nodes", CreateNodeAsync)
             .Produces<NodeDto>()
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPost("/networks/{networkName}/token", CreateTokenAsync)
+        group.MapDelete("/networks/{networkName}/nodes/{providerName}", DeleteNodeAsync)
+          .Produces<NodeDto>()
+          .Produces(StatusCodes.Status204NoContent);
+
+        group.MapPost("/networks/{networkName}/tokens", CreateTokenAsync)
             .Produces<TokenDto>()
             .Produces(StatusCodes.Status400BadRequest);
 
@@ -74,8 +78,19 @@ public static class NetworkEndpoints
         string networkName,
         [FromBody] CreateNodeRequest request)
     {
-        var node = await repository.CreateNodeAsync(networkName, request.Url);
+        var node = await repository.CreateNodeAsync(
+            networkName, request.ProviderName, request.Url);
+
         return Results.Ok(node.ToDto());
+    }
+
+    private static async Task<IResult> DeleteNodeAsync(
+        INetworkRepository repository,
+        string networkName,
+        string providerName)
+    {
+        await repository.DeleteNodeAsync(networkName, providerName);
+        return Results.Ok();
     }
 
     private static async Task<IResult> CreateTokenAsync(

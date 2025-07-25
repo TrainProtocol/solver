@@ -83,7 +83,10 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
         }
     }
 
-    public async Task<Node?> CreateNodeAsync(string networkName, string url)
+    public async Task<Node?> CreateNodeAsync(
+        string networkName,
+        string providerName, 
+        string url)
     {
         var network = await GetAsync(networkName);
 
@@ -92,11 +95,18 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             return null;
         }
 
-        var node = new Node { Url = url };
+        var node = new Node { Url = url, ProviderName = providerName, NetworkId = network.Id };
         network.Nodes.Add(node);
         await dbContext.SaveChangesAsync();
 
         return node;
+    }
+
+    public async Task DeleteNodeAsync(string networkName, string providerName)
+    {
+        await dbContext.Nodes
+            .Where(x => x.Network.Name == networkName && x.ProviderName == providerName)
+            .ExecuteDeleteAsync();
     }
 
     public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals)

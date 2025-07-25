@@ -2,5 +2,6 @@
 
 public class CreateNodeRequest
 {
-    public string Url { get; set; } = default!;
+    public string ProviderName { get; set; } = null!;
+    public string Url { get; set; } = null!;
 }
