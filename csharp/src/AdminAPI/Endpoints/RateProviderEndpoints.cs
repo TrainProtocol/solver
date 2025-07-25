@@ -12,7 +12,7 @@ public static class RateProviderEndpoints
     public static RouteGroupBuilder MapRateProviderEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/rate-providers", GetAllRateProvidersAsync)
-            .Produces<List<RateProvider>>();
+            .Produces<List<RateProviderDto>>();
 
         return group;
     }

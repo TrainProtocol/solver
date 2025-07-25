@@ -13,7 +13,7 @@ public static class TrustedWalletEndpoints
     public static RouteGroupBuilder MapTrustedWalletEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/trusted-wallets", GetAllAsync)
-            .Produces<IEnumerable<TrustedWallet>>();
+            .Produces<IEnumerable<TrustedWalletDto>>();
 
         group.MapPost("/trusted-wallets", CreateAsync)
             .Produces<TrustedWalletDto>()
