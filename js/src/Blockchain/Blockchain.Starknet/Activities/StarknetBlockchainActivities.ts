@@ -14,7 +14,7 @@ import Redis from "ioredis";
 import Redlock from "redlock";
 import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
-import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData, CreateCommitCallData } from "./Helper/StarknetTransactionBuilder";
+import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 import { BuildLockKey, BuildNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
@@ -67,10 +67,10 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
     public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
 
-        const transaction = await this.GetTransactionByHashAsync(request.network, request.TransactionHash);
+        const transaction = await this.GetTransactionByHashAsync(request.network, request.transactionHash);
 
         if (!transaction) {
-            throw new TransactionNotComfirmedException(`Transaction ${request.TransactionHash} not found`);
+            throw new TransactionNotComfirmedException(`Transaction ${request.transactionHash} not found`);
         }
 
         return transaction;
@@ -254,19 +254,19 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         try {
             switch (request.type) {
                 case TransactionType.HTLCLock:
-                    return CreateLockCallData(request.network, request.prepareArgs);
+                    return createLockCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRedeem:
-                    return CreateRedeemCallData(request.network, request.prepareArgs);
+                    return createRedeemCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRefund:
-                    return CreateRefundCallData(request.network, request.prepareArgs);
+                    return createRefundCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCAddLockSig:
-                    return CreateAddLockSigCallData(request.network, request.prepareArgs);
+                    return createAddLockSigCallData(request.network, request.prepareArgs);
                 case TransactionType.Approve:
-                    return CreateApproveCallData(request.network, request.prepareArgs);
+                    return createApproveCallData(request.network, request.prepareArgs);
                 case TransactionType.Transfer:
-                    return CreateTransferCallData(request.network, request.prepareArgs);
+                    return createTransferCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCCommit:
-                    return CreateCommitCallData(request.network, request.prepareArgs);
+                    return createCommitCallData(request.network, request.prepareArgs);
                 default:
                     throw new Error(`Unknown function name ${request.type}`);
             }
@@ -389,7 +389,6 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             {
                 Asset: this.FeeSymbol,
                 FixedFeeData: fixedfeeData,
-                Decimals: this.FeeDecimals
             }
 
             const balanceResponse = await this.GetBalance({

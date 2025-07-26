@@ -1,6 +1,3 @@
-import { utils } from "ethers";
-import { ContractType } from "../../../../Data/Entities/Contracts";
-import { Networks } from "../../../../Data/Entities/Networks";
 import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
 import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
@@ -8,33 +5,26 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, Wallet } from "fuels";
-import { NodeType } from "../../../../Data/Entities/Nodes";
+import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider} from "fuels";
 import abi from '../ABIs/train.json';
+import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 
-export async function CreateRefundCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+export async function createRefundCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
     const refundRequest = decodeJson<HTLCRefundTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+    const token = network.tokens.find(t => t.symbol === refundRequest.asset);
 
-    const token = network.tokens.find(t => t.asset === refundRequest.asset);
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${refundRequest.asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${refundRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
-
-    const provider = new Provider(node.url);
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const provider = new Provider(network.nodes[0].url);
+    const contractInstance = new Contract(htlcContractAddress, abi, provider);
 
     const callConfig = contractInstance.functions
         .refund(refundRequest.commitId)
@@ -45,37 +35,28 @@ export async function CreateRefundCallData(network: Networks, args: string): Pro
     return {
         data: JSON.stringify(callConfig),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: "0",
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export async function CreateCommitCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+export async function createCommitCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
     const commitRequest = decodeJson<HTLCCommitTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
+    const token = network.tokens.find(t => t.symbol === commitRequest.sourceAsset);
 
-    const token = network.tokens.find(t => t.asset === commitRequest.sourceAsset);
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.sourceAsset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.sourceAsset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
-
-    const provider = new Provider(node.url);
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const provider = new Provider(network.nodes[0].url);
+    const contractInstance = new Contract(htlcContractAddress, abi, provider);
     const receiverAddress = { bits: commitRequest.receiver };
 
     const callConfig = contractInstance.functions
@@ -99,43 +80,32 @@ export async function CreateCommitCallData(network: Networks, args: string): Pro
     return {
         data: JSON.stringify(callConfig),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: "0",
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export async function CreateRedeemCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+export async function createRedeemCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
     const redeemRequest = decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-
-    const token = network.tokens.find(t => t.asset === redeemRequest.asset);
+    const token = network.tokens.find(t => t.symbol === redeemRequest.asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and assets ${redeemRequest.asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${redeemRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
-
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
-
-    const provider = new Provider(node.url);
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const provider = new Provider(network.nodes[0].url);
+    const contractInstance = new Contract(htlcContractAddress, abi, provider);
 
     const callConfig = contractInstance.functions
-        .redeem(redeemRequest.commitId, redeemRequest.Secret)
+        .redeem(redeemRequest.commitId, redeemRequest.secret)
         .txParams({
             maxFee: bn(1000000),
         });
@@ -143,36 +113,33 @@ export async function CreateRedeemCallData(network: Networks, args: string): Pro
     return {
         data: JSON.stringify(callConfig),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: "0",
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export async function CreateLockCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+export async function createLockCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(args);
 
-    const token = network.tokens.find(t => t.asset === lockRequest.sourceAsset);
+    const token = network.tokens.find(t => t.symbol === lockRequest.sourceAsset);
+
     if (!token) {
         throw new Error(`Token not found for network ${network.name} and asset ${lockRequest.sourceAsset}`)
     };
 
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-    const provider = new Provider(node.url);
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const provider = new Provider(network.nodes[0].url);
+    const contractInstance = new Contract(htlcContractAddress, abi, provider);
 
     const receiverAddress = { bits: lockRequest.receiver };
 
-    const b256: B256Address = token.tokenContract;
+    const b256: B256Address = token.contract;
     const address: Address = Address.fromB256(b256);
     const assetId: AssetId = address.toAssetId();
 
@@ -198,38 +165,30 @@ export async function CreateLockCallData(network: Networks, args: string): Promi
     return {
         data: JSON.stringify(callConfig),
         amount: lockRequest.amount + lockRequest.reward,
-        AmountInWei: utils.parseUnits((lockRequest.amount + lockRequest.reward).toString(), token.decimals).toString(),
         asset: lockRequest.sourceAsset,
         callDataAsset: lockRequest.sourceAsset,
-        CallDataAmountInWei: utils.parseUnits((lockRequest.amount + lockRequest.reward).toString(), token.decimals).toString(),
         callDataAmount: lockRequest.amount + lockRequest.reward,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 
-export async function CreateAddLockSigCallData(network: Networks, args: string): Promise<PrepareTransactionResponse> {
+export async function createAddLockSigCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
     const addLockSigRequest = decodeJson<HTLCAddLockSigTransactionPrepareRequest>(args);
 
-    const htlcContractAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress);
-    const token = network.tokens.find(t => t.asset === addLockSigRequest.asset);
+    const token = network.tokens.find(t => t.symbol === addLockSigRequest.asset);
+
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${addLockSigRequest.asset}`);
-    }
+        throw new Error(`Token not found for network ${network.name} and asset ${addLockSigRequest.asset}`)
+    };
 
-    const nativeToken = network.tokens.find(t => t.isNative === true);
-    if (!nativeToken) {
-        throw new Error(`Native token not found for network ${network.name}`);
-    }
+    const htlcContractAddress = token.contract
+        ? network.htlcNativeContractAddress
+        : network.htlcTokenContractAddress
 
-    const node = network.nodes.find(n => n.type === NodeType.Primary);
-    if (!node) {
-        throw new Error(`Primary node not found for network ${network.name}`);
-    }
+    const provider = new Provider(network.nodes[0].url);
 
-    const provider = new Provider(node.url);
-
-    const contractInstance = new Contract(htlcContractAddress.address, abi, provider);
+    const contractInstance = new Contract(htlcContractAddress, abi, provider);
 
     const callConfig = contractInstance.functions
         .add_lock_sig(
@@ -245,12 +204,10 @@ export async function CreateAddLockSigCallData(network: Networks, args: string):
     return {
         data: JSON.stringify(callConfig),
         amount: 0,
-        AmountInWei: "0",
-        asset: nativeToken.asset,
-        callDataAsset: token.asset,
-        CallDataAmountInWei: '0',
+        asset: network.nativeToken.symbol,
+        callDataAsset: token.symbol,
         callDataAmount: 0,
-        toAddress: htlcContractAddress.address,
+        toAddress: htlcContractAddress,
     };
 }
 

@@ -1,6 +1,6 @@
-import { NetworkDto } from "./NetworkDto";
-import { NodeDto } from "./NodeDto";
-import { TokenDto } from "./TokenDto";
+import { NetworkDto } from "./Dtos/NetworkDto";
+import { NodeDto } from "./Dtos/NodeDto";
+import { TokenDto } from "./Dtos/TokenDto";
 
 
 export interface DetailedNetworkDto extends NetworkDto {
@@ -20,4 +20,3 @@ export enum TransactionFeeType {
   ArbitrumEIP1559,
   OptimismEIP1559,
 }
-

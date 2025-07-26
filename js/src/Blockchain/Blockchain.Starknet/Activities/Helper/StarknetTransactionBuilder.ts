@@ -11,7 +11,7 @@ import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/T
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 
-export function CreateRefundCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createRefundCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const refundRequest = decodeJson<HTLCRefundTransactionPrepareRequest>(args);
 
@@ -43,7 +43,7 @@ export function CreateRefundCallData(network: DetailedNetworkDto, args: string):
     };
 }
 
-export function CreateRedeemCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createRedeemCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const redeemRequest = decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
 
@@ -78,7 +78,7 @@ export function CreateRedeemCallData(network: DetailedNetworkDto, args: string):
     };
 }
 
-export function CreateLockCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createLockCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(args);
 
@@ -123,7 +123,7 @@ export function CreateLockCallData(network: DetailedNetworkDto, args: string): P
     };
 }
 
-export function CreateAddLockSigCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createAddLockSigCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const addLockSigRequest = decodeJson<HTLCAddLockSigTransactionPrepareRequest>(args);
 
@@ -159,7 +159,7 @@ export function CreateAddLockSigCallData(network: DetailedNetworkDto, args: stri
     };
 }
 
-export function CreateApproveCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createApproveCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const approveRequest = decodeJson<ApprovePrepareRequest>(args);
 
@@ -194,7 +194,7 @@ export function CreateApproveCallData(network: DetailedNetworkDto, args: string)
     };
 }
 
-export function CreateTransferCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createTransferCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const transferRequest = decodeJson<TransferPrepareRequest>(args);
     const token = network.tokens.find(t => t.symbol === transferRequest.asset);
@@ -224,7 +224,7 @@ export function CreateTransferCallData(network: DetailedNetworkDto, args: string
     };
 }
 
-export function CreateCommitCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
+export function createCommitCallData(network: DetailedNetworkDto, args: string): PrepareTransactionResponse {
 
     const commitRequest = decodeJson<HTLCCommitTransactionPrepareRequest>(args);
 

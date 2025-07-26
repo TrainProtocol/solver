@@ -34,14 +34,15 @@ export async function FuelTransactionProcessor(
 ): Promise<TransactionResponse> {
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.prepareArgs,
-        Type: request.type,
+        fromAddress: request.fromAddress,
+        network: request.network,
+        prepareArgs: request.prepareArgs,
+        type: request.type,
     });
 
     if (!context.fee) {
         context.fee = await nonRetryableActivities.EstimateFee({
-            NetworkName: request.NetworkName,
+            network: request.network,
             toAddress: preparedTransaction.toAddress,
             amount: preparedTransaction.amount,
             fromAddress: request.fromAddress,
@@ -51,16 +52,16 @@ export async function FuelTransactionProcessor(
     }
 
     const publishedTransaction = await defaultActivities.PublishTransaction({
-        NetworkName: request.NetworkName,
-        FromAddress: request.fromAddress,
-        CallData: preparedTransaction.data,
-        Fee: context.fee,
-        Amount: preparedTransaction.AmountInWei,
+        network: request.network,
+        fromAddress: request.fromAddress,
+        callData: preparedTransaction.data,
+        fee: context.fee,
+        amount: preparedTransaction.amount,
     });
 
     const transactionResponse = await defaultActivities.GetTransaction({
-        NetworkName: request.NetworkName,
-        TransactionHash: publishedTransaction,
+        network: request.network,
+        transactionHash: publishedTransaction,
     });
 
     transactionResponse.Asset = preparedTransaction.callDataAsset;

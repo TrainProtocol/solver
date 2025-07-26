@@ -3,7 +3,7 @@ import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../..
 import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
 import { TokenCommittedEvent as TokenCommittedEvent } from "../../Models/StarknetTokenCommittedEvent";
-import { formatAddress as FormatAddress } from "../StarknetBlockchainActivities";
+import { formatAddress} from "../StarknetBlockchainActivities";
 import { formatUnits } from "ethers/lib/utils";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { BigIntToAscii, ToHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
@@ -52,7 +52,7 @@ export async function TrackBlockEventsAsync(
             const data = eventData as unknown as TokenCommittedEvent;
 
             const receiverAddress = solverAddresses.find(
-                x => FormatAddress(x) === FormatAddress(ToHex(data.srcReceiver))
+                x => formatAddress(x) === formatAddress(ToHex(data.srcReceiver))
             );
 
             if (!receiverAddress) {
@@ -64,8 +64,8 @@ export async function TrackBlockEventsAsync(
                 commitId: ToHex(data.Id),
                 amount: Number(formatUnits(data.amount, 18)),
                 receiverAddress: receiverAddress,
-                sourceNetwork: network.displayName,
-                senderAddress: FormatAddress(ToHex(data.sender)),
+                sourceNetwork: network.name,
+                senderAddress: formatAddress(ToHex(data.sender)),
                 sourceAsset: BigIntToAscii(data.srcAsset),
                 destinationAddress: data.dstAddress,
                 destinationNetwork: BigIntToAscii(data.dstChain),

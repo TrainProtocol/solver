@@ -1,23 +1,22 @@
 
-import { bn, Contract, DateTime, formatUnits, Provider, ReceiptType } from "fuels";
+import { bn, Contract, DateTime, Provider, ReceiptType } from "fuels";
 import abi from '../ABIs/train.json';
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
 import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";
-import { Tokens } from "../../../../Data/Entities/Tokens";
+import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { formatAddress } from "../FuelBlockchainActivities";
 
 export default async function TrackBlockEventsAsync(
-  networkName: string,
-  nodeUrl: string,
+  network: DetailedNetworkDto,
   fromBlock: number,
   toBlock: number,
-  htlcContractAddress: string,
-  solverAddress: string,
-  tokens: Tokens[],
+  solverAddresses: string[],
 ): Promise<HTLCBlockEventResponse> {
 
   const tokenCommittedSelector = "8695557382153973144";
   const tokenLockAddedSelector = "12557029732458786074";
+  const htlcContractAddress = network.htlcTokenContractAddress;
 
   const response: HTLCBlockEventResponse = {
     htlcCommitEventMessages: [],
@@ -25,7 +24,7 @@ export default async function TrackBlockEventsAsync(
   };
 
   try {
-    const provider = new Provider(nodeUrl);
+    const provider = new Provider(network.nodes[0].url);
     const contractInstance = new Contract(htlcContractAddress, abi, provider);
 
     const query = `
@@ -42,14 +41,16 @@ export default async function TrackBlockEventsAsync(
       }
     `;
 
-    if (fromBlock == toBlock) fromBlock = fromBlock - 1;
+    if (fromBlock == toBlock) {
+      fromBlock = fromBlock - 1;
+    }
 
     const variables = {
       first: toBlock - fromBlock,
       after: fromBlock.toString(),
     };
 
-    const getBlockResponse = await fetch(nodeUrl, {
+    const getBlockResponse = await fetch(network.nodes[0].url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,9 +65,9 @@ export default async function TrackBlockEventsAsync(
     }
 
     const blockResponseJson = await getBlockResponse.json();
-    const blocks = blockResponseJson?.data?.blocks?.nodes ?? [];
+    const blocks = blockResponseJson?.data?.blocks?.nodes;
 
-    if (!blocks || blocks.length === 0) {
+    if (!blocks) {
       throw new Error(`No blocks found between ${fromBlock} and ${toBlock}`);
     }
 
@@ -95,26 +96,25 @@ export default async function TrackBlockEventsAsync(
         );
 
         const data = decodedData[0] as TokenCommittedEvent;
-        const sourceToken = tokens.find(t => t.asset === data.srcAsset.trim() && t.network.name === networkName);
-        const destToken = tokens.find(t => t.asset === data.dstAsset.trim() && t.network.name === data.dstChain.trim());
         const timelock = DateTime.fromTai64(data.timelock);
         const commitId = bn(data.Id).toHex();
-        
+
+        const receiverAddress = solverAddresses.find(
+          x => formatAddress(x) === formatAddress(data.srcReceiver.bits)
+        );
+
         const commitMsg: HTLCCommitEventMessage = {
           txId: transaction.id,
           commitId: commitId,
-          amount: Number(formatUnits(data.amount, sourceToken.decimals)),
-          amountInWei: data.amount.toString(),
-          receiverAddress: solverAddress,
-          sourceNetwork: networkName,
+          amount: Number(data.amount),
+          receiverAddress: receiverAddress,
+          sourceNetwork: network.name,
           senderAddress: data.sender.bits,
           sourceAsset: data.srcAsset.trim(),
           destinationAddress: data.dstAddress.trim(),
           destinationNetwork: data.dstChain.trim(),
           destinationAsset: data.dstAsset.trim(),
           timeLock: timelock.toUnixSeconds(),
-          DestinationNetworkType: destToken.network.type,
-          SourceNetworkType: sourceToken.network.type,
         };
 
         response.htlcCommitEventMessages.push(commitMsg);
@@ -135,9 +135,9 @@ export default async function TrackBlockEventsAsync(
 
         const lockMsg: HTLCLockEventMessage = {
           txId: transaction.id,
-          Id: commitId,
-          HashLock: hashlock,
-          TimeLock: timelock.toUnixSeconds(),
+          commitId: commitId,
+          hashLock: hashlock,
+          timeLock: timelock.toUnixSeconds(),
         };
 
         response.htlcLockEventMessages.push(lockMsg);
