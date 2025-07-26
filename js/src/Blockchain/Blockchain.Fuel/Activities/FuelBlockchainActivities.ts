@@ -107,24 +107,28 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         transactionCost = await contractInstance.functions[functionName](...requestData.args).getTransactionCost();
       }
 
+      const balanceResponse = await this.GetBalance({
+        network: feeRequest.network,
+        address: feeRequest.fromAddress,
+        asset: feeRequest.asset
+      });
+
       const fixedfeeData: FixedFeeData = {
         FeeInWei: transactionCost.maxFee.toString(),
       };
 
-      const legacyFeeData: LegacyFeeData = {
-        GasLimit: transactionCost.gasUsed.toString(),
-        GasPriceInWei: transactionCost.gasPrice.toString(),
-        L1FeeInWei: null
-      };
+      if (balanceResponse.amount < Number(fixedfeeData.FeeInWei) + Number(feeRequest.amount)) {
+        throw new Error(`Insufficient balance for transaction. Required: ${fixedfeeData.FeeInWei + feeRequest.amount}, Available: ${balanceResponse.amount}`);
+      }
 
       const result: Fee = {
         Asset: feeRequest.network.nativeToken.symbol,
         FixedFeeData: fixedfeeData,
-        LegacyFeeData: legacyFeeData,
       }
 
       return result;
     }
+
     catch (error: any) {
       if (error?.message && (error.message.includes("Invalid Reward Timelock") || error.message.includes("No Future Timelock"))) {
         throw new Error;
