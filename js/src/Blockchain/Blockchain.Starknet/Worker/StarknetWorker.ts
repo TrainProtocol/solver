@@ -25,7 +25,11 @@ export default async function run( taskQueue: string): Promise<void> {
       address: process.env.TrainSolver__TemporalServerHost,
     });
 
-    const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
+    const namespace = process.env.TrainSolver__TemporalNamespace;
+
+    if (!namespace) {
+      throw new Error('TemporalNamespace environment variable is not set.');
+    }
 
     const worker = await Worker.create({
       namespace: namespace,
