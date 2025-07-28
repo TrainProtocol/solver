@@ -12,7 +12,4 @@ FROM node:20 AS final
 WORKDIR /app
 COPY --from=builder /app .
 
-ARG NETWORK
-ENV NETWORK=${NETWORK}
-
-CMD ["sh", "-c", "npm run start -- ${NETWORK}"]
+CMD ["sh", "-c", "npm run start"]
