@@ -17,6 +17,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-starknet
+  NODE_VERSION: 20
 
 jobs:
   build-and-push:
@@ -36,4 +37,4 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           build-args: |
-            NETWORK=starknet
+            NODE_VERSION=${{ env.NODE_VERSION }}
