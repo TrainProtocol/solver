@@ -6,13 +6,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<ApiEnvironment Condition="'$(ApiEnvironment)' == ''">dev</ApiEnvironment>
-
-		<SwaggerUrl Condition="'$(ApiEnvironment)' == 'dev'">https://train.dev.lb.layerswap.cloud/swagger/v1/swagger.json</SwaggerUrl>
-		<SwaggerUrl Condition="'$(ApiEnvironment)' == 'prod'">https://train.prod.lb.layerswap.cloud/swagger/v1/swagger.json</SwaggerUrl>
+		<TrainUrl Condition="'$(ApiEnvironment)' == 'dev'">train.dev.lb.layerswap.cloud</TrainUrl>
+		<TrainUrl Condition="'$(ApiEnvironment)' == 'prod'">train.lb.layerswap.io</TrainUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NSwag.MSBuild" Version="14.4.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
@@ -20,7 +19,7 @@
 	</ItemGroup>
 
 	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild">
-		<Exec Command="$(NSwagExe_Net90) run $(ProjectDir)client.nswag" />
+		<Exec Command="$(NSwagExe_Net90) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
 	</Target>
 
 </Project>

@@ -15,7 +15,7 @@
   },
   "documentGenerator": {
     "fromDocument": {
-      "url": "$(SwaggerUrl)"
+      "url": "https://$(TrainUrl)/swagger/v1/swagger.json"
     }
   }
 }
