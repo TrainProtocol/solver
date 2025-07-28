@@ -5,9 +5,11 @@ using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 
-public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
+public class EFNetworkRepository(
+    ITokenPriceRepository tokenPriceRepository,
+    SolverDbContext dbContext) : INetworkRepository
 {
-   
+
     public async Task<Network?> GetAsync(string networkName)
     {
         return await dbContext.Networks
@@ -24,7 +26,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ThenInclude(x => x.TokenPrice)
             .Include(x => x.Nodes)
             .ToListAsync();
-    }  
+    }
 
     public async Task<Network?> CreateAsync(
        string networkName,
@@ -36,7 +38,8 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
        string htlcNativeContractAddress,
        string htlcTokenContractAddress,
        string nativeTokenSymbol,
-       string nativeTokenContract,
+       string nativeTokenPriceSymbol,
+       string? nativeTokenContract,
        int nativeTokenDecimals)
     {
         var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
@@ -63,12 +66,20 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             dbContext.Networks.Add(network);
             await dbContext.SaveChangesAsync();
 
+            var tokenPrice = await tokenPriceRepository.GetAsync(nativeTokenPriceSymbol);
+
+            if (tokenPrice == null)
+            {
+                throw new Exception($"Token price for '{nativeTokenPriceSymbol}' not found.");
+            }
+
             var token = new Token
             {
                 Asset = nativeTokenSymbol,
                 Decimals = nativeTokenDecimals,
                 TokenContract = nativeTokenContract,
                 NetworkId = network.Id,
+                TokenPriceId = tokenPrice.Id,
             };
 
             network.NativeToken = token;
@@ -86,7 +97,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
 
     public async Task<Node?> CreateNodeAsync(
         string networkName,
-        string providerName, 
+        string providerName,
         string url)
     {
         var network = await GetAsync(networkName);
@@ -110,7 +121,12 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             .ExecuteDeleteAsync();
     }
 
-    public async Task<Token?> CreateTokenAsync(string networkName, string symbol, string? contract, int decimals)
+    public async Task<Token?> CreateTokenAsync(
+        string networkName,
+        string symbol,
+        string priceSymbol,
+        string? contract,
+        int decimals)
     {
         var network = await GetAsync(networkName);
 
@@ -124,41 +140,22 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
             return null;
         }
 
+        var tokenPrice = await tokenPriceRepository.GetAsync(priceSymbol);
+
+        if (tokenPrice == null)
+        {
+            throw new Exception($"Token price for '{priceSymbol}' not found.");
+        }
+
         var token = new Token
         {
             Asset = symbol,
             Decimals = decimals,
             TokenContract = contract,
-        };
-
-        network.Tokens.Add(token);
-        await dbContext.SaveChangesAsync();
-
-        return token;
-    }
-
-    public async Task<Token?> CreateNativeTokenAsync(string networkName, string symbol, int decimals)
-    {
-        var network = await GetAsync(networkName);
-
-        if (network == null)
-        {
-            return null;
-        }
-
-        if (network.NativeTokenId != null)
-        {
-            return null;
-        }
-
-        var token = new Token
-        {
-            Asset = symbol,
-            Decimals = decimals,
+            TokenPriceId = tokenPrice.Id,
             NetworkId = network.Id,
         };
 
-        network.NativeToken = token;
         await dbContext.SaveChangesAsync();
 
         return token;

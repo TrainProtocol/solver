@@ -67,6 +67,7 @@ public static class NetworkEndpoints
             request.HtlcNativeContractAddress,
             request.HtlcTokenContractAddress,
             request.NativeTokenSymbol,
+            request.NativeTokenPriceSymbol,
             request.NativeTokenContract,
             request.NativeTokenDecimals);
 
@@ -101,6 +102,7 @@ public static class NetworkEndpoints
         var token = await repository.CreateTokenAsync(
             networkName,
             request.Symbol,
+            request.PriceSymbol,
             request.Contract,
             request.Decimals);
 

@@ -1,8 +1,6 @@
-﻿using Train.Solver.Data.Abstractions.Entities.Base;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-namespace Train.Solver.Data.Abstractions.Entities;
-
-public class TokenPrice : EntityBase
+public class TokenPriceDto
 {
     public string Symbol { get; set; } = null!;
 

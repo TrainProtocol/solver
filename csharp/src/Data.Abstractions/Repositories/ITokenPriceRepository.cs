@@ -6,5 +6,7 @@ public interface ITokenPriceRepository
 {
     Task<List<TokenPrice>> GetAllAsync();
 
+    Task<TokenPrice?> GetAsync(string symbol);
+
     Task UpdateAsync(Dictionary<string, decimal> prices);
 }

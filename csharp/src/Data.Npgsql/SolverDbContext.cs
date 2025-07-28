@@ -151,6 +151,10 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<RateProvider>()
             .HasIndex(x => x.Name).IsUnique();
 
+        modelBuilder.Entity<TokenPrice>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
         modelBuilder.Entity<Token>()
            .HasOne(t => t.TokenPrice)
            .WithMany()
