@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -33,7 +34,7 @@ public static class TrustedWalletEndpoints
         ITrustedWalletRepository repository,
         NetworkType[]? types)
     {
-        var wallets = await repository.GetAllAsync(types);
+        var wallets = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
         return Results.Ok(wallets.Select(x=>x.ToDto()));
     }
 
