@@ -94,6 +94,11 @@ app.MapGroup("/api")
    .WithTags("Rate Provider");
 
 app.MapGroup("/api")
+   .MapTokenPriceEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Token Price");
+
+app.MapGroup("/api")
    .MapSwapMetricEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Swap Metric");
