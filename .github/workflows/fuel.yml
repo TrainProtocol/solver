@@ -17,6 +17,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-fuel
+  NODE_VERSION: 20
 
 jobs:
   build-and-push:
