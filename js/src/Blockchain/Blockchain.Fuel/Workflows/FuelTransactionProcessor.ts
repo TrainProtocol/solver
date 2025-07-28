@@ -34,37 +34,38 @@ export async function FuelTransactionProcessor(
 ): Promise<TransactionResponse> {
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
+        fromAddress: request.fromAddress,
+        network: request.network,
+        prepareArgs: request.prepareArgs,
+        type: request.type,
     });
 
-    if (!context.Fee) {
-        context.Fee = await nonRetryableActivities.EstimateFee({
-            NetworkName: request.NetworkName,
-            ToAddress: preparedTransaction.ToAddress,
-            Amount: preparedTransaction.Amount,
-            FromAddress: request.FromAddress,
-            Asset: preparedTransaction.Asset,
-            CallData: preparedTransaction.Data,
+    if (!context.fee) {
+        context.fee = await nonRetryableActivities.EstimateFee({
+            network: request.network,
+            toAddress: preparedTransaction.toAddress,
+            amount: preparedTransaction.amount,
+            fromAddress: request.fromAddress,
+            asset: preparedTransaction.asset,
+            callData: preparedTransaction.data,
         });
     }
 
     const publishedTransaction = await defaultActivities.PublishTransaction({
-        NetworkName: request.NetworkName,
-        FromAddress: request.FromAddress,
-        CallData: preparedTransaction.Data,
-        Fee: context.Fee,
-        Amount: preparedTransaction.AmountInWei,
+        network: request.network,
+        fromAddress: request.fromAddress,
+        callData: preparedTransaction.data,
+        fee: context.fee,
+        amount: preparedTransaction.amount,
     });
 
     const transactionResponse = await defaultActivities.GetTransaction({
-        NetworkName: request.NetworkName,
-        TransactionHash: publishedTransaction,
+        network: request.network,
+        transactionHash: publishedTransaction,
     });
 
-    transactionResponse.Asset = preparedTransaction.CallDataAsset;
-    transactionResponse.Amount = preparedTransaction.CallDataAmount;
+    transactionResponse.Asset = preparedTransaction.callDataAsset;
+    transactionResponse.Amount = preparedTransaction.callDataAmount;
     
     return transactionResponse;
 }

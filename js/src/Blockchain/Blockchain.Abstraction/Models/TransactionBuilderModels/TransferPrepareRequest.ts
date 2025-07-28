@@ -1,7 +1,7 @@
 export interface TransferPrepareRequest {
-    ToAddress: string;
-    Asset: string;
-    Amount: number;
-    Memo?: string;
-    FromAddress?: string;
+    toAddress: string;
+    asset: string;
+    amount: number;
+    memo?: string;
+    fromAddress?: string;
   }

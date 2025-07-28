@@ -3,11 +3,8 @@ import Redis from 'ioredis';
 import Redlock from 'redlock';
 import { container } from 'tsyringe';
 import { ConvertToRedisUrl } from './RedisHelper/RedisFactory';
-import { SolverContext } from '../../../Data/SolverContext';
 
 export async function AddCoreServices(): Promise<void> {
-    const dbContext = new SolverContext(process.env.TrainSolver__DatabaseConnectionString); 
-
     const redisUrl = ConvertToRedisUrl(process.env.TrainSolver__RedisConnectionString);
     const redis = new Redis(redisUrl);
     const redlock = new Redlock([redis], {
@@ -17,6 +14,5 @@ export async function AddCoreServices(): Promise<void> {
     });
 
     container.register<Redlock>("Redlock", { useValue: redlock });
-    container.register<SolverContext>(SolverContext, { useValue: dbContext });
     container.register<Redis>("Redis", { useValue: redis });
 }

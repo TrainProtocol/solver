@@ -4,7 +4,6 @@ using RedLockNet;
 using StackExchange.Redis;
 using Temporalio.Extensions.Hosting;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Common.Enums;
 using Train.Solver.Workflow.EVM.Workflows;
 using Train.Solver.Workflow.EVM.Activities;
 
@@ -13,10 +12,10 @@ namespace Train.Solver.Workflow.EVM.Extensions;
 public static class TrainSolverBuilderExtensions
 {
     public static TrainSolverBuilder WithEVMWorkflows(
-     this TrainSolverBuilder builder)
+        this TrainSolverBuilder builder)
     {
         var temporalBuilder = builder.Services
-            .AddHostedTemporalWorker(nameof(NetworkType.EVM))
+            .AddHostedTemporalWorker(builder.Options.NetworkType)
             .AddWorkflow<EVMTransactionProcessor>()
             .AddTransientActivities<EVMBlockchainActivities>();
 

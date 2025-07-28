@@ -1,16 +1,18 @@
+import { DetailedNetworkDto } from "../DetailedNetworkDto";
+
 export interface AddLockSignatureModel {
-    NetworkName: string;
-    R?: string;
-    S?: string;
-    V?: string;
-    Signature?: string;
-    SignatureArray?: string[];
-    Timelock: number;
-  }
-  
-  export interface AddLockSignatureRequest extends AddLockSignatureModel {
-    Id: string;
-    Hashlock: string;
-    SignerAddress: string;
-    Asset: string;
-  }
+  r?: string;
+  s?: string;
+  v?: string;
+  signature?: string;
+  signatureArray?: string[];
+  timelock: number;
+}
+
+export interface AddLockSignatureRequest extends AddLockSignatureModel {
+  commitId: string;
+  hashlock: string;
+  signerAddress: string;
+  asset: string;
+  detailedNetworkDto: DetailedNetworkDto;
+}
