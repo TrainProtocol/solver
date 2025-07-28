@@ -1,22 +1,21 @@
-﻿using RedLockNet.SERedis.Configuration;
+﻿using RedLockNet;
 using RedLockNet.SERedis;
-using RedLockNet;
+using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using Temporalio.Extensions.Hosting;
 using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Common.Enums;
-using Train.Solver.Workflow.EVM.Workflows;
 using Train.Solver.Workflow.EVM.Activities;
+using Train.Solver.Workflow.EVM.Workflows;
 
 namespace Train.Solver.Workflow.EVM.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {
     public static TrainSolverBuilder WithEVMWorkflows(
-     this TrainSolverBuilder builder)
+        this TrainSolverBuilder builder)
     {
         var temporalBuilder = builder.Services
-            .AddHostedTemporalWorker(nameof(NetworkType.EVM))
+            .AddHostedTemporalWorker(builder.Options.NetworkType)
             .AddWorkflow<EVMTransactionProcessor>()
             .AddTransientActivities<EVMBlockchainActivities>();
 

@@ -14,7 +14,7 @@ namespace Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 public static class TrainSolverBuilderExtensions
 {
     public static TrainSolverBuilder WithTreasury(
-    this TrainSolverBuilder builder)
+        this TrainSolverBuilder builder)
     {
         return builder.WithTreasury(null);
     }
