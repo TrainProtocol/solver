@@ -1,7 +1,7 @@
 import starknetWorker from './Blockchain/Blockchain.Starknet/Worker/StarknetWorker';
 import fuelWorker from './Blockchain/Blockchain.Fuel/Worker/FuelWorker';
 
-const network = process.env.TrainSolver__WorkerNetwork;
+const network = process.env.TrainSolver__WorkerNetworkName;
 
 // Run the corresponding worker based on the network name
 switch (network) {
