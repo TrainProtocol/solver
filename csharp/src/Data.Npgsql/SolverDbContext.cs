@@ -67,6 +67,10 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .IsUnique();
 
         modelBuilder.Entity<Network>()
+            .HasIndex(x => new { x.ChainId, x.Type })
+            .IsUnique();
+
+        modelBuilder.Entity<Network>()
             .Property(b => b.Type)
             .HasEnumComment();
 
