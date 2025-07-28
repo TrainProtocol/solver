@@ -18,11 +18,11 @@ public static class WalletEndpoints
             .Produces<IEnumerable<WalletDto>>();
 
         group.MapPost("/wallets", CreateAsync)
-            .Produces<WalletDto>()
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapPut("/wallets/{networkType}/{address}", UpdateAsync)
-          .Produces<WalletDto>()
+            .Produces(StatusCodes.Status200OK)
           .Produces(StatusCodes.Status404NotFound);
 
         return group;
@@ -46,7 +46,7 @@ public static class WalletEndpoints
         var wallet = await repository.CreateAsync(request.NetworkType, generatedAddress, request.Name);
         return wallet is null
             ? Results.BadRequest("Could not create wallet")
-            : Results.Ok(wallet.ToDto());
+            : Results.Ok();
     }
 
     private static async Task<IResult> UpdateAsync(
@@ -62,6 +62,6 @@ public static class WalletEndpoints
 
         return wallet is null
             ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")
-            : Results.Ok(wallet.ToDto());
+            : Results.Ok();
     }
 }

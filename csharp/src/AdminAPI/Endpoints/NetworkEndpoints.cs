@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.AdminAPI.Endpoints;
 
@@ -71,7 +74,9 @@ public static class NetworkEndpoints
             request.NativeTokenContract,
             request.NativeTokenDecimals);
 
-        return Results.Ok(network.ToDetailedDto());
+        return network is null
+           ? Results.BadRequest("Failed to create network")
+           : Results.Ok();
     }
 
     private static async Task<IResult> CreateNodeAsync(
@@ -82,7 +87,9 @@ public static class NetworkEndpoints
         var node = await repository.CreateNodeAsync(
             networkName, request.ProviderName, request.Url);
 
-        return Results.Ok(node.ToDto());
+        return node is null
+           ? Results.BadRequest("Failed to create node")
+           : Results.Ok();
     }
 
     private static async Task<IResult> DeleteNodeAsync(
@@ -106,6 +113,8 @@ public static class NetworkEndpoints
             request.Contract,
             request.Decimals);
 
-        return Results.Ok(token.ToDto());
+        return token is null
+           ? Results.BadRequest("Failed to create token")
+           : Results.Ok();
     }
 }
