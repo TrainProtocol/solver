@@ -8,6 +8,8 @@ public class TrainSolverOptions
 
     public string TemporalNamespace { get; set; } = "train";
 
+    public string NetworkType { get; set; } = null!;
+
     public string RedisConnectionString { get; set; } = null!;
 
     public int RedisDatabaseIndex { get; set; } = 3;

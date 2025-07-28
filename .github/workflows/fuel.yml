@@ -1,6 +1,7 @@
 name: Fuel Workflow runner
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, dev ]
     paths:
@@ -16,6 +17,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-fuel
+  NODE_VERSION: 20
 
 jobs:
   build-and-push:
@@ -35,4 +37,4 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           build-args: |
-            NETWORK=fuel
+            NODE_VERSION=${{ env.NODE_VERSION }}
