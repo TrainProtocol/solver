@@ -6,8 +6,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TrainUrl Condition="'$(ApiEnvironment)' == 'dev'">train.dev.lb.layerswap.cloud</TrainUrl>
-		<TrainUrl Condition="'$(ApiEnvironment)' == 'prod'">train.lb.layerswap.io</TrainUrl>
+		<TrainUrl Condition="'$(Environment)' == 'dev'">train.dev.lb.layerswap.cloud</TrainUrl>
+		<TrainUrl Condition="'$(Environment)' == 'prod'">train.lb.layerswap.io</TrainUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
