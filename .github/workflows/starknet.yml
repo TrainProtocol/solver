@@ -35,5 +35,3 @@ jobs:
           docker-image: ${{ env.DOCKER_IMAGE }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-          build-args: |
-            NETWORK=starknet
