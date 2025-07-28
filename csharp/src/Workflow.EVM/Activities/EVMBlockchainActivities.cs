@@ -1,36 +1,38 @@
-﻿using System.Numerics;
-using Nethereum.ABI.EIP712;
+﻿using Nethereum.ABI.EIP712;
+using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.JsonRpc.Client;
 using Nethereum.RPC.Eth.DTOs;
+using Nethereum.RPC.Eth.Mappers;
 using Nethereum.RPC.Eth.Transactions;
 using Nethereum.Signer;
 using Nethereum.Signer.EIP712;
 using Nethereum.Util;
 using Nethereum.Web3;
-using static Train.Solver.Common.Helpers.ResilientNodeHelper;
-using Nethereum.RPC.Eth.Mappers;
-using Temporalio.Activities;
-using Train.Solver.Infrastructure.Abstractions.Exceptions;
-using Train.Solver.Infrastructure.Abstractions;
-using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
-using Train.Solver.Infrastructure.Abstractions.Models;
 using RedLockNet;
 using StackExchange.Redis;
+using System.Numerics;
+using Temporalio.Activities;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Helpers;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.SmartNodeInvoker;
 using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Models;
-using Train.Solver.Workflow.EVM.Models;
-using Train.Solver.Workflow.EVM.Helpers;
 using Train.Solver.Workflow.EVM.FunctionMessages;
+using Train.Solver.Workflow.EVM.Helpers;
+using Train.Solver.Workflow.EVM.Models;
+using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Workflow.EVM.Activities;
 
 public class EVMBlockchainActivities(
     IDistributedLockFactory distributedLockFactory,
+    ISmartNodeInvoker smartNodeInvoker,
     IDatabase cache,
     IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
 {
@@ -131,11 +133,12 @@ public class EVMBlockchainActivities(
 
         if (currency.Contract is null)
         {
-            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
+            var result = await smartNodeInvoker.GetDataFromNodesAsync(
+                request.Network.Nodes.Select(x => x.Url),
                 async url =>
                     await new Web3(url).Eth.GetBalance.SendRequestAsync(request.Address));
 
-            balance = result.Value;
+            balance = result.Data;
         }
         else
         {

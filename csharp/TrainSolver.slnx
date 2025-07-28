@@ -24,6 +24,7 @@
   </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Common/Common.csproj" />
+    <Project Path="src/SmartNodeInvoker/SmartNodeInvoker.csproj" Id="fa65e82e-9472-49f9-90bf-de90d8efe45b" />
   </Folder>
   <Folder Name="/src/Workflow/">
     <Project Path="src/Workflow.Abstractions/Workflow.Abstractions.csproj" />

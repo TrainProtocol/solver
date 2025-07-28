@@ -6,6 +6,7 @@ using Temporalio.Extensions.Hosting;
 using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Workflow.EVM.Workflows;
 using Train.Solver.Workflow.EVM.Activities;
+using Train.Solver.SmartNodeInvoker;
 
 namespace Train.Solver.Workflow.EVM.Extensions;
 
@@ -19,8 +20,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<EVMTransactionProcessor>()
             .AddTransientActivities<EVMBlockchainActivities>();
 
-        builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Options.RedisConnectionString));
-        builder.Services.AddTransient(sp => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase(builder.Options.RedisDatabaseIndex));
+        builder.Services.AddSmartNodeInvoker(builder.Options.RedisConnectionString, builder.Options.RedisDatabaseIndex);
         builder.Services.AddSingleton<IDistributedLockFactory>(x => RedLockFactory.Create(new List<RedLockMultiplexer>
         {
             new(ConnectionMultiplexer.Connect(builder.Options.RedisConnectionString))
