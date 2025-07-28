@@ -36,4 +36,4 @@ jobs:
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           build-args: |
-            NETWORK=starknet
+            NODE_VERSION=${{ env.NODE_VERSION }}
