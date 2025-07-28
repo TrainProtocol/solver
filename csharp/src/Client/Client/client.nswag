@@ -1,0 +1,21 @@
+{
+  "runtime": "Net90",
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "TrainSolverApiClient",
+      "output": "TrainSolverApiClient.cs",
+      "generateClientClasses": true,
+      "generateClientInterfaces": true,
+      "generateDtoTypes": true,
+      "useHttpClientCreationMethod": false,
+      "injectHttpClient": true,
+      "useBaseUrl": true,
+      "generateOptionalParameters": true
+    }
+  },
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "$(SwaggerUrl)"
+    }
+  }
+}

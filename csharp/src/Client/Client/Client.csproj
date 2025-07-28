@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Client</AssemblyName>
+		<RootNamespace>Train.Solver.Client</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ApiEnvironment Condition="'$(ApiEnvironment)' == ''">dev</ApiEnvironment>
+
+		<SwaggerUrl Condition="'$(ApiEnvironment)' == 'dev'">https://train.dev.lb.layerswap.cloud/swagger/v1/swagger.json</SwaggerUrl>
+		<SwaggerUrl Condition="'$(ApiEnvironment)' == 'prod'">https://train.prod.lb.layerswap.cloud/swagger/v1/swagger.json</SwaggerUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NSwag.MSBuild" Version="14.4.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild">
+		<Exec Command="$(NSwagExe_Net90) run $(ProjectDir)client.nswag" />
+	</Target>
+
+</Project>
