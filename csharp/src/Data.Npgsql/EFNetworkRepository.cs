@@ -68,6 +68,7 @@ public class EFNetworkRepository(SolverDbContext dbContext) : INetworkRepository
                 Asset = nativeTokenSymbol,
                 Decimals = nativeTokenDecimals,
                 TokenContract = nativeTokenContract,
+                NetworkId = network.Id,
             };
 
             network.NativeToken = token;
