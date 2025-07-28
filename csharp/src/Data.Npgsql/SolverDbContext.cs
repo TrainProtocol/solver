@@ -74,13 +74,13 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<Wallet>()
-            .HasIndex(x => x.Name).IsUnique();
+            .HasIndex(x => new { x.Name, x.NetworkType }).IsUnique();
 
         modelBuilder.Entity<TrustedWallet>()
           .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<TrustedWallet>()
-            .HasIndex(x => x.Name).IsUnique();
+            .HasIndex(x => new { x.Name, x.NetworkType }).IsUnique();
 
         modelBuilder.Entity<ServiceFee>()
             .HasIndex(x => x.Name).IsUnique();
@@ -185,7 +185,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
                 && !x.IsAbstract);
 
         foreach (var entity in entities)
-        {           
+        {
             modelBuilder
                 .Entity(entity)
                 .Property(nameof(EntityBase.CreatedDate))

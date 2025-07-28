@@ -55,7 +55,7 @@ public static class NetworkEndpoints
 
     private static async Task<IResult> CreateAsync(
         INetworkRepository repository,
-        [AsParameters] CreateNetworkRequest request)
+        [FromBody] CreateNetworkRequest request)
     {
         var network = await repository.CreateAsync(
             request.NetworkName,
