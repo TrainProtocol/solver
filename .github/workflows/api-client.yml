@@ -27,7 +27,7 @@ jobs:
         run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:Environment=dev
 
       - name: Dotnet Pack
-        run: dotnet pack {{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:PackageVersion="${{ env.NUGET_PACKAGE_VERSION }}"
+        run: dotnet pack ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:PackageVersion="${{ env.NUGET_PACKAGE_VERSION }}"
 
       - name: Push to NuGet.org Feed
         run: dotnet nuget push "${{ env.PROJECT_PATH }}/bin/${{ env.BUILD_CONFIG }}/*.nupkg" -s "https://api.nuget.org/v3/index.json" -k "${{ secrets.NUGET_TOKEN }}"
