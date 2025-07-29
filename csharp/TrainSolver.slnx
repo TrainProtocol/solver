@@ -41,6 +41,7 @@
   <Folder Name="/_build/">
     <File Path="../.github/actions/docker/action.yml" />
     <File Path="../.github/workflows/admin-api.yml" />
+    <File Path="../.github/workflows/api-client.yml" />
     <File Path="../.github/workflows/api.yml" />
     <File Path="../.github/workflows/evm.yml" />
     <File Path="../.github/workflows/fuel.yml" />

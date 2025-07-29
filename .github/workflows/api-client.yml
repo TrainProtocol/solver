@@ -1,0 +1,33 @@
+name: Publish Solver Client to nuget.org
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+  
+env:
+  NUGET_PACKAGE_VERSION: "1.0.${{ github.run_number }}"
+  PROJECT_PATH: ".csharp/src/Client"
+  BUILD_CONFIG: "Release"
+
+jobs:
+  nuget_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          
+      - name: Dotnet Build
+        run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}"
+
+      - name: Dotnet Pack
+        run: dotnet pack ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:PackageVersion="${{ env.NUGET_PACKAGE_VERSION }}"
+
+      - name: Push to NuGet.org Feed
+        run: dotnet nuget push ${{ env.PROJECT_PATH }}/bin/${{ env.BUILD_CONFIG }}/*.nupkg -s "https://api.nuget.org/v3/index.json" -k "${{ secrets.NUGET_TOKEN }}"
