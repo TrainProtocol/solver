@@ -18,7 +18,7 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild">
+	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild" Condition="'$(Environment)' == 'dev' OR '$(Environment)' == 'prod'">
 		<Exec Command="$(NSwagExe_Net90) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
 	</Target>
 

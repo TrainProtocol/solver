@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '9.0.x'
           
       - name: Dotnet Build
-        run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}"
+        run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:Environment=dev
 
       - name: Dotnet Pack
         run: dotnet pack ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:PackageVersion="${{ env.NUGET_PACKAGE_VERSION }}"
