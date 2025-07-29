@@ -14,7 +14,9 @@ public static class ObjectExtensions
         {
             return JsonSerializer.Serialize(obj, new JsonSerializerOptions
             {
-                Converters = { new BigIntegerConverter() }
+                Converters = { new BigIntegerConverter() },
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
             });
         }
         catch (Exception ex)
@@ -33,7 +35,9 @@ public static class ObjectExtensions
         {
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
             {
-                Converters = { new BigIntegerConverter() }
+                Converters = { new BigIntegerConverter() },
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
             })!;
         }
         catch (Exception ex)
