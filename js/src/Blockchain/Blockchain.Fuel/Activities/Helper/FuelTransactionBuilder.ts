@@ -5,7 +5,7 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider} from "fuels";
+import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider } from "fuels";
 import abi from '../ABIs/train.json';
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 
@@ -32,8 +32,10 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
             maxFee: bn(1000000),
         });
 
+    const txRequest = await callConfig.getTransactionRequest();
+
     return {
-        data: JSON.stringify(callConfig),
+        data: JSON.stringify(txRequest),
         amount: 0,
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
@@ -77,8 +79,10 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             maxFee: bn(1000000),
         });
 
+    const txRequest = await callConfig.getTransactionRequest();
+
     return {
-        data: JSON.stringify(callConfig),
+        data: JSON.stringify(txRequest),
         amount: 0,
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
@@ -110,8 +114,10 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
             maxFee: bn(1000000),
         });
 
+    const txRequest = await callConfig.getTransactionRequest();
+
     return {
-        data: JSON.stringify(callConfig),
+        data: JSON.stringify(txRequest),
         amount: 0,
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
@@ -162,8 +168,10 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
             maxFee: bn(1000000),
         });
 
+    const txRequest = await callConfig.getTransactionRequest();
+
     return {
-        data: JSON.stringify(callConfig),
+        data: JSON.stringify(txRequest),
         amount: lockRequest.amount + lockRequest.reward,
         asset: lockRequest.sourceAsset,
         callDataAsset: lockRequest.sourceAsset,
@@ -200,9 +208,11 @@ export async function createAddLockSigCallData(network: DetailedNetworkDto, args
         .txParams({
             maxFee: bn(1000000),
         });
+        
+    const txRequest = await callConfig.getTransactionRequest();
 
     return {
-        data: JSON.stringify(callConfig),
+        data: JSON.stringify(txRequest),
         amount: 0,
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,

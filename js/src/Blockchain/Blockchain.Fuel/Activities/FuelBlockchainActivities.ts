@@ -11,7 +11,6 @@ import { Contract, BigNumberCoder, Provider, TransactionCost, Wallet, Signer, sh
 import abi from './ABIs/train.json';
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
-import { inject, injectable } from "tsyringe";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
 import { BalanceRequest } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceRequest";
 import { BalanceResponse } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceResponse";
