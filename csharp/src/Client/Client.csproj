@@ -6,11 +6,6 @@
 		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<TrainUrl Condition="'$(Environment)' == 'dev'">train.dev.lb.layerswap.cloud</TrainUrl>
-		<TrainUrl Condition="'$(Environment)' == 'prod'">train.lb.layerswap.io</TrainUrl>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NSwag.MSBuild" Version="14.4.0">
@@ -19,8 +14,8 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild" Condition="'$(Environment)' == 'dev' OR '$(Environment)' == 'prod'">
-		<Exec Command="$(NSwagExe_Net90) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
+	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild" Condition="'$(TrainUrl)' != ''">
+		<Exec Command="$(NSwagExe_Net80) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
 	</Target>
 
 </Project>

@@ -1,9 +1,10 @@
 {
-  "runtime": "Net90",
+  "runtime": "Net80",
   "codeGenerators": {
     "openApiToCSharpClient": {
       "className": "TrainSolverApiClient",
       "output": "TrainSolverApiClient.cs",
+      "namespace": "Train.Solver.Client",
       "generateClientClasses": true,
       "generateClientInterfaces": true,
       "generateDtoTypes": true,
