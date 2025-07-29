@@ -6,7 +6,7 @@ export interface HTLCBlockEventResponse {
 export interface HTLCCommitEventMessage {
   txId: string;
   commitId: string;
-  amount: number;
+  amount: string;
   receiverAddress: string;
   sourceNetwork: string;
   senderAddress: string;

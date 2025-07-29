@@ -106,7 +106,7 @@ export default async function TrackBlockEventsAsync(
         const commitMsg: HTLCCommitEventMessage = {
           txId: transaction.id,
           commitId: commitId,
-          amount: Number(data.amount),
+          amount: Number(data.amount).toString(),
           receiverAddress: receiverAddress,
           sourceNetwork: network.name,
           senderAddress: data.sender.bits,

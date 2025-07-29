@@ -135,8 +135,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
 
         return {
-            BlockNumber: lastBlockNumber,
-            BlockHash: blockData.block_hash,
+            blockNumber: lastBlockNumber,
+            blockHash: blockData.block_hash,
         };
     }
 

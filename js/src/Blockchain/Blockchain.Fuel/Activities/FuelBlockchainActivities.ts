@@ -71,8 +71,8 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     const latestBlock = await provider.getBlock(lastBlockNumber);
 
     return {
-      BlockNumber: lastBlockNumber,
-      BlockHash: latestBlock.id,
+      blockNumber: lastBlockNumber,
+      blockHash: latestBlock.id,
     };
   }
 
