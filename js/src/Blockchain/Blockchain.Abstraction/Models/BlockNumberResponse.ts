@@ -1,4 +1,4 @@
 export interface BlockNumberResponse {
-    BlockNumber: number;
-    BlockHash?: string;
+    blockNumber: number;
+    blockHash?: string;
 }

@@ -62,7 +62,7 @@ export async function TrackBlockEventsAsync(
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
                 commitId: ToHex(data.Id),
-                amount: Number(formatUnits(data.amount, 18)),
+                amount: Number(data.amount).toString(),
                 receiverAddress: receiverAddress,
                 sourceNetwork: network.name,
                 senderAddress: formatAddress(ToHex(data.sender)),
