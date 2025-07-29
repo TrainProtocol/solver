@@ -8,13 +8,7 @@ namespace Train.Solver.SmartNodeInvoker;
 
 public interface ISmartNodeInvoker
 {
-    Task<NodeResult<T>> GetDataFromNodesAsync<T>(
+    Task<NodeResult<T>> ExecuteAsync<T>(
      IEnumerable<string> nodes,
-     Func<string, CancellationToken, Task<T>> dataRetrievalTask,
-     CancellationToken cancellationToken = default);
-
-    Task<NodeResult<T>> GetDataFromNodesParallelAsync<T>(
-        IEnumerable<string> nodes,
-        Func<string, CancellationToken, Task<T>> dataRetrievalTask,
-        CancellationToken cancellationToken = default);
+     Func<string, Task<T>> dataRetrievalTask);
 }

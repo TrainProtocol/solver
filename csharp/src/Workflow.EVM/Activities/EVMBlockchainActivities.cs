@@ -133,7 +133,7 @@ public class EVMBlockchainActivities(
 
         if (currency.Contract is null)
         {
-            var result = await smartNodeInvoker.GetDataFromNodesAsync(
+            var result = await smartNodeInvoker.ExecuteAsync(
                 request.Network.Nodes.Select(x => x.Url),
                 async url =>
                     await new Web3(url).Eth.GetBalance.SendRequestAsync(request.Address));
