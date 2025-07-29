@@ -40,16 +40,16 @@ export async function FuelTransactionProcessor(
         type: request.type,
     });
 
-    if (!context.fee) {
-        context.fee = await nonRetryableActivities.EstimateFee({
-            network: request.network,
-            toAddress: preparedTransaction.toAddress,
-            amount: preparedTransaction.amount,
-            fromAddress: request.fromAddress,
-            asset: preparedTransaction.asset,
-            callData: preparedTransaction.data,
-        });
-    }
+    // if (!context.fee) {
+    //     context.fee = await nonRetryableActivities.EstimateFee({
+    //         network: request.network,
+    //         toAddress: preparedTransaction.toAddress,
+    //         amount: preparedTransaction.amount,
+    //         fromAddress: request.fromAddress,
+    //         asset: preparedTransaction.asset,
+    //         callData: preparedTransaction.data,
+    //     });
+    // }
 
     const publishedTransaction = await defaultActivities.PublishTransaction({
         network: request.network,
