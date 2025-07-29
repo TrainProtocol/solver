@@ -39,13 +39,15 @@ public static class TrainSolverBuilderExtensions
     }
 
     private static IServiceCollection AddTemporalWorkerClient(
-     this IServiceCollection services,
-     string serverHost, 
-     string @namespace)
+        this IServiceCollection services,
+        string serverHost, 
+        string @namespace)
     {
         var dataConverter = new DataConverter(new DefaultPayloadConverter(new JsonSerializerOptions
         {
             Converters = { new BigIntegerConverter() },
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
         }), new DefaultFailureConverter());
 
         services.AddTemporalClient(otps =>
@@ -72,8 +74,8 @@ public static class TrainSolverBuilderExtensions
                     WorkflowExecutionRetentionPeriod =
                             Google.Protobuf.WellKnownTypes.Duration.FromTimeSpan(TimeSpan.FromDays(7)),
                 })
-                    .GetAwaiter()
-                    .GetResult();
+                .GetAwaiter()
+                .GetResult();
             }
             catch (RpcException e) when (e.Code == RpcException.StatusCode.AlreadyExists)
             {
