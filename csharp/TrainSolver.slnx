@@ -8,6 +8,9 @@
     <Project Path="src/AdminAPI/AdminAPI.csproj" />
     <Project Path="src/API/API.csproj" />
   </Folder>
+  <Folder Name="/src/Client/">
+    <Project Path="src/Client/Client/Client.csproj" Id="90652598-d5f4-4324-b9d6-8473edfa978c" />
+  </Folder>
   <Folder Name="/src/Data/">
     <Project Path="src/Data.Abstractions/Data.Abstractions.csproj" />
     <Project Path="src/Data.Npgsql/Data.Npgsql.csproj" />
@@ -38,6 +41,7 @@
   <Folder Name="/_build/">
     <File Path="../.github/actions/docker/action.yml" />
     <File Path="../.github/workflows/admin-api.yml" />
+    <File Path="../.github/workflows/api-client.yml" />
     <File Path="../.github/workflows/api.yml" />
     <File Path="../.github/workflows/evm.yml" />
     <File Path="../.github/workflows/fuel.yml" />
