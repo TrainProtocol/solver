@@ -140,7 +140,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
 
     const timelock = DateTime.fromUnixSeconds(request.timelock).toTai64();
-    const provider = new Provider(request.detailedNetworkDto.nodes[0].url);
+    const provider = new Provider(request.network.nodes[0].url);
     const signerAddress = Wallet.fromAddress(request.signerAddress, provider).address;
 
     const idBytes = new BigNumberCoder('u256').encode(request.commitId);

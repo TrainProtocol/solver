@@ -417,14 +417,14 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         try {
 
             const provider = new RpcProvider({
-                nodeUrl: request.detailedNetworkDto.nodes[0].url
+                nodeUrl: request.network.nodes[0].url
             });
 
             const addlockData: TypedData = {
                 domain: {
                     name: 'Train',
                     version: shortString.encodeShortString("v1"),
-                    chainId: request.detailedNetworkDto.chainId,
+                    chainId: request.network.chainId,
                     revision: TypedDataRevision.ACTIVE,
                 },
                 primaryType: 'AddLockMsg',
