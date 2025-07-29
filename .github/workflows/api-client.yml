@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '8.0.x'
           
       - name: Dotnet Build
-        run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:TrainUrl="${{ env.TRAIN_URL }}"
+        run: dotnet build ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:TrainUrl="${{ vars.TRAIN_URL }}"
 
       - name: Dotnet Pack
         run: dotnet pack ${{ env.PROJECT_PATH }}/*.csproj --configuration "${{ env.BUILD_CONFIG }}" -p:PackageVersion="${{ env.NUGET_PACKAGE_VERSION }}"
