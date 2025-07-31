@@ -203,7 +203,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return JSON.stringify(txRequest);
   }
 
-  public async ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
+  private async ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
 
     const nativeAssetId = await request.wallet.provider.getBaseAssetId();
     const coinInputs = request.rawData.getCoinInputs();

@@ -15,6 +15,4 @@ export interface IFuelBlockchainActivities extends IBlockchainActivities {
     publishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
 
     composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
-
-    ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void>;
 }
