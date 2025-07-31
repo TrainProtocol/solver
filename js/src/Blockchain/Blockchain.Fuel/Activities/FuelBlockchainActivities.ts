@@ -23,8 +23,14 @@ import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionR
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { mapFuelStatusToInternal } from "./Helper/FuelTransactionStatusMapper";
+import { inject, injectable } from "tsyringe";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
+@injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
+  constructor(
+    @inject("TreasuryClient") private treasuryClient: TreasuryClient
+  ) { }
 
   public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
     try {

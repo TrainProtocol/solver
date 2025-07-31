@@ -39,12 +39,14 @@ import { TransactionType } from "../../Blockchain.Abstraction/Models/Transaciton
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
 import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
-        @inject("Redlock") private lockFactory: Redlock
+        @inject("Redlock") private lockFactory: Redlock,
+        @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
     readonly FeeSymbol = "ETH";
