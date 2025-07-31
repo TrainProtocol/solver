@@ -58,78 +58,117 @@ This ensures a uniform and secure experience regardless of the underlying blockc
 
 ---
 
-## 🧱 Project Structure
+## 🗱️ Project Structure
 
-```plaintext
-TrainSolver.sln
-└── src/
-    ├── API/                             # Entry point / HTTP Interface
-    ├── Workflow/
-    │   ├── Workflow.Abstractions/    # Workflow & Activity interfaces
-    │   ├── Workflow.Common/          # Shared workflow logic
-    │   ├── Workflow.EVM/             # EVM implementation
-    │   ├── Blockchain.Starknet/        # Starknet implementation
-    │   ├── Workflow.Solana/          # Solana implementation
-    │   ├── Workflow.Swap/            # Core swap workflow
-    │   └── Blockchain.Helpers/
-    ├── Data/
-    │   ├── Data.Abstractions/          # Repository interfaces
-    │   └── Data.Npgsql/                # PostgreSQL + EF Core
-    ├── Infrastructure/
-    │   ├── Infrastructure.Abstractions/
-    │   ├── Infrastructure.DependencyInjection/
-    │   ├── Infrastructure.Logging.OpenTelemetry/
-    │   ├── Infrastructure.Secret.HashicorpKeyVault/
-    │   └── Infrastructure.TokenPrice.Coingecko/
-    └── Shared/
-        └── Util/                       # Shared utilities
-```
+TrainSolver is composed of two primary layers:
+
+- **Core Components** – maintained by the protocol team; responsible for orchestration, APIs, and system infrastructure.
+- **Pluggable Integrations** – modular blockchain adapters implemented by external contributors or the core team using any supported Temporal SDK.
 
 ---
 
-## ⚙️ Core Components
+### 🔧 Core Components
 
-### Temporal Workflows
+These components are typically written in .NET and form the backbone of the system:
 
-Each blockchain integration must implement two Temporal workflows:
+- **Solver API**\
+  Public HTTP service responsible for:
 
-- **`TransactionProcessorWorkflow`**  
-  Responsible for building and submitting transactions, handling nonces, fees, and confirmations. This workflow is *mandatory* for all integrations.
+  - `getQuote`
+  - `getSwapInfo`
+  - `getAvailableRoutes`
 
-- **`EventListenerWorkflow`**  
-  Continuously scans blockchain blocks for relevant smart contract events (e.g., `UserLock`). Upon detecting an event, it triggers the core `SwapWorkflow`.
+- **Admin API & Dashboard**\
+  Internal management interface used to:
 
-The central `SwapWorkflow` (provided) orchestrates:
-1. Locking destination funds by calling `TransactionProcessorWorkflow`.
-2. Awaiting user confirmation.
-3. Releasing funds upon approval.
+  - Configure supported blockchains
+  - Register tokens and routes
+  - Adjust system behavior
 
-> These workflows can be implemented in **any Temporal-supported language** (e.g., Go, TypeScript, Java) and registered as long as the Temporal Worker is configured properly.
+- **Core Workflows**\
+  Temporal-based orchestrators that manage the full swap lifecycle:
+
+  - Lock and release funds
+  - Handle confirmations
+  - Monitor balances and route status
+  - Fetch and update token prices
+
+- **SignerAgent**\
+  Lightweight signing microservice hosted by the client, used to:
+
+  - Store and manage private keys securely using **HashiCorp Vault**
+  - Sign transactions using the appropriate chain-specific algorithm
+  - Expose signing endpoints for use by TrainSolver Cloud or hybrid deployments
+
+  > 🛡️ Allows clients to retain full control over their keys while enabling delegated execution.
 
 ---
 
-### Blockchain Activity Interface
+### 🔌 Pluggable Integrations
 
-All blockchain interactions are defined in the `IBlockchainActivities` interface:
+Each blockchain integration is a standalone Temporal worker that interfaces with the Core Workflows and SignerAgent.
 
-```csharp
-public interface IBlockchainActivities
-{
-    Task<BalanceResponse> GetBalanceAsync(BalanceRequest request);
-    Task<string> GetSpenderAddressAsync(SpenderAddressRequest request);
-    Task<BlockNumberResponse> GetLastConfirmedBlockNumberAsync(BaseRequest request);
-    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
-    Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request);
-    Task<HTLCBlockEventResponse> GetEventsAsync(EventRequest request);
-    Task<string> GetNextNonceAsync(NextNonceRequest request);
-    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
-    Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
+Pluggable components must be implemented in **any language supported by **[**Temporal SDKs**](https://docs.temporal.io/docs/sdk-overview) — including TypeScript, Go, Python, Java, and .NET.
+
+To integrate a new blockchain, implement the following:
+
+#### 1. `TransactionProcessorWorkflow`
+
+A Temporal workflow that:
+
+- Constructs and submits blockchain transactions
+- Monitors transaction confirmations
+- Triggers state transitions in the swap lifecycle
+- Handles retries and error scenarios
+
+> This is the **only required workflow** per integration.
+
+---
+
+#### 2. Core Blockchain Activity Interface
+
+The following activities must be implemented, as they are called by **core workflows** (e.g., `RouteStatusUpdater`, `SwapWorkflow`, `EventListenerUpdater`):
+
+```ts
+interface BlockchainActivities {
+    getBalance(BalanceRequest): BalanceResponse;
+    getLastConfirmedBlockNumber(BaseRequest): BlockNumberResponse;
+    validateAddLockSignature(AddLockSignatureRequest): boolean;
+    getEvents(EventRequest): HTLCBlockEventResponse;
+    buildTransaction(TransactionBuilderRequest): PrepareTransaction;
 }
 ```
 
-Default implementations are provided, but developers may customize and extend as needed for their specific chain logic.
+---
+
+#### 3. Additional Activities (Optional)
+
+Depending on your blockchain’s requirements, you may implement additional activities used **within** your own `TransactionProcessorWorkflow` (e.g., for fee estimation, nonce retrieval, or custom signing logic).
 
 ---
+
+#### 4. SignerAgent Implementation
+
+You must also extend the **SignerAgent** to support your blockchain’s native signing algorithm:
+
+- Implement transaction signing logic specific to your chain (e.g., ECDSA, Ed25519, Cairo)
+- Ensure private key access via Vault is secure and isolated
+- Expose HTTP endpoints used by TrainSolver Cloud to request signatures
+
+> 🔐 SignerAgent ensures keys are never exposed to shared infrastructure, maintaining strict key custody boundaries.
+
+---
+
+### ✅ Currently Integrated Networks
+
+| Chain Type     | Language   |
+| -------------- | ---------- |
+| EVM-compatible | .NET       |
+| Solana         | .NET       |
+| Starknet       | TypeScript |
+| Fuel           | TypeScript |
+
+> ✨ More integrations are actively being developed, including Bitcoin, Aztec, and others.
 
 ### System Workflows
 
