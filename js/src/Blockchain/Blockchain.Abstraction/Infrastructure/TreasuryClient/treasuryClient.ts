@@ -1,4 +1,5 @@
 import { generateAddressResponseModel, signTransactionRequestModel, signTransactionResponseModel } from "./Models";
+import axios from "axios";
 
 const apiClient = axios.create({
   baseURL: process.env.TrainSolver__TreasuryUrl,
