@@ -73,7 +73,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             receiverAddress,
             DateTime.fromUnixSeconds(commitRequest.timelock).toTai64())
         .callParams({
-            forward: [Number(formatUnits(commitRequest.amount, token.decimals)), await provider.getBaseAssetId()]
+            forward: [Number(commitRequest.amount), await provider.getBaseAssetId()]
         })
         .txParams({
             maxFee: bn(1000000),
@@ -162,7 +162,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
             lockRequest.destinationAsset.padEnd(64, ' '),
             lockRequest.destinationAddress.padEnd(64, ' '),
         ).callParams({
-            forward: [Number(formatUnits(lockRequest.amount + lockRequest.reward, token.decimals)), assetId.bits],
+            forward: [Number(lockRequest.amount + lockRequest.reward), assetId.bits],
         })
         .txParams({
             maxFee: bn(1000000),

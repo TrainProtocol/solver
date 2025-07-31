@@ -103,13 +103,15 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
 
         let transactionModel: TransactionResponse = {
-            TransactionHash: transactionHash,
-            Confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
-            Status: transactionStatus,
-            FeeAsset: "ETH",
-            FeeAmount: feeAmount,
-            Timestamp: new Date(),
-            NetworkName: network.name,
+            transactionHash: transactionHash,
+            decimals: network.nativeToken.decimals,
+            feeDecimals: network.nativeToken.decimals,
+            confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
+            status: transactionStatus,
+            feeAsset: network.nativeToken.symbol,
+            feeAmount: feeAmount.toString(),
+            timestamp: new Date(),
+            networkName: network.name,
         };
 
         const isConfirmed = "block_number" in confrimedTransaction;
@@ -118,13 +120,13 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const blockNumber = confrimedTransaction.block_number as string;
             const blockData = await provider.getBlockWithTxHashes(blockNumber);
 
-            transactionModel.Timestamp = new Date(blockData.timestamp * 1000);
+            transactionModel.timestamp = new Date(blockData.timestamp * 1000);
         }
 
         return transactionModel;
     }
 
-    public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
+    public async getLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
 
         const provider = new RpcProvider({
             nodeUrl: request.network.nodes[0].url,
@@ -140,7 +142,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         };
     }
 
-    public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
+    public async getEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
         const provider = new RpcProvider({
             nodeUrl: request.network.nodes[0].url
@@ -276,7 +278,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
+    public async getBalance(request: BalanceRequest): Promise<BalanceResponse> {
         try {
             const token = request.network.tokens.find(t => t.symbol === request.asset);
 
@@ -391,7 +393,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 FixedFeeData: fixedfeeData,
             }
 
-            const balanceResponse = await this.GetBalance({
+            const balanceResponse = await this.getBalance({
                     address: feeRequest.fromAddress,
                     network: feeRequest.network,
                 asset: this.FeeSymbol
@@ -413,7 +415,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+    public async validateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
             const provider = new RpcProvider({

@@ -100,8 +100,8 @@ export async function StarknetTransactionProcessor(
             TransactionHashes: context.publishedTransactionIds,
         });
 
-        confirmed.Asset = preparedTransaction.callDataAsset;
-        confirmed.Amount = preparedTransaction.callDataAmount;
+        confirmed.asset = preparedTransaction.callDataAsset;
+        confirmed.amount = preparedTransaction.callDataAmount.toString();
 
         return confirmed;
 
