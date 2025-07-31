@@ -1,2 +1,3 @@
-export interface SignTransactionResponseModel {
-    signed
+export interface signTransactionResponseModel {
+    signedTxn: string;
+}
