@@ -5,7 +5,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest} from "fuels";
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
@@ -21,7 +21,11 @@ import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionR
 import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceRequest";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 
+
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
+
+  readonly MaxFeeMultiplier = 7;
+  readonly GasLimitMultiplier = 2;
 
   public async buildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
     try {
@@ -185,8 +189,8 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     const estimatedDependencies = await wallet.provider.estimateTxDependencies(txRequest);
 
-    txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(7);
-    txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).mul(2);
+    txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(this.MaxFeeMultiplier);
+    txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).mul(this.GasLimitMultiplier);
 
     wallet.simulateTransaction(txRequest);
 
@@ -209,7 +213,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     const coinInputs = request.rawData.getCoinInputs();
 
     const nativeBalance = Number(
-      coinInputs.find(coin => coin.assetId === nativeAssetId)?.amount || 0
+      coinInputs.find(coin => coin.assetId === nativeAssetId).amount
     );
 
     const maxFee = Number(request.rawData.maxFee);
@@ -217,28 +221,31 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     const isNative = request.callDataAsset === request.network.nativeToken.symbol;
 
     if (isNative) {
+
       if (nativeBalance < maxFee + request.callDataAmount) {
         throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
       }
-      return;
     }
+    else {
 
-    const token = request.network.tokens.find(t => t.symbol === request.callDataAsset);
-    if (!token) {
-      throw new Error(`Token ${request.callDataAsset} not found in network`);
-    }
+      const token = request.network.tokens.find(t => t.symbol === request.callDataAsset);
+      if (!token) {
+        throw new Error(`Token ${request.callDataAsset} not found in network`);
+      }
 
-    const assetId = new Address(token.contract).toAssetId().bits;
-    const assetBalance = Number(
-      coinInputs.find(coin => coin.assetId === assetId)?.amount || 0
-    );
+      const topkenAssetId = new Address(token.contract).toAssetId().bits;
 
-    if (assetBalance < request.callDataAmount) {
-      throw new Error(`Insufficient balance for ${request.callDataAsset}`);
-    }
+      const tokenAssetBalance = Number(
+        coinInputs.find(coin => coin.assetId === topkenAssetId).amount
+      );
 
-    if (nativeBalance < maxFee) {
-      throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
+      if (tokenAssetBalance < request.callDataAmount) {
+        throw new Error(`Insufficient balance for ${request.callDataAsset}`);
+      }
+
+      if (nativeBalance < maxFee) {
+        throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
+      }
     }
   }
 }
