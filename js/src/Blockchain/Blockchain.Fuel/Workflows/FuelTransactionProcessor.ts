@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow';
+import { executeChild, proxyActivities } from '@temporalio/workflow';
 import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -8,8 +8,14 @@ import { TransactionFailedException } from '../../Blockchain.Abstraction/Excepti
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
+import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 
 const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
+    startToCloseTimeout: '1 hour',
+    scheduleToCloseTimeout: '2 days',
+});
+
+const utilityActivities = proxyActivities<IUtilityActivities>({
     startToCloseTimeout: '1 hour',
     scheduleToCloseTimeout: '2 days',
 });
@@ -33,39 +39,52 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    const preparedTransaction = await defaultActivities.BuildTransaction({
-        fromAddress: request.fromAddress,
-        network: request.network,
-        prepareArgs: request.prepareArgs,
-        type: request.type,
-    });
+    try {
 
-    // if (!context.fee) {
-    //     context.fee = await nonRetryableActivities.EstimateFee({
-    //         network: request.network,
-    //         toAddress: preparedTransaction.toAddress,
-    //         amount: preparedTransaction.amount,
-    //         fromAddress: request.fromAddress,
-    //         asset: preparedTransaction.asset,
-    //         callData: preparedTransaction.data,
-    //     });
-    // }
+        const preparedTransaction = await defaultActivities.buildTransaction({
+            fromAddress: request.fromAddress,
+            network: request.network,
+            prepareArgs: request.prepareArgs,
+            type: request.type,
+        });
 
-    const publishedTransaction = await defaultActivities.PublishTransaction({
-        network: request.network,
-        fromAddress: request.fromAddress,
-        callData: preparedTransaction.data,
-        fee: context.fee,
-        amount: preparedTransaction.amount,
-    });
+        const rawTx = await defaultActivities.composeRawTransaction({
+            network: request.network,
+            fromAddress: request.fromAddress,
+            callData: preparedTransaction.data,
+            callDataAsset: preparedTransaction.callDataAsset,
+            callDataAmount: preparedTransaction.callDataAmount,
+        });
 
-    const transactionResponse = await defaultActivities.GetTransaction({
-        network: request.network,
-        transactionHash: publishedTransaction,
-    });
+        // sign transaction
+        const publishedTransaction = await nonRetryableActivities.publishTransaction({
+            network: request.network,
+            signedRawData: preparedTransaction.data
+        });
 
-    transactionResponse.Asset = preparedTransaction.callDataAsset;
-    transactionResponse.Amount = preparedTransaction.callDataAmount;
-    
-    return transactionResponse;
+        const transactionResponse = await defaultActivities.getTransaction({
+            network: request.network,
+            transactionHash: publishedTransaction,
+        });
+
+        transactionResponse.asset = preparedTransaction.callDataAsset;
+        transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+
+        return transactionResponse;
+
+    }
+    catch (error) {
+        if (!(error instanceof TransactionFailedException)){
+
+            const processorId = await utilityActivities.BuildProcessorId(request.network.name, request.type);
+
+            await executeChild(FuelTransactionProcessor,
+            {
+                args: [request, context],
+                workflowId: processorId,
+            });
+        }
+
+        throw new Error(`Failed to process transaction: ${error.message}`);
+    }
 }

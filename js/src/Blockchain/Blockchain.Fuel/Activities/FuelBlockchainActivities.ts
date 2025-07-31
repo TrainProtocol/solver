@@ -1,14 +1,11 @@
 import { BlockNumberResponse } from "../../Blockchain.Abstraction/Models/BlockNumberResponse";
 import { HTLCBlockEventResponse } from "../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { EventRequest } from "../../Blockchain.Abstraction/Models/EventRequest";
-import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
-import { Fee, FixedFeeData, LegacyFeeData } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Contract, BigNumberCoder, Provider, TransactionCost, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, B256Address, AssetId, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
-import abi from './ABIs/train.json';
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
@@ -16,15 +13,16 @@ import { BalanceRequest } from "../../Blockchain.Abstraction/Models/BalanceReque
 import { BalanceResponse } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceResponse";
 import { BaseRequest } from "../../Blockchain.Abstraction/Models/BaseRequest";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
-import { utils } from "ethers";
 import TrackBlockEventsAsync from "./Helper/FuelEventTracker";
 import { createAddLockSigCallData, createRefundCallData, createLockCallData, createRedeemCallData, createCommitCallData } from "./Helper/FuelTransactionBuilder";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
-import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
-import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { mapFuelStatusToInternal } from "./Helper/FuelTransactionStatusMapper";
+import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
+import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceRequest";
+import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { inject, injectable } from "tsyringe";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
+
 
 @injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
@@ -32,7 +30,10 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     @inject("TreasuryClient") private treasuryClient: TreasuryClient
   ) { }
 
-  public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
+  readonly MaxFeeMultiplier = 7;
+  readonly GasLimitMultiplier = 2;
+
+  public async buildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
     try {
       switch (request.type) {
         case TransactionType.HTLCLock:
@@ -54,7 +55,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
   }
 
-  public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
+  public async getBalance(request: BalanceRequest): Promise<BalanceResponse> {
 
     const provider = new Provider(request.network.nodes[0].url);
     const token = request.network.tokens.find(t => t.symbol === request.asset);
@@ -69,7 +70,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return result;
   }
 
-  public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
+  public async getLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
 
     const provider = new Provider(request.network.nodes[0].url);
     const lastBlockNumber = (await provider.getBlockNumber()).toNumber();
@@ -81,68 +82,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     };
   }
 
-  public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee> {
-    try {
-      const token = feeRequest.network.tokens.find(t => t.symbol === feeRequest.asset);
-
-      const htlcContractAddress = token.contract
-        ? feeRequest.network.htlcNativeContractAddress
-        : feeRequest.network.htlcTokenContractAddress
-
-      const requestData = JSON.parse(feeRequest.callData);
-
-      const provider = new Provider(feeRequest.network.nodes[0].url);
-      const contractInstance = new Contract(htlcContractAddress, abi, provider);
-      const functionName = requestData.func.name;
-      let transactionCost: TransactionCost;
-
-      const b256: B256Address = token.contract;
-      const address: Address = new Address(b256);
-      const assetId: AssetId = address.toAssetId();
-
-      if (functionName == "lock") {
-        const amount = Number(utils.parseUnits(feeRequest.amount.toString(), token.decimals))
-        transactionCost = await contractInstance.functions[functionName](...requestData.args)
-          .callParams({
-            forward: [amount, assetId.bits],
-          }).getTransactionCost();
-      }
-      else {
-
-        transactionCost = await contractInstance.functions[functionName](...requestData.args).getTransactionCost();
-      }
-
-      const balanceResponse = await this.GetBalance({
-        network: feeRequest.network,
-        address: feeRequest.fromAddress,
-        asset: feeRequest.asset
-      });
-
-      const fixedfeeData: FixedFeeData = {
-        FeeInWei: transactionCost.maxFee.toString(),
-      };
-
-      if (balanceResponse.amount < Number(fixedfeeData.FeeInWei) + Number(feeRequest.amount)) {
-        throw new Error(`Insufficient balance for transaction. Required: ${fixedfeeData.FeeInWei + feeRequest.amount}, Available: ${balanceResponse.amount}`);
-      }
-
-      const result: Fee = {
-        Asset: feeRequest.network.nativeToken.symbol,
-        FixedFeeData: fixedfeeData,
-      }
-
-      return result;
-    }
-
-    catch (error: any) {
-      if (error?.message && (error.message.includes("Invalid Reward Timelock") || error.message.includes("No Future Timelock"))) {
-        throw new Error;
-      }
-      throw error;
-    }
-  }
-
-  public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+  public async validateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
 
     const timelock = DateTime.fromUnixSeconds(request.timelock).toTai64();
     const provider = new Provider(request.network.nodes[0].url);
@@ -161,44 +101,82 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return isValid;
   }
 
-  public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
+  public async getEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
     const result = await TrackBlockEventsAsync(request.network, request.fromBlock, request.toBlock, request.walletAddresses);
+
     return result;
   }
 
-  public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
+  public async getTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
 
     const provider = new Provider(request.network.nodes[0].url);
-    const transaction = await (await provider.getTransactionResponse(request.transactionHash)).getTransactionSummary();
-    const transactionStatus = mapFuelStatusToInternal(transaction.status)
+    const transaction = await provider.getTransactionResponse(request.transactionHash);
 
-    if (transactionStatus == TransactionStatus.Failed) {
-      throw new TransactionFailedException(`Transaction ${request.transactionHash} failed on network ${request.network.name}`);
+    const transactionSummary = await transaction.getTransactionSummary();
+    const transactionStatus = mapFuelStatusToInternal(transactionSummary.status);
+
+    if (transactionStatus == TransactionStatus.Initiated) {
+      throw new Error(`Transaction ${request.transactionHash} is still pending on network ${request.network.name}`);
     }
 
     const latestblock = await provider.getBlockNumber();
-    const txBlock = await provider.getBlock(transaction.blockId);
+    const txBlock = await provider.getBlock(transactionSummary.blockId);
     const confirmations = latestblock.toNumber() - txBlock.height.toNumber();
 
     const transactionResponse: TransactionResponse = {
-      NetworkName: request.network.name,
-      TransactionHash: request.transactionHash,
-      Confirmations: confirmations,
-      Timestamp: transaction.date,
-      FeeAmount: Number(transaction.fee),
-      FeeAsset: request.network.nativeToken.symbol,
-      Status: transactionStatus,
+      decimals: request.network.nativeToken.decimals,
+      feeDecimals: request.network.nativeToken.decimals,
+      networkName: request.network.name,
+      transactionHash: request.transactionHash,
+      confirmations: confirmations,
+      timestamp: transactionSummary.date,
+      feeAmount: Number(transactionSummary.fee).toString(),
+      feeAsset: request.network.nativeToken.symbol,
+      status: transactionStatus,
     }
 
     return transactionResponse;
   }
 
-  public async PublishTransaction(request: FuelPublishTransactionRequest): Promise<string> {
+  public async publishTransaction(request: FuelPublishTransactionRequest): Promise<string> {
+    let result: string;
 
-    const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
+    try {
+      const provider = new Provider(request.network.nodes[0].url);
+      const requestData = JSON.parse(request.signedRawData);
+
+      const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.signedRawData));
+
+      if (!isTxnTypeScript) {
+        throw new Error("Transaction is not of type Script");
+      }
+
+      const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
+
+      const { id, waitForResult } = await provider.sendTransaction(txRequest);
+
+      result = id;
+      await waitForResult();
+
+      return result;
+    }
+    catch (error) {
+      if (error.metadata.logs.includes("Not Future Timelock")) {
+        throw new InvalidTimelockException(`Transaction has an invalid timelock`);
+      }
+      if (error.metadata.logs.includes("Already Claimed")) {
+        return result;
+      }
+
+      return error;
+    }
+  }
+
+  public async composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string> {
+
     const provider = new Provider(request.network.nodes[0].url);
-    const wallet = Wallet.fromPrivateKey(privateKey, provider);
+    const wallet = Wallet.fromAddress(request.fromAddress, provider);
     const requestData = JSON.parse(request.callData);
 
     const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.callData));
@@ -209,24 +187,72 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
 
-    const { coins } = await wallet.getCoins(requestData.forward.assetId);
+    const balance = await wallet.getCoins(await provider.getBaseAssetId());
 
-    for (const coin of coins) {
+    for (const coin of balance.coins) {
       txRequest.addCoinInput(coin);
     }
 
     const estimatedDependencies = await wallet.provider.estimateTxDependencies(txRequest);
 
-    txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee);
-    txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas);
+    txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(this.MaxFeeMultiplier);
+    txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).mul(this.GasLimitMultiplier);
 
-    txRequest.addAccountWitnesses(wallet);
+    wallet.simulateTransaction(txRequest);
 
-    const transactionId = await wallet.sendTransaction(txRequest);
+    await this.ensureSufficientBalance(
+      {
+        network: request.network,
+        rawData: txRequest,
+        wallet: wallet,
+        callDataAsset: request.callDataAsset,
+        callDataAmount: request.callDataAmount
+      }
+    )
 
-    const result = transactionId.id;
+    return JSON.stringify(txRequest);
+  }
 
-    return result;
+  private async ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
+
+    const nativeAssetId = await request.wallet.provider.getBaseAssetId();
+    const coinInputs = request.rawData.getCoinInputs();
+
+    const nativeBalance = Number(
+      coinInputs.find(coin => coin.assetId === nativeAssetId).amount
+    );
+
+    const maxFee = Number(request.rawData.maxFee);
+
+    const isNative = request.callDataAsset === request.network.nativeToken.symbol;
+
+    if (isNative) {
+
+      if (nativeBalance < maxFee + request.callDataAmount) {
+        throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
+      }
+    }
+    else {
+
+      const token = request.network.tokens.find(t => t.symbol === request.callDataAsset);
+      if (!token) {
+        throw new Error(`Token ${request.callDataAsset} not found in network`);
+      }
+
+      const topkenAssetId = new Address(token.contract).toAssetId().bits;
+
+      const tokenAssetBalance = Number(
+        coinInputs.find(coin => coin.assetId === topkenAssetId).amount
+      );
+
+      if (tokenAssetBalance < request.callDataAmount) {
+        throw new Error(`Insufficient balance for ${request.callDataAsset}`);
+      }
+
+      if (nativeBalance < maxFee) {
+        throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
+      }
+    }
   }
 }
 
