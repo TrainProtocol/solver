@@ -11,4 +11,5 @@ export interface HTLCLockTransactionPrepareRequest {
     amount: number;
     reward: number;
     rewardTimelock: number;
+    randomness?: string;
   }

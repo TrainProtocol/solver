@@ -10,4 +10,5 @@ export interface HTLCCommitTransactionPrepareRequest {
   timelock: number;
   amount: number;
   commitId: string;
+  randomness?: string;
 }
