@@ -2,9 +2,8 @@ import { TreasuryService } from "src/app/interfaces/treasury.interface";
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Network } from "../shared/networks.types";
 import { PrivateKeyService } from "src/kv/vault.service";
-import { FuelSignRequest, FuelSignResponse } from "./fuel.dto";
 import { Address, isTransactionTypeScript, ScriptTransactionRequest, transactionRequestify, Wallet } from 'fuels';
-import { GenerateResponse } from "src/app/dto/base.dto";
+import { BaseSignRequest, BaseSignResponse, GenerateResponse } from "src/app/dto/base.dto";
 
 @Injectable()
 export class FuelTreasuryService extends TreasuryService {
@@ -14,7 +13,7 @@ export class FuelTreasuryService extends TreasuryService {
         super(privateKeyService);
     }
 
-    async sign(req: FuelSignRequest): Promise<FuelSignResponse> {
+    async sign(req: BaseSignRequest): Promise<BaseSignResponse> {
         const signerAddress = req.address.toLowerCase();
 
         if (!new Address(signerAddress)) {
@@ -29,17 +28,17 @@ export class FuelTreasuryService extends TreasuryService {
             const isTxnTypeScript = isTransactionTypeScript(JSON.parse(req.unsignedTxn));
 
             if (!isTxnTypeScript) {
-                throw new Error("Transaction is not of type Script");
+                throw new BadRequestException("Transaction is not of type Script");
             }
 
             const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
 
             const signedTxn = await wallet.signTransaction(txRequest);
-            
+
             return { signedTxn };
         }
         catch (error) {
-            throw new BadRequestException(`Invalid unsigned transaction: ${error.message}`);
+            throw error;
         }
     }
 
