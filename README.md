@@ -108,7 +108,7 @@ These components are typically written in .NET and form the backbone of the syst
 
 Each blockchain integration is a standalone Temporal worker that interfaces with the Core Workflows and SignerAgent.
 
-Pluggable components must be implemented in **any language supported by **[**Temporal SDKs**](https://docs.temporal.io/docs/sdk-overview) — including TypeScript, Go, Python, Java, and .NET.
+Pluggable components must be implemented in **any language supported by** [**Temporal SDKs**](https://docs.temporal.io/docs/sdk-overview) — including TypeScript, Go, Python, Java, and .NET.
 
 To integrate a new blockchain, implement the following:
 
@@ -170,37 +170,6 @@ You must also extend the **SignerAgent** to support your blockchain’s native s
 
 > ✨ More integrations are actively being developed, including Bitcoin, Aztec, and others.
 
-### System Workflows
-
-The following **scheduled workflows** handle critical background tasks:
-
-- **`RouteStatusUpdater`**  
-  Monitors hot wallet balances and toggles the availability of transfer routes.
-
-- **`EventListenerUpdater`**  
-  Starts or stops `EventListenerWorkflow` instances depending on route availability.
-
-- **`TokenPriceUpdater`**  
-  Periodically fetches token price data (default: Coingecko) and updates the database.
-
----
-
-## 🛠 Configuration
-
-Chain and route metadata is defined dynamically via a PostgreSQL database and Hashicorp Key vault. Configuration includes:
-
-Postgres:
-- Registered blockchain networks
-- Contract addresses
-- Node URLs
-- Token definitions
-- Swap routing information
-
-Key Vault:
-- Private key's corresponding to the managed account addresses
-
-> The system dynamically interacts with blockchain integrations based on the configuration stored in the database.
-
 ---
 
 ## 🧩 Infrastructure
@@ -217,16 +186,3 @@ Key Vault:
 TrainSolver supports Docker-based deployments for local development or production. A `docker-compose.yml` is provided to start up the full stack, including Temporal services, API, and required infrastructure components.
 
 ---
-
-## 🔌 Extending the System
-
-To integrate a new blockchain:
-
-1. Implement `TransactionProcessorWorkflow` and `EventListenerWorkflow`.
-2. Implement `IBlockchainActivities` with required logic.
-3. Register chain configuration in the database.
-4. Build and deploy a Temporal worker that registers your workflows and activities.
-
-> 🧠 These implementations can be done in any language supported by Temporal.io.
-
-> 📦 Final step: Package your worker as a Docker image to run alongside the system.
