@@ -2,7 +2,7 @@ import { generateAddressResponseModel, signTransactionRequestModel, signTransact
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: `/api/treasury/${process.env.TrainSolver__TreasuryUrl}`,
+  baseURL: `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`,
   timeout: process.env.TrainSolver__TreasuryTimeout ?
    parseInt(process.env.TrainSolver__TreasuryTimeout) : 30000
 });
