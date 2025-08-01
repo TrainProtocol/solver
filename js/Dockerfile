@@ -5,7 +5,7 @@ FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 COPY js/ .
-RUN npm ci --only=production
+RUN npm ci
 RUN npm run build
 
 # Final production image

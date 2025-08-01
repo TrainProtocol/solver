@@ -20,9 +20,15 @@ import { mapFuelStatusToInternal } from "./Helper/FuelTransactionStatusMapper";
 import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
 import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceRequest";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
+import { inject, injectable } from "tsyringe";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
 
+@injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
+  constructor(
+    @inject("TreasuryClient") private treasuryClient: TreasuryClient
+  ) { }
 
   readonly MaxFeeMultiplier = 7;
   readonly GasLimitMultiplier = 2;
