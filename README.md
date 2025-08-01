@@ -19,17 +19,14 @@
 
 ## 📚 Table of Contents
 
-- [Overview](#overview)
-- [Protocol Design](#protocol-design)
-- [Project Structure](#project-structure)
-- [Core Components](#core-components)
-  - [Temporal Workflows](#temporal-workflows)
-  - [Blockchain Activity Interface](#blockchain-activity-interface)
-  - [System Workflows](#system-workflows)
-- [Configuration](#configuration)
-- [Infrastructure](#infrastructure)
-- [Deployment](#deployment)
-- [Extending the System](#extending-the-system)
+- [Overview](#-overview)
+- [Protocol Design](#-protocol-design)
+- [Project Structure](#️-project-structure)
+  - [Core Components](#-core-components)
+  - [Pluggable Integrations](#-pluggable-integrations)    
+  - [Currently Integrated Networks](#-currently-integrated-networks)
+- [Infrastructure](#-infrastructure)
+- [Deployment](#-deployment)
 
 ---
 
