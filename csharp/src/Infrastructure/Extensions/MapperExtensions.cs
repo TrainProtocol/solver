@@ -68,6 +68,17 @@ public static class MapperExtensions
         };
     }
 
+    public static TokenPriceDto ToDto(this TokenPrice tokenPrice)
+    {
+        return new TokenPriceDto
+        {
+            Symbol = tokenPrice.Symbol,
+            PriceInUsd = tokenPrice.PriceInUsd,
+            ExternalId = tokenPrice.ExternalId,
+            LastUpdated = tokenPrice.LastUpdated
+        };
+    }
+
     public static TokenNetworkDto ToWithNetworkDto(this Token token)
     {
         var dto = new TokenNetworkDto

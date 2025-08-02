@@ -50,6 +50,6 @@ public static class RouteEndpoints
 
         return route is null
             ? Results.BadRequest("Failed to create route")
-            : Results.Ok(route.ToDetailedDto());
+            : Results.Ok();
     }
 }

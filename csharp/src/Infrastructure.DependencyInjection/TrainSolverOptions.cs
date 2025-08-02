@@ -6,7 +6,9 @@ public class TrainSolverOptions
 
     public string TemporalServerHost { get; set; } = null!;
 
-    public string TemporalNamespace { get; set; } = "train";
+    public string TemporalNamespace { get; set; } = null!;
+
+    public string NetworkType { get; set; } = null!;
 
     public string RedisConnectionString { get; set; } = null!;
 

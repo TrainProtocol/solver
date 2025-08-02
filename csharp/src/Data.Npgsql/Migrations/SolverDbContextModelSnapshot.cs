@@ -124,6 +124,9 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasIndex("NativeTokenId");
 
+                    b.HasIndex("ChainId", "Type")
+                        .IsUnique();
+
                     b.ToTable("Networks");
                 });
 
@@ -502,6 +505,10 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     b.Property<decimal>("PriceInUsd")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -509,6 +516,9 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         .HasColumnName("xmin");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Symbol")
+                        .IsUnique();
 
                     b.ToTable("TokenPrices");
                 });
@@ -607,10 +617,10 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.HasIndex("Address", "NetworkType");
+
+                    b.HasIndex("Name", "NetworkType")
+                        .IsUnique();
 
                     b.ToTable("TrustedWallets");
                 });
@@ -647,10 +657,10 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.HasIndex("Address", "NetworkType");
+
+                    b.HasIndex("Name", "NetworkType")
+                        .IsUnique();
 
                     b.ToTable("Wallets");
                 });

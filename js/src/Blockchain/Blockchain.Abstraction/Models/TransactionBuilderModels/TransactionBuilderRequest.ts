@@ -1,7 +1,9 @@
+import { BaseRequest } from "../BaseRequest";
 import { TransactionType } from "../TransacitonModels/TransactionType";
 
-export interface TransactionBuilderRequest {
-    Type: TransactionType;
-    NetworkName: string;
-    Args: string;
+export interface TransactionBuilderRequest extends BaseRequest {
+    prepareArgs: string;
+    type: TransactionType;
+    fromAddress: string;
+    swapId?: number;
 }

@@ -15,7 +15,7 @@ public static class FeeEndpoints
             .Produces<List<ServiceFeeDto>>();
 
         group.MapPost("/fees", CreateServiceFeeAsync)
-            .Produces<ServiceFeeDto>()
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
         return group;
@@ -34,6 +34,6 @@ public static class FeeEndpoints
         var fee = await repository.CreateServiceFeeAsync(request.Name, request.FeeInUsd, request.PercentageFee);
         return fee is null
             ? Results.BadRequest("Failed to create service fee")
-            : Results.Ok(fee.ToDto());
+            : Results.Ok();
     }
 }

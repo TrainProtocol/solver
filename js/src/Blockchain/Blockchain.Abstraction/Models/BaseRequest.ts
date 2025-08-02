@@ -1,3 +1,5 @@
+import { DetailedNetworkDto } from "./DetailedNetworkDto";
+
 export interface BaseRequest {
-    NetworkName: string;
+    network: DetailedNetworkDto;
 }

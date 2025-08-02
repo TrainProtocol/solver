@@ -67,6 +67,10 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .IsUnique();
 
         modelBuilder.Entity<Network>()
+            .HasIndex(x => new { x.ChainId, x.Type })
+            .IsUnique();
+
+        modelBuilder.Entity<Network>()
             .Property(b => b.Type)
             .HasEnumComment();
 
@@ -74,13 +78,13 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<Wallet>()
-            .HasIndex(x => x.Name).IsUnique();
+            .HasIndex(x => new { x.Name, x.NetworkType }).IsUnique();
 
         modelBuilder.Entity<TrustedWallet>()
           .HasIndex(x => new { x.Address, x.NetworkType });
 
         modelBuilder.Entity<TrustedWallet>()
-            .HasIndex(x => x.Name).IsUnique();
+            .HasIndex(x => new { x.Name, x.NetworkType }).IsUnique();
 
         modelBuilder.Entity<ServiceFee>()
             .HasIndex(x => x.Name).IsUnique();
@@ -151,6 +155,10 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         modelBuilder.Entity<RateProvider>()
             .HasIndex(x => x.Name).IsUnique();
 
+        modelBuilder.Entity<TokenPrice>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
         modelBuilder.Entity<Token>()
            .HasOne(t => t.TokenPrice)
            .WithMany()
@@ -185,7 +193,7 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
                 && !x.IsAbstract);
 
         foreach (var entity in entities)
-        {           
+        {
             modelBuilder
                 .Entity(entity)
                 .Property(nameof(EntityBase.CreatedDate))

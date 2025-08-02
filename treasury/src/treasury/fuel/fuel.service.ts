@@ -38,7 +38,7 @@ export class FuelTreasuryService extends TreasuryService {
             txRequest.witnesses[0] = await wallet.signTransaction(txRequest)
 
             await wallet.simulateTransaction(txRequest);
-            
+
             return { signedTxn: JSON.stringify(txRequest)};
         }
         catch (error) {

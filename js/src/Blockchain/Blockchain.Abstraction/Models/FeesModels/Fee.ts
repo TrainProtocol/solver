@@ -1,7 +1,6 @@
 export interface Fee
 {
     Asset: string,
-    Decimals: number,
     FixedFeeData: FixedFeeData,
     LegacyFeeData?: LegacyFeeData,
 }

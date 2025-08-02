@@ -11,9 +11,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@azure/identity": "^4.6.0",
-    "@azure/keyvault-secrets": "^4.9.0",
-    "@temporalio/worker": "^1.11.7",
+    "@temporalio/worker": "^1.12.1",
+    "axios": "^1.11.0",
     "dotenv": "^16.4.7",
     "ethers": "5.7.0",
     "fuels": "^0.101.2",
@@ -24,10 +23,10 @@
     "reflect-metadata": "^0.2.2",
     "starknet": "^6.23.1",
     "tsyringe": "^4.9.1",
-    "typeorm": "^0.3.21",
     "web3-provider-engine": "^17.0.1"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/jest": "^29.5.14",
     "jest": "^28.1.1",
     "ts-jest": "^28.0.5",

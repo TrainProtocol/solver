@@ -4,6 +4,8 @@ namespace Train.Solver.Data.Abstractions.Entities;
 
 public class TokenPrice : EntityBase
 {
+    public string Symbol { get; set; } = null!;
+
     public decimal PriceInUsd { get; set; }
 
     public string ExternalId { get; set; } = null!;

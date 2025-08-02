@@ -1,5 +1,5 @@
 export interface HTLCRefundTransactionPrepareRequest {
-    Id: string;
-    Asset: string;
-    DestinationAddress?: string;
+    commitId: string;
+    asset: string;
+    destinationAddress?: string;
   }

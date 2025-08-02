@@ -13,6 +13,7 @@ public class CreateNetworkRequest
     public string HtlcNativeContractAddress { get; set; } = default!;
     public string HtlcTokenContractAddress { get; set; } = default!;
     public string NativeTokenSymbol { get; set; } = default!;
+    public string NativeTokenPriceSymbol { get; set; } = default!;
     public string NativeTokenContract { get; set; } = default!;
     public int NativeTokenDecimals { get; set; }
 }

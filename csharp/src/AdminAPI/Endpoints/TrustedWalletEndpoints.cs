@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -16,11 +17,11 @@ public static class TrustedWalletEndpoints
             .Produces<IEnumerable<TrustedWalletDto>>();
 
         group.MapPost("/trusted-wallets", CreateAsync)
-            .Produces<TrustedWalletDto>()
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapPut("/trusted-wallets/{networkType}/{address}", UpdateAsync)
-            .Produces<TrustedWalletDto>()
+            .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/trusted-wallets/{networkType}/{address}", DeleteAsync)
@@ -33,7 +34,7 @@ public static class TrustedWalletEndpoints
         ITrustedWalletRepository repository,
         NetworkType[]? types)
     {
-        var wallets = await repository.GetAllAsync(types);
+        var wallets = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
         return Results.Ok(wallets.Select(x=>x.ToDto()));
     }
 
@@ -48,7 +49,7 @@ public static class TrustedWalletEndpoints
 
         return wallet is null
             ? Results.BadRequest("Failed to create trusted wallet")
-            : Results.Ok(wallet.ToDto());
+            : Results.Ok();
     }
 
     private static async Task<IResult> UpdateAsync(
@@ -64,7 +65,7 @@ public static class TrustedWalletEndpoints
 
         return wallet is null
             ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")
-            : Results.Ok(wallet.ToDto());
+            : Results.Ok();
     }
 
     private static async Task<IResult> DeleteAsync(

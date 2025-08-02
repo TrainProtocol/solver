@@ -21,7 +21,8 @@ public interface INetworkRepository
         string htlcNativeContractAddress,
         string htlcTokenContractAddress,
         string nativeTokenSymbol,
-        string nativeTokenContract,
+        string nativeTokenPriceSymbol,
+        string? nativeTokenContract,
         int nativeTokenDecimals);
 
     Task<Node?> CreateNodeAsync(
@@ -32,13 +33,9 @@ public interface INetworkRepository
     Task<Token?> CreateTokenAsync(
        string networkName,
        string symbol,
+       string priceSymbol,
        string? contract,
        int decimals);
-
-    Task<Token?> CreateNativeTokenAsync(
-        string networkName,
-        string symbol,
-        int decimals);
 
     Task DeleteTokenAsync(string networkName, string symbol);
 

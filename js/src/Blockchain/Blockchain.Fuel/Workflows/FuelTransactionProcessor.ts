@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow';
+import { executeChild, proxyActivities } from '@temporalio/workflow';
 import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -8,8 +8,14 @@ import { TransactionFailedException } from '../../Blockchain.Abstraction/Excepti
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
+import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 
 const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
+    startToCloseTimeout: '1 hour',
+    scheduleToCloseTimeout: '2 days',
+});
+
+const utilityActivities = proxyActivities<IUtilityActivities>({
     startToCloseTimeout: '1 hour',
     scheduleToCloseTimeout: '2 days',
 });
@@ -33,38 +39,52 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
-    });
+    try {
 
-    if (!context.Fee) {
-        context.Fee = await nonRetryableActivities.EstimateFee({
-            NetworkName: request.NetworkName,
-            ToAddress: preparedTransaction.ToAddress,
-            Amount: preparedTransaction.Amount,
-            FromAddress: request.FromAddress,
-            Asset: preparedTransaction.Asset,
-            CallData: preparedTransaction.Data,
+        const preparedTransaction = await defaultActivities.buildTransaction({
+            fromAddress: request.fromAddress,
+            network: request.network,
+            prepareArgs: request.prepareArgs,
+            type: request.type,
         });
+
+        const rawTx = await defaultActivities.composeRawTransaction({
+            network: request.network,
+            fromAddress: request.fromAddress,
+            callData: preparedTransaction.data,
+            callDataAsset: preparedTransaction.callDataAsset,
+            callDataAmount: preparedTransaction.callDataAmount,
+        });
+
+        // sign transaction
+        const publishedTransaction = await nonRetryableActivities.publishTransaction({
+            network: request.network,
+            signedRawData: preparedTransaction.data
+        });
+
+        const transactionResponse = await defaultActivities.getTransaction({
+            network: request.network,
+            transactionHash: publishedTransaction,
+        });
+
+        transactionResponse.asset = preparedTransaction.callDataAsset;
+        transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+
+        return transactionResponse;
+
     }
+    catch (error) {
+        if (!(error instanceof TransactionFailedException)){
 
-    const publishedTransaction = await defaultActivities.PublishTransaction({
-        NetworkName: request.NetworkName,
-        FromAddress: request.FromAddress,
-        CallData: preparedTransaction.Data,
-        Fee: context.Fee,
-        Amount: preparedTransaction.AmountInWei,
-    });
+            const processorId = await utilityActivities.BuildProcessorId(request.network.name, request.type);
 
-    const transactionResponse = await defaultActivities.GetTransaction({
-        NetworkName: request.NetworkName,
-        TransactionHash: publishedTransaction,
-    });
+            await executeChild(FuelTransactionProcessor,
+            {
+                args: [request, context],
+                workflowId: processorId,
+            });
+        }
 
-    transactionResponse.Asset = preparedTransaction.CallDataAsset;
-    transactionResponse.Amount = preparedTransaction.CallDataAmount;
-    
-    return transactionResponse;
+        throw new Error(`Failed to process transaction: ${error.message}`);
+    }
 }

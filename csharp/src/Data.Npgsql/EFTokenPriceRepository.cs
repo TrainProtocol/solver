@@ -11,6 +11,12 @@ public class EFTokenPriceRepository(SolverDbContext dbContext) : ITokenPriceRepo
         return await dbContext.TokenPrices.ToListAsync();
     }
 
+    public async Task<TokenPrice?> GetAsync(string symbol)
+    {
+        return await dbContext.TokenPrices
+            .FirstOrDefaultAsync(x => x.Symbol == symbol);
+    }
+
     public async Task UpdateAsync(Dictionary<string, decimal> prices)
     {
         var externalIds = prices.Keys.ToArray();
