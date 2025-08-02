@@ -23,6 +23,7 @@ import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exception
 import { inject, injectable } from "tsyringe";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
+import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 
 
 @injectable()
@@ -169,7 +170,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         return result;
       }
 
-      return error;
+      throw new TransactionFailedException(`Transaction failed message: ${error.message}`);
     }
   }
 

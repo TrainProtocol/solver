@@ -1,4 +1,4 @@
-import { executeChild, proxyActivities } from '@temporalio/workflow';
+import { ApplicationFailure, executeChild, proxyActivities } from '@temporalio/workflow';
 import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -86,7 +86,7 @@ export async function FuelTransactionProcessor(
 
     }
     catch (error) {
-        if (!(error instanceof TransactionFailedException)) {
+        if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
 
             const processorId = await utilityActivities.BuildProcessorId(request.network.name, request.type);
 
