@@ -22,7 +22,7 @@ import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceReq
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { inject, injectable } from "tsyringe";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
-import { FuelSignTransactionRequest } from "./Models/FuelSignTransactionRequest";
+import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
 
 
 @injectable()
@@ -253,7 +253,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
   }
 
-  public async signTransaction(request: FuelSignTransactionRequest): Promise<string> {
+  public async signTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
 
     const response = await this.treasuryClient.signTransaction(request.networkType, request.signRequest);
 

@@ -1,4 +1,3 @@
-export interface TreasuryGenerateAddressResponseModel
-{
+export interface TreasuryGenerateAddressResponseModel {
     address: string;
 }

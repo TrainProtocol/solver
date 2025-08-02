@@ -1,33 +1,24 @@
-import { FuelSignTransactionRequestModel } from "../../../Blockchain.Fuel/Activities/Models/FuelSignTransactionModel";
-import { TresurySignTransactionRequestModel, TreasuryGenerateAddressResponseModel, TreasurySignTransactionResponseModel } from "./Models";
+import {
+  BaseSignTransactionRequestModel,
+  TreasuryGenerateAddressResponseModel,
+  TreasurySignTransactionResponseModel,
+  FuelSignTransactionRequest
+} from "./Models";
 import axios from "axios";
 
-const apiClient = axios.create({
-  baseURL: `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`,
-  timeout: process.env.TrainSolver__TreasuryTimeout ?
-    parseInt(process.env.TrainSolver__TreasuryTimeout) : 30000
-});
-
-
-export class TreasuryClient { 
-  private apiClient;
+export class TreasuryClient {
+  private apiClient
 
   constructor() {
-    this.apiClient = axios.create({
-      baseURL: `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`,
-      timeout: process.env.TrainSolver__TreasuryTimeout
-        ? parseInt(process.env.TrainSolver__TreasuryTimeout)
-        : 30000,
-    });
+    this.apiClient = TreasuryClient.createApiClient();
   }
 
   async signTransaction(
     networkType: string,
-    request: TresurySignTransactionRequestModel | FuelSignTransactionRequestModel
+    request: BaseSignTransactionRequestModel | FuelSignTransactionRequest
   ): Promise<TreasurySignTransactionResponseModel> {
-
     const res = await this.apiClient.post(
-      `${networkType.toLocaleLowerCase()}/sign`,
+      `${networkType.toLowerCase()}/sign`,
       request
     );
 
@@ -36,9 +27,19 @@ export class TreasuryClient {
 
   async generateAddress(networkType: string): Promise<TreasuryGenerateAddressResponseModel> {
     const res = await this.apiClient.post(
-      `${networkType.toLocaleLowerCase()}/generate`
+      `${networkType.toLowerCase()}/generate`
     );
 
     return res.data;
+  }
+
+
+  private static createApiClient() {
+    const baseURL = `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`;
+    const timeout = process.env.TrainSolver__TreasuryTimeout
+      ? parseInt(process.env.TrainSolver__TreasuryTimeout)
+      : 30000;
+
+    return axios.create({ baseURL, timeout });
   }
 }

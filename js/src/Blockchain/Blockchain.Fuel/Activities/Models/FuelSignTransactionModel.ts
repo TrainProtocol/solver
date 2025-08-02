@@ -1,5 +1,6 @@
-import { BaseSignTransactionRequestModel } from "../../../Blockchain.Abstraction/Infrastructure/TreasuryClient/Models/TreasurySignTransactionRequestModel";
+import { FuelSignTransactionRequest } from "../../../Blockchain.Abstraction/Infrastructure/TreasuryClient/Models";
 
-export interface FuelSignTransactionRequestModel extends BaseSignTransactionRequestModel {
-    nodeUrl: string;
+export interface FuelSignTransactionRequestModel {
+    networkType: string;
+    signRequest: FuelSignTransactionRequest;
 }
