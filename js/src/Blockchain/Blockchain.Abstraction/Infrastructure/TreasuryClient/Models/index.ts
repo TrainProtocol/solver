@@ -1,9 +1,9 @@
-import { generateAddressResponseModel } from './generateAddressResponseModel';
-import { signTransactionResponseModel } from './signTransactionResponseModel';   
-import { signTransactionRequestModel } from './signTransactionRequestModel';
+import { TreasuryGenerateAddressResponseModel } from './TreasuryGenerateAddressResponseModel';
+import { TreasurySignTransactionResponseModel } from './TreasurySignTransactionResponseModel';   
+import { BaseSignTransactionRequestModel } from './TreasurySignTransactionRequestModel';
 
 export {
-    generateAddressResponseModel,
-    signTransactionResponseModel,
-    signTransactionRequestModel
+    TreasuryGenerateAddressResponseModel,
+    TreasurySignTransactionResponseModel,
+    BaseSignTransactionRequestModel as TresurySignTransactionRequestModel
 };  

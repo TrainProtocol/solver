@@ -9,6 +9,7 @@ import { TransactionResponse } from '../../Blockchain.Abstraction/Models/Receipt
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
 import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
+import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
 
 const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -56,10 +57,21 @@ export async function FuelTransactionProcessor(
             callDataAmount: preparedTransaction.callDataAmount,
         });
 
+        const signedRawData = await defaultActivities.signTransaction(
+            {
+                networkType: NetworkType[request.network.type],
+                signRequest: {
+                    unsignedTxn: rawTx,
+                    address: request.fromAddress,
+                    nodeUrl: request.network.nodes[0].url,
+                }
+            }
+        );
+
         // sign transaction
         const publishedTransaction = await nonRetryableActivities.publishTransaction({
             network: request.network,
-            signedRawData: preparedTransaction.data
+            signedRawData: signedRawData
         });
 
         const transactionResponse = await defaultActivities.getTransaction({
@@ -74,15 +86,15 @@ export async function FuelTransactionProcessor(
 
     }
     catch (error) {
-        if (!(error instanceof TransactionFailedException)){
+        if (!(error instanceof TransactionFailedException)) {
 
             const processorId = await utilityActivities.BuildProcessorId(request.network.name, request.type);
 
             await executeChild(FuelTransactionProcessor,
-            {
-                args: [request, context],
-                workflowId: processorId,
-            });
+                {
+                    args: [request, context],
+                    workflowId: processorId,
+                });
         }
 
         throw new Error(`Failed to process transaction: ${error.message}`);

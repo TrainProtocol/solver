@@ -5,7 +5,7 @@ import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/T
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
-import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceRequest";
+import { FuelSignTransactionRequest } from "./Models/FuelSignTransactionRequest";
 
 export interface IFuelBlockchainActivities extends IBlockchainActivities {
     getTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
@@ -15,4 +15,6 @@ export interface IFuelBlockchainActivities extends IBlockchainActivities {
     publishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
 
     composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
+
+    signTransaction(request: FuelSignTransactionRequest): Promise<string>;
 }

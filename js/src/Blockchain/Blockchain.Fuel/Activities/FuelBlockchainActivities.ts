@@ -22,6 +22,7 @@ import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceReq
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { inject, injectable } from "tsyringe";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
+import { FuelSignTransactionRequest } from "./Models/FuelSignTransactionRequest";
 
 
 @injectable()
@@ -29,7 +30,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   constructor(
     @inject("TreasuryClient") private treasuryClient: TreasuryClient
   ) { }
-
   readonly MaxFeeMultiplier = 7;
   readonly GasLimitMultiplier = 2;
 
@@ -198,8 +198,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(this.MaxFeeMultiplier);
     txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).mul(this.GasLimitMultiplier);
 
-    wallet.simulateTransaction(txRequest);
-
     await this.ensureSufficientBalance(
       {
         network: request.network,
@@ -228,7 +226,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
     if (isNative) {
 
-      if (nativeBalance < maxFee + request.callDataAmount) {
+      if (nativeBalance < maxFee + Number(request.callDataAmount)) {
         throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
       }
     }
@@ -253,6 +251,13 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         throw new Error(`Insufficient balance for ${request.network.nativeToken.symbol}`);
       }
     }
+  }
+
+  public async signTransaction(request: FuelSignTransactionRequest): Promise<string> {
+
+    const response = await this.treasuryClient.signTransaction(request.networkType, request.signRequest);
+
+    return response.signedTxn;
   }
 }
 
