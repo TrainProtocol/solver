@@ -2,8 +2,9 @@ import { TreasuryService } from "src/app/interfaces/treasury.interface";
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Network } from "../shared/networks.types";
 import { PrivateKeyService } from "src/kv/vault.service";
-import { Address, isTransactionTypeScript, ScriptTransactionRequest, transactionRequestify, Wallet } from 'fuels';
-import { BaseSignRequest, BaseSignResponse, GenerateResponse } from "src/app/dto/base.dto";
+import { Address, isTransactionTypeScript, Provider, ScriptTransactionRequest, transactionRequestify, Wallet } from 'fuels';
+import { BaseSignResponse, GenerateResponse } from "src/app/dto/base.dto";
+import { FuelSignRequest } from "./fuel.dto";
 
 @Injectable()
 export class FuelTreasuryService extends TreasuryService {
@@ -13,19 +14,20 @@ export class FuelTreasuryService extends TreasuryService {
         super(privateKeyService);
     }
 
-    async sign(req: BaseSignRequest): Promise<BaseSignResponse> {
-        const signerAddress = req.address.toLowerCase();
+    async sign(request: FuelSignRequest): Promise<BaseSignResponse> {
 
-        if (!new Address(signerAddress)) {
+        if (!new Address(request.address)) {
             throw new BadRequestException(`Invalid ${this.network} address`);
         }
 
-        const privateKey = await this.privateKeyService.getAsync(signerAddress);
+        const privateKey = await this.privateKeyService.getAsync(request.address);
 
         try {
-            const requestData = JSON.parse(req.unsignedTxn);
-            const wallet = Wallet.fromPrivateKey(privateKey)
-            const isTxnTypeScript = isTransactionTypeScript(JSON.parse(req.unsignedTxn));
+            const provider = new Provider(request.nodeUrl);
+            const requestData = JSON.parse(request.unsignedTxn);
+            const wallet = Wallet.fromPrivateKey(privateKey, provider);
+
+            const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.unsignedTxn));
 
             if (!isTxnTypeScript) {
                 throw new BadRequestException("Transaction is not of type Script");
@@ -33,9 +35,11 @@ export class FuelTreasuryService extends TreasuryService {
 
             const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
 
-            const signedTxn = await wallet.signTransaction(txRequest);
+            txRequest.witnesses[0] = await wallet.signTransaction(txRequest)
 
-            return { signedTxn };
+            await wallet.simulateTransaction(txRequest);
+            
+            return { signedTxn: JSON.stringify(txRequest)};
         }
         catch (error) {
             throw error;
