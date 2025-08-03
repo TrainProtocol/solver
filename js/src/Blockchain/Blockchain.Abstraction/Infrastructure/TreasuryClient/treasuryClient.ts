@@ -10,7 +10,11 @@ export class TreasuryClient {
   private apiClient
 
   constructor() {
-    this.apiClient = TreasuryClient.createApiClient();
+    this.apiClient = axios.create({
+      baseURL: `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`,
+      timeout: process.env.TrainSolver__TreasuryTimeout ?
+        parseInt(process.env.TrainSolver__TreasuryTimeout) : 30000
+    });
   }
 
   async signTransaction(
@@ -31,15 +35,5 @@ export class TreasuryClient {
     );
 
     return res.data;
-  }
-
-
-  private static createApiClient() {
-    const baseURL = `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`;
-    const timeout = process.env.TrainSolver__TreasuryTimeout
-      ? parseInt(process.env.TrainSolver__TreasuryTimeout)
-      : 30000;
-
-    return axios.create({ baseURL, timeout });
   }
 }
