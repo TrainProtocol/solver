@@ -1,9 +1,11 @@
-import { generateAddressResponseModel } from './generateAddressResponseModel';
-import { signTransactionResponseModel } from './signTransactionResponseModel';   
-import { signTransactionRequestModel } from './signTransactionRequestModel';
+import { TreasuryGenerateAddressResponseModel } from './TreasuryGenerateAddressResponseModel';
+import { TreasurySignTransactionResponseModel } from './TreasurySignTransactionResponseModel';
+import { BaseSignTransactionRequestModel } from './TreasurySignTransactionRequestModel';
+import { FuelSignTransactionRequest } from './FuelSignTransactionRequest';
 
 export {
-    generateAddressResponseModel,
-    signTransactionResponseModel,
-    signTransactionRequestModel
+    TreasuryGenerateAddressResponseModel,
+    TreasurySignTransactionResponseModel,
+    BaseSignTransactionRequestModel,
+    FuelSignTransactionRequest
 };  
