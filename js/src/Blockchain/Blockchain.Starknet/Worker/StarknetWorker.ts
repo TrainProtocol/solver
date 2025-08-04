@@ -5,7 +5,6 @@ import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainAc
 import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
-import * as UtilityActivities from '../../Blockchain.Abstraction/Activities/UtilityActivities';
 
 export default async function run( taskQueue: string): Promise<void> {
   dotenv.config();
@@ -18,7 +17,6 @@ export default async function run( taskQueue: string): Promise<void> {
 
     const activities = {
       ...blockchainActivities,
-      ...UtilityActivities,
     };
 
     const connection = await NativeConnection.connect({
