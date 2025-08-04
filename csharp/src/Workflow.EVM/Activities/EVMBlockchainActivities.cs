@@ -527,7 +527,7 @@ public class EVMBlockchainActivities(
             transactionInput.Type = new HexBigInteger((int)Nethereum.Model.TransactionType.EIP1559);
         }
 
-        var signedTransaction = await SignTransaction(request.FromAddress, transactionInput);
+        var signedTransaction = await SignTransaction(request.Network.Type, request.FromAddress, transactionInput);
 
         return signedTransaction;
     }
@@ -558,6 +558,7 @@ public class EVMBlockchainActivities(
     }
 
     private async Task<SignedTransaction> SignTransaction(
+       NetworkType networkType,
        string signerAddress,
        TransactionInput transaction)
     {
@@ -615,7 +616,7 @@ public class EVMBlockchainActivities(
         }
 
         var signedTransaction = await privateKeyProvider.SignAsync(
-            NetworkType.EVM,
+            networkType,
             signerAddress,
             unsignedRawTransaction);
 
