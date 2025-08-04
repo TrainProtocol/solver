@@ -12,11 +12,10 @@ import { TransactionFailedException } from "../../Blockchain.Abstraction/Excepti
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
-import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
-import { BuildLockKey, BuildNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
+import { buildLockKey, buildCurrentNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
 import { BalanceRequest } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceRequest";
@@ -28,7 +27,7 @@ import { EventRequest } from "../../Blockchain.Abstraction/Models/EventRequest";
 import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
 import { Fee, FixedFeeData } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { GetBatchTransactionRequest } from "../../Blockchain.Abstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NextNonceRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
@@ -159,12 +158,12 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         );
     }
 
-    public async GetNextNonce(request: NextNonceRequest): Promise<string> {
+    public async getNextNonce(request: NextNonceRequest): Promise<string> {
         const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
 
-        const formattedAddress = formatAddress(request.Address);
-        const lockKey = BuildLockKey(request.network.displayName, formattedAddress);
-        const nonceKey = BuildNonceKey(request.network.displayName, formattedAddress);
+        const formattedAddress = formatAddress(request.address);
+        const lockKey = buildLockKey(request.network.name, formattedAddress);
+        const nonceKey = buildCurrentNonceKey(request.network.name, formattedAddress);
 
         const lock = await this.lockFactory.acquire(
             [lockKey],

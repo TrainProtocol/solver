@@ -69,9 +69,9 @@ export async function StarknetTransactionProcessor(
         }
 
         if (!context.nonce) {
-            context.nonce = await defaultActivities.GetNextNonce({
+            context.nonce = await defaultActivities.getNextNonce({
                 network: request.network,
-                Address: request.fromAddress,
+                address: request.fromAddress,
             });
         }
 

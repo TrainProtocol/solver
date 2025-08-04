@@ -42,6 +42,19 @@ export async function FuelTransactionProcessor(
 
     try {
 
+        const nextNonce = await defaultActivities.getNextNonce({
+            address: request.fromAddress,
+            network: request.network
+        });
+
+        await defaultActivities.checkCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
+
         const preparedTransaction = await defaultActivities.buildTransaction({
             fromAddress: request.fromAddress,
             network: request.network,
@@ -81,6 +94,14 @@ export async function FuelTransactionProcessor(
 
         transactionResponse.asset = preparedTransaction.callDataAsset;
         transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+
+        await defaultActivities.updateCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
 
         return transactionResponse;
 

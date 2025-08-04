@@ -21,16 +21,25 @@ import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionR
 import { FuelSufficientBalanceRequest } from "../Models/FuelSufficientBalanceRequest";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { inject, injectable } from "tsyringe";
+import Redis from "ioredis";
+import Redlock from "redlock";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
+import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
+import { buildLockKey as buildLockKey, buildCurrentNonceKey, buildNextNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
+import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 
 
 @injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   constructor(
+    @inject("Redis") private redis: Redis,
+    @inject("Redlock") private lockFactory: Redlock,
     @inject("TreasuryClient") private treasuryClient: TreasuryClient
   ) { }
+
   readonly MaxFeeMultiplier = 7;
   readonly GasLimitMultiplier = 2;
 
@@ -259,6 +268,67 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     const response = await this.treasuryClient.signTransaction(request.networkType, request.signRequest);
 
     return response.signedTxn;
+  }
+
+  public async getNextNonce(request: NextNonceRequest): Promise<number> {
+
+    const lockKey = buildLockKey(request.network.name, request.address);
+    const nextNonceKey = buildNextNonceKey(request.network.name, request.address);
+
+    const lock = await this.lockFactory.acquire(
+      [lockKey],
+      TimeSpan.FromSeconds(25),
+      {
+        retryDelay: TimeSpan.FromSeconds(1),
+        retryCount: 20,
+      }
+    );
+
+    try {
+      let currentNonce: number = 0;
+
+      const cached = await this.redis.get(nextNonceKey);
+
+      if (cached !== null) {
+        currentNonce = Number(cached);
+      }
+
+      const next = currentNonce + 1;
+
+      await this.redis.set(nextNonceKey, next.toString(), "EX", TimeSpan.FromDays(7));
+
+      return currentNonce
+
+    } finally {
+      await lock.release().catch(() => { });
+    }
+  }
+
+  public async checkCurrentNonce(request: CurrentNonceRequest): Promise<void> {
+    const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
+
+    const cached = await this.redis.get(currentNonceKey);
+
+    let addressCurrentNonce: number = 0;
+
+    if (cached !== null) {
+      addressCurrentNonce = Number(cached);
+    }
+
+    if (addressCurrentNonce !== request.currentNonce) {
+      throw new Error(`Current nonce ${addressCurrentNonce} transaction nonce ${request.currentNonce}`)
+    }
+  }
+
+
+  public async updateCurrentNonce(request: CurrentNonceRequest): Promise<void> {
+    const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
+
+    const cached = await this.redis.get(currentNonceKey);
+
+    const addressCurrentNonce = Number(cached);
+
+    await this.redis.set(currentNonceKey, (addressCurrentNonce + 1).toString(), "EX", TimeSpan.FromDays(7));
   }
 }
 
