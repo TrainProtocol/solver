@@ -271,33 +271,28 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   }
 
   public async getNextNonce(request: NextNonceRequest): Promise<number> {
-
-    const lockKey = buildLockKey(request.network.name, request.address);
     const nextNonceKey = buildNextNonceKey(request.network.name, request.address);
 
     const lock = await this.lockFactory.acquire(
-      [lockKey],
+      [nextNonceKey],
       TimeSpan.FromSeconds(25),
       {
         retryDelay: TimeSpan.FromSeconds(1),
         retryCount: 20,
-      }
-    );
+      });
 
     try {
-      let currentNonce: number = 0;
+      let pendingNonce: number = 0;
 
       const cached = await this.redis.get(nextNonceKey);
 
       if (cached !== null) {
-        currentNonce = Number(cached);
+        pendingNonce = Number(cached);
       }
 
-      const next = currentNonce + 1;
+      await this.redis.set(nextNonceKey, (pendingNonce + 1).toString(), "EX", TimeSpan.FromDays(7));
 
-      await this.redis.set(nextNonceKey, next.toString(), "EX", TimeSpan.FromDays(7));
-
-      return currentNonce
+      return pendingNonce
 
     } finally {
       await lock.release().catch(() => { });
@@ -324,11 +319,20 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   public async updateCurrentNonce(request: CurrentNonceRequest): Promise<void> {
     const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
 
-    const cached = await this.redis.get(currentNonceKey);
+    const lock = await this.lockFactory.acquire(
+      [currentNonceKey],
+      TimeSpan.FromSeconds(25),
+      {
+        retryDelay: TimeSpan.FromSeconds(1),
+        retryCount: 20,
+      });
 
-    const addressCurrentNonce = Number(cached);
-
-    await this.redis.set(currentNonceKey, (addressCurrentNonce + 1).toString(), "EX", TimeSpan.FromDays(7));
+    try {
+      await this.redis.set(currentNonceKey, (request.currentNonce + 1).toString(), "EX", TimeSpan.FromDays(7));
+    }
+    finally {
+      await lock.release().catch(() => { });
+    }
   }
 }
 

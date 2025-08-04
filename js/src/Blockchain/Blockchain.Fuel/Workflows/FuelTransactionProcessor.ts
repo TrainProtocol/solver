@@ -1,4 +1,4 @@
-import { ApplicationFailure, executeChild, proxyActivities } from '@temporalio/workflow';
+import { ApplicationFailure, continueAsNew, executeChild, proxyActivities, uuid4 } from '@temporalio/workflow';
 import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -8,15 +8,10 @@ import { TransactionFailedException } from '../../Blockchain.Abstraction/Excepti
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
-import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
+import { buildProcessorId } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 
 const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
-    startToCloseTimeout: '1 hour',
-    scheduleToCloseTimeout: '2 days',
-});
-
-const utilityActivities = proxyActivities<IUtilityActivities>({
     startToCloseTimeout: '1 hour',
     scheduleToCloseTimeout: '2 days',
 });
@@ -40,12 +35,12 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    try {
-
-        const nextNonce = await defaultActivities.getNextNonce({
+     const nextNonce = await defaultActivities.getNextNonce({
             address: request.fromAddress,
             network: request.network
         });
+
+    try {       
 
         await defaultActivities.checkCurrentNonce(
             {
@@ -107,17 +102,26 @@ export async function FuelTransactionProcessor(
 
     }
     catch (error) {
+
+         await defaultActivities.updateCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
+
         if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
 
-            const processorId = await utilityActivities.BuildProcessorId(request.network.name, request.type);
+            const processorId = buildProcessorId(uuid4(), request.network.name, request.type);
 
-            await executeChild(FuelTransactionProcessor,
-                {
-                    args: [request, context],
-                    workflowId: processorId,
-                });
+            await continueAsNew(FuelTransactionProcessor, {
+                args: [request, context],
+                workflowId: processorId,
+            });
         }
-
-        throw new Error(`Failed to process transaction: ${error.message}`);
+        else {
+            throw error;
+        }
     }
 }

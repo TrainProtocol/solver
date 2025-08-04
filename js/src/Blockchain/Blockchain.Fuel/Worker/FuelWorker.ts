@@ -4,7 +4,6 @@ import 'reflect-metadata';
 import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
-import * as UtilityActivities from '../../Blockchain.Abstraction/Activities/UtilityActivities';
 import { FuelBlockchainActivities } from '../Activities/FuelBlockchainActivities';
 
 export default async function run( taskQueue: string): Promise<void> {
@@ -17,7 +16,6 @@ export default async function run( taskQueue: string): Promise<void> {
 
     const activities = {
       ...blockchainActivities,
-      ...UtilityActivities,
     };
 
     const connection = await NativeConnection.connect({

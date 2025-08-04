@@ -1,3 +1,5 @@
+import { TransactionType } from "../Models/TransacitonModels/TransactionType";
+
 export function decodeJson<T>(json: string): T {
   return JSON.parse(json) as T;
 }
@@ -31,4 +33,8 @@ export function parseHexToUTF8(hex: string): string {
 
 export function ToHex(value: bigint): string {
   return '0x' + value.toString(16);
+}
+
+export function buildProcessorId(guid: string, networkName: string, type: TransactionType): string {
+  return `${networkName}-${TransactionType[type]}-${guid}`;
 }
