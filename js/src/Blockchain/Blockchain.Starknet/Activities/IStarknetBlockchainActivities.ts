@@ -29,5 +29,5 @@ export interface IStarknetBlockchainActivities extends IBlockchainActivities {
 
   GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
 
-  validateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>
+  ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>
 }

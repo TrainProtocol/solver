@@ -7,11 +7,11 @@ import { EventRequest } from "../Models/EventRequest";
 import { AddLockSignatureRequest } from "../Models/TransactionBuilderModels/AddLockSignatureRequest";
 
 export interface IBlockchainActivities {
-    getBalance(request: BalanceRequest): Promise<BalanceResponse>;  
+    GetBalance(request: BalanceRequest): Promise<BalanceResponse>;  
   
-    getLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse>;  
+    GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse>;  
     
-    validateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>;
+    ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>;
     
-    getEvents(request: EventRequest): Promise<HTLCBlockEventResponse>;
+    GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse>;
   }

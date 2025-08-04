@@ -56,7 +56,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
   }
 
-  public async getBalance(request: BalanceRequest): Promise<BalanceResponse> {
+  public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
 
     const provider = new Provider(request.network.nodes[0].url);
     const token = request.network.tokens.find(t => t.symbol === request.asset);
@@ -71,7 +71,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return result;
   }
 
-  public async getLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
+  public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
 
     const provider = new Provider(request.network.nodes[0].url);
     const lastBlockNumber = (await provider.getBlockNumber()).toNumber();
@@ -83,7 +83,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     };
   }
 
-  public async validateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+  public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
 
     const timelock = DateTime.fromUnixSeconds(request.timelock).toTai64();
     const provider = new Provider(request.network.nodes[0].url);
@@ -102,7 +102,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     return isValid;
   }
 
-  public async getEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
+  public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
     const result = await TrackBlockEventsAsync(request.network, request.fromBlock, request.toBlock, request.walletAddresses);
 
