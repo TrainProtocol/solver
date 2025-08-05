@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
-using Train.Solver.Infrastructure.Abstractions;
-using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Infrastructure.DependencyInjection;
-using Train.Solver.Common.Extensions;
-using Train.Solver.Common.Helpers;
-using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using System;
 using System.Numerics;
 using Train.Solver.Common.Enums;
-using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Common.Extensions;
+using Train.Solver.Common.Helpers;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Repositories;
+using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Infrastructure.Services;
@@ -95,7 +96,11 @@ public class QuoteService(
         var amount = request.Amount;
         var (TotalFee, TotalServiceFee, TotalExpenseFee) = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - TotalFee;
-        var receiveAmount = actualAmountToSwap.ConvertTokenAmount(swapRate, route.SourceToken.Decimals, route.DestinationToken.Decimals);
+        var receiveAmount = actualAmountToSwap.ConvertTokenAmount(            
+            route.SourceToken.Decimals,
+            route.DestinationToken.Decimals,
+            TokenUnitHelper.ToBaseUnits(swapRate, route.SourceToken.Decimals),
+            route.SourceToken.Decimals);
 
         var quote = new QuoteWithSolverDto
         {
