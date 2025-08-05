@@ -40,4 +40,5 @@ public interface INetworkRepository
     Task DeleteTokenAsync(string networkName, string symbol);
 
     Task DeleteNodeAsync(string networkName, string providerName);
+    Task<Network?> UpdateAsync(string networkName, string displayName, TransactionFeeType feeType, int feePercentageIncrease, string htlcNativeContractAddress, string htlcTokenContractAddress);
 }

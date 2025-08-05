@@ -25,6 +25,10 @@ public static class NetworkEndpoints
             .Produces<DetailedNetworkDto>()
             .Produces(StatusCodes.Status400BadRequest);
 
+        group.MapPut("/networks/{networkName}", UpdateAsync)
+         .Produces(StatusCodes.Status200OK)
+         .Produces(StatusCodes.Status400BadRequest);
+
         group.MapPost("/networks/{networkName}/nodes", CreateNodeAsync)
             .Produces<NodeDto>()
             .Produces(StatusCodes.Status400BadRequest);
@@ -76,6 +80,24 @@ public static class NetworkEndpoints
 
         return network is null
            ? Results.BadRequest("Failed to create network")
+           : Results.Ok();
+    }
+
+    private static async Task<IResult> UpdateAsync(
+     INetworkRepository repository,
+     string networkName,
+     [FromBody] UpdateNetworkRequest request)
+    {
+        var network = await repository.UpdateAsync(
+            networkName,
+            request.DisplayName,
+            request.FeeType,
+            request.FeePercentageIncrease,
+            request.HtlcNativeContractAddress,
+            request.HtlcTokenContractAddress);
+
+        return network is null
+           ? Results.BadRequest("Failed to update network")
            : Results.Ok();
     }
 

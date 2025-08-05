@@ -17,3 +17,4 @@ public class CreateNetworkRequest
     public string NativeTokenContract { get; set; } = default!;
     public int NativeTokenDecimals { get; set; }
 }
+
