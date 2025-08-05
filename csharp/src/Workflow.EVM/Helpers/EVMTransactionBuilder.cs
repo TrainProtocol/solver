@@ -68,10 +68,9 @@ public static class EVMTransactionBuilder
       
         var currency = network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
-        var nativeCurrency = network.Tokens.Single(x => string.IsNullOrEmpty(x.Contract));
-        response.Asset = nativeCurrency.Contract;
+        response.Asset = network.NativeToken!.Symbol;
 
-        if (currency.Symbol != nativeCurrency.Symbol)
+        if (currency.Symbol != network.NativeToken!.Symbol)
         {
             response.Data = new TransferFunction
             {
