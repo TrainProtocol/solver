@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using System.Text.Json.Serialization;
 using Train.Solver.AdminAPI.Endpoints;
 using Train.Solver.Common.Extensions;
@@ -60,6 +61,27 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var ex = exceptionHandlerPathFeature?.Error;
+
+        Console.WriteLine($"[UNHANDLED EXCEPTION]: {ex}");
+
+        var response = new
+        {
+            error = "An unexpected error occurred."
+        };
+
+        await context.Response.WriteAsJsonAsync(response);
+    });
+});
 
 app.UseCors();
 
