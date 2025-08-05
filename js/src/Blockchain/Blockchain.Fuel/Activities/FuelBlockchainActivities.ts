@@ -271,10 +271,12 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   }
 
   public async getNextNonce(request: NextNonceRequest): Promise<number> {
+    const lockKey = buildLockKey(request.network.name, request.address);
+
     const nextNonceKey = buildNextNonceKey(request.network.name, request.address);
 
     const lock = await this.lockFactory.acquire(
-      [nextNonceKey],
+      [lockKey],
       TimeSpan.FromSeconds(25),
       {
         retryDelay: TimeSpan.FromSeconds(1),
@@ -317,10 +319,12 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
 
   public async updateCurrentNonce(request: CurrentNonceRequest): Promise<void> {
+    const lockKey = buildLockKey(request.network.name, request.address);
+
     const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
 
     const lock = await this.lockFactory.acquire(
-      [currentNonceKey],
+      [lockKey],
       TimeSpan.FromSeconds(25),
       {
         retryDelay: TimeSpan.FromSeconds(1),
