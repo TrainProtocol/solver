@@ -8,12 +8,15 @@
 
 | Component | Dockerfile Location | Image Badge |
 |-----------|---------------------|-------------|
-| API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Solver API | `csharp/src/API/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-api?label=API&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
+| Admin API | `csharp/src/AdminAPI/Dockerfile` | [![API](https://img.shields.io/docker/v/trainprotocol/solver-admin-api?label=AdminAPI&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-admin-api) |
+| Signer Agent | `js/Dockerfile ARG fuel` | [![Fuel](https://img.shields.io/docker/v/trainprotocol/treasury-api?label=SignerAgent&logo=docker)](https://hub.docker.com/r/trainprotocol/treasury-api) |
 | Runner (Swap Core) | `csharp/src/Workflow.Swap/Dockerfile` | [![Swap Core](https://img.shields.io/docker/v/trainprotocol/solver-swap?label=Swap&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-api) |
 | Runner (EVM) | `csharp/src/Workflow.EVM/Dockerfile` | [![EVM](https://img.shields.io/docker/v/trainprotocol/solver-evm?label=EVM&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-evm) |
 | Runner (Solana) | `csharp/src/Workflow.Solana/Dockerfile` | [![Solana](https://img.shields.io/docker/v/trainprotocol/solver-solana?label=Solana&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-solana) |
 | Runner (Starknet) | `js/Dockerfile ARG starknet` | [![Starknet](https://img.shields.io/docker/v/trainprotocol/solver-starknet?label=Starknet&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-starknet) |
 | Runner (Fuel) | `js/Dockerfile ARG fuel` | [![Fuel](https://img.shields.io/docker/v/trainprotocol/solver-fuel?label=Fuel&logo=docker)](https://hub.docker.com/r/trainprotocol/solver-Fuel) |
+
 
 ---
 
