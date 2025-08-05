@@ -28,7 +28,7 @@ public static class BigIntegerExtensions
         out BigInteger result)
     {
         string hexNumber = firstHex.ConcatHexes(secondHex);
-        
+
         try
         {
             result = hexNumber.HexToBigInteger(isHexLittleEndian: false);
@@ -85,19 +85,23 @@ public static class BigIntegerExtensions
         return value * scaledPercent / scale / 100;
     }
 
-    public static BigInteger ConvertTokenAmount(this BigInteger amountIn, decimal rate, int sourceDecimals, int destDecimals)
+
+    public static BigInteger ConvertTokenAmount(
+        this BigInteger amount,
+        int fromDecimals,
+        int toDecimals,
+        BigInteger rate,
+        int rateDecimals)
     {
-        if (rate < 0) throw new ArgumentOutOfRangeException(nameof(rate));
-        if (sourceDecimals < 0 || destDecimals < 0) throw new ArgumentOutOfRangeException("Decimals must be >= 0");
+        BigInteger numerator = amount * rate;
 
-        // Normalize source to decimal
-        var scaleSource = BigInteger.Pow(10, sourceDecimals);
-        var scaleDest = BigInteger.Pow(10, destDecimals);
+        int scale = fromDecimals + rateDecimals - toDecimals;
 
-        // amountIn * rate * destScale / sourceScale
-        var numerator = BigInteger.Multiply(amountIn, (BigInteger)(rate * 1_000_000_000m)); // scale rate for precision
-        var scaled = numerator * scaleDest / (scaleSource * 1_000_000_000);
-
-        return scaled;
+        if (scale > 0)
+            return numerator / BigInteger.Pow(10, scale);
+        else if (scale < 0)
+            return numerator * BigInteger.Pow(10, -scale);
+        else
+            return numerator;
     }
 }

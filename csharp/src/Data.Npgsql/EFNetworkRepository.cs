@@ -95,6 +95,32 @@ public class EFNetworkRepository(
         }
     }
 
+    public async Task<Network?> UpdateAsync(
+       string networkName,
+       string displayName,
+       TransactionFeeType feeType,
+       int feePercentageIncrease,
+       string htlcNativeContractAddress,
+       string htlcTokenContractAddress)
+    {
+        var network = await GetAsync(networkName);
+
+        if (network == null)
+        {
+            throw new Exception("Network not found");
+        }
+
+        network.DisplayName = displayName;
+        network.FeeType = feeType;
+        network.FeePercentageIncrease = feePercentageIncrease;
+        network.HTLCNativeContractAddress = htlcNativeContractAddress;
+        network.HTLCTokenContractAddress = htlcTokenContractAddress;
+
+        await dbContext.SaveChangesAsync();
+
+        return network;
+    }
+
     public async Task<Node?> CreateNodeAsync(
         string networkName,
         string providerName,

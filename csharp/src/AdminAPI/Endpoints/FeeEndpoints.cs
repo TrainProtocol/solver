@@ -18,7 +18,7 @@ public static class FeeEndpoints
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPost("/fees/{name}", UpdateServiceFeeAsync)
+        group.MapPut("/fees/{name}", UpdateServiceFeeAsync)
            .Produces(StatusCodes.Status200OK)
            .Produces(StatusCodes.Status400BadRequest);
 
