@@ -177,7 +177,6 @@ You must also extend the **SignerAgent** to support your blockchain’s native s
 - **Database**: PostgreSQL with Entity Framework Core  
 - **Secrets Management**: Hashicorp Key Vault (for private key storage)  
 - **Observability**: OpenTelemetry instrumentation with SigNoz as the backend  
-- **Price Feeds**: Coingecko-based token pricing service  
 
 ---
 
