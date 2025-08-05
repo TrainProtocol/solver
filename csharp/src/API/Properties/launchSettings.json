@@ -1,6 +1,6 @@
 ﻿{
   "profiles": {
-    "SolverAPI": {
+    "API": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

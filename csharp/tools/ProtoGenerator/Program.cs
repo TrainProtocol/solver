@@ -1,7 +1,7 @@
 ﻿using ProtoBuf;
 using ProtoBuf.Meta;
 using System.Reflection;
-using Train.Solver.Blockchain.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Models;
 
 var types = Assembly.GetAssembly(typeof(BalanceRequest))!
     .GetTypes()

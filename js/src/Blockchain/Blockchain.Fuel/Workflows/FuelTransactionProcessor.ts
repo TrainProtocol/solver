@@ -1,4 +1,4 @@
-import { proxyActivities } from '@temporalio/workflow';
+import { ApplicationFailure, continueAsNew, executeChild, proxyActivities, uuid4 } from '@temporalio/workflow';
 import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -8,6 +8,8 @@ import { TransactionFailedException } from '../../Blockchain.Abstraction/Excepti
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
+import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
+import { buildProcessorId } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 
 const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -33,38 +35,93 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
-    });
-
-    if (!context.Fee) {
-        context.Fee = await nonRetryableActivities.EstimateFee({
-            NetworkName: request.NetworkName,
-            ToAddress: preparedTransaction.ToAddress,
-            Amount: preparedTransaction.Amount,
-            FromAddress: request.FromAddress,
-            Asset: preparedTransaction.Asset,
-            CallData: preparedTransaction.Data,
+     const nextNonce = await defaultActivities.getNextNonce({
+            address: request.fromAddress,
+            network: request.network
         });
+
+    try {       
+
+        await defaultActivities.checkCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
+
+        const preparedTransaction = await defaultActivities.buildTransaction({
+            fromAddress: request.fromAddress,
+            network: request.network,
+            prepareArgs: request.prepareArgs,
+            type: request.type,
+        });
+
+        const rawTx = await defaultActivities.composeRawTransaction({
+            network: request.network,
+            fromAddress: request.fromAddress,
+            callData: preparedTransaction.data,
+            callDataAsset: preparedTransaction.callDataAsset,
+            callDataAmount: preparedTransaction.callDataAmount,
+        });
+
+        const signedRawData = await defaultActivities.signTransaction(
+            {
+                networkType: NetworkType[request.network.type],
+                signRequest: {
+                    unsignedTxn: rawTx,
+                    address: request.fromAddress,
+                    nodeUrl: request.network.nodes[0].url,
+                }
+            }
+        );
+
+        // sign transaction
+        const publishedTransaction = await nonRetryableActivities.publishTransaction({
+            network: request.network,
+            signedRawData: signedRawData
+        });
+
+        const transactionResponse = await defaultActivities.getTransaction({
+            network: request.network,
+            transactionHash: publishedTransaction,
+        });
+
+        transactionResponse.asset = preparedTransaction.callDataAsset;
+        transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+
+        await defaultActivities.updateCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
+
+        return transactionResponse;
+
     }
+    catch (error) {
 
-    const publishedTransaction = await defaultActivities.PublishTransaction({
-        NetworkName: request.NetworkName,
-        FromAddress: request.FromAddress,
-        CallData: preparedTransaction.Data,
-        Fee: context.Fee,
-        Amount: preparedTransaction.AmountInWei,
-    });
+         await defaultActivities.updateCurrentNonce(
+            {
+                address: request.fromAddress,
+                network: request.network,
+                currentNonce: nextNonce
+            }
+        )
 
-    const transactionResponse = await defaultActivities.GetTransaction({
-        NetworkName: request.NetworkName,
-        TransactionHash: publishedTransaction,
-    });
+        if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
 
-    transactionResponse.Asset = preparedTransaction.CallDataAsset;
-    transactionResponse.Amount = preparedTransaction.CallDataAmount;
-    
-    return transactionResponse;
+            const processorId = buildProcessorId(uuid4(), request.network.name, request.type);
+
+            await continueAsNew(FuelTransactionProcessor, {
+                args: [request, context],
+                workflowId: processorId,
+            });
+        }
+        else {
+            throw error;
+        }
+    }
 }

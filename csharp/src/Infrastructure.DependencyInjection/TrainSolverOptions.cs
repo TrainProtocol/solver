@@ -6,13 +6,11 @@ public class TrainSolverOptions
 
     public string TemporalServerHost { get; set; } = null!;
 
-    public string TemporalNamespace { get; set; } = "atomic";
+    public string TemporalNamespace { get; set; } = null!;
+
+    public string NetworkType { get; set; } = null!;
 
     public string RedisConnectionString { get; set; } = null!;
 
     public int RedisDatabaseIndex { get; set; } = 3;
-
-    public bool DisableExpenseFee { get; set; } = false;
-
-    public decimal MinAmountInUsd { get; set; } = 0.69m;
 }

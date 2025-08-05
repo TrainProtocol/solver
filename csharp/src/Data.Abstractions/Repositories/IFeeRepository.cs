@@ -1,4 +1,5 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -6,12 +7,24 @@ public interface IFeeRepository
 {
     Task<List<Expense>> GetExpensesAsync();
 
+    Task<List<ServiceFee>> GetServiceFeesAsync();
+
+    Task<ServiceFee> GetServiceFeeAsync(string name);
+
+    Task<ServiceFee?> CreateServiceFeeAsync(
+        string name, 
+        decimal feeInUsd,
+        decimal percentageFee);
+
+    Task<ServiceFee?> UpdateServiceFeeAsync(
+       string name,
+       decimal feeInUsd,
+       decimal percentageFee);
+
     Task UpdateExpenseAsync(
         string networkName,
         string token,
         string feeToken,
-        decimal fee,
+        string fee,
         TransactionType transactionType);
-
-    Task<List<ServiceFee>> GetServiceFeesAsync();
 }

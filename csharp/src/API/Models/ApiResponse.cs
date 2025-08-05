@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Train.Solver.API.Models;
+namespace Train.Solver.PublicAPI.Models;
 
 public class ApiError
 {
-    public string Code { get; set; } = null!;
+    //public string Code { get; set; } = null!;
 
     public string Message { get; set; } = null!;
 }

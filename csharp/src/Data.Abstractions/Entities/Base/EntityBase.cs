@@ -1,8 +1,8 @@
 ﻿namespace Train.Solver.Data.Abstractions.Entities.Base;
 
-public abstract class EntityBase<T>
+public abstract class EntityBase
 {
-    public T Id { get; set; }
+    public int Id { get; set; }
 
     public DateTimeOffset CreatedDate { get; set; }
 

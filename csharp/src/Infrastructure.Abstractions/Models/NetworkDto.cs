@@ -1,4 +1,4 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Infrastructure.Abstractions.Models;
 
@@ -6,7 +6,7 @@ public class NetworkDto
 {
     public string Name { get; set; } = null!;
 
-    public string? ChainId { get; set; }
+    public string ChainId { get; set; } = null!;
 
     public NetworkType Type { get; set; }
 }

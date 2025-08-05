@@ -1,0 +1,22 @@
+{
+  "runtime": "Net80",
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "TrainSolverApiClient",
+      "output": "TrainSolverApiClient.cs",
+      "namespace": "Train.Solver.Client",
+      "generateClientClasses": true,
+      "generateClientInterfaces": true,
+      "generateDtoTypes": true,
+      "useHttpClientCreationMethod": false,
+      "injectHttpClient": true,
+      "useBaseUrl": true,
+      "generateOptionalParameters": true
+    }
+  },
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "https://$(TrainUrl)/swagger/v1/swagger.json"
+    }
+  }
+}

@@ -1,16 +1,19 @@
-﻿using Train.Solver.Data.Abstractions.Entities.Base;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities.Base;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Expense : EntityBase<int>
+public class Expense : EntityBase
 {
-    public decimal FeeAmount => LastFeeValues.Length > 0 ? LastFeeValues.Average() : default;
+    public string FeeAmount => LastFeeValues.Length > 0 ? LastFeeValues.Select(x => BigInteger.Parse(x)).Average().ToString() : BigInteger.Zero.ToString();
 
     public int FeeTokenId { get; set; }
 
     public int TokenId { get; set; }
 
-    public decimal[] LastFeeValues { get; set; } = [];
+    public string[] LastFeeValues { get; set; } = [];
 
     public TransactionType TransactionType { get; set; }
 

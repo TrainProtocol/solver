@@ -1,11 +1,11 @@
-import { proxyActivities, executeChild } from '@temporalio/workflow';
+import { proxyActivities, executeChild, uuid4 } from '@temporalio/workflow';
 import { IStarknetBlockchainActivities } from '../Activities/IStarknetBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
 import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exceptions/AlreadyClaimedExceptions';
 import { HTLCAlreadyExistsException } from '../../Blockchain.Abstraction/Exceptions/HTLCAlreadyExistsException';
 import { TransactionFailedException } from '../../Blockchain.Abstraction/Exceptions/TransactionFailedException';
-import { decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
+import { buildProcessorId, decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 import { AllowanceRequest } from '../../Blockchain.Abstraction/Models/AllowanceRequest';
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
@@ -13,7 +13,6 @@ import { TransactionRequest } from '../../Blockchain.Abstraction/Models/Transaci
 import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
-import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -34,99 +33,102 @@ const nonRetryableActivities = proxyActivities<IStarknetBlockchainActivities>({
     },
 });
 
-const utilityActivities = proxyActivities<IUtilityActivities>({
-    startToCloseTimeout: '1 hour',
-    scheduleToCloseTimeout: '2 days',
-});
-
 export async function StarknetTransactionProcessor(
     request: TransactionRequest,
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    if (request.Type === TransactionType.HTLCLock) {
+    if (request.type === TransactionType.HTLCLock) {
         await checkAllowance(request);
     }
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
-        NetworkName: request.NetworkName,
-        Args: request.PrepareArgs,
-        Type: request.Type,
+        network: request.network,
+        prepareArgs: request.prepareArgs,
+        type: request.type,
+        fromAddress: request.fromAddress,
+        swapId: request.swapId,
     });
     try {
 
-        if (!context.Fee) {
-            context.Fee = await nonRetryableActivities.EstimateFee({
-                NetworkName: request.NetworkName,
-                ToAddress: preparedTransaction.ToAddress,
-                Amount: preparedTransaction.Amount,
-                FromAddress: request.FromAddress,
-                Asset: preparedTransaction.Asset!,
-                CallData: preparedTransaction.Data,
+        if (!context.fee) {
+            context.fee = await nonRetryableActivities.EstimateFee({
+                network: request.network,
+                toAddress: preparedTransaction.toAddress,
+                amount: preparedTransaction.amount,
+                fromAddress: request.fromAddress,
+                asset: preparedTransaction.asset!,
+                callData: preparedTransaction.data,
             });
         }
 
-        if (!context.Nonce) {
-            context.Nonce = await defaultActivities.GetNextNonce({
-                NetworkName: request.NetworkName,
-                Address: request.FromAddress,
+        if (!context.nonce) {
+            context.nonce = await defaultActivities.getNextNonce({
+                network: request.network,
+                address: request.fromAddress,
             });
         }
 
         const simulationTxId = await nonRetryableActivities.SimulateTransaction({
-            NetworkName: request.NetworkName,
-            FromAddress: request.FromAddress,
-            Nonce: context.Nonce,
-            CallData: preparedTransaction.Data,
-            Fee: context.Fee,
+            network: request.network,
+            fromAddress: request.fromAddress,
+            nonce: context.nonce,
+            callData: preparedTransaction.data,
+            fee: context.fee,
         });
 
-        context.PublishedTransactionIds.push(simulationTxId);
+        context.publishedTransactionIds.push(simulationTxId);
 
         const txId = await nonRetryableActivities.PublishTransaction({
-            NetworkName: request.NetworkName,
-            FromAddress: request.FromAddress,
-            Nonce: context.Nonce,
-            CallData: preparedTransaction.Data,
-            Fee: context.Fee,
+            network: request.network,
+            fromAddress: request.fromAddress,
+            nonce: context.nonce,
+            callData: preparedTransaction.data,
+            fee: context.fee,
         });
 
-        context.PublishedTransactionIds.push(txId);
+        context.publishedTransactionIds.push(txId);
 
         const confirmed = await nonRetryableActivities.GetBatchTransaction({
-            NetworkName: request.NetworkName,
-            TransactionHashes: context.PublishedTransactionIds,
+            network: request.network,
+            TransactionHashes: context.publishedTransactionIds,
         });
 
-        confirmed.Asset = preparedTransaction.CallDataAsset;
-        confirmed.Amount = preparedTransaction.CallDataAmount;
+        confirmed.asset = preparedTransaction.callDataAsset;
+        confirmed.amount = preparedTransaction.callDataAmount.toString();
 
         return confirmed;
 
     }
     catch (error) {
-        if (error instanceof InvalidTimelockException && context.Nonce) {
+        if (error instanceof InvalidTimelockException && context.nonce) {
+
             const transferArgs: TransferPrepareRequest = {
-                Amount: 0,
-                Asset: context.Fee!.Asset,
-                ToAddress: request.FromAddress,
+                amount: 0,
+                asset: context.fee!.Asset,
+                toAddress: request.fromAddress,
             };
 
-            const processorId = await utilityActivities.BuildProcessorId(request.NetworkName, TransactionType.Transfer);
+            const processorId = buildProcessorId(uuid4(), request.network.name, TransactionType.Transfer);
+
+            const transferRequest: TransactionRequest = {
+                prepareArgs: JSON.stringify(transferArgs),
+                type: TransactionType.Transfer,
+                fromAddress: request.fromAddress,
+                network: request.network,
+                swapId: request.swapId,
+            };
+
+            const childContext: TransactionExecutionContext = {
+                attempts: 0,
+                nonce: context.nonce,
+                fee: null,
+                publishedTransactionIds: [],
+            };
 
             await executeChild(StarknetTransactionProcessor,
                 {
-                    args: [
-                        {
-                            NetworkName: request.NetworkName,
-                            FromAddress: request.FromAddress,
-                            NetworkType: request.NetworkType,
-                            PrepareArgs: JSON.stringify(transferArgs),
-                            Type: TransactionType.Transfer,
-                            SwapId: request.SwapId,
-                        },
-                        { Nonce: context.Nonce }
-                    ],
+                    args: [transferRequest, childContext],
                     workflowId: processorId,
                 });
         }
@@ -136,37 +138,38 @@ export async function StarknetTransactionProcessor(
 }
 
 export async function checkAllowance(context: TransactionRequest): Promise<void> {
-    const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.PrepareArgs);
+    const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.prepareArgs);
 
     const allowance = await defaultActivities.GetSpenderAllowance(
         {
-            NetworkName: lockRequest.SourceNetwork,
-            OwnerAddress: context.FromAddress!,
-            Asset: lockRequest.SourceAsset,
+            network: context.network,
+            ownerAddress: context.fromAddress!,
+            asset: lockRequest.sourceAsset,
         } as AllowanceRequest);
 
-    if (lockRequest.Amount > allowance) {
+    if (lockRequest.amount > allowance) {
+
         const approveRequest: TransactionRequest = {
-            PrepareArgs: JSON.stringify({
+            prepareArgs: JSON.stringify({
                 Amount: 1000000000,
-                Asset: lockRequest.SourceAsset,
+                Asset: lockRequest.sourceAsset,
 
             }),
-            Type: TransactionType.Approve,
-            FromAddress: context.FromAddress,
-            NetworkName: lockRequest.SourceNetwork,
-            NetworkType: context.NetworkType,
-            SwapId: context.SwapId,
+            type: TransactionType.Approve,
+            fromAddress: context.fromAddress,
+            network: context.network,
+            swapId: context.swapId,
         };
 
         const childContext: TransactionExecutionContext = {
-            Attempts: 0,
-            Nonce: null,
-            Fee: null,
-            PublishedTransactionIds: [],
+            attempts: 0,
+            nonce: null,
+            fee: null,
+            publishedTransactionIds: [],
         };
-        const processorId = await utilityActivities.BuildProcessorId(context.NetworkName, context.Type);
 
+        const processorId = buildProcessorId(uuid4(), context.network.name, context.type);
+        
         await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],

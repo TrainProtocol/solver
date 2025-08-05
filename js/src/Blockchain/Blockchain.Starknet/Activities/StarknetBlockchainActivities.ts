@@ -1,27 +1,21 @@
-import { Abi, Account, cairo, Call, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding} from "starknet";
+import { Abi, Account, cairo, Call, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding } from "starknet";
 import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
 import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
 import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
 import { BigNumber, utils } from "ethers";
-import { ContractType } from "../../../Data/Entities/Contracts";
-import { NodeType } from "../../../Data/Entities/Nodes";
-import { SolverContext } from "../../../Data/SolverContext";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { ParseNonces } from "./Helper/ErrorParser";
 import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
-import { Networks } from "../../../Data/Entities/Networks";
-import { AccountType, ManagedAccounts } from "../../../Data/Entities/ManagedAccounts";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
-import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
-import { CreateLockCallData, CreateRedeemCallData, CreateRefundCallData, CreateAddLockSigCallData, CreateApproveCallData, CreateTransferCallData, CreateCommitCallData } from "./Helper/StarknetTransactionBuilder";
+import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
-import { BuildLockKey, BuildNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
+import { buildLockKey, buildCurrentNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
 import { BalanceRequest } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceRequest";
@@ -33,7 +27,7 @@ import { EventRequest } from "../../Blockchain.Abstraction/Models/EventRequest";
 import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
 import { Fee, FixedFeeData } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { GetBatchTransactionRequest } from "../../Blockchain.Abstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NextNonceRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
@@ -43,13 +37,15 @@ import { TransactionStatus } from "../../Blockchain.Abstraction/Models/Transacit
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
+import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
-        @inject(SolverContext) private dbContext: SolverContext,
         @inject("Redis") private redis: Redis,
-        @inject("Redlock") private lockFactory: Redlock
+        @inject("Redlock") private lockFactory: Redlock,
+        @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
     readonly FeeSymbol = "ETH";
@@ -57,20 +53,10 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
 
     public async GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
-            .getOne();
-
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
         let transaction: TransactionResponse = null;
 
         for (const transactionId of request.TransactionHashes) {
-            transaction = await this.GetTransactionByHashAsync(network, transactionId);
+            transaction = await this.GetTransactionByHashAsync(request.network, transactionId);
         }
 
         if (!transaction) {
@@ -81,35 +67,19 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
-            .getOne();
 
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
-        const transaction = await this.GetTransactionByHashAsync(network, request.TransactionHash);
+        const transaction = await this.GetTransactionByHashAsync(request.network, request.transactionHash);
 
         if (!transaction) {
-            throw new TransactionNotComfirmedException(`Transaction ${request.TransactionHash} not found`);
+            throw new TransactionNotComfirmedException(`Transaction ${request.transactionHash} not found`);
         }
 
         return transaction;
     }
 
-    private async GetTransactionByHashAsync(network: Networks, transactionHash: string): Promise<TransactionResponse> {
+    private async GetTransactionByHashAsync(network: DetailedNetworkDto, transactionHash: string): Promise<TransactionResponse> {
 
-        const node = network.nodes.find((n) => n.type === NodeType.Primary);
-        if (!node) {
-            throw new Error(
-                `Node with type ${NodeType.Primary} is not configured in ${network.name}`
-            );
-        }
-
-        const provider = new RpcProvider({ nodeUrl: node.url });
+        const provider = new RpcProvider({ nodeUrl: network.nodes[0].url });
 
         const statusResponse = await provider.getTransactionStatus(transactionHash);
 
@@ -134,13 +104,15 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
 
         let transactionModel: TransactionResponse = {
-            TransactionHash: transactionHash,
-            Confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
-            Status: transactionStatus,
-            FeeAsset: "ETH",
-            FeeAmount: feeAmount,
-            Timestamp: new Date(),
-            NetworkName: network.name,
+            transactionHash: transactionHash,
+            decimals: network.nativeToken.decimals,
+            feeDecimals: network.nativeToken.decimals,
+            confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
+            status: transactionStatus,
+            feeAsset: network.nativeToken.symbol,
+            feeAmount: feeAmount.toString(),
+            timestamp: new Date(),
+            networkName: network.name,
         };
 
         const isConfirmed = "block_number" in confrimedTransaction;
@@ -149,32 +121,16 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const blockNumber = confrimedTransaction.block_number as string;
             const blockData = await provider.getBlockWithTxHashes(blockNumber);
 
-            transactionModel.Timestamp = new Date(blockData.timestamp * 1000);
+            transactionModel.timestamp = new Date(blockData.timestamp * 1000);
         }
 
         return transactionModel;
     }
 
     public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
-            .getOne();
-
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
-        const node = network.nodes.find((n) => n.type === NodeType.Primary);
-        if (!node) {
-            throw new Error(
-                `Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`
-            );
-        }
 
         const provider = new RpcProvider({
-            nodeUrl: node.url,
+            nodeUrl: request.network.nodes[0].url,
         });
 
         const lastBlockNumber = await provider.getBlockNumber();
@@ -182,75 +138,32 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
 
         return {
-            BlockNumber: lastBlockNumber,
-            BlockHash: blockData.block_hash,
+            blockNumber: lastBlockNumber,
+            blockHash: blockData.block_hash,
         };
     }
 
     public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .leftJoinAndSelect("network.contracts", "c")
-            .leftJoinAndSelect("network.managedAccounts", "ma")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-            .getOne();
-
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
-        const node = network.nodes.find(n => n.type === NodeType.Primary);
-        if (!node) {
-            throw new Error(`Node with type ${NodeType.Primary} is not configured in ${request.NetworkName}`);
-        }
-
-        const solverAddress = network.managedAccounts.find(m => m.type === AccountType.Primary)?.address;
-
-        const htlcAddress = network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
-
-        const tokens = await this.dbContext.Tokens
-            .createQueryBuilder("currencies")
-            .leftJoinAndSelect("currencies.network", "n")
-            .getMany();
-
         const provider = new RpcProvider({
-            nodeUrl: node.url
+            nodeUrl: request.network.nodes[0].url
         });
 
         return TrackBlockEventsAsync(
-            network.name,
+            request.network,
             provider,
-            tokens,
-            solverAddress,
-            request.FromBlock,
-            request.ToBlock,
-            htlcAddress,
+            request.walletAddresses,
+            request.fromBlock,
+            request.toBlock,
         );
     }
 
-    public async GetNextNonce(request: NextNonceRequest): Promise<string> {
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:name)", { name: request.NetworkName })
-            .getOne();
+    public async getNextNonce(request: NextNonceRequest): Promise<string> {
+        const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
 
-        if (!network) {
-            throw new Error(`Network ${request.NetworkName} not found`);
-        }
-
-        const node = network.nodes.find(n => n.type === NodeType.Primary);
-        if (!node) {
-            throw new Error(`Primary node not found in network ${request.NetworkName}`);
-        }
-
-        const provider = new RpcProvider({ nodeUrl: node.url });
-
-        const formattedAddress = formatAddress(request.Address);
-        const lockKey = BuildLockKey(request.NetworkName, formattedAddress);
-        const nonceKey = BuildNonceKey(request.NetworkName, formattedAddress);
+        const formattedAddress = formatAddress(request.address);
+        const lockKey = buildLockKey(request.network.name, formattedAddress);
+        const nonceKey = buildCurrentNonceKey(request.network.name, formattedAddress);
 
         const lock = await this.lockFactory.acquire(
             [lockKey],
@@ -287,40 +200,28 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     public async PublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
         let result: string;
 
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-            .getOneOrFail();
-
-        const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-        if (!node) {
-            throw new Error(`Primary node not found for network ${request.NetworkName}`);
-        }
-
-        const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
+        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
 
         const provider = new RpcProvider({
-            nodeUrl: node.url
+            nodeUrl: request.network.nodes[0].url
         });
 
-        const account = new Account(provider, request.FromAddress, privateKey, '1');
+        const account = new Account(provider, request.fromAddress, privateKey, '1');
 
-        var transferCall: Call = JSON.parse(request.CallData);
+        var transferCall: Call = JSON.parse(request.callData);
 
         const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
 
         const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.FromAddress,
+            senderAddress: request.fromAddress,
             version: ETransactionVersion2.V1,
             compiledCalldata: compiledCallData,
-            maxFee: request.Fee.FixedFeeData.FeeInWei,
-            chainId: network.chainId as constants.StarknetChainId,
-            nonce: request.Nonce
+            maxFee: request.fee.FixedFeeData.FeeInWei,
+            chainId: request.network.chainId as constants.StarknetChainId,
+            nonce: request.nonce
         };
 
-        const calcualtedTxHash = await hash.calculateInvokeTransactionHash(args);
+        const calcualtedTxHash = hash.calculateInvokeTransactionHash(args);
 
         try {
 
@@ -328,8 +229,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 [transferCall],
                 undefined,
                 {
-                    maxFee: request.Fee.FixedFeeData.FeeInWei,
-                    nonce: request.Nonce
+                    maxFee: request.fee.FixedFeeData.FeeInWei,
+                    nonce: request.nonce
                 },
             );
 
@@ -354,32 +255,23 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
     public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
         try {
-
-            const network = await this.dbContext.Networks
-                .createQueryBuilder("network")
-                .leftJoinAndSelect("network.nodes", "n")
-                .leftJoinAndSelect("network.tokens", "t")
-                .leftJoinAndSelect("network.contracts", "c")
-                .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-                .getOneOrFail();
-
-            switch (request.Type) {
+            switch (request.type) {
                 case TransactionType.HTLCLock:
-                    return CreateLockCallData(network, request.Args);
+                    return createLockCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRedeem:
-                    return CreateRedeemCallData(network, request.Args);
+                    return createRedeemCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRefund:
-                    return CreateRefundCallData(network, request.Args);
+                    return createRefundCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCAddLockSig:
-                    return CreateAddLockSigCallData(network, request.Args);
+                    return createAddLockSigCallData(request.network, request.prepareArgs);
                 case TransactionType.Approve:
-                    return CreateApproveCallData(network, request.Args);
+                    return createApproveCallData(request.network, request.prepareArgs);
                 case TransactionType.Transfer:
-                    return CreateTransferCallData(network, request.Args);
+                    return createTransferCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCCommit:
-                    return CreateCommitCallData(network, request.Args);
+                    return createCommitCallData(request.network, request.prepareArgs);
                 default:
-                    throw new Error(`Unknown function name ${request.Type}`);
+                    throw new Error(`Unknown function name ${request.type}`);
             }
         }
         catch (error) {
@@ -389,38 +281,22 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
         try {
-
-            const network = await this.dbContext.Networks
-                .createQueryBuilder("network")
-                .leftJoinAndSelect("network.nodes", "n")
-                .leftJoinAndSelect("network.tokens", "t")
-                .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-                .getOneOrFail();
-
-            const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-            if (!node) {
-                throw new Error(`Primary node not found for network ${request.NetworkName}`);
-            }
-
-            const token = network.tokens.find(t => t.asset === request.Asset);
+            const token = request.network.tokens.find(t => t.symbol === request.asset);
 
             if (!token) {
-                throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.Asset}`);
+                throw new Error(`Token not found for network ${request.network.name} and asset ${request.asset}`);
             }
 
             const provider = new RpcProvider({
-                nodeUrl: node.url
+                nodeUrl: request.network.nodes[0].url
             });
 
-            const erc20 = new Contract(erc20Json as Abi, token.tokenContract, provider);
-            const balanceResult = await erc20.balanceOf(request.Address);
+            const erc20 = new Contract(erc20Json as Abi, token.contract, provider);
+            const balanceResult = await erc20.balanceOf(request.address);
             const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString());
 
             let result: BalanceResponse = {
-                Decimals: this.FeeDecimals,
-                AmountInWei: balanceInWei.toString(),
-                Amount: Number(utils.formatUnits(balanceInWei.toString(), this.FeeDecimals)),
+                amount: Number(balanceInWei)
             }
 
             return result;
@@ -432,37 +308,25 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
     public async SimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
 
-        const network = await this.dbContext.Networks
-            .createQueryBuilder("network")
-            .leftJoinAndSelect("network.nodes", "n")
-            .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-            .getOneOrFail();
-
-        const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-        if (!node) {
-            throw new Error(`Primary node not found for network ${request.NetworkName}`);
-        }
-
-        const privateKey = await new PrivateKeyRepository().getAsync(request.FromAddress);
+        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
 
         const provider = new RpcProvider({
-            nodeUrl: node.url
+            nodeUrl: request.network.nodes[0].url
         });
 
-        const account = new Account(provider, request.FromAddress, privateKey, '1');
+        const account = new Account(provider, request.fromAddress, privateKey, '1');
 
-        var transferCall: Call = JSON.parse(request.CallData);
+        var transferCall: Call = JSON.parse(request.callData);
 
         const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
 
         const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.FromAddress,
+            senderAddress: request.fromAddress,
             version: ETransactionVersion2.V1,
             compiledCalldata: compiledCallData,
-            maxFee: request.Fee.FixedFeeData.FeeInWei,
-            chainId: network.chainId as constants.StarknetChainId,
-            nonce: request.Nonce
+            maxFee: request.fee.FixedFeeData.FeeInWei,
+            chainId: request.network.chainId as constants.StarknetChainId,
+            nonce: request.nonce
         };
 
         const calcualtedTxHash = await hash.calculateInvokeTransactionHash(args);
@@ -476,7 +340,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     }
                 ],
                 {
-                    nonce: request.Nonce
+                    nonce: request.nonce
                 });
 
             return calcualtedTxHash;
@@ -500,29 +364,18 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
     public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee> {
         try {
-            const network = await this.dbContext.Networks
-                .createQueryBuilder("network")
-                .leftJoinAndSelect("network.nodes", "n")
-                .where("UPPER(network.name) = UPPER(:nName)", { nName: feeRequest.NetworkName })
-                .getOneOrFail();
-
-            const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-            if (!node) {
-                throw new Error(`Primary node not found for network ${feeRequest.NetworkName}`);
-            }
-
-            const privateKey = await new PrivateKeyRepository().getAsync(feeRequest.FromAddress);
+            const privateKey = await new PrivateKeyRepository().getAsync(feeRequest.fromAddress);
 
             const provider = new RpcProvider({
-                nodeUrl: node.url
+                nodeUrl: feeRequest.network.nodes[0].url
             });
 
-            const account = new Account(provider, feeRequest.FromAddress, privateKey, '1');
+            const account = new Account(provider, feeRequest.fromAddress, privateKey, '1');
 
-            var transferCall: Call = JSON.parse(feeRequest.CallData);
+            var transferCall: Call = JSON.parse(feeRequest.callData);
 
             let feeEstimateResponse = await account.estimateFee(transferCall);
+
             if (!feeEstimateResponse?.suggestedMaxFee) {
                 throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
             };
@@ -539,20 +392,18 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             {
                 Asset: this.FeeSymbol,
                 FixedFeeData: fixedfeeData,
-                Decimals: this.FeeDecimals
             }
 
             const balanceResponse = await this.GetBalance({
-                Address: feeRequest.FromAddress,
-                NetworkName: feeRequest.NetworkName,
-                Asset: this.FeeSymbol
+                    address: feeRequest.fromAddress,
+                    network: feeRequest.network,
+                asset: this.FeeSymbol
             });
 
-            let amount = feeInWei;
-            amount = amount.add(utils.parseUnits(feeRequest.Amount.toString(), this.FeeDecimals));
+            const amount = feeInWei.add(BigNumber.from(feeRequest.amount));
 
-            if (BigNumber.from(balanceResponse.AmountInWei).lt(amount)) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.AmountInWei}, Fee: ${amount}`);
+            if (BigNumber.from(balanceResponse.amount).lt(amount)) {
+                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.amount}, Fee: ${amount}`);
             }
 
             return result;
@@ -568,27 +419,15 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         try {
 
-            const network = await this.dbContext.Networks
-                .createQueryBuilder("network")
-                .leftJoinAndSelect("network.nodes", "n")
-                .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-                .getOneOrFail();
-
-            const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-            if (!node) {
-                throw new Error(`Primary node not found for network ${request.NetworkName}`);
-            }
-
             const provider = new RpcProvider({
-                nodeUrl: node.url
+                nodeUrl: request.network.nodes[0].url
             });
 
             const addlockData: TypedData = {
                 domain: {
                     name: 'Train',
                     version: shortString.encodeShortString("v1"),
-                    chainId: network.chainId,
+                    chainId: request.network.chainId,
                     revision: TypedDataRevision.ACTIVE,
                 },
                 primaryType: 'AddLockMsg',
@@ -618,13 +457,13 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     ],
                 },
                 message: {
-                    Id: cairo.uint256(request.Id),
-                    hashlock: cairo.uint256(request.Hashlock),
-                    timelock: cairo.uint256(request.Timelock),
+                    Id: cairo.uint256(request.commitId),
+                    hashlock: cairo.uint256(request.hashlock),
+                    timelock: cairo.uint256(request.timelock),
                 },
             }
 
-            return await provider.verifyMessageInStarknet(addlockData, request.SignatureArray, request.SignerAddress);
+            return await provider.verifyMessageInStarknet(addlockData, request.signatureArray, request.signerAddress);
         }
         catch (error) {
             throw error;
@@ -632,37 +471,22 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async GetSpenderAllowance(request: AllowanceRequest): Promise<number> {
-
         try {
 
-            const network = await this.dbContext.Networks
-                .createQueryBuilder("network")
-                .leftJoinAndSelect("network.nodes", "n")
-                .leftJoinAndSelect("network.tokens", "t")
-                .leftJoinAndSelect("network.contracts", "c")
-                .where("UPPER(network.name) = UPPER(:nName)", { nName: request.NetworkName })
-                .getOneOrFail();
-
-            const node = network.nodes.find(n => n.type === NodeType.Primary);
-
-            if (!node) {
-                throw new Error(`Primary node not found for network ${request.NetworkName}`);
-            }
-
-            const token = network.tokens.find(t => t.asset === request.Asset);
+            const token = request.network.tokens.find(t => t.symbol === request.asset);
 
             if (!token) {
-                throw new Error(`Token not found for network ${request.NetworkName} and asset ${request.Asset}`);
+                throw new Error(`Token not found for network ${request.network.name} and asset ${request.asset}`);
             }
 
-            const spenderAddress = !token.tokenContract
-                ? network.contracts.find(c => c.type === ContractType.HTLCNativeContractAddress)?.address
-                : network.contracts.find(c => c.type === ContractType.HTLCTokenContractAddress)?.address;
+            const spenderAddress = token.contract
+                ? request.network.htlcNativeContractAddress
+                : request.network.htlcTokenContractAddress
 
-            const provider = new RpcProvider({ nodeUrl: node.url });
-            const { abi: tokenAbi } = await provider.getClassAt(token.tokenContract);
-            const ercContract = new Contract(tokenAbi, token.tokenContract, provider);
-            var response: BigInt = await ercContract.allowance(request.OwnerAddress, spenderAddress);
+            const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
+            const { abi: tokenAbi } = await provider.getClassAt(token.contract);
+            const ercContract = new Contract(tokenAbi, token.contract, provider);
+            var response: BigInt = await ercContract.allowance(request.ownerAddress, spenderAddress);
 
             return Number(utils.formatUnits(response.toString(), token.decimals))
         }

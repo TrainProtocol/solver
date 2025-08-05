@@ -1,52 +1,25 @@
 ﻿using Train.Solver.Data.Abstractions.Entities.Base;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public enum TransactionType
+public class Transaction : EntityBase
 {
-    Transfer,
-    Approve,
-    HTLCCommit,
-    HTLCLock,
-    HTLCRedeem,
-    HTLCRefund,
-    HTLCAddLockSig,
-}
+    public Network Network { get; set; } = null!;
 
-public enum TransactionStatus
-{
-    Completed,
-    Initiated,
-    Failed,
-}
+    public int NetworkId { get; set; }
 
-public class Transaction : EntityBase<Guid>
-{
-    public string? TransactionId { get; set; }
+    public string TransactionHash { get; set; } = null!;
 
-    public DateTimeOffset? Timestamp { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
 
-    public string NetworkName { get; set; } = null!;
-
-    public int Confirmations { get; set; }
-
-    public string? Asset { get; set; }
-
-    public decimal Amount { get; set; }
-
-    public decimal UsdPrice { get; set; }
-    
-    public string? FeeAsset { get; set; }
-
-    public decimal? FeeAmount { get; set; }
-
-    public decimal? FeeUsdPrice { get; set; }
+    public string FeeAmount { get; set; } = null!;
 
     public TransactionType Type { get; set; }
 
     public TransactionStatus Status { get; set; }
 
-    public string? SwapId { get; set; }
+    public int? SwapId { get; set; }
 
     public virtual Swap? Swap { get; set; }
 }

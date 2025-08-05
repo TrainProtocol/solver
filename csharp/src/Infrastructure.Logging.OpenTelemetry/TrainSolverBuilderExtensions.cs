@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Reflection.PortableExecutable;
 using Train.Solver.Infrastructure.DependencyInjection;
 
 namespace Train.Solver.Infrastructure.Logging.OpenTelemetry;

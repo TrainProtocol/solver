@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Workflow.Abstractions\Workflow.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

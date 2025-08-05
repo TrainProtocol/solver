@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Client</AssemblyName>
+		<RootNamespace>Train.Solver.Client</RootNamespace>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NSwag.MSBuild" Version="14.4.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild" Condition="'$(TrainUrl)' != ''">
+		<Exec Command="$(NSwagExe_Net80) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
+	</Target>
+
+</Project>

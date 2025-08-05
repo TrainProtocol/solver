@@ -1,0 +1,40 @@
+name: Admin-API
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'csharp/**'
+      - '.github/workflows/admin-api.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'csharp/**'
+      - '.github/workflows/admin-api.yml'
+  release:
+    types: [published, created]
+
+env:
+  DOCKER_IMAGE: trainprotocol/solver-admin-api
+  DOTNET_VERSION: 9
+  
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+        
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Docker build and push
+        id: docker
+        uses: ./.github/actions/docker
+        with:
+          file: csharp/src/AdminAPI/Dockerfile
+          docker-image: ${{ env.DOCKER_IMAGE }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          build-args: |
+            DOTNET_VERSION=${{ env.DOTNET_VERSION }}

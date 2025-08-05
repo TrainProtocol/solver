@@ -1,37 +1,43 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
 public interface ISwapRepository
 {
-    Task<Swap?> GetAsync(string id);
+    Task<Swap?> GetAsync(string commitId);
 
     Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20, string[]? addresses = null);
 
     Task<List<string>> GetNonRefundedSwapIdsAsync();
 
     Task<Swap> CreateAsync(
-        string id,
+        string commitId,
         string senderAddress,
         string destinationAddress,
         string sourceNetworkName,
         string sourceToken,
-        decimal sourceAmount,
+        string sourceAmount,
         string destinationNetworkName,
         string destinationToken,
-        decimal destinationAmount,
+        string destinationAmount,
         string hashlock,
-        decimal feeAmount);
+        string feeAmount);
 
-    Task<Guid> CreateSwapTransactionAsync(
+    Task<int> CreateSwapTransactionAsync(
         string networkName,
-        string swapId,
+        int? swapId,
         TransactionType transactionType,
         string transactionHash,
-        string asset,
-        decimal amount,
-        int confirmations,
         DateTimeOffset timestamp,
-        string feeAsset,
-        decimal feeAmount);
+        string feeAmount);
+
+    Task<int> CreateSwapMetricAsync(
+        int swapId,
+        string sourceNetwork,
+        string sourceToken,
+        string destinationNetwork,
+        string destinationToken,
+        decimal volumeInUsd,
+        decimal profitInUsd);
 }

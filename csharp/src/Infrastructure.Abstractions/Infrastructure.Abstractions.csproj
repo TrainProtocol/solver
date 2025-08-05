@@ -5,11 +5,7 @@
 		<RootNamespace>Train.Solver.Infrastructure.Abstractions</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Nethereum.Util" Version="4.29.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Data.Abstractions\Data.Abstractions.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
 </Project>

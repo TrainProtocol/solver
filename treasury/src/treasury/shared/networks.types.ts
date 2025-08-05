@@ -1,0 +1,1 @@
+export type Network = 'evm' | 'starknet' | 'solana' | 'fuel';

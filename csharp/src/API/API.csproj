@@ -4,6 +4,7 @@
 		<AssemblyName>Train.Solver.API</AssemblyName>
 		<RootNamespace>Train.Solver.API</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,11 +15,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Blockchain.Abstractions\Blockchain.Abstractions.csproj" />
+	  <ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+	  <ProjectReference Include="..\Infrastructure.Rate.Binance\Infrastructure.Rate.Binance.csproj" />
 	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 	  <ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
-	  <ProjectReference Include="..\Infrastructure.MarketMaker\Infrastructure.MarketMaker.csproj" />
+	  <ProjectReference Include="..\Infrastructure.MarketMaker\Infrastructure.Rate.SameAsset.csproj" />
 	  <ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
+	  <ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
 	</ItemGroup>
 
 </Project>

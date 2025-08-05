@@ -1,6 +1,8 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿using System.Numerics;
+
+namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class QuoteRequest : SourceDestinationRequest
 {
-    public decimal Amount { get; set; }
+    public BigInteger Amount { get; set; }
 }

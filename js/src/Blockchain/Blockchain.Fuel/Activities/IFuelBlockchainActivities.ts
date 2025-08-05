@@ -1,19 +1,28 @@
 import { IBlockchainActivities } from "../../Blockchain.Abstraction/Interfaces/IBlockchainActivities";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
-import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
-import { Fee } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
+import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
+import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
+import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
 
 export interface IFuelBlockchainActivities extends IBlockchainActivities {
+    getTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
 
-    EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee>;
+    buildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
 
-    GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
+    publishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
 
-    BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
+    composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
 
-    PublishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
+    signTransaction(request: FuelSignTransactionRequestModel): Promise<string>;
+
+    getNextNonce(request: NextNonceRequest): Promise<number>;
+
+    checkCurrentNonce(request: CurrentNonceRequest): Promise<void>;
+
+    updateCurrentNonce(request: CurrentNonceRequest) : Promise<void>;
 }

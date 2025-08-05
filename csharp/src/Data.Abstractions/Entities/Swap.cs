@@ -2,31 +2,29 @@
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class Swap : EntityBase<string>
+public class Swap : EntityBase
 {
-    public int SourceTokenId { get; set; }
+    public string CommitId { get; set; } = null!;
 
-    public Token SourceToken { get; set; } = null!;
+    public int RouteId { get; set; }
 
-    public int DestinationTokenId { get; set; }
+    public Route Route { get; set; } = null!;
 
-    public Token DestinationToken { get; set; } = null!;
+    public int? MetricId { get; set; }
 
-    public decimal SourceTokenPrice { get; set; }
-
-    public decimal DestinationTokenPrice { get; set; }
+    public virtual SwapMetric? Metric { get; set; }
 
     public string SourceAddress { get; set; } = null!;
 
     public string DestinationAddress { get; set; } = null!;
 
-    public decimal SourceAmount { get; set; }
-
     public string Hashlock { get; set; } = null!;
 
-    public decimal DestinationAmount { get; set; }
+    public string SourceAmount { get; set; } = null!;
 
-    public decimal FeeAmount { get; set; }
+    public string DestinationAmount { get; set; } = null!;
+
+    public string FeeAmount { get; set; } = null!;
 
     public virtual List<Transaction> Transactions { get; set; } = [];
 }

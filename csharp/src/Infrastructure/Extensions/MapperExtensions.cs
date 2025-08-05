@@ -1,6 +1,6 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
+﻿using System.Numerics;
+using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
-using Train.Solver.Util.Helpers;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
@@ -10,20 +10,22 @@ public static class MapperExtensions
     {
         return new SwapDto
         {
-            CommitId = swap.Id,
-            SourceNetwork = swap.SourceToken.Network.Name,
-            SourceToken = swap.SourceToken.Asset,
-            SourceAmount = swap.SourceAmount,
-            SourceAmountInUsd = swap.SourceTokenPrice * swap.SourceAmount,
-            SourceAddress = swap.SourceAddress,
-            DestinationNetwork = swap.DestinationToken.Network.Name,
-            DestinationToken = swap.DestinationToken.Asset,
-            DestinationAmount = swap.DestinationAmount,
-            DestinationAmountInUsd = swap.DestinationTokenPrice * swap.DestinationAmount,
-            DestinationAddress = swap.DestinationAddress,
-            FeeAmount = swap.FeeAmount,
+            CommitId = swap.CommitId,
             Hashlock = swap.Hashlock,
-            Transactions = swap.Transactions.Select(t => t.ToDto())
+            Source = swap.Route.SourceToken.ToWithNetworkDto(),
+            SourceAmount = BigInteger.Parse(swap.SourceAmount),
+            SourceAddress = swap.SourceAddress,
+            SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ? 
+                swap.Route.SourceToken.Network.HTLCNativeContractAddress :
+                swap.Route.SourceToken.Network.HTLCTokenContractAddress,
+            Destination = swap.Route.DestinationToken.ToWithNetworkDto(),
+            DestinationAddress = swap.DestinationAddress,
+            DestinationContractAddress = swap.Route.DestinationTokenId == swap.Route.DestinationToken.Network.NativeTokenId ?
+                swap.Route.DestinationToken.Network.HTLCNativeContractAddress :
+                swap.Route.DestinationToken.Network.HTLCTokenContractAddress,
+            FeeAmount = BigInteger.Parse(swap.FeeAmount),
+            Transactions = swap.Transactions.Select(t => t.ToDto()),
+            DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
         };
     }
 
@@ -32,26 +34,8 @@ public static class MapperExtensions
         return new TransactionDto
         {
             Type = tx.Type,
-            Hash = tx.TransactionId ?? string.Empty,
-            Network = tx.NetworkName
-        };
-    }
-
-    public static ContractDto ToDto(this Contract contract)
-    {
-        return new ContractDto
-        {
-            Type = contract.Type,
-            Address = contract.Address
-        };
-    }
-
-    public static ManagedAccountDto ToDto(this ManagedAccount account)
-    {
-        return new ManagedAccountDto
-        {
-            Address = account.Address,
-            Type = account.Type
+            Hash = tx.TransactionHash ?? string.Empty,
+            Network = tx.Network.Name
         };
     }
 
@@ -60,7 +44,7 @@ public static class MapperExtensions
         return new NodeDto
         {
             Url = node.Url,
-            Type = node.Type
+            ProviderName = node.ProviderName,
         };
     }
 
@@ -81,22 +65,18 @@ public static class MapperExtensions
             Symbol = token.Asset,
             Contract = token.TokenContract,
             Decimals = token.Decimals,
-            Precision = token.Precision,
         };
     }
 
-    public static DetailedTokenDto ToDetailedDto(this Token token)
+    public static TokenPriceDto ToDto(this TokenPrice tokenPrice)
     {
-        var dto = new DetailedTokenDto
+        return new TokenPriceDto
         {
-            Symbol = token.Asset,
-            Contract = token.TokenContract,
-            Decimals = token.Decimals,
-            Precision = token.Precision,
-            Logo = LogoHelpers.BuildGithubLogoUrl(token.Logo),
+            Symbol = tokenPrice.Symbol,
+            PriceInUsd = tokenPrice.PriceInUsd,
+            ExternalId = tokenPrice.ExternalId,
+            LastUpdated = tokenPrice.LastUpdated
         };
-
-        return dto;
     }
 
     public static TokenNetworkDto ToWithNetworkDto(this Token token)
@@ -118,14 +98,13 @@ public static class MapperExtensions
             DisplayName = network.DisplayName,
             ChainId = network.ChainId,
             Type = network.Type,
-            Logo = LogoHelpers.BuildGithubLogoUrl(network.Logo),
-            TransactionExplorerTemplate = network.TransactionExplorerTemplate,
-            AccountExplorerTemplate = network.AccountExplorerTemplate,
-            NativeToken = network.NativeToken?.ToDetailedDto(),
-            Tokens = network.Tokens.Select(t => t.ToDetailedDto()),
+            FeeType = network.FeeType,
+            FeePercentageIncrease = network.FeePercentageIncrease,
+            HTLCNativeContractAddress = network.HTLCNativeContractAddress,
+            HTLCTokenContractAddress = network.HTLCTokenContractAddress,
+            NativeToken = network.NativeToken?.ToDto(),
+            Tokens = network.Tokens.Select(t => t.ToDto()),
             Nodes = network.Nodes.Select(n => n.ToDto()),
-            Contracts = network.Contracts.Select(c => c.ToDto()),
-            ManagedAccounts = network.ManagedAccounts.Select(a => a.ToDto())
         };
 
         return dto;
@@ -137,9 +116,13 @@ public static class MapperExtensions
         {
             Id = route.Id,
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            SourceWallet = route.SourceWallet.Address,
+            Destination = route.DestinationToken.ToWithNetworkDto(),
+            DestinationWallet = route.DestinationWallet.Address,
+            MinAmountInSource = route.MinAmountInSource,
             MaxAmountInSource = route.MaxAmountInSource,
-            Status = route.Status
+            Status = route.Status,
+            RateProviderName = route.RateProvider.Name,
         };
     }
 
@@ -148,7 +131,45 @@ public static class MapperExtensions
         return new RouteDto
         {
             Source = route.SourceToken.ToWithNetworkDto(),
-            Destionation = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithNetworkDto(),
+        };
+    }
+
+    public static WalletDto ToDto(this Wallet wallet)
+    {
+        return new WalletDto
+        {
+            Name = wallet.Name,
+            Address = wallet.Address,
+            NetworkType = wallet.NetworkType
+        };
+    }
+
+    public static TrustedWalletDto ToDto(this TrustedWallet wallet)
+    {
+        return new TrustedWalletDto
+        {
+            Name = wallet.Name,
+            Address = wallet.Address,
+            NetworkType = wallet.NetworkType
+        };
+    }
+
+    public static ServiceFeeDto ToDto(this ServiceFee serviceFee)
+    {
+        return new ServiceFeeDto
+        {
+           Name = serviceFee.Name,
+            Percentage = serviceFee.FeePercentage,
+           UsdAmount = serviceFee.FeeInUsd,
+        };
+    }
+
+    public static RateProviderDto ToDto(this RateProvider rateProvider)
+    {
+        return new RateProviderDto
+        {
+            Name = rateProvider.Name,
         };
     }
 }

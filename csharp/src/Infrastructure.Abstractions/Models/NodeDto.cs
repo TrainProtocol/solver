@@ -1,10 +1,8 @@
-﻿using Train.Solver.Data.Abstractions.Entities;
-
-namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class NodeDto
 {
-    public string Url { get; set; } = null!;
+    public required string ProviderName { get; set; } = null!;
 
-    public NodeType Type { get; set; }
+    public required string Url { get; set; } = null!;
 }

@@ -1,8 +1,9 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Train.Solver.API.Models;
+using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.PublicAPI.Models;
 
-namespace Train.Solver.API.MIddlewares;
+namespace Train.Solver.PublicAPI.MIddlewares;
 
 public class ErrorHandlerMiddleware(RequestDelegate next)
 {
@@ -26,9 +27,20 @@ public class ErrorHandlerMiddleware(RequestDelegate next)
     {
         context.Response.Clear();
 
+        var statusCode = HttpStatusCode.InternalServerError;
+        var message = "An unexpected error occurred. Please try again later.";
+
+
+
+        if (e is UserFacingException)
+        {
+            statusCode = HttpStatusCode.BadRequest;
+            message = e.Message;
+        }
+
         context.Response.ContentType = "application/json";
-        
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.StatusCode = (int)statusCode;
+
 
         await context.Response.WriteAsync(
             JsonSerializer.Serialize(
@@ -36,8 +48,8 @@ public class ErrorHandlerMiddleware(RequestDelegate next)
                 {
                     Error = new ApiError()
                     {
-                        Code = HttpStatusCode.InternalServerError.ToString(),
-                        Message = "An unexpected error occurred. Please try again later."
+                        //Code = statusCode.ToString(),
+                        Message = message
                     }
                 },
                 new JsonSerializerOptions

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.AdminAPI</AssemblyName>
+		<RootNamespace>Train.Solver.AdminAPI</RootNamespace>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.0" />
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+		<ProjectReference Include="..\Workflow.Common\Workflow.Common.csproj" />
+		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+		<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
+		<ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
+	</ItemGroup>
+
+</Project>

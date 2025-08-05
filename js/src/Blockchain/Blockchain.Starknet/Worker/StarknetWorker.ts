@@ -3,13 +3,10 @@ import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainActivities';
 import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
-import { NetworkType } from '../../../Data/Entities/Networks';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
-import * as UtilityActivities from '../../Blockchain.Abstraction/Activities/UtilityActivities';
 
-
-export default async function run() {
+export default async function run( taskQueue: string): Promise<void> {
   dotenv.config();
 
   try {
@@ -20,18 +17,21 @@ export default async function run() {
 
     const activities = {
       ...blockchainActivities,
-      ...UtilityActivities,
     };
 
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
     });
 
-    const namespace = process.env.TrainSolver__TemporalNamespace || 'atomic';
+    const namespace = process.env.TrainSolver__TemporalNamespace;
+
+    if (!namespace) {
+      throw new Error('TemporalNamespace environment variable is not set.');
+    }
 
     const worker = await Worker.create({
       namespace: namespace,
-      taskQueue: NetworkType[NetworkType.Starknet],
+      taskQueue: taskQueue,
       workflowsPath: require.resolve('../Workflows'),
       activities: activities,
       connection,
