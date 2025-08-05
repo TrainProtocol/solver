@@ -121,6 +121,8 @@ A Temporal workflow that:
 - Triggers state transitions in the swap lifecycle
 - Handles retries and error scenarios
 
+Depending on your blockchain’s requirements, you may implement additional activities used within your own TransactionProcessorWorkflow (e.g., for fee estimation, nonce retrieval, or custom signing logic).
+
 > This is the **only required workflow** per integration.
 
 ---
@@ -141,13 +143,7 @@ interface BlockchainActivities {
 
 ---
 
-#### 3. Additional Activities (Optional)
-
-Depending on your blockchain’s requirements, you may implement additional activities used **within** your own `TransactionProcessorWorkflow` (e.g., for fee estimation, nonce retrieval, or custom signing logic).
-
----
-
-#### 4. SignerAgent Implementation
+#### 3. SignerAgent Implementation
 
 You must also extend the **SignerAgent** to support your blockchain’s native signing algorithm:
 
