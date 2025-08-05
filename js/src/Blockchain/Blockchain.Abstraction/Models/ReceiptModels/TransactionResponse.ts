@@ -1,13 +1,15 @@
 import { TransactionStatus } from "../TransacitonModels/TransactionStatus";
 
 export interface TransactionResponse {
-    Amount?: number;
-    Asset?: string;
-    NetworkName: string;
-    TransactionHash: string;
-    Confirmations: number;
-    Timestamp: Date;
-    FeeAmount: number;
-    FeeAsset: string;
-    Status: TransactionStatus;
+    amount?: string;
+    asset?: string;
+    decimals: number;
+    networkName: string;
+    transactionHash: string;
+    confirmations: number;
+    timestamp: Date;
+    feeAmount: string;
+    feeAsset: string;
+    feeDecimals: number;
+    status: TransactionStatus;
   }

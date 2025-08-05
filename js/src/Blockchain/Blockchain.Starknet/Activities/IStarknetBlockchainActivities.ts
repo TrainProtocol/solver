@@ -4,7 +4,7 @@ import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceR
 import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
 import { Fee } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { GetBatchTransactionRequest } from "../../Blockchain.Abstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NextNonceRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
@@ -23,7 +23,7 @@ export interface IStarknetBlockchainActivities extends IBlockchainActivities {
 
   EstimateFee(request: EstimateFeeRequest): Promise<Fee>;
 
-  GetNextNonce(request: NextNonceRequest): Promise<string>;
+  getNextNonce(request: NextNonceRequest): Promise<string>;
 
   BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
 

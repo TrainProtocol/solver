@@ -14,5 +14,5 @@ export interface AddLockSignatureRequest extends AddLockSignatureModel {
   hashlock: string;
   signerAddress: string;
   asset: string;
-  detailedNetworkDto: DetailedNetworkDto;
+  network: DetailedNetworkDto;
 }

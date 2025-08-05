@@ -1,11 +1,11 @@
-import { proxyActivities, executeChild } from '@temporalio/workflow';
+import { proxyActivities, executeChild, uuid4 } from '@temporalio/workflow';
 import { IStarknetBlockchainActivities } from '../Activities/IStarknetBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
 import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exceptions/AlreadyClaimedExceptions';
 import { HTLCAlreadyExistsException } from '../../Blockchain.Abstraction/Exceptions/HTLCAlreadyExistsException';
 import { TransactionFailedException } from '../../Blockchain.Abstraction/Exceptions/TransactionFailedException';
-import { decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
+import { buildProcessorId, decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 import { AllowanceRequest } from '../../Blockchain.Abstraction/Models/AllowanceRequest';
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
@@ -13,7 +13,6 @@ import { TransactionRequest } from '../../Blockchain.Abstraction/Models/Transaci
 import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
-import { IUtilityActivities } from '../../Blockchain.Abstraction/Interfaces/IUtilityActivities';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -32,11 +31,6 @@ const nonRetryableActivities = proxyActivities<IStarknetBlockchainActivities>({
             TransactionFailedException.name,
         ],
     },
-});
-
-const utilityActivities = proxyActivities<IUtilityActivities>({
-    startToCloseTimeout: '1 hour',
-    scheduleToCloseTimeout: '2 days',
 });
 
 export async function StarknetTransactionProcessor(
@@ -69,9 +63,9 @@ export async function StarknetTransactionProcessor(
         }
 
         if (!context.nonce) {
-            context.nonce = await defaultActivities.GetNextNonce({
+            context.nonce = await defaultActivities.getNextNonce({
                 network: request.network,
-                Address: request.fromAddress,
+                address: request.fromAddress,
             });
         }
 
@@ -100,8 +94,8 @@ export async function StarknetTransactionProcessor(
             TransactionHashes: context.publishedTransactionIds,
         });
 
-        confirmed.Asset = preparedTransaction.callDataAsset;
-        confirmed.Amount = preparedTransaction.callDataAmount;
+        confirmed.asset = preparedTransaction.callDataAsset;
+        confirmed.amount = preparedTransaction.callDataAmount.toString();
 
         return confirmed;
 
@@ -115,7 +109,7 @@ export async function StarknetTransactionProcessor(
                 toAddress: request.fromAddress,
             };
 
-            const processorId = await utilityActivities.BuildProcessorId(request.network.name, TransactionType.Transfer);
+            const processorId = buildProcessorId(uuid4(), request.network.name, TransactionType.Transfer);
 
             const transferRequest: TransactionRequest = {
                 prepareArgs: JSON.stringify(transferArgs),
@@ -174,8 +168,8 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
             publishedTransactionIds: [],
         };
 
-        const processorId = await utilityActivities.BuildProcessorId(context.network.name, context.type);
-
+        const processorId = buildProcessorId(uuid4(), context.network.name, context.type);
+        
         await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],

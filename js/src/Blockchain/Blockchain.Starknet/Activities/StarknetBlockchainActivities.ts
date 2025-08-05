@@ -12,11 +12,10 @@ import { TransactionFailedException } from "../../Blockchain.Abstraction/Excepti
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
-import 'reflect-metadata';
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
 import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
-import { BuildLockKey, BuildNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
+import { buildLockKey, buildCurrentNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
 import { BalanceRequest } from "../../Blockchain.Abstraction/Models/BalanceRequestModels/BalanceRequest";
@@ -28,7 +27,7 @@ import { EventRequest } from "../../Blockchain.Abstraction/Models/EventRequest";
 import { EstimateFeeRequest } from "../../Blockchain.Abstraction/Models/FeesModels/EstimateFeeRequest";
 import { Fee, FixedFeeData } from "../../Blockchain.Abstraction/Models/FeesModels/Fee";
 import { GetBatchTransactionRequest } from "../../Blockchain.Abstraction/Models/GetBatchTransactionRequest";
-import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NextNonceRequest";
+import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/ReceiptModels/GetTransactionRequest";
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
@@ -39,12 +38,14 @@ import { TransactionType } from "../../Blockchain.Abstraction/Models/Transaciton
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
 import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
-        @inject("Redlock") private lockFactory: Redlock
+        @inject("Redlock") private lockFactory: Redlock,
+        @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
     readonly FeeSymbol = "ETH";
@@ -103,13 +104,15 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
 
         let transactionModel: TransactionResponse = {
-            TransactionHash: transactionHash,
-            Confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
-            Status: transactionStatus,
-            FeeAsset: "ETH",
-            FeeAmount: feeAmount,
-            Timestamp: new Date(),
-            NetworkName: network.name,
+            transactionHash: transactionHash,
+            decimals: network.nativeToken.decimals,
+            feeDecimals: network.nativeToken.decimals,
+            confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
+            status: transactionStatus,
+            feeAsset: network.nativeToken.symbol,
+            feeAmount: feeAmount.toString(),
+            timestamp: new Date(),
+            networkName: network.name,
         };
 
         const isConfirmed = "block_number" in confrimedTransaction;
@@ -118,7 +121,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const blockNumber = confrimedTransaction.block_number as string;
             const blockData = await provider.getBlockWithTxHashes(blockNumber);
 
-            transactionModel.Timestamp = new Date(blockData.timestamp * 1000);
+            transactionModel.timestamp = new Date(blockData.timestamp * 1000);
         }
 
         return transactionModel;
@@ -135,8 +138,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
 
         return {
-            BlockNumber: lastBlockNumber,
-            BlockHash: blockData.block_hash,
+            blockNumber: lastBlockNumber,
+            blockHash: blockData.block_hash,
         };
     }
 
@@ -155,12 +158,12 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         );
     }
 
-    public async GetNextNonce(request: NextNonceRequest): Promise<string> {
+    public async getNextNonce(request: NextNonceRequest): Promise<string> {
         const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
 
-        const formattedAddress = formatAddress(request.Address);
-        const lockKey = BuildLockKey(request.network.displayName, formattedAddress);
-        const nonceKey = BuildNonceKey(request.network.displayName, formattedAddress);
+        const formattedAddress = formatAddress(request.address);
+        const lockKey = buildLockKey(request.network.name, formattedAddress);
+        const nonceKey = buildCurrentNonceKey(request.network.name, formattedAddress);
 
         const lock = await this.lockFactory.acquire(
             [lockKey],
@@ -417,14 +420,14 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         try {
 
             const provider = new RpcProvider({
-                nodeUrl: request.detailedNetworkDto.nodes[0].url
+                nodeUrl: request.network.nodes[0].url
             });
 
             const addlockData: TypedData = {
                 domain: {
                     name: 'Train',
                     version: shortString.encodeShortString("v1"),
-                    chainId: request.detailedNetworkDto.chainId,
+                    chainId: request.network.chainId,
                     revision: TypedDataRevision.ACTIVE,
                 },
                 primaryType: 'AddLockMsg',
