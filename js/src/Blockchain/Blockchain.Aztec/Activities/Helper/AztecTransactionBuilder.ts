@@ -1,11 +1,10 @@
 import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
-import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
 import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
 import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
-import { AuthWitness, AztecAddress, ContractArtifact, ContractFunctionInteraction, createAztecNodeClient, FunctionAbi, getAllFunctionAbis, loadContractArtifact, NoirCompiledContract, Wallet } from "@aztec/aztec.js";
+import { AztecAddress, ContractArtifact, FunctionAbi, getAllFunctionAbis, loadContractArtifact, NoirCompiledContract } from "@aztec/aztec.js";
 import { AztecPrepareTransactionResponse } from "../../Models/AztecPrepareTransactionResponse";
 import { TokenContract } from '@aztec/noir-contracts.js/Token';
 import trainContract from "../ABIs/train.json";
@@ -24,17 +23,18 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
     ? network.htlcNativeContractAddress
     : network.htlcTokenContractAddress;
 
-  const functionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'refund_private');
+  const functionInteractionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'refund_private');
 
-  let functionInteraction = {
-    wallet: null,
+  const contractFunctionInteraction = {
     contractAddress: AztecAddress.fromString(htlcContractAddress),
-    functionAbi: functionAbi,
+    functionAbi: functionInteractionAbi,
     args: [refundRequest.commitId]
   }
 
+  const vaxo = JSON.stringify(contractFunctionInteraction)
+
   return {
-    functionInteractions: [functionInteraction],
+    functionInteractions: [contractFunctionInteraction],
     amount: 0,
     asset: network.nativeToken.symbol,
     callDataAsset: token.symbol,
@@ -58,8 +58,8 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
     : network.htlcTokenContractAddress
 
 
-  const functionInteractionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'refund_private');
-  const transferFunctionInteractionAbi = getFunctionAbi(tokenContractArtifact, 'refund_private');
+  const functionInteractionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'commit_private_user');
+  const transferFunctionInteractionAbi = getFunctionAbi(tokenContractArtifact, 'transfer_to_public');
 
   const transferFunctionInteraction = {
     wallet: null,
@@ -147,8 +147,8 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
 
   const tokenContractArtifact = TokenContract.artifact;
 
-  const functionInteractionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'refund_private');
-  const transferFunctionInteractionAbi = getFunctionAbi(tokenContractArtifact, 'refund_private');
+  const functionInteractionAbi = getFunctionAbi(loadContractArtifact(trainContract as NoirCompiledContract), 'lock_private_solver');
+  const transferFunctionInteractionAbi = getFunctionAbi(tokenContractArtifact, 'transfer_to_public');
 
   const transferFunctionInteraction = {
     wallet: null,
