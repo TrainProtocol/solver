@@ -1,18 +1,18 @@
 import { promises as fs } from 'fs';
 import { PrivateKeyConfigService } from './vault.config';
 import { HttpStatus, Inject } from '@nestjs/common';
-import NodeVault = require('node-vault');
 import { VaultException } from './vault.exception';
+import nodeVault from 'node-vault'
 
 
 export class PrivateKeyService {
     private pkKey: string = 'private_key';
-    private vault:  NodeVault.client;
+    private vault:  nodeVault.client;
     private getTokenAsync!: () => Promise<void>;
 
     constructor(@Inject() private privateKeyConfig: PrivateKeyConfigService) { 
         console.log(privateKeyConfig);
-        this.vault = NodeVault({
+        this.vault = nodeVault({
             endpoint: privateKeyConfig.url
         });
 

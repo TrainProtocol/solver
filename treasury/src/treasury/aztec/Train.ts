@@ -22,7 +22,7 @@ import {
   PublicKeys,
   type Wallet,
 } from '@aztec/aztec.js';
-import TrainContractArtifactJson from "../ABIs/train.json";
+import TrainContractArtifactJson from "./ABIs/train.json";
 export const TrainContractArtifact = loadContractArtifact(
   TrainContractArtifactJson as NoirCompiledContract,
 );

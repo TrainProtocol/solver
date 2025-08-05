@@ -1,7 +1,7 @@
-import { Network } from "src/treasury/shared/networks.types";
 import { SignRequest, SignResponse } from "../treasury.types";
-import { PrivateKeyService } from "src/kv/vault.service";
 import { GenerateResponse } from "../dto/base.dto";
+import { PrivateKeyService } from "../../kv/vault.service";
+import { Network } from "../../treasury/shared/networks.types";
 
 export abstract class TreasuryService {
     protected constructor(protected readonly privateKeyService: PrivateKeyService) {}

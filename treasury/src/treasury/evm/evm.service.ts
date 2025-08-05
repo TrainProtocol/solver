@@ -5,6 +5,7 @@ import { Network } from '../shared/networks.types';
 import { PrivateKeyService } from '../../kv/vault.service';
 import { Transaction, Wallet, isHexString, isAddress } from 'ethers';
 import { GenerateResponse } from '../../app/dto/base.dto';
+import { SignResponse } from '../../app/treasury.types';
 
 @Injectable()
 export class EvmTreasuryService extends TreasuryService {
@@ -14,7 +15,7 @@ export class EvmTreasuryService extends TreasuryService {
     super(privateKeyService);
   }
 
-  async sign(req: EVMSignRequest): Promise<EVMSignResponse> {    
+  async sign(req: EVMSignRequest): Promise<SignResponse> {    
     const signerAddress = req.address.toLowerCase();
 
     if (!isAddress(signerAddress)){

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { EvmTreasuryService as EvmTreasuryService } from './evm/evm.service';
 import { TREASURIES } from './shared/constants.treasury';
 import { StarknetTreasuryService as StarknetTreasuryService } from './starknet/starknet.service';
-import { VaultModule } from 'src/kv/vault.module';
+import { VaultModule } from '../kv/vault.module';
 
 @Module({
   imports: [VaultModule],
