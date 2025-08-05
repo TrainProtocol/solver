@@ -12,6 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\SmartNodeInvoker\SmartNodeInvoker.csproj" />
 		<ProjectReference Include="..\Workflow.Common\Workflow.Common.csproj" />
 		<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
 		<ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
