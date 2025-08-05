@@ -6,6 +6,8 @@ public class RouteDetailedDto : RouteDto
 {
     public required int Id { get; set; }
 
+    public required string MinAmountInSource { get; set; }
+
     public required string MaxAmountInSource { get; set; } 
 
     public required RouteStatus Status { get; set; }
