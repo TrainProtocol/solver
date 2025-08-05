@@ -18,6 +18,10 @@ public static class FeeEndpoints
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
+        group.MapPost("/fees/{name}", UpdateServiceFeeAsync)
+           .Produces(StatusCodes.Status200OK)
+           .Produces(StatusCodes.Status400BadRequest);
+
         return group;
     }
 
@@ -32,6 +36,18 @@ public static class FeeEndpoints
         [FromBody] CreateServiceFeeRequest request)
     {
         var fee = await repository.CreateServiceFeeAsync(request.Name, request.FeeInUsd, request.PercentageFee);
+        return fee is null
+            ? Results.BadRequest("Failed to create service fee")
+            : Results.Ok();
+    }
+
+    private static async Task<IResult> UpdateServiceFeeAsync(
+      IFeeRepository repository,
+      string name,
+      [FromBody] UpdateServiceFeeRequest request)
+    {
+        var fee = await repository.UpdateServiceFeeAsync(name, request.FeeInUsd, request.PercentageFee);
+      
         return fee is null
             ? Results.BadRequest("Failed to create service fee")
             : Results.Ok();

@@ -8,7 +8,7 @@ namespace Train.Solver.Data.Npgsql;
 public class EFFeeRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : IFeeRepository
 {
     public async Task<ServiceFee?> CreateServiceFeeAsync(
-        string name, 
+        string name,
         decimal feeInUsd,
         decimal percentageFee)
     {
@@ -51,6 +51,26 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
         return serviceFee;
     }
 
+    public async Task<ServiceFee?> UpdateServiceFeeAsync(
+        string name,
+        decimal feeInUsd,
+        decimal percentageFee)
+    {
+        var serviceFee = await GetServiceFeeAsync(name);
+
+        if (serviceFee == null)
+        {
+            throw new Exception($"Service fee {name} not found");
+        }
+
+        serviceFee.FeePercentage = percentageFee;
+        serviceFee.FeeInUsd = feeInUsd;
+
+        await dbContext.SaveChangesAsync();
+
+        return serviceFee;
+    }
+
     public async Task UpdateExpenseAsync(
         string networkName, string tokenAsset, string feeAsset, string feeAmount, TransactionType transactionType)
     {
@@ -61,7 +81,7 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
             throw new Exception($"Network {networkName} not found");
         }
 
-        var token = network.Tokens.FirstOrDefault(x=>x.Asset == tokenAsset);
+        var token = network.Tokens.FirstOrDefault(x => x.Asset == tokenAsset);
 
         if (token == null)
         {
