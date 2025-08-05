@@ -14,9 +14,6 @@ public interface IEVMBlockchainActivities
     Task<string> GetNextNonceAsync(NextNonceRequest request);
 
     [Activity]
-    Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
-
-    [Activity]
     Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request);
 
     [Activity]

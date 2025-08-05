@@ -12,6 +12,7 @@ using Train.Solver.Workflow.Common.Extensions;
 using Train.Solver.Workflow.EVM.Activities;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Activities;
 
 namespace Train.Solver.Workflow.EVM.Workflows;
 
@@ -32,7 +33,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
         // Prepare transaction
         var preparedTransaction = await ExecuteActivityAsync(
-            (IEVMBlockchainActivities x) => x.BuildTransactionAsync(
+            (ITransactionBuilderActivities x) => x.BuildTransactionAsync(
                 new TransactionBuilderRequest()
                 {
                     Network = request.Network,

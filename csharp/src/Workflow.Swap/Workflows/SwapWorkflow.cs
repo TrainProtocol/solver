@@ -297,8 +297,8 @@ public class SwapWorkflow : ISwapWorkflow
         try
         {
             var isValid = await ExecuteActivityAsync(
-                (IBlockchainActivities x) => x.ValidateAddLockSignatureAsync(addLockSig),
-                DefaultActivityOptions(_sourceNetwork.Type));
+                (IAddLockSigActivities x) => x.ValidateAddLockSignatureAsync(addLockSig),
+                DefaultActivityOptions(_sourceNetwork!.Type));
 
             if (isValid)
             {

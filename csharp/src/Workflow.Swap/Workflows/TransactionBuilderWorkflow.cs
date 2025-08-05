@@ -19,7 +19,7 @@ public class TransactionBuilderWorkflow : ITransactionBuilderWorkflow
                TemporalHelper.DefaultActivityOptions());
 
         var buildTransaction = await ExecuteActivityAsync(
-               (IBlockchainActivities x) => x.BuildTransactionAsync(new()
+               (ITransactionBuilderActivities x) => x.BuildTransactionAsync(new()
                {
                      Type = request.Type,
                      Args = request.Args,

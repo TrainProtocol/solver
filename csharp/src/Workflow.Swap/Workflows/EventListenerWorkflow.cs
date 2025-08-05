@@ -72,7 +72,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
             try
             {
                 var blockNumberWithHash = await ExecuteActivityAsync(
-                    (IBlockchainActivities x) => x.GetLastConfirmedBlockNumberAsync(
+                    (IEventListenerActivities x) => x.GetLastConfirmedBlockNumberAsync(
                         new BaseRequest { Network = network }),
                     new()
                     {
@@ -139,7 +139,7 @@ public class EventListenerWorkflow : IEventListenerWorkflow
         BlockRangeModel blockRange)
     {
         var result = await ExecuteActivityAsync(
-            (IBlockchainActivities x) => x.GetEventsAsync(new EventRequest()
+            (IEventListenerActivities x) => x.GetEventsAsync(new EventRequest()
             {
                 Network = network,
                 FromBlock = blockRange.From,

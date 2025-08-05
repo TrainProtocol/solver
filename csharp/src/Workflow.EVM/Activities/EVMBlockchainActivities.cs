@@ -32,7 +32,12 @@ namespace Train.Solver.Workflow.EVM.Activities;
 public class EVMBlockchainActivities(
     IDistributedLockFactory distributedLockFactory,
     IDatabase cache,
-    IPrivateKeyProvider privateKeyProvider) : IEVMBlockchainActivities, IBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) 
+    : IEVMBlockchainActivities,
+        IBlockchainActivities,
+        ITransactionBuilderActivities,
+        IEventListenerActivities,
+        IAddLockSigActivities
 {
     private readonly string[] _nonRetriableErrors =
     [
