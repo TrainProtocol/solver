@@ -90,14 +90,63 @@ public class EFRouteRepository(
         return route;
     }
 
-    public Task<List<Route>> GetAllAsync(RouteStatus[] statuses)
+    public async Task<Route?> UpdateAsync(
+       string sourceNetworkName,
+       string sourceToken,
+       string destinationNetworkName,
+       string destinationToken,
+       string rateProviderName,
+       BigInteger minAmount,
+       BigInteger maxAmount,
+       RouteStatus status,
+       string? serviceFeeName)
+    {
+        var route = await GetAsync(
+            sourceNetworkName,
+            sourceToken,
+            destinationNetworkName,
+            destinationToken,
+            amount: null);
+
+        if (route == null)
+        {
+            throw new Exception("Route not found");
+        }
+
+        var rateProvider = await dbContext.RateProviders
+            .FirstOrDefaultAsync(x => x.Name == rateProviderName);
+
+        if (rateProvider != null)
+        {
+            route.RateProviderId = rateProvider.Id;
+        }
+
+        var serviceFee = string.IsNullOrEmpty(serviceFeeName)
+            ? null
+            : await feeRepository.GetServiceFeeAsync(serviceFeeName);
+
+        if (serviceFee != null)
+        {
+            route.ServiceFeeId = serviceFee.Id;
+        }
+
+        route.MinAmountInSource = minAmount.ToString();
+        route.MaxAmountInSource = maxAmount.ToString();
+        route.Status = status;
+
+        await dbContext.SaveChangesAsync();
+
+        return route;
+    }
+
+    public Task<List<Route>> GetAllAsync(RouteStatus[]? statuses)
     {
         return GetBaseQuery(statuses).ToListAsync();
     }
 
     public Task<List<RateProvider>> GetAllRateProvidersAsync()
     {
-         return dbContext.RateProviders.ToListAsync();
+        return dbContext.RateProviders.ToListAsync();
     }
 
     public async Task<Route?> GetAsync(
@@ -159,5 +208,5 @@ public class EFRouteRepository(
             .Include(x => x.SourceToken.TokenPrice)
             .Include(x => x.DestinationToken.Network.Nodes)
             .Include(x => x.DestinationToken.TokenPrice)
-            .Where(x => statuses.Contains(x.Status));
+            .Where(x => statuses == null || statuses.Contains(x.Status));
 }

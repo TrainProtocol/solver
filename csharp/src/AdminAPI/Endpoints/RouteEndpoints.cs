@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -19,14 +20,18 @@ public static class RouteEndpoints
             .Produces<RouteDetailedDto>()
             .Produces(StatusCodes.Status400BadRequest);
 
+        group.MapPut("/routes/{sourceNetwork}/{sourceToken}/{destinationNetwork}/{destinationToken}", UpdateRouteAsync)
+           .Produces<RouteDetailedDto>()
+           .Produces(StatusCodes.Status400BadRequest);
+
         return group;
     }
 
     private static async Task<IResult> GetAllRoutesAsync(
         IRouteRepository repository,
-        [FromQuery] RouteStatus[] statuses)
+        [FromQuery] RouteStatus[]? statuses)
     {
-        var routes = await repository.GetAllAsync(statuses);
+        var routes = await repository.GetAllAsync(statuses.IsNullOrEmpty() ? null : statuses);
         return Results.Ok(routes.Select(x=>x.ToDetailedDto()));
     }
 
@@ -50,6 +55,30 @@ public static class RouteEndpoints
 
         return route is null
             ? Results.BadRequest("Failed to create route")
+            : Results.Ok();
+    }
+
+    private static async Task<IResult> UpdateRouteAsync(
+        IRouteRepository repository,
+        string sourceNetwork,
+        string sourceToken,
+        string destinationNetwork,
+        string destinationToken,
+        [FromBody] UpdateRouteRequest request)
+    {
+        var route = await repository.UpdateAsync(
+            sourceNetwork,
+            sourceToken,
+            destinationNetwork,
+            destinationToken,
+            request.RateProvider,
+            request.MinAmount,
+            request.MaxAmount,
+            request.Status,
+            request.ServiceFee);
+
+        return route is null
+            ? Results.BadRequest("Failed to update route")
             : Results.Ok();
     }
 }

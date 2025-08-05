@@ -6,7 +6,7 @@ namespace Train.Solver.Data.Abstractions.Repositories;
 
 public interface IRouteRepository
 {
-    Task<List<Route>> GetAllAsync(RouteStatus[] statuses);
+    Task<List<Route>> GetAllAsync(RouteStatus[]? statuses);
 
     Task<Route?> GetAsync(
         string sourceNetworkName,
@@ -32,4 +32,15 @@ public interface IRouteRepository
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
 
     Task<List<RateProvider>> GetAllRateProvidersAsync();
+
+    Task<Route?> UpdateAsync(
+        string sourceNetworkName,
+        string sourceToken,
+        string destinationNetworkName,
+        string destinationToken, 
+        string rateProviderName,
+        BigInteger minAmount,
+        BigInteger maxAmount,
+        RouteStatus status, 
+        string? serviceFeeName);
 }
