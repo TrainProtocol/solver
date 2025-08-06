@@ -19,7 +19,7 @@ namespace Train.Solver.Workflow.EVM.Workflows;
 public class EVMTransactionProcessor : ITransactionProcessor
 {
     const int MaxRetryCount = 5;
-    private BigInteger _unlimitApproveAmount = BigInteger.Parse("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+    private readonly BigInteger _unlimitApproveAmount = BigInteger.Parse("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
     [WorkflowRun]
     public async Task<TransactionResponse> RunAsync(TransactionRequest request, TransactionExecutionContext context)
@@ -64,6 +64,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
             {
                 Network = request.Network,
                 FromAddress = request.FromAddress,
+                SignerAgentUrl = request.SignerAgentUrl,
                 ToAddress = preparedTransaction.ToAddress,
                 Nonce = context.Nonce,
                 Amount = preparedTransaction.Amount,
@@ -183,6 +184,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         {
                             Network = request.Network,
                             FromAddress = request.FromAddress,
+                            SignerAgentUrl = request.SignerAgentUrl,
                             PrepareArgs = new TransferPrepareRequest
                             {
                                 Amount = 0,
@@ -257,6 +259,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 }.ToJson(),
                 Type = TransactionType.Approve,
                 FromAddress = context.FromAddress,
+                SignerAgentUrl = context.SignerAgentUrl,
                 Network = context.Network,
                 SwapId = context.SwapId,
             },

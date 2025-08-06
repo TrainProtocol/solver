@@ -21,6 +21,8 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
 
     public DbSet<Wallet> Wallets { get; set; }
 
+    public DbSet<SignerAgent> SignerAgents { get; set; }
+
     public DbSet<TrustedWallet> TrustedWallets { get; set; }
 
     public DbSet<Node> Nodes { get; set; }
@@ -87,6 +89,9 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
             .HasIndex(x => new { x.Name, x.NetworkType }).IsUnique();
 
         modelBuilder.Entity<ServiceFee>()
+            .HasIndex(x => x.Name).IsUnique();
+
+        modelBuilder.Entity<SignerAgent>()
             .HasIndex(x => x.Name).IsUnique();
 
         modelBuilder.Entity<Node>()

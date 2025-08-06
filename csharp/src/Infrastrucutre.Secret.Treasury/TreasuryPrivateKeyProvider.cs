@@ -4,11 +4,13 @@ using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Infrastrucutre.Secret.Treasury;
 
-public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyProvider
+public class TreasuryPrivateKeyProvider() : IPrivateKeyProvider
 {
-    public async Task<string> GenerateAsync(NetworkType type)
+    public async Task<string> GenerateAsync(string signerAgentUrl, NetworkType type)
     {
-        var generateResponse = await client.GenerateAddressAsync(type.ToString());
+        var generateResponse = await TreasuryClientFactory
+            .Create(signerAgentUrl)
+            .GenerateAddressAsync(type.ToString());
 
         if (!generateResponse.IsSuccessStatusCode)
         {
@@ -19,11 +21,14 @@ public class TreasuryPrivateKeyProvider(ITreasuryClient client) : IPrivateKeyPro
     }
 
     public async Task<string> SignAsync(
+        string signerAgentUrl,
         NetworkType type, 
         string publicKey, 
         string message)
     {
-        var signedTransactionResponse = await client.SignTransactionAsync(
+        var signedTransactionResponse = await TreasuryClientFactory
+            .Create(signerAgentUrl)
+            .SignTransactionAsync(
             type.ToString(),
             request: new()
             {

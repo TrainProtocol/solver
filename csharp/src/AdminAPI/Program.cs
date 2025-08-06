@@ -69,6 +69,11 @@ app.MapGroup("/api")
    .WithTags("Network");
 
 app.MapGroup("/api")
+   .MapSignerAgentEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Signer Agent");
+
+app.MapGroup("/api")
    .MapWalletEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Wallet");

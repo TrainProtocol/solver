@@ -531,9 +531,68 @@ public class EVMBlockchainActivities(
             transactionInput.Type = new HexBigInteger((int)Nethereum.Model.TransactionType.EIP1559);
         }
 
-        var signedTransaction = await SignTransaction(request.Network.Type, request.FromAddress, transactionInput);
+        var chainId = transactionInput.ChainId;
 
-        return signedTransaction;
+      
+        var gasLimit = transactionInput.Gas;
+        var value = transactionInput.Value ?? new HexBigInteger(0);
+
+        if (chainId == null) throw new Exception("ChainId required for TransactionType 0X02 EIP1559");
+
+        string unsignedRawTransaction;
+
+        if (transactionInput.Type != null && transactionInput.Type.Value == Nethereum.Model.TransactionTypeExtensions.AsByte(Nethereum.Model.TransactionType.EIP1559))
+        {
+            var maxPriorityFeePerGas = transactionInput.MaxPriorityFeePerGas.Value;
+            var maxFeePerGas = transactionInput.MaxFeePerGas.Value;
+
+            var transaction1559 = new Nethereum.Model.Transaction1559(
+                chainId.Value,
+                transactionInput.Nonce,
+                maxPriorityFeePerGas,
+                maxFeePerGas,
+                gasLimit,
+                transactionInput.To,
+                value,
+                transactionInput.Data,
+                transactionInput.AccessList.ToSignerAccessListItemArray());
+
+            unsignedRawTransaction = transaction1559.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
+        }
+        else
+        {
+            var transactionLegacy = new Nethereum.Model.LegacyTransactionChainId(
+                transactionInput.To,
+                value.Value,
+                transactionInput.Nonce,
+                transactionInput.GasPrice.Value,
+                gasLimit.Value,
+                transactionInput.Data,
+                chainId.Value);
+
+            unsignedRawTransaction = transactionLegacy.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
+        }
+
+        var signedTransaction = await privateKeyProvider.SignAsync(
+            request.SignerAgentUrl,
+            request.Network.Type,
+            request.FromAddress,
+            unsignedRawTransaction);
+
+        if (string.IsNullOrEmpty(signedTransaction))
+        {
+            throw new Exception($"Failed to sign transaction for {request.FromAddress} on {transactionInput.ChainId}");
+        }
+
+        var decodedTransaction = Nethereum.Model.TransactionFactory.CreateTransaction(signedTransaction);
+
+        var txHash = decodedTransaction.Hash.ToHex();
+
+        return new SignedTransaction
+        {
+            RawTxn = signedTransaction,
+            Hash = txHash,
+        };
     }
 
     private static string FormatAddress(string address) => address.ToLower();
@@ -558,85 +617,6 @@ public class EVMBlockchainActivities(
             },
             Types = MemberDescriptionFactory.GetTypesMemberDescription(typeof(Domain), typeof(AddLockMessage)),
             PrimaryType = "addLockMsg",
-        };
-    }
-
-    private async Task<SignedTransaction> SignTransaction(
-       NetworkType networkType,
-       string signerAddress,
-       TransactionInput transaction)
-    {
-        if (transaction == null) throw new ArgumentNullException(nameof(transaction));
-
-        if (string.IsNullOrWhiteSpace(transaction.From))
-            transaction.From = signerAddress;
-
-        else if (!transaction.From.IsTheSameAddress(signerAddress))
-            throw new Exception("Invalid account used for signing, does not match the transaction input");
-
-        var chainId = transaction.ChainId;
-
-        var nonce = transaction.Nonce;
-        if (nonce == null)
-            throw new ArgumentNullException(nameof(transaction), "Transaction nonce has not been set");
-
-        var gasLimit = transaction.Gas;
-        var value = transaction.Value ?? new HexBigInteger(0);
-
-        if (chainId == null) throw new Exception("ChainId required for TransactionType 0X02 EIP1559");
-
-        string unsignedRawTransaction;
-
-        if (transaction.Type != null && transaction.Type.Value == Nethereum.Model.TransactionTypeExtensions.AsByte(Nethereum.Model.TransactionType.EIP1559))
-        {
-            var maxPriorityFeePerGas = transaction.MaxPriorityFeePerGas.Value;
-            var maxFeePerGas = transaction.MaxFeePerGas.Value;
-
-            var transaction1559 = new Nethereum.Model.Transaction1559(
-                chainId.Value,
-                nonce,
-                maxPriorityFeePerGas,
-                maxFeePerGas,
-                gasLimit,
-                transaction.To,
-                value,
-                transaction.Data,
-                transaction.AccessList.ToSignerAccessListItemArray());
-
-            unsignedRawTransaction = transaction1559.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
-        }
-        else
-        {
-            var transactionLegacy = new Nethereum.Model.LegacyTransactionChainId(
-                transaction.To,
-                value.Value,
-                nonce,
-                transaction.GasPrice.Value,
-                gasLimit.Value,
-                transaction.Data,
-                chainId.Value);
-
-            unsignedRawTransaction = transactionLegacy.GetRLPEncodedRaw().ToHex().EnsureHexPrefix();
-        }
-
-        var signedTransaction = await privateKeyProvider.SignAsync(
-            networkType,
-            signerAddress,
-            unsignedRawTransaction);
-
-        if (string.IsNullOrEmpty(signedTransaction))
-        {
-            throw new Exception($"Failed to sign transaction for {signerAddress} on {transaction.ChainId}");
-        }
-
-        var decodedTransaction = Nethereum.Model.TransactionFactory.CreateTransaction(signedTransaction);
-
-        var txHash = decodedTransaction.Hash.ToHex();
-
-        return new SignedTransaction
-        {
-            RawTxn = signedTransaction,
-            Hash = txHash,
         };
     }
 

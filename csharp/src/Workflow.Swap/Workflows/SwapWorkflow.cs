@@ -25,8 +25,10 @@ public class SwapWorkflow : ISwapWorkflow
     private HTLCLockEventMessage? _htlcLockMessage;
     private HTLCCommitEventMessage? _htlcCommitMessage;
     private AddLockSignatureRequest? _htlcAddLockSigMessage;
-    private string? _solverManagedAccountInDestination;
-    private string? _solverManagedAccountInSource;
+    private string? _destinationWalletAddress;
+    private string? _destinationWalletAgentUrl;
+    private string? _sourceWalletAddress;
+    private string? _sourceWalletAgentUrl;
     private DetailedNetworkDto? _sourceNetwork;
     private DetailedNetworkDto? _destinationNetwork;
     private int? _swapId;
@@ -108,8 +110,20 @@ public class SwapWorkflow : ISwapWorkflow
             throw new ApplicationFailureException("Output amount is less than the fee");
         }
 
-        _solverManagedAccountInDestination = quote.DestinationSolverAddress;
-        _solverManagedAccountInSource = quote.SourceSolverAddress;
+        _destinationWalletAddress = quote.DestinationSolverAddress;
+        _sourceWalletAddress = quote.SourceSolverAddress;
+
+        var sourceWalletAgent = await ExecuteActivityAsync(
+            (IWalletActivities x) => x.GetSignerAgentAsync(quote.SourceSignerAgent),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
+
+        _sourceWalletAgentUrl = sourceWalletAgent.Url;
+
+        var destinationWalletAgent = await ExecuteActivityAsync(
+            (IWalletActivities x) => x.GetSignerAgentAsync(quote.DestinationSignerAgent),
+            DefaultActivityOptions(Constants.CoreTaskQueue));
+
+        _sourceWalletAgentUrl = destinationWalletAgent.Url;
 
         // Generate hashlock       
         var hashlock = await ExecuteLocalActivityAsync(
@@ -137,7 +151,7 @@ public class SwapWorkflow : ISwapWorkflow
                 SourceAsset = _htlcCommitMessage.DestinationAsset,
                 DestinationAsset = _htlcCommitMessage.SourceAsset,
                 DestinationNetwork = _htlcCommitMessage.SourceNetwork,
-                DestinationAddress = _solverManagedAccountInSource,
+                DestinationAddress = _sourceWalletAddress,
                 SourceNetwork = _htlcCommitMessage.DestinationNetwork,
                 Amount = quote.ReceiveAmount,
                 CommitId = _htlcCommitMessage.CommitId,
@@ -149,7 +163,8 @@ public class SwapWorkflow : ISwapWorkflow
             }.ToJson(),
             Type = TransactionType.HTLCLock,
             Network = _destinationNetwork,
-            FromAddress = _solverManagedAccountInDestination!,
+            FromAddress = _destinationWalletAddress!,
+            SignerAgentUrl = _destinationWalletAgentUrl!,
             SwapId = _swapId,
         });
 
@@ -190,7 +205,8 @@ public class SwapWorkflow : ISwapWorkflow
                     }.ToJson(),
                     Type = TransactionType.HTLCAddLockSig,
                     Network = _sourceNetwork,
-                    FromAddress = _solverManagedAccountInSource!,
+                    FromAddress = _sourceWalletAddress!,
+                    SignerAgentUrl = _sourceWalletAgentUrl!,
                     SwapId = _swapId
                 });
 
@@ -222,11 +238,12 @@ public class SwapWorkflow : ISwapWorkflow
                     Asset = _htlcCommitMessage.DestinationAsset,
                     Secret = hashlock.Secret,
                     DestinationAddress = _htlcCommitMessage.DestinationAddress,
-                    SenderAddress = _solverManagedAccountInDestination
+                    SenderAddress = _destinationWalletAddress
                 }.ToJson(),
                 Type = TransactionType.HTLCRedeem,
                 Network = _destinationNetwork,
-                FromAddress = _solverManagedAccountInDestination!,
+                FromAddress = _destinationWalletAddress!,
+                SignerAgentUrl = _sourceWalletAgentUrl!,
                 SwapId = _swapId
             });
 
@@ -238,12 +255,13 @@ public class SwapWorkflow : ISwapWorkflow
                     CommitId = _htlcCommitMessage!.CommitId,
                     Asset = _htlcCommitMessage.SourceAsset,
                     Secret = hashlock.Secret,
-                    DestinationAddress = _solverManagedAccountInSource,
+                    DestinationAddress = _sourceWalletAddress,
                     SenderAddress = _htlcCommitMessage.SenderAddress
                 }.ToJson(),
                 Type = TransactionType.HTLCRedeem,
                 Network = _sourceNetwork,
-                FromAddress = _solverManagedAccountInSource!,
+                FromAddress = _sourceWalletAddress!,
+                SignerAgentUrl = _sourceWalletAgentUrl!,
                 SwapId = _swapId
             });
 
@@ -281,7 +299,8 @@ public class SwapWorkflow : ISwapWorkflow
             }.ToJson(),
             Type = TransactionType.HTLCRefund,
             Network = network,
-            FromAddress = _solverManagedAccountInDestination!,
+            FromAddress = _destinationWalletAddress!,
+            SignerAgentUrl = _destinationWalletAgentUrl!,
             SwapId = _swapId!
         });
     }

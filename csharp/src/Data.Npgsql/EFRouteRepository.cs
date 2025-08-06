@@ -201,8 +201,8 @@ public class EFRouteRepository(
     private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
         => dbContext.Routes
             .Include(x => x.RateProvider)
-            .Include(x => x.SourceWallet)
-            .Include(x => x.DestinationWallet)
+            .Include(x => x.SourceWallet.SignerAgent)
+            .Include(x => x.DestinationWallet.SignerAgent)
             .Include(x => x.ServiceFee)
             .Include(x => x.SourceToken.Network.Nodes)
             .Include(x => x.SourceToken.TokenPrice)

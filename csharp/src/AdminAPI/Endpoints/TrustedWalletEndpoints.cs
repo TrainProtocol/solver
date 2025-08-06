@@ -9,23 +9,16 @@ using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.AdminAPI.Endpoints;
 
-public static class TrustedWalletEndpoints
+public static class SignerAgentEndpoints
 {
-    public static RouteGroupBuilder MapTrustedWalletEndpoints(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapSignerAgentEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/trusted-wallets", GetAllAsync)
+        group.MapGet("/signer-agents", GetAllAsync)
             .Produces<IEnumerable<TrustedWalletDto>>();
 
-        group.MapPost("/trusted-wallets", CreateAsync)
+        group.MapPost("/signer-agents", CreateAsync)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
-
-        group.MapPut("/trusted-wallets/{networkType}/{address}", UpdateAsync)
-            .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
-
-        group.MapDelete("/trusted-wallets/{networkType}/{address}", DeleteAsync)
-            .Produces(StatusCodes.Status204NoContent);
 
         return group;
     }
@@ -39,41 +32,16 @@ public static class TrustedWalletEndpoints
     }
 
     private static async Task<IResult> CreateAsync(
-        ITrustedWalletRepository repository,
-        [FromBody] CreateTrustedWalletRequest request)
+        ISignerAgentRepository repository,
+        [FromBody] CreateSignerAgentRequest request)
     {
-        var wallet = await repository.CreateAsync(
-            request.NetworkType,
-            request.Address,
-            request.Name);
+        var signerAgent = await repository.CreateAsync(
+            request.Name,
+            request.Url,
+            request.SupportedTypes);
 
-        return wallet is null
-            ? Results.BadRequest("Failed to create trusted wallet")
+        return signerAgent is null
+            ? Results.BadRequest("Failed to create signer wallet")
             : Results.Ok();
-    }
-
-    private static async Task<IResult> UpdateAsync(
-        ITrustedWalletRepository repository,
-        NetworkType networkType,
-        string address,
-        [FromBody] UpdateTrustedWalletRequest request)
-    {
-        var wallet = await repository.UpdateAsync(
-            networkType,
-            address,
-            request.Name);
-
-        return wallet is null
-            ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")
-            : Results.Ok();
-    }
-
-    private static async Task<IResult> DeleteAsync(
-        ITrustedWalletRepository repository,
-        NetworkType networkType,
-        string address)
-    {
-        await repository.DeleteAsync(networkType, address);
-        return Results.NoContent();
     }
 }

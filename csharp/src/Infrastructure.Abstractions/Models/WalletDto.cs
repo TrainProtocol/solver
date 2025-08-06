@@ -9,9 +9,11 @@ namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class WalletDto
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public string Address { get; set; } = null!;
 
     public NetworkType NetworkType { get; set; }
+
+    public string SignerAgent { get; set; } = null!;
 }

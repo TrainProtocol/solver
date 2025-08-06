@@ -145,10 +145,10 @@ public class EFSwapRepository(
     private IQueryable<Swap> GetBaseQuery()
       => dbContext.Swaps
             .Include(x => x.Transactions).ThenInclude(x => x.Network.NativeToken!.TokenPrice)
-            .Include(x => x.Route.SourceWallet)
+            .Include(x => x.Route.SourceWallet.SignerAgent)
             .Include(x => x.Route.SourceToken.Network)
             .Include(x => x.Route.SourceToken.TokenPrice)
-            .Include(x => x.Route.DestinationWallet)
+            .Include(x => x.Route.DestinationWallet.SignerAgent)
             .Include(x => x.Route.DestinationToken.Network)
             .Include(x => x.Route.DestinationToken.TokenPrice);
 }

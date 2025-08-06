@@ -71,6 +71,7 @@ public static class RebalanceEndpoints
                             Type = TransactionType.Transfer,
                             Network = network.ToDetailedDto(),
                             FromAddress = wallet.Address,
+                            SignerAgentUrl = wallet.SignerAgent.Url,
                     },
                     new TransactionExecutionContext()],
                     new(id: TemporalHelper.BuildProcessorId(network.Name, TransactionType.Transfer, Guid.NewGuid()),

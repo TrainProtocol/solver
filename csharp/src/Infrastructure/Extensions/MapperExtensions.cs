@@ -4,7 +4,7 @@ using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.Infrastructure.Extensions;
 
-public static class MapperExtensions
+public static partial class MapperExtensions
 {
     public static SwapDto ToDto(this Swap swap)
     {
@@ -15,7 +15,7 @@ public static class MapperExtensions
             Source = swap.Route.SourceToken.ToWithNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
             SourceAddress = swap.SourceAddress,
-            SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ? 
+            SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ?
                 swap.Route.SourceToken.Network.HTLCNativeContractAddress :
                 swap.Route.SourceToken.Network.HTLCTokenContractAddress,
             Destination = swap.Route.DestinationToken.ToWithNetworkDto(),
@@ -141,7 +141,8 @@ public static class MapperExtensions
         {
             Name = wallet.Name,
             Address = wallet.Address,
-            NetworkType = wallet.NetworkType
+            NetworkType = wallet.NetworkType,
+            SignerAgent = wallet.SignerAgent.Name,
         };
     }
 
@@ -155,13 +156,23 @@ public static class MapperExtensions
         };
     }
 
+    public static SignerAgentDto ToDto(this SignerAgent signerAgent)
+    {
+        return new SignerAgentDto
+        {
+            Name = signerAgent.Name,
+            Url = signerAgent.Url,
+            SupportedTypes = signerAgent.SupportedTypes
+        };
+    }
+
     public static ServiceFeeDto ToDto(this ServiceFee serviceFee)
     {
         return new ServiceFeeDto
         {
-           Name = serviceFee.Name,
+            Name = serviceFee.Name,
             Percentage = serviceFee.FeePercentage,
-           UsdAmount = serviceFee.FeeInUsd,
+            UsdAmount = serviceFee.FeeInUsd,
         };
     }
 
