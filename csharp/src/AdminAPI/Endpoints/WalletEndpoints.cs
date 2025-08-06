@@ -33,17 +33,30 @@ public static class WalletEndpoints
         [FromQuery] NetworkType[]? types)
     {
         var wallets = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
-        return Results.Ok(wallets.Select(x=> x.ToDto()));
+        return Results.Ok(wallets.Select(x => x.ToDto()));
     }
 
     private static async Task<IResult> CreateAsync(
         IWalletRepository repository,
+        ISignerAgentRepository signerAgentRepository,
         IPrivateKeyProvider privateKeyProvider,
         [FromBody] CreateWalletRequest request)
     {
-        var generatedAddress = await privateKeyProvider.GenerateAsync(request.NetworkType);
+        var signerAgent = await signerAgentRepository.GetAsync(request.SignerAgent);
 
-        var wallet = await repository.CreateAsync(request.NetworkType, generatedAddress, request.Name);
+        if (signerAgent == null)
+        {
+            return Results.BadRequest("Invalid signer agent");
+        }
+
+        if (!signerAgent.SupportedTypes.Contains(request.NetworkType))
+        {
+            return Results.BadRequest("Invalid network type");
+        }
+
+        var generatedAddress = await privateKeyProvider.GenerateAsync(signerAgent.Url, request.NetworkType);
+
+        var wallet = await repository.CreateAsync(request.SignerAgent, request.NetworkType, generatedAddress, request.Name);
         return wallet is null
             ? Results.BadRequest("Could not create wallet")
             : Results.Ok();

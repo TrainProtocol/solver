@@ -8,11 +8,11 @@ using Train.Solver.Data.Abstractions.Entities.Base;
 
 namespace Train.Solver.Data.Abstractions.Entities;
 
-public class TrustedWallet : EntityBase
+public class SignerAgent : EntityBase
 {
     public string Name { get; set; } = null!;
 
-    public string Address { get; set; } = null!;
+    public NetworkType[] SupportedTypes { get; set; } = [];
 
-    public NetworkType NetworkType { get; set; }
+    public string Url { get; set; } = null!;
 }

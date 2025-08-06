@@ -5,9 +5,11 @@ using Train.Solver.Common.Enums;
 
 namespace Train.Solver.Data.Npgsql;
 
-public class EFWalletRepository(SolverDbContext dbContext) : IWalletRepository
+public class EFWalletRepository(
+    ISignerAgentRepository signerAgentRepository,
+    SolverDbContext dbContext) : IWalletRepository
 {
-    public async Task<Wallet?> CreateAsync(NetworkType type, string address, string name)
+    public async Task<Wallet?> CreateAsync(string signerAgentName, NetworkType type, string address, string name)
     {
         var walletExists = await dbContext.Wallets.AnyAsync(x => x.Address == address);
 
@@ -16,11 +18,24 @@ public class EFWalletRepository(SolverDbContext dbContext) : IWalletRepository
             return null;
         }
 
+        var signerAgent = await signerAgentRepository.GetAsync(signerAgentName);
+
+        if (signerAgent == null)
+        {
+            throw new Exception("Signer agent not found");
+        }
+
+        if (!signerAgent.SupportedTypes.Contains(type))
+        {
+            throw new Exception("Unsupported type");
+        }
+
         var wallet = new Wallet
         {
             Address = address,
             Name = name,
             NetworkType = type,
+            SignerAgentId = signerAgent.Id,
         };
 
         dbContext.Wallets.Add(wallet);
@@ -32,13 +47,17 @@ public class EFWalletRepository(SolverDbContext dbContext) : IWalletRepository
     public async Task<IEnumerable<Wallet>> GetAllAsync(NetworkType[]? types)
     {
         var wallets = await dbContext.Wallets
+            .Include(x=>x.SignerAgent)
             .Where(x => types == null || types.Contains(x.NetworkType)).ToListAsync();
         return wallets;
     }
 
     public async Task<Wallet?> GetAsync(NetworkType type, string address)
     {
-        var wallet = await dbContext.Wallets.FirstOrDefaultAsync(x => x.NetworkType == type && x.Address == address);
+        var wallet = await dbContext.Wallets
+            .Include(x => x.SignerAgent)
+            .FirstOrDefaultAsync(x => x.NetworkType == type && x.Address == address);
+
         return wallet;
     }
 

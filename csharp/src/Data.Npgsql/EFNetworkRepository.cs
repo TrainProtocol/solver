@@ -40,7 +40,9 @@ public class EFNetworkRepository(
        string nativeTokenSymbol,
        string nativeTokenPriceSymbol,
        string? nativeTokenContract,
-       int nativeTokenDecimals)
+       int nativeTokenDecimals,
+       string nodeUrl,
+       string nodeProvider)
     {
         var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
 
@@ -83,6 +85,15 @@ public class EFNetworkRepository(
             };
 
             network.NativeToken = token;
+            await dbContext.SaveChangesAsync();
+
+            var node = new Node
+            {
+                ProviderName = nodeProvider,
+                Url = nodeUrl,
+            };
+
+            network.Nodes.Add(node);
             await dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();

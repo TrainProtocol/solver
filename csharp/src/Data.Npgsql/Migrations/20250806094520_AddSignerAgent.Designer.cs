@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Train.Solver.Data.Npgsql;
@@ -11,9 +12,11 @@ using Train.Solver.Data.Npgsql;
 namespace Train.Solver.Data.Npgsql.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    partial class SolverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250806094520_AddSignerAgent")]
+    partial class AddSignerAgent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -340,9 +343,6 @@ namespace Train.Solver.Data.Npgsql.Migrations
                         .HasColumnName("xmin");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.ToTable("SignerAgents");
                 });

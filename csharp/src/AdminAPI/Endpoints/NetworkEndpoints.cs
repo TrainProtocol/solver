@@ -76,7 +76,9 @@ public static class NetworkEndpoints
             request.NativeTokenSymbol,
             request.NativeTokenPriceSymbol,
             request.NativeTokenContract,
-            request.NativeTokenDecimals);
+            request.NativeTokenDecimals,
+            request.NodeUrl,
+            request.NodeProvider);
 
         return network is null
            ? Results.BadRequest("Failed to create network")

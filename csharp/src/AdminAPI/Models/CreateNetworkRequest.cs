@@ -16,5 +16,7 @@ public class CreateNetworkRequest
     public string NativeTokenPriceSymbol { get; set; } = default!;
     public string NativeTokenContract { get; set; } = default!;
     public int NativeTokenDecimals { get; set; }
+    public string NodeUrl { get; set; } = default!;
+    public string NodeProvider { get; set; } = default!;
 }
 

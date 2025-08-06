@@ -109,7 +109,9 @@ public class QuoteService(
             TotalServiceFee = TotalServiceFee,
             TotalExpenseFee = TotalExpenseFee,
             SourceSolverAddress = route.SourceWallet.Address,
+            SourceSignerAgent = route.SourceWallet.SignerAgent.Name,
             DestinationSolverAddress = route.DestinationWallet.Address,
+            DestinationSignerAgent = route.DestinationWallet.SignerAgent.Name,
             SourceContractAddress =
                 route.SourceToken.Id == route.SourceToken.Network.NativeTokenId
                 ? route.SourceToken.Network.HTLCNativeContractAddress

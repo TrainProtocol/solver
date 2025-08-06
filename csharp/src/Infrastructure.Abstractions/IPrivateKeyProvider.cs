@@ -4,7 +4,7 @@ namespace Train.Solver.Infrastructure.Abstractions;
 
 public interface IPrivateKeyProvider
 {
-    Task<string> GenerateAsync(NetworkType type);
+    Task<string> GenerateAsync(string signerAgentUrl, NetworkType type);
 
-    Task<string> SignAsync(NetworkType type, string publicKey, string message);
+    Task<string> SignAsync(string signerAgentUrl, NetworkType type, string publicKey, string message);
 }

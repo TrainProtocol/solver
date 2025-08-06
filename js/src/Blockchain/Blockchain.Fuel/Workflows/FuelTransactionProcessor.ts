@@ -67,6 +67,7 @@ export async function FuelTransactionProcessor(
 
         const signedRawData = await defaultActivities.signTransaction(
             {
+                signerAgentUrl: request.signerAgentUrl,
                 networkType: NetworkType[request.network.type],
                 signRequest: {
                     unsignedTxn: rawTx,

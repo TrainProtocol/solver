@@ -23,7 +23,9 @@ public interface INetworkRepository
         string nativeTokenSymbol,
         string nativeTokenPriceSymbol,
         string? nativeTokenContract,
-        int nativeTokenDecimals);
+        int nativeTokenDecimals,
+        string nodeUrl,
+        string nodeProvider);
 
     Task<Node?> CreateNodeAsync(
         string networkName,

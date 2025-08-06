@@ -10,7 +10,7 @@ public interface IWalletRepository
 
     public Task<IEnumerable<Wallet>> GetAllAsync(NetworkType[]? filterTypes);
 
-    public Task<Wallet?> CreateAsync(NetworkType type, string address, string name);
+    public Task<Wallet?> CreateAsync(string signerAgent, NetworkType type, string address, string name);
 
     public Task<Wallet?> UpdateAsync(NetworkType type, string address, string name);
 }

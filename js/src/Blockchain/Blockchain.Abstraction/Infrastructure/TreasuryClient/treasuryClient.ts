@@ -9,9 +9,9 @@ import axios from "axios";
 export class TreasuryClient {
   private apiClient
 
-  constructor() {
+  constructor(signerAgentUrl: string) {
     this.apiClient = axios.create({
-      baseURL: `${process.env.TrainSolver__TreasuryUrl}/api/treasury/`,
+      baseURL: `${signerAgentUrl}/api/treasury/`,
       timeout: process.env.TrainSolver__TreasuryTimeout ?
         parseInt(process.env.TrainSolver__TreasuryTimeout) : 30000
     });
