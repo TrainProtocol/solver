@@ -17,6 +17,7 @@ public static class TrainSolverBuilderExtensions
             .AddHostedTemporalWorker(Constants.CoreTaskQueue)
             .AddTransientActivities<UtilityActivities>()
             .AddTransientActivities<RouteActivities>()
+            .AddTransientActivities<WalletActivities>()
             .AddTransientActivities<SwapActivities>()
             .AddTransientActivities<TokenPriceActivities>()
             .AddTransientActivities<WorkflowActivities>()
