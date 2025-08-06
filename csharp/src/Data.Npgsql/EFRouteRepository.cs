@@ -25,6 +25,7 @@ public class EFRouteRepository(
         string rateProviderName,
         BigInteger minAmount,
         BigInteger maxAmount,
+        bool ignoreExpenseFee,
         string? serviceFeeName)
     {
         var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceTokenSymbol);
@@ -73,6 +74,7 @@ public class EFRouteRepository(
             MinAmountInSource = minAmount.ToString(),
             MaxAmountInSource = maxAmount.ToString(),
             Status = RouteStatus.Active,
+            IgnoreExpenseFee = ignoreExpenseFee,
         };
 
         var serviceFee = string.IsNullOrEmpty(serviceFeeName)

@@ -19,5 +19,7 @@ public class CreateRouteRequest
     public BigInteger MinAmount { get; set; }
     public BigInteger MaxAmount { get; set; }
 
+    public bool IgnoreExpenseFee { get; set; }
+
     public string? ServiceFee { get; set; }
 }

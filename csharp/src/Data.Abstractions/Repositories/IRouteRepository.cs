@@ -27,6 +27,7 @@ public interface IRouteRepository
         string rateProvider,
         BigInteger minAmount,
         BigInteger maxAmount,
+        bool ignoreExpenseFee,
         string? serviceFee);
 
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
