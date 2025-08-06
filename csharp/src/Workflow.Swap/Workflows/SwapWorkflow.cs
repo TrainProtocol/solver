@@ -123,7 +123,7 @@ public class SwapWorkflow : ISwapWorkflow
             (IWalletActivities x) => x.GetSignerAgentAsync(quote.DestinationSignerAgent),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        _sourceWalletAgentUrl = destinationWalletAgent.Url;
+        _destinationWalletAgentUrl = destinationWalletAgent.Url;
 
         // Generate hashlock       
         var hashlock = await ExecuteLocalActivityAsync(
