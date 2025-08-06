@@ -37,7 +37,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
   constructor(
     @inject("Redis") private redis: Redis,
     @inject("Redlock") private lockFactory: Redlock,
-    @inject("TreasuryClient") private treasuryClient: TreasuryClient
+    // @inject("TreasuryClient") private treasuryClient: TreasuryClient
   ) { }
 
   readonly MaxFeeMultiplier = 7;
@@ -265,7 +265,9 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
   public async signTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
 
-    const response = await this.treasuryClient.signTransaction(request.networkType, request.signRequest);
+    const treasuryClient = new TreasuryClient(request.signerAgentUrl);
+
+    const response = await treasuryClient.signTransaction(request.networkType, request.signRequest);
 
     return response.signedTxn;
   }

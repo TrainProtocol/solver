@@ -3,4 +3,5 @@ import { FuelSignTransactionRequest } from "../../../Blockchain.Abstraction/Infr
 export interface FuelSignTransactionRequestModel {
     networkType: string;
     signRequest: FuelSignTransactionRequest;
+    signerAgentUrl: string;
 }

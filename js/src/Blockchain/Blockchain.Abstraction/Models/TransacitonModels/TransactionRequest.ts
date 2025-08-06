@@ -5,5 +5,6 @@ export interface TransactionRequest extends BaseRequest {
     prepareArgs: string;
     type: TransactionType;
     fromAddress: string;
+    signerAgentUrl: string;
     swapId?: number;
 }

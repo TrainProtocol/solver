@@ -112,6 +112,7 @@ export async function StarknetTransactionProcessor(
             const processorId = buildProcessorId(uuid4(), request.network.name, TransactionType.Transfer);
 
             const transferRequest: TransactionRequest = {
+                signerAgentUrl: request.signerAgentUrl,
                 prepareArgs: JSON.stringify(transferArgs),
                 type: TransactionType.Transfer,
                 fromAddress: request.fromAddress,
@@ -150,6 +151,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
     if (lockRequest.amount > allowance) {
 
         const approveRequest: TransactionRequest = {
+            signerAgentUrl: context.signerAgentUrl,
             prepareArgs: JSON.stringify({
                 Amount: 1000000000,
                 Asset: lockRequest.sourceAsset,
