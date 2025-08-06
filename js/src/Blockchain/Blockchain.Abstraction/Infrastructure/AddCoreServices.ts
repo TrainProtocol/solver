@@ -14,9 +14,9 @@ export async function AddCoreServices(): Promise<void> {
     retryDelay: 200,
     retryJitter: 100,
   });
-  const treasuryClient = new TreasuryClient();
+  // const treasuryClient = new TreasuryClient();
 
   container.register<Redlock>("Redlock", { useValue: redlock });
   container.register<Redis>("Redis", { useValue: redis });
-  container.register<TreasuryClient>("TreasuryClient", { useValue: treasuryClient });
+  // container.register<TreasuryClient>("TreasuryClient", { useValue: treasuryClient });
 }
