@@ -14,7 +14,7 @@ public static class SignerAgentEndpoints
     public static RouteGroupBuilder MapSignerAgentEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/signer-agents", GetAllAsync)
-            .Produces<IEnumerable<TrustedWalletDto>>();
+            .Produces<IEnumerable<SignerAgentDto>>();
 
         group.MapPost("/signer-agents", CreateAsync)
             .Produces(StatusCodes.Status200OK)
