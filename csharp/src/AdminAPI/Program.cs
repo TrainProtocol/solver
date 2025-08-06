@@ -111,6 +111,11 @@ app.MapGroup("/api")
    .WithTags("Fee");
 
 app.MapGroup("/api")
+   .MapSwapEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Swap");
+
+app.MapGroup("/api")
    .MapRouteEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Route");
