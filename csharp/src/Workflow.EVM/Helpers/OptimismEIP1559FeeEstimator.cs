@@ -8,14 +8,14 @@ using Nethereum.Web3;
 using System.Numerics;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Common.Extensions;
-using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
 using Train.Solver.Workflow.EVM.FunctionMessages;
+using Train.Solver.SmartNodeInvoker;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
-public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
+public class OptimismEIP1559FeeEstimator(ISmartNodeInvoker smartNodeInvoker) : EthereumEIP1559FeeEstimator(smartNodeInvoker)
 {
     private const string GasPriceOracleContract = "0x420000000000000000000000000000000000000F";
 
@@ -37,40 +37,52 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
         var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
         var gasLimit = await
-            GetGasLimitAsync(nodes,
+            GetGasLimitAsync(
+                request.Network.Name,
+                nodes,
                 request.FromAddress,
                 request.ToAddress,
                 currency.Contract,
                 request.Amount,
                 request.CallData);
 
-        var currentGasPriceResult = await GetGasPriceAsync(nodes);
+        var currentGasPriceResult = await GetGasPriceAsync(request.Network.Name, nodes);
 
         var gasPrice = currentGasPriceResult.Value.PercentageIncrease(request.Network.FeePercentageIncrease);
 
-        var priorityFee = await GetDataFromNodesAsync(nodes,
+        var priorityFeeResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
                     async url => await new EthMaxPriorityFeePerGas(new Web3(url).Client).SendRequestAsync());
 
-        priorityFee = priorityFee.Value
+        if (!priorityFeeResult.Succeeded)
+        {
+            throw new AggregateException(priorityFeeResult.FailedNodes.Values);
+        }
+
+        priorityFeeResult.Data = priorityFeeResult.Data.Value
             .PercentageIncrease(request.Network.FeePercentageIncrease)
             .ToHexBigInteger();
 
         // base fee
-        var pendingBlock = await GetDataFromNodesAsync(nodes,
+        var pendingBlockResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url => await new Web3(url).Eth.Blocks.GetBlockWithTransactionsByNumber
                 .SendRequestAsync(BlockParameter.CreatePending()));
 
-        var baseFee = pendingBlock.BaseFeePerGas.Value
+        if (!pendingBlockResult.Succeeded)
+        {
+            throw new AggregateException(pendingBlockResult.FailedNodes.Values);
+        }
+
+        var baseFee = pendingBlockResult.Data.BaseFeePerGas.Value
             .PercentageIncrease(1420);
 
-        var maxFeePerGas = baseFee + priorityFee;
+        var maxFeePerGas = baseFee + priorityFeeResult.Data;
 
-        var l1Fee = await GetDataFromNodesAsync(nodes,
+        var l1FeeResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url => await GetL1FeeAsync(
                 new Web3(url),
                 request.Network.NativeToken,
                 BigInteger.Parse(request.Network.ChainId),
-                priorityFee,
+                priorityFeeResult.Data,
                 maxFeePerGas,
                 gasLimit,
                 GasPriceOracleContract,
@@ -79,15 +91,19 @@ public class OptimismEIP1559FeeEstimator() : EthereumEIP1559FeeEstimator
                 request.Amount,
                 request.CallData));
 
+        if (!l1FeeResult.Succeeded)
+        {
+            throw new AggregateException(l1FeeResult.FailedNodes.Values);
+        }
 
         return new Fee(
             request.Network.NativeToken!.Symbol,
             request.Network.NativeToken!.Decimals,
             new EIP1559Data(
-                priorityFee.Value,
+                priorityFeeResult.Data.Value,
                 baseFee,
                 gasLimit,
-                l1Fee.PercentageIncrease(100)));
+                l1FeeResult.Data.PercentageIncrease(100)));
     }
 
     private static async Task<BigInteger> GetL1FeeAsync(

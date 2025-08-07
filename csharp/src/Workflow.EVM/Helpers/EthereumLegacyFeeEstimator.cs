@@ -1,12 +1,13 @@
 ﻿using Nethereum.RPC.Eth.DTOs;
 using System.Numerics;
 using Train.Solver.Common.Extensions;
+using Train.Solver.SmartNodeInvoker;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
-public class EthereumLegacyFeeEstimator : FeeEstimatorBase
+public class EthereumLegacyFeeEstimator(ISmartNodeInvoker smartNodeInvoker) : FeeEstimatorBase(smartNodeInvoker)
 {
     public override BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt)
     {
@@ -25,14 +26,16 @@ public class EthereumLegacyFeeEstimator : FeeEstimatorBase
         var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
         var gasLimitResult = await
-            GetGasLimitAsync(nodes,
+            GetGasLimitAsync(
+                request.Network.Name,
+                nodes,
                 request.FromAddress,
                 request.ToAddress,
                 currency.Contract,
                 request.Amount,
                 request.CallData);
 
-        var currentGasPriceResult = await GetGasPriceAsync(nodes);
+        var currentGasPriceResult = await GetGasPriceAsync(request.Network.Name, nodes);
 
         var gasPrice = currentGasPriceResult.Value.PercentageIncrease(request.Network.FeePercentageIncrease);
 

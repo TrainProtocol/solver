@@ -4,13 +4,13 @@ using Nethereum.Web3;
 using System.Numerics;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Common.Extensions;
-using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
+using Train.Solver.SmartNodeInvoker;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
-public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
+public class EthereumEIP1559FeeEstimator(ISmartNodeInvoker smartNodeInvoker) : FeeEstimatorBase(smartNodeInvoker)
 {
     public virtual double MaximumBaseFeeIncreasePerBlock => 0.125;
 
@@ -33,21 +33,26 @@ public class EthereumEIP1559FeeEstimator : FeeEstimatorBase
         var currency = request.Network.Tokens.Single(x => x.Symbol == request.Asset);
 
         var gasLimit = await
-            GetGasLimitAsync(nodes,
+            GetGasLimitAsync(request.Network.Name, nodes,
                 request.FromAddress,
                 request.ToAddress,
                 currency.Contract,
                 request.Amount,
                 request.CallData);
 
-        var currentGasPriceResult = await GetGasPriceAsync(nodes);
+        var currentGasPriceResult = await GetGasPriceAsync(request.Network.Name, nodes);
 
         var gasPrice = currentGasPriceResult.Value.PercentageIncrease(request.Network.FeePercentageIncrease);
 
-        var fee = await GetDataFromNodesAsync(nodes,
+        var feeResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
            async url => await GetFeeAmountAsync(new Web3(url), request.Network.NativeToken!, request.Network.FeePercentageIncrease, gasLimit, HighPriorityBlockCount));
 
-        return fee;
+        if (!feeResult.Succeeded)
+        {
+            throw new AggregateException(feeResult.FailedNodes.Values);
+        }
+
+        return feeResult.Data;
 
         async Task<Fee> GetFeeAmountAsync(
             IWeb3 web3,
