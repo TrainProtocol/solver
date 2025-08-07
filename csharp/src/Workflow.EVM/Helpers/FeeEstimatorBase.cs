@@ -62,7 +62,11 @@ public abstract class FeeEstimatorBase(ISmartNodeInvoker smartNodeInvoker) : IFe
         var estimatedGasResult = (await smartNodeInvoker.ExecuteAsync(networkName, nodes,
             async nodeUrl => await new Web3(nodeUrl).TransactionManager.EstimateGasAsync(callInput)));
 
-        if (!estimatedGasResult.Succeeded)
+        if (estimatedGasResult.Succeeded)
+        {
+            return estimatedGasResult.Data.Value;
+        }
+        else
         {
             foreach (var innerEx in estimatedGasResult.FailedNodes.Values)
             {
