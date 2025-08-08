@@ -47,15 +47,15 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     try {
       switch (request.type) {
         case TransactionType.HTLCLock:
-          return createLockCallData(request.network, request.prepareArgs);
+          return createLockCallData(request.network, request.args);
         case TransactionType.HTLCRedeem:
-          return createRedeemCallData(request.network, request.prepareArgs);
+          return createRedeemCallData(request.network, request.args);
         case TransactionType.HTLCRefund:
-          return createRefundCallData(request.network, request.prepareArgs);
+          return createRefundCallData(request.network, request.args);
         case TransactionType.HTLCAddLockSig:
-          return createAddLockSigCallData(request.network, request.prepareArgs);
+          return createAddLockSigCallData(request.network, request.args);
         case TransactionType.HTLCCommit:
-          return createCommitCallData(request.network, request.prepareArgs);
+          return createCommitCallData(request.network, request.args);
         default:
           throw new Error(`Unknown function name ${request.type}`);
       }

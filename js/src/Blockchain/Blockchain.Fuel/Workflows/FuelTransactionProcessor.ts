@@ -53,7 +53,7 @@ export async function FuelTransactionProcessor(
         const preparedTransaction = await defaultActivities.BuildTransaction({
             fromAddress: request.fromAddress,
             network: request.network,
-            prepareArgs: request.prepareArgs,
+            args: request.prepareArgs,
             type: request.type,
         });
 
