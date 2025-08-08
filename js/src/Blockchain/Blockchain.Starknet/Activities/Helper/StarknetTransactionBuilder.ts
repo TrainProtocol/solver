@@ -245,7 +245,7 @@ export function createCommitCallData(network: DetailedNetworkDto, args: string):
         shortString.encodeShortString(commitRequest.sourceAsset),
         byteArray.byteArrayFromString(commitRequest.destinationAddress),
         shortString.encodeShortString(commitRequest.sourceAsset),
-        commitRequest.receiver,
+        commitRequest.receiever,
         cairo.uint256(commitRequest.timelock),
         token.contract
     ];
