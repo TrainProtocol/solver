@@ -7,6 +7,7 @@ using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Workflow.EVM.Workflows;
 using Train.Solver.Workflow.EVM.Activities;
 using Train.Solver.SmartNodeInvoker;
+using Train.Solver.Workflow.EVM.Helpers;
 
 namespace Train.Solver.Workflow.EVM.Extensions;
 
@@ -20,6 +21,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<EVMTransactionProcessor>()
             .AddTransientActivities<EVMBlockchainActivities>();
 
+        builder.Services.AddTransient<IFeeEstimatorFactory, FeeEstimatorFactory>();
         builder.Services.AddSmartNodeInvoker(builder.Options.RedisConnectionString, builder.Options.RedisDatabaseIndex);
         builder.Services.AddSingleton<IDistributedLockFactory>(x => RedLockFactory.Create(new List<RedLockMultiplexer>
         {

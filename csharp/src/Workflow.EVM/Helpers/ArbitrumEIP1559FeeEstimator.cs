@@ -1,11 +1,12 @@
 ﻿using Nethereum.RPC.Eth.DTOs;
 using System.Numerics;
+using Train.Solver.SmartNodeInvoker;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
-public class ArbitrumEIP1559FeeEstimator : EthereumEIP1559FeeEstimator
+public class ArbitrumEIP1559FeeEstimator(ISmartNodeInvoker smartNodeInvoker) : EthereumEIP1559FeeEstimator(smartNodeInvoker)
 {
     public override BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt)
     {

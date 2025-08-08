@@ -7,13 +7,13 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using System.Numerics;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
+using Train.Solver.SmartNodeInvoker;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.Models;
-using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
-public abstract class FeeEstimatorBase : IFeeEstimator
+public abstract class FeeEstimatorBase(ISmartNodeInvoker smartNodeInvoker) : IFeeEstimator
 {
     public abstract Task<Fee> EstimateAsync(EstimateFeeRequest request);
     public abstract void Increase(Fee fee, int percentage);
@@ -26,7 +26,8 @@ public abstract class FeeEstimatorBase : IFeeEstimator
 
     private static readonly string[] _alreadyClaimedError = ["0x646cf558",];
 
-    public static async Task<BigInteger> GetGasLimitAsync(
+    public async Task<BigInteger> GetGasLimitAsync(
+        string networkName,
         IEnumerable<string> nodes,
         string fromAddress,
         string toAddress,
@@ -58,17 +59,16 @@ public abstract class FeeEstimatorBase : IFeeEstimator
             }.GetCallData().ToHex();
         }
 
-        try
-        {
-            var estimatedGas = (await GetDataFromNodesAsync(nodes,
-                async nodeUrl => await new Web3(nodeUrl).TransactionManager.EstimateGasAsync(callInput))).Value;
+        var estimatedGasResult = (await smartNodeInvoker.ExecuteAsync(networkName, nodes,
+            async nodeUrl => await new Web3(nodeUrl).TransactionManager.EstimateGasAsync(callInput)));
 
-            return estimatedGas;
+        if (estimatedGasResult.Succeeded)
+        {
+            return estimatedGasResult.Data.Value;
         }
-
-        catch (AggregateException ae)
+        else
         {
-            foreach (var innerEx in ae.InnerExceptions)
+            foreach (var innerEx in estimatedGasResult.FailedNodes.Values)
             {
                 if (innerEx is RpcResponseException e)
                 {
@@ -104,17 +104,23 @@ public abstract class FeeEstimatorBase : IFeeEstimator
                     }
                 }
             }
-
-            throw new Exception(
-                $"Cannot get Gas Limit : {ae.Message} {string.Join('\t', ae.InnerExceptions.Select(c => c.Message))}");
         }
+
+        throw new Exception(
+            $"Cannot get Gas Limit : {string.Join('\t', estimatedGasResult.FailedNodes.Values.Select(c => c.Message))}");
     }
 
-    public async Task<HexBigInteger> GetGasPriceAsync(IEnumerable<string> nodes)
+    public async Task<HexBigInteger> GetGasPriceAsync(string networkName, IEnumerable<string> nodes)
     {
-        var gasPrice = await GetDataFromNodesAsync(nodes,
+        var gasPriceResult = await smartNodeInvoker.ExecuteAsync(networkName, nodes,
             async nodeUrl => await new Web3(nodeUrl).Eth.GasPrice.SendRequestAsync());
-        return gasPrice;
+
+        if (!gasPriceResult.Succeeded)
+        {
+            throw new AggregateException(gasPriceResult.FailedNodes.Values);
+        }
+
+        return gasPriceResult.Data;
     }
 
     public abstract BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt);

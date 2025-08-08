@@ -26,11 +26,11 @@ using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.EVM.FunctionMessages;
 using Train.Solver.Workflow.EVM.Helpers;
 using Train.Solver.Workflow.EVM.Models;
-using static Train.Solver.Common.Helpers.ResilientNodeHelper;
 
 namespace Train.Solver.Workflow.EVM.Activities;
 
 public class EVMBlockchainActivities(
+    IFeeEstimatorFactory feeEstimatorFactory,
     IDistributedLockFactory distributedLockFactory,
     ISmartNodeInvoker smartNodeInvoker,
     IDatabase cache,
@@ -59,7 +59,7 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual async Task<Fee> EstimateFeeAsync(EstimateFeeRequest request)
     {
-        var feeEstimator = FeeEstimatorFactory.Create(request.Network.FeeType);
+        var feeEstimator = feeEstimatorFactory.Create(request.Network.FeeType);
         var fee = await feeEstimator.EstimateAsync(request);
 
         var balance = await GetBalanceAsync(new BalanceRequest
@@ -82,7 +82,7 @@ public class EVMBlockchainActivities(
     [Activity]
     public Task<Fee> IncreaseFeeAsync(EVMFeeIncreaseRequest request)
     {
-        var feeEstimator = FeeEstimatorFactory.Create(request.Network.FeeType);
+        var feeEstimator = feeEstimatorFactory.Create(request.Network.FeeType);
         feeEstimator.Increase(request.Fee, request.Network.FeePercentageIncrease);
 
         return Task.FromResult(request.Fee);
@@ -143,12 +143,16 @@ public class EVMBlockchainActivities(
         }
         else
         {
-            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
+            var result = await smartNodeInvoker.ExecuteAsync(request.Network.Name, request.Network.Nodes.Select(x => x.Url),
                 async url => await new Web3(url).Eth.GetContractQueryHandler<BalanceOfFunction>()
                     .QueryAsync<BigInteger>(currency.Contract, new() { Owner = request.Address }));
 
+            if (!result.Succeeded)
+            {
+                throw new AggregateException(result.FailedNodes.Values);
+            }
 
-            balance = result;
+            balance = result.Data;
         }
 
         var balanceResponse = new BalanceResponse
@@ -190,12 +194,17 @@ public class EVMBlockchainActivities(
             Address = [.. contractAddresses],
         };
 
-        var logsResult = await GetDataFromNodesAsync(nodes,
+        var logsResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Filters.GetLogs
                     .SendRequestAsync(filterInput));
 
-        foreach (var log in logsResult)
+        if (!logsResult.Succeeded)
+        {
+            throw new AggregateException(logsResult.FailedNodes.Values);
+        }
+
+        foreach (var log in logsResult.Data)
         {
             var decodedEvent = EventDecoder.Decode(log);
 
@@ -268,15 +277,20 @@ public class EVMBlockchainActivities(
             throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
-        var blockResult = await GetDataFromNodesAsync(nodes,
+        var blockResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Blocks.GetBlockWithTransactionsHashesByNumber
                     .SendRequestAsync(BlockParameter.CreateLatest()));
 
+        if (!blockResult.Succeeded)
+        {
+            throw new AggregateException(blockResult.FailedNodes.Values);
+        }
+
         return new()
         {
-            BlockNumber = (ulong)blockResult.Number.Value,
-            BlockHash = blockResult.BlockHash,
+            BlockNumber = (ulong)blockResult.Data.Number.Value,
+            BlockHash = blockResult.Data.BlockHash,
         };
     }
 
@@ -306,13 +320,16 @@ public class EVMBlockchainActivities(
                 Spender = htlcContractAddress,
             };
 
-            var allowanceHandler = await GetDataFromNodesAsync(nodes,
+            var allowanceResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
                 async url =>
-                    await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<AllowanceFunction>()));
+                    await new Web3(url).Eth.GetContractQueryHandler<AllowanceFunction>().QueryAsync<BigInteger>(currency.Contract, allowanceFunctionMessage));
 
-            var allowance =
-                await allowanceHandler.QueryAsync<BigInteger>(currency.Contract, allowanceFunctionMessage);
-            return allowance.ToString();
+            if (!allowanceResult.Succeeded)
+            {
+                throw new AggregateException(allowanceResult.FailedNodes.Values);
+            }
+
+            return allowanceResult.Data.ToString();
         }
 
         return (BigInteger.Pow(2, 256) - 1).ToString();
@@ -341,14 +358,19 @@ public class EVMBlockchainActivities(
             Timelock = (ulong)request.Timelock
         };
 
-        var code = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
+        var codeResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, request.Network.Nodes.Select(x => x.Url),
             async url => await new Web3(url).Eth.GetCode.SendRequestAsync(request.SignerAddress));
+
+        if (!codeResult.Succeeded)
+        {
+            throw new AggregateException(codeResult.FailedNodes.Values);
+        }
 
         // TODO, make sure this is compatibly with Pectra update
         // https://ithaca.xyz/updates/exp-0001
 
         // EOA
-        if (string.IsNullOrEmpty(code) || code == "0x")
+        if (string.IsNullOrEmpty(codeResult.Data) || codeResult.Data == "0x")
         {
             var signature = EthECDSASignatureFactory.FromComponents(
                 request.R.HexToByteArray(),
@@ -371,15 +393,21 @@ public class EVMBlockchainActivities(
                 Signature = request.Signature.HexToByteArray()
             };
 
-            var isValidSignatureHandler = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
-                async url => await Task.FromResult(new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()));
+            var isValidSignatureHResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, request.Network.Nodes.Select(x => x.Url),
+                async url => await new Web3(url).Eth.GetContractQueryHandler<IsValidSignatureFunction>()
+                .QueryAsync<byte[]>(request.SignerAddress, isValidSignatureFunction));
 
-            if (isValidSignatureHandler == null)
+            if (!isValidSignatureHResult.Succeeded)
+            {
+                throw new AggregateException(isValidSignatureHResult.FailedNodes.Values);
+            }
+
+            if (isValidSignatureHResult.Data == null)
             {
                 throw new Exception($"Failed to get {request.SignerAddress} IsValidSignatureFunction query handler in {request.Network.Name}");
             }
 
-            var isValidSignatureMagicValue = (await isValidSignatureHandler.QueryAsync<byte[]>(request.SignerAddress, isValidSignatureFunction)).ToHex();
+            var isValidSignatureMagicValue = isValidSignatureHResult.Data.ToHex();
 
             // magic value: https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/external/IERC1271
             return string.Equals(isValidSignatureMagicValue, "1626ba7e", StringComparison.OrdinalIgnoreCase);
@@ -413,41 +441,42 @@ public class EVMBlockchainActivities(
             curentNonce = BigInteger.Parse(currentNonceRedis!);
         }
 
-        var nonce = await GetDataFromNodesAsync(nodes,
+        var nonceResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Transactions.GetTransactionCount
                     .SendRequestAsync(request.Address, BlockParameter.CreatePending()));
 
-        if (nonce <= curentNonce)
+        if (!nonceResult.Succeeded)
+        {
+            throw new AggregateException(nonceResult.FailedNodes.Values);
+        }
+
+        if (nonceResult.Data <= curentNonce)
         {
             curentNonce++;
-            nonce = new HexBigInteger(curentNonce);
+            nonceResult.Data = new HexBigInteger(curentNonce);
         }
         else
         {
-            curentNonce = nonce;
+            curentNonce = nonceResult.Data;
         }
 
         await cache.StringSetAsync(RedisHelper.BuildNonceKey(request.Network.Name, request.Address),
             curentNonce.ToString(),
             expiry: TimeSpan.FromDays(7));
 
-        return nonce.ToString();
+        return nonceResult.Data.ToString();
     }
 
     [Activity]
     public virtual async Task<string> PublishRawTransactionAsync(EVMPublishTransactionRequest request)
     {
-        try
-        {
-            var result = await GetDataFromNodesAsync(request.Network.Nodes.Select(x => x.Url),
-                async url => await new
-                        EthSendRawTransaction(new Web3(url).Client)
-                    .SendRequestAsync(request.SignedTransaction.RawTxn));
+        var result = await smartNodeInvoker.ExecuteAsync(request.Network.Name, request.Network.Nodes.Select(x => x.Url),
+            async url => await new
+                    EthSendRawTransaction(new Web3(url).Client)
+                .SendRequestAsync(request.SignedTransaction.RawTxn));
 
-            return result;
-        }
-        catch (AggregateException e)
+        if (!result.Succeeded)
         {
             TransactionResponse? transactionResponse = null;
 
@@ -465,7 +494,7 @@ public class EVMBlockchainActivities(
                 return request.SignedTransaction.Hash;
             }
 
-            foreach (var innerEx in e.InnerExceptions)
+            foreach (var innerEx in result.FailedNodes.Values)
             {
                 if (innerEx is RpcResponseException exNonceTooLow
                     && _nonRetriableErrors.Any(x =>
@@ -493,10 +522,12 @@ public class EVMBlockchainActivities(
                 if (innerEx is Exception exGeneral)
                 {
                     throw new Exception(
-                        $"Send raw transaction failed due to error(s): {e.Message} {string.Join('\t', e.InnerExceptions.Select(c => c.Message))}",
+                        $"Send raw transaction failed due to error(s): {string.Join('\t', result.FailedNodes.Values.Select(c => c.Message))}",
                         innerEx);
                 }
             }
+
+            return result.Data;
         }
 
         return request.SignedTransaction.Hash.EnsureHexPrefix();
@@ -533,7 +564,7 @@ public class EVMBlockchainActivities(
 
         var chainId = transactionInput.ChainId;
 
-      
+
         var gasLimit = transactionInput.Gas;
         var value = transactionInput.Value ?? new HexBigInteger(0);
 
@@ -620,7 +651,7 @@ public class EVMBlockchainActivities(
         };
     }
 
-    private static async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
+    private async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
     {
         var nodes = network.Nodes.Select(x => x.Url);
 
@@ -632,77 +663,81 @@ public class EVMBlockchainActivities(
         var nativeCurrency = network.Tokens
             .Single(x => x.Contract is null);
 
-        var transaction = await GetDataFromNodesAsync(nodes,
+        var transactionResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
                 async url =>
                     await new Web3(url).Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionId));
 
-        if (transaction is null)
+        if (!transactionResult.Succeeded)
         {
-            return null;
+            throw new AggregateException(transactionResult.FailedNodes.Values);
         }
 
-        if (transaction.BlockNumber is null)
+        if (transactionResult.Data.BlockNumber is null)
         {
             throw new TransactionNotComfirmedException($"Transaction not confirmed yet on {network.Name}");
         }
 
-        if (string.IsNullOrEmpty(transaction.To))
+        if (string.IsNullOrEmpty(transactionResult.Data.To))
         {
-            throw new Exception($"Transaction recipient is missing block number: {transaction.BlockNumber}");
+            throw new Exception($"Transaction recipient is missing block number: {transactionResult.Data.BlockNumber}");
         }
 
-        var currentBlockNumber = await GetDataFromNodesAsync(nodes,
+        var currentBlockNumberResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Blocks.GetBlockNumber.SendRequestAsync());
 
-        var transactionBlock = await GetDataFromNodesAsync(nodes,
-            async url =>
-                await new Web3(url).Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(transaction
-                    .BlockNumber));
-
-        if (transactionBlock == null || currentBlockNumber == null)
+        if (!currentBlockNumberResult.Succeeded)
         {
-            throw new Exception($"Failed to retrieve block");
+            throw new AggregateException(currentBlockNumberResult.FailedNodes.Values);
         }
 
-        var transactionReceipt = await GetDataFromNodesAsync(nodes,
+        var transactionBlockResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
+            async url =>
+                await new Web3(url).Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(transactionResult.Data.BlockNumber));
+
+        if (!transactionBlockResult.Succeeded)
+        {
+            throw new AggregateException(transactionBlockResult.FailedNodes.Values);
+        }
+
+        var transactionReceiptResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
             async nodeUrl => await new Web3(nodeUrl).Client
                 .SendRequestAsync<EVMTransactionReceipt>(
                     new RpcRequest(
                         DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         "eth_getTransactionReceipt",
-                        transaction.TransactionHash)));
+                        transactionResult.Data.TransactionHash)));
 
-        if (transactionReceipt is null)
+        if (transactionReceiptResult is null)
         {
             throw new Exception("Failed to get receipt. Receipt was null");
         }
 
-        if (!transactionReceipt.Succeeded())
+        if (!transactionReceiptResult.Data.Succeeded())
         {
             throw new TransactionFailedException("Transaction failed");
         }
 
-        var feeEstimator = FeeEstimatorFactory.Create(network.FeeType);
+        var feeEstimator = feeEstimatorFactory.Create(network.FeeType);
         var transactionFee = feeEstimator.CalculateFee(
-            transactionBlock,
-            transaction,
-            transactionReceipt);
+            transactionBlockResult.Data,
+            transactionResult.Data,
+            transactionReceiptResult.Data);
 
-        var from = FormatAddress(transaction.From);
-        var to = FormatAddress(transaction.To);
+        var from = FormatAddress(transactionResult.Data.From);
+        var to = FormatAddress(transactionResult.Data.To);
 
         var transactionModel = new TransactionResponse
         {
             Decimals = nativeCurrency.Decimals,
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
-            TransactionHash = transaction.TransactionHash,
+            TransactionHash = transactionResult.Data.TransactionHash,
             FeeAmount = transactionFee,
             FeeDecimals = nativeCurrency.Decimals,
             FeeAsset = nativeCurrency!.Symbol,
-            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlock.Timestamp.Value * 1000),
-            Confirmations = (int)(currentBlockNumber.Value - transaction.BlockNumber.Value) + 1
+            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlockResult.Data.Timestamp.Value * 1000),
+            Confirmations = (int)(currentBlockNumberResult.Data.Value - transactionResult.Data.BlockNumber.Value) + 1
         };
 
         return transactionModel;
