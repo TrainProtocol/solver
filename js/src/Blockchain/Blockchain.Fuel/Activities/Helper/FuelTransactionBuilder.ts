@@ -71,12 +71,12 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             PadStringsTo64(commitRequest.hopAssets),
             PadStringsTo64(commitRequest.hopAddresses),
             commitRequest.destinationChain.padEnd(64, ' '),
+            commitRequest.destinationAsset.padEnd(64, ' '),
             commitRequest.destinationAddress.padEnd(64, ' '),
             commitRequest.sourceAsset.padEnd(64, ' '),
             commitRequest.commitId,
             receiverAddress,
-            DateTime.fromUnixSeconds(commitRequest.timelock).toTai64(),
-            assetId)
+            DateTime.fromUnixSeconds(commitRequest.timelock).toTai64())
         .callParams({
             forward: [Number(commitRequest.amount), await provider.getBaseAssetId()]
         })
