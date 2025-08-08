@@ -74,7 +74,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             commitRequest.destinationAsset.padEnd(64, ' '),
             commitRequest.destinationAddress.padEnd(64, ' '),
             commitRequest.sourceAsset.padEnd(64, ' '),
-            commitRequest.commitId,
+            commitRequest.id,
             receiverAddress,
             DateTime.fromUnixSeconds(commitRequest.timelock).toTai64())
         .callParams({
