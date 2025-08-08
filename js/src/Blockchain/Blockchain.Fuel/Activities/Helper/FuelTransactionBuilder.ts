@@ -53,6 +53,10 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
         throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.sourceAsset}`)
     };
 
+    if(token.symbol !== network.nativeToken.symbol ) {
+        throw new Error(`Token ${token.symbol} is not the native token for network ${network.name}. Please use the native token for HTLC transactions.`);
+    }
+
     const htlcContractAddress = token.contract
         ? network.htlcNativeContractAddress
         : network.htlcTokenContractAddress
@@ -60,7 +64,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
     const provider = new Provider(network.nodes[0].url);
     const contractInstance = new Contract(htlcContractAddress, abi, provider);
     const receiverAddress = { bits: commitRequest.receiver };
-
+    var assetId = await provider.getBaseAssetId();
     const callConfig = contractInstance.functions
         .commit(
             PadStringsTo64(commitRequest.hopChains),
@@ -71,7 +75,8 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             commitRequest.sourceAsset.padEnd(64, ' '),
             commitRequest.commitId,
             receiverAddress,
-            DateTime.fromUnixSeconds(commitRequest.timelock).toTai64())
+            DateTime.fromUnixSeconds(commitRequest.timelock).toTai64(),
+            assetId)
         .callParams({
             forward: [Number(commitRequest.amount), await provider.getBaseAssetId()]
         })
