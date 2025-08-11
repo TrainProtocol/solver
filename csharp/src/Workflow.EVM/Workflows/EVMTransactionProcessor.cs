@@ -36,7 +36,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 new TransactionBuilderRequest()
                 {
                     Network = request.Network,
-                    Args = request.PrepareArgs,
+                    PrepareArgs = request.PrepareArgs,
                     Type = request.Type
                 }),
             TemporalHelper.DefaultActivityOptions(request.Network.Type));

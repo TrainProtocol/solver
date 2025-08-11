@@ -9,5 +9,5 @@ export interface HTLCCommitTransactionPrepareRequest {
   sourceAsset: string;
   timelock: number;
   amount: number;
-  commitId: string;
+  id: string;
 }
