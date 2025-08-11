@@ -104,20 +104,20 @@ public class EVMBlockchainActivities(
         }
 
         return transaction;
-    }
+    } 
 
     [Activity]
     public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
     {
         PrepareTransactionDto result = request.Type switch
         {
-            TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.Args),
-            TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.Args),
-            TransactionType.HTLCCommit => EVMTransactionBuilder.BuildHTLCCommitTransaction(request.Network, request.Args),
-            TransactionType.HTLCLock => EVMTransactionBuilder.BuildHTLCLockTransaction(request.Network, request.Args),
-            TransactionType.HTLCRedeem => EVMTransactionBuilder.BuildHTLCRedeemTranaction(request.Network, request.Args),
-            TransactionType.HTLCRefund => EVMTransactionBuilder.BuildHTLCRefundTransaction(request.Network, request.Args),
-            TransactionType.HTLCAddLockSig => EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(request.Network, request.Args),
+            TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.PrepareArgs),
+            TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.PrepareArgs),
+            TransactionType.HTLCCommit => EVMTransactionBuilder.BuildHTLCCommitTransaction(request.Network, request.PrepareArgs),
+            TransactionType.HTLCLock => EVMTransactionBuilder.BuildHTLCLockTransaction(request.Network, request.PrepareArgs),
+            TransactionType.HTLCRedeem => EVMTransactionBuilder.BuildHTLCRedeemTranaction(request.Network, request.PrepareArgs),
+            TransactionType.HTLCRefund => EVMTransactionBuilder.BuildHTLCRefundTransaction(request.Network, request.PrepareArgs),
+            TransactionType.HTLCAddLockSig => EVMTransactionBuilder.BuildHTLCAddLockSigTransaction(request.Network, request.PrepareArgs),
             _ => throw new ArgumentOutOfRangeException(nameof(request.Type),
                                 $"Transaction type {request.Type} is not supported for network {request.Network.Name}"),
         };

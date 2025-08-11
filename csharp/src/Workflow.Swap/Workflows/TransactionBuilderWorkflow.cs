@@ -22,7 +22,7 @@ public class TransactionBuilderWorkflow : ITransactionBuilderWorkflow
                (IBlockchainActivities x) => x.BuildTransactionAsync(new()
                {
                      Type = request.Type,
-                     Args = request.Args,
+                     PrepareArgs = request.PrepareArgs,
                      Network = network
                }),
                TemporalHelper.DefaultActivityOptions(network.Type));

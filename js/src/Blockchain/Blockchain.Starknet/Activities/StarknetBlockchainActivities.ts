@@ -257,19 +257,19 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         try {
             switch (request.type) {
                 case TransactionType.HTLCLock:
-                    return createLockCallData(request.network, request.args);
+                    return createLockCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRedeem:
-                    return createRedeemCallData(request.network, request.args);
+                    return createRedeemCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCRefund:
-                    return createRefundCallData(request.network, request.args);
+                    return createRefundCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCAddLockSig:
-                    return createAddLockSigCallData(request.network, request.args);
+                    return createAddLockSigCallData(request.network, request.prepareArgs);
                 case TransactionType.Approve:
-                    return createApproveCallData(request.network, request.args);
+                    return createApproveCallData(request.network, request.prepareArgs);
                 case TransactionType.Transfer:
-                    return createTransferCallData(request.network, request.args);
+                    return createTransferCallData(request.network, request.prepareArgs);
                 case TransactionType.HTLCCommit:
-                    return createCommitCallData(request.network, request.args);
+                    return createCommitCallData(request.network, request.prepareArgs);
                 default:
                     throw new Error(`Unknown function name ${request.type}`);
             }

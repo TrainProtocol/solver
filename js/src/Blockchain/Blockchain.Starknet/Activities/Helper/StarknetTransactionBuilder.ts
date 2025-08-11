@@ -239,7 +239,7 @@ export function createCommitCallData(network: DetailedNetworkDto, args: string):
         : network.htlcTokenContractAddress
 
     const callData = [
-        cairo.uint256(commitRequest.commitId),
+        cairo.uint256(commitRequest.id),
         cairo.uint256(Number(utils.parseUnits(commitRequest.amount.toString(), token.decimals))),
         shortString.encodeShortString(commitRequest.destinationChain),
         shortString.encodeShortString(commitRequest.sourceAsset),

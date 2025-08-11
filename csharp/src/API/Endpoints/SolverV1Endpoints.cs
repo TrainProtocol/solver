@@ -158,7 +158,7 @@ public static class SolverV1Endpoints
     {
         var prepareTransactionResponse = await temporalClient
             .ExecuteWorkflowAsync<PrepareTransactionDto>(
-                "TransactionBuilderWorkflow", 
+                "TransactionBuilderWorkflow",
                 args: [request],
                 new(id: Guid.CreateVersion7().ToString(), taskQueue: "Core"));
 
