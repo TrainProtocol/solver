@@ -36,10 +36,10 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
 
     return {
         data: JSON.stringify(txRequest),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }
@@ -53,6 +53,13 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
         throw new Error(`Token not found for network ${network.name} and asset ${commitRequest.sourceAsset}`)
     };
 
+    const createEmptyArray = (length: number, char: string) =>
+        Array.from({ length }, () => ''.padEnd(64, char));
+
+    const hopChains = createEmptyArray(5, ' ');
+    const hopAssets = createEmptyArray(5, ' ');
+    const hopAddresses = createEmptyArray(5, ' ');
+
     const htlcContractAddress = token.contract
         ? network.htlcNativeContractAddress
         : network.htlcTokenContractAddress
@@ -63,10 +70,11 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
 
     const callConfig = contractInstance.functions
         .commit(
-            PadStringsTo64(commitRequest.hopChains),
-            PadStringsTo64(commitRequest.hopAssets),
-            PadStringsTo64(commitRequest.hopAddresses),
+            hopChains,
+            hopAssets,
+            hopAddresses,
             commitRequest.destinationChain.padEnd(64, ' '),
+            commitRequest.destinationAsset.padEnd(64, ' '),
             commitRequest.destinationAddress.padEnd(64, ' '),
             commitRequest.sourceAsset.padEnd(64, ' '),
             commitRequest.id,
@@ -83,10 +91,10 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
 
     return {
         data: JSON.stringify(txRequest),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }
@@ -118,10 +126,10 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
 
     return {
         data: JSON.stringify(txRequest),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }
@@ -173,10 +181,10 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
 
     return {
         data: JSON.stringify(txRequest),
-        amount: lockRequest.amount + lockRequest.reward,
+        amount: sendAmount.toString(),
         asset: lockRequest.sourceAsset,
         callDataAsset: lockRequest.sourceAsset,
-        callDataAmount: lockRequest.amount + lockRequest.reward,
+        callDataAmount: sendAmount.toString(),
         toAddress: htlcContractAddress,
     };
 }
@@ -209,15 +217,15 @@ export async function createAddLockSigCallData(network: DetailedNetworkDto, args
         .txParams({
             maxFee: bn(1000000),
         });
-        
+
     const txRequest = await callConfig.getTransactionRequest();
 
     return {
         data: JSON.stringify(txRequest),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }

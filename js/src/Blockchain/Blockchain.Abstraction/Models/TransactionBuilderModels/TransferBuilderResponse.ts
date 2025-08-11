@@ -1,8 +1,8 @@
 export interface PrepareTransactionResponse {
     toAddress: string;
     data?: string;
-    amount: number;
+    amount: string;
     asset?: string;
     callDataAsset: string;
-    callDataAmount: number;
+    callDataAmount: string;
 }
