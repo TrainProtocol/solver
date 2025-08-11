@@ -87,7 +87,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             maxFee: bn(1000000),
         });
 
-    const txRequest = await callConfig.getTransactionRequest();
+        const txRequest = await callConfig.getTransactionRequest();
 
     return {
         data: JSON.stringify(txRequest),
