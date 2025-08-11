@@ -62,7 +62,7 @@ export async function FuelTransactionProcessor(
             fromAddress: request.fromAddress,
             callData: preparedTransaction.data,
             callDataAsset: preparedTransaction.callDataAsset,
-            callDataAmount: preparedTransaction.callDataAmount,
+            callDataAmount: Number(preparedTransaction.callDataAmount),
         });
 
         const signedRawData = await defaultActivities.signTransaction(

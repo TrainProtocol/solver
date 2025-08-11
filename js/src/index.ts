@@ -1,6 +1,8 @@
 import starknetWorker from './Blockchain/Blockchain.Starknet/Worker/StarknetWorker';
 import fuelWorker from './Blockchain/Blockchain.Fuel/Worker/FuelWorker';
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 const network = process.env.TrainSolver__NetworkType;
 
 // Run the corresponding worker based on the network name
