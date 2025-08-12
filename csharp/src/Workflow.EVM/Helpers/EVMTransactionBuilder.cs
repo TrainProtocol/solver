@@ -168,7 +168,7 @@ public static class EVMTransactionBuilder
                 DestinationAsset = request.DestinationAsset,
                 DestinationAddress = request.DestinationAddress,
                 SourceAsset = request.SourceAsset,
-                Receiver = request.Receiever,
+                Receiver = request.Receiver,
                 Timelock = request.Timelock,
                 Amount = request.Amount,
                 TokenContract = currency.Contract!
@@ -193,7 +193,7 @@ public static class EVMTransactionBuilder
                 DestinationAsset = request.DestinationAsset,
                 DestinationAddress = request.DestinationAddress,
                 SourceAsset = request.SourceAsset,
-                Receiver = request.Receiever,
+                Receiver = request.Receiver,
                 Timelock = request.Timelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
