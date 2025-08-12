@@ -5,6 +5,7 @@ using Temporalio.Converters;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
+using Train.Solver.Common.Helpers;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -29,16 +30,18 @@ public static class RebalanceEndpoints
     private static async Task<IResult> GetAllAsync(
         ITemporalClient temporalClient)
     {
-        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\"";
-        var results = new List<object>();
+        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\" AND `ExecutionStatus`=\"Running\"";
+        var results = new List<string>();
 
         await foreach (var wf in temporalClient.ListWorkflowsAsync(query))
         {
-            results.Add(new
+            var whHandle = temporalClient.GetWorkflowHandle(wf.Id);
+            var describedWorkflow = await whHandle.DescribeAsync();
+
+            if (describedWorkflow.Memo.TryGetValue("Summary", out var summary) && summary != null)
             {
-                WorkflowId = wf.Id,
-                Status = wf.Status.ToString()
-            });
+                results.Add(summary.ToString()!);
+            }
         }
 
         return Results.Ok(results);
@@ -100,6 +103,10 @@ public static class RebalanceEndpoints
                     taskQueue: network.Type.ToString())
                     {
                         IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
+                        Memo = new Dictionary<string, object>
+                        {
+                            { "Summary", $"Rebalancing { TokenUnitHelper.FromBaseUnits(request.Amount, token.Decimals) } {token.Asset} in {network.DisplayName} from {wallet.Address} to {trustedWallet.Address}" },
+                        }
                     });
 
         return Results.Ok(workflowId);
