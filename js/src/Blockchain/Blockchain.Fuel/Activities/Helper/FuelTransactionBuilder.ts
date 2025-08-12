@@ -5,9 +5,10 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider } from "fuels";
+import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, ScriptTransactionRequest, Wallet } from "fuels";
 import abi from '../ABIs/train.json';
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 
 export async function createRefundCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
@@ -87,7 +88,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             maxFee: bn(1000000),
         });
 
-        const txRequest = await callConfig.getTransactionRequest();
+    const txRequest = await callConfig.getTransactionRequest();
 
     return {
         data: JSON.stringify(txRequest),
@@ -228,6 +229,35 @@ export async function createAddLockSigCallData(network: DetailedNetworkDto, args
         callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
+}
+
+export async function createTransferCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
+
+    const transferRequest = decodeJson<TransferPrepareRequest>(args);
+    const token = network.tokens.find(t => t.symbol === transferRequest.asset);
+
+    if (!token) {
+        throw new Error(`Token not found for network ${network.name} and asset ${transferRequest.asset}`)
+    };
+
+    const provider = new Provider(network.nodes[0].url);
+    const wallet = Wallet.fromAddress(transferRequest.fromAddress, provider);
+
+    const transactionRequest: ScriptTransactionRequest = await wallet.createTransfer(
+        transferRequest.toAddress,
+        transferRequest.amount,
+        token.contract,
+    );
+
+    return {
+        data: JSON.stringify(transactionRequest),
+        amount: transferRequest.amount.toString(),
+        asset: token.symbol,
+        callDataAsset: token.symbol,
+        callDataAmount: transferRequest.amount.toString(),
+        toAddress: transferRequest.toAddress,
+    };
+
 }
 
 function PadStringsTo64(input: string[]): string[] {
