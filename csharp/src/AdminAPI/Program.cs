@@ -126,6 +126,11 @@ app.MapGroup("/api")
    .WithTags("Rate Provider");
 
 app.MapGroup("/api")
+   .MapNetworkTypeEndpoints()
+   .RequireRateLimiting("Fixed")
+   .WithTags("Network Type");
+
+app.MapGroup("/api")
    .MapTokenPriceEndpoints()
    .RequireRateLimiting("Fixed")
    .WithTags("Token Price");
