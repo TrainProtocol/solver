@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Train.Solver.Data.Npgsql;
@@ -11,9 +12,11 @@ using Train.Solver.Data.Npgsql;
 namespace Train.Solver.Data.Npgsql.Migrations
 {
     [DbContext(typeof(SolverDbContext))]
-    partial class SolverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812103659_AddSeedData")]
+    partial class AddSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -250,7 +253,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
                     b.Property<int>("RateProviderId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ServiceFeeId")
+                    b.Property<int?>("ServiceFeeId")
                         .HasColumnType("integer");
 
                     b.Property<int>("SourceTokenId")
@@ -948,9 +951,7 @@ namespace Train.Solver.Data.Npgsql.Migrations
 
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.ServiceFee", "ServiceFee")
                         .WithMany()
-                        .HasForeignKey("ServiceFeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ServiceFeeId");
 
                     b.HasOne("Train.Solver.Data.Abstractions.Entities.Token", "SourceToken")
                         .WithMany()

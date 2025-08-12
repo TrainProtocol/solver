@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class RouteDetailedDto : RouteDto
+public class RouteDetailedDto : ExtendedRouteDto
 {
     public required int Id { get; set; }
 
@@ -16,5 +16,9 @@ public class RouteDetailedDto : RouteDto
 
     public required string SourceWallet { get; set; } 
 
-    public required string DestinationWallet { get; set; } 
+    public required string DestinationWallet { get; set; }
+
+    public required bool IgnoreExpenseFee { get; set; }
+
+    public required ServiceFeeDto ServiceFee { get; set; }
 }

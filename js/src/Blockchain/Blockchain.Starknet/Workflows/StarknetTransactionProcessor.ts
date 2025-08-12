@@ -44,7 +44,7 @@ export async function StarknetTransactionProcessor(
 
     const preparedTransaction = await defaultActivities.BuildTransaction({
         network: request.network,
-        args: request.prepareArgs,
+        prepareArgs: request.prepareArgs,
         type: request.type,
         fromAddress: request.fromAddress,
         swapId: request.swapId,
@@ -55,7 +55,7 @@ export async function StarknetTransactionProcessor(
             context.fee = await nonRetryableActivities.EstimateFee({
                 network: request.network,
                 toAddress: preparedTransaction.toAddress,
-                amount: preparedTransaction.amount,
+                amount: Number(preparedTransaction.amount),
                 fromAddress: request.fromAddress,
                 asset: preparedTransaction.asset!,
                 callData: preparedTransaction.data,

@@ -1,9 +1,7 @@
 import { TransactionType } from "../Models/TransacitonModels/TransactionType";
 
 export function decodeJson<T>(json: string): T {
-    const parsed = JSON.parse(json);
-    const lowerCamelCaseObj = convertKeysToCamelCase(parsed);
-    return lowerCamelCaseObj as T;
+  return JSON.parse(json) as T;
 }
 
 export function removeHexPrefix(hex: string): string {
@@ -39,18 +37,4 @@ export function ToHex(value: bigint): string {
 
 export function buildProcessorId(guid: string, networkName: string, type: TransactionType): string {
   return `${networkName}-${TransactionType[type]}-${guid}`;
-}
-
-function toLowerCamelCase(str) {
-    return str.charAt(0).toLowerCase() + str.slice(1);
-}
-
-function convertKeysToCamelCase(obj) {
-    const result = {};
-    for (const key in obj) {
-        if (Object.hasOwnProperty.call(obj, key)) {
-            result[toLowerCamelCase(key)] = obj[key];
-        }
-    }
-    return result;
 }

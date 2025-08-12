@@ -35,9 +35,9 @@ export function createRefundCallData(network: DetailedNetworkDto, args: string):
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         callDataAsset: token.symbol,
         toAddress: htlcContractAddress,
     };
@@ -70,10 +70,10 @@ export function createRedeemCallData(network: DetailedNetworkDto, args: string):
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }
@@ -113,12 +113,14 @@ export function createLockCallData(network: DetailedNetworkDto, args: string): P
         calldata: callData
     };
 
+    const callDataAmount = lockRequest.amount + lockRequest.reward
+
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: lockRequest.sourceAsset,
         callDataAsset: lockRequest.sourceAsset,
-        callDataAmount: lockRequest.amount + lockRequest.reward,
+        callDataAmount: callDataAmount.toString(),
         toAddress: htlcContractAddress,
     };
 }
@@ -151,10 +153,10 @@ export function createAddLockSigCallData(network: DetailedNetworkDto, args: stri
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: network.nativeToken.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
 }
@@ -186,10 +188,10 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: token.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: 0,
+        callDataAmount: "0",
         toAddress: token.contract,
     };
 }
@@ -216,10 +218,10 @@ export function createTransferCallData(network: DetailedNetworkDto, args: string
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: token.symbol,
         callDataAsset: token.symbol,
-        callDataAmount: transferRequest.amount,
+        callDataAmount: transferRequest.amount.toString(),
         toAddress: token.contract,
     };
 }
@@ -245,7 +247,7 @@ export function createCommitCallData(network: DetailedNetworkDto, args: string):
         shortString.encodeShortString(commitRequest.sourceAsset),
         byteArray.byteArrayFromString(commitRequest.destinationAddress),
         shortString.encodeShortString(commitRequest.sourceAsset),
-        commitRequest.receiever,
+        commitRequest.receiver,
         cairo.uint256(commitRequest.timelock),
         token.contract
     ];
@@ -258,10 +260,10 @@ export function createCommitCallData(network: DetailedNetworkDto, args: string):
 
     return {
         data: JSON.stringify(methodCall),
-        amount: 0,
+        amount: "0",
         asset: commitRequest.sourceAsset,
         callDataAsset: commitRequest.sourceAsset,
-        callDataAmount: commitRequest.amount,
+        callDataAmount: commitRequest.amount.toString(),
         toAddress: htlcContractAddress,
     };
 }

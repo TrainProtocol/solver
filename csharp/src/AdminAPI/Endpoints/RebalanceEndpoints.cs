@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
+using Temporalio.Converters;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
+using Train.Solver.Common.Helpers;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -16,10 +18,33 @@ public static class RebalanceEndpoints
 {
     public static RouteGroupBuilder MapRebalanceEndpoints(this RouteGroupBuilder group)
     {
+        group.MapGet("/rebalance", GetAllAsync)
+          .Produces(StatusCodes.Status200OK);
+
         group.MapPost("/rebalance", RebalanceAsync)
             .Produces(StatusCodes.Status200OK);
 
         return group;
+    }
+
+    private static async Task<IResult> GetAllAsync(
+        ITemporalClient temporalClient)
+    {
+        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\" AND `ExecutionStatus`=\"Running\"";
+        var results = new List<string>();
+
+        await foreach (var wf in temporalClient.ListWorkflowsAsync(query))
+        {
+            var whHandle = temporalClient.GetWorkflowHandle(wf.Id);
+            var describedWorkflow = await whHandle.DescribeAsync();
+
+            if (describedWorkflow.Memo.TryGetValue("Summary", out var summary) && summary != null)
+            {
+                results.Add(summary.ToString()!);
+            }
+        }
+
+        return Results.Ok(results);
     }
 
     private static async Task<IResult> RebalanceAsync(
@@ -74,12 +99,16 @@ public static class RebalanceEndpoints
                             SignerAgentUrl = wallet.SignerAgent.Url,
                     },
                     new TransactionExecutionContext()],
-                    new(id: TemporalHelper.BuildProcessorId(network.Name, TransactionType.Transfer, Guid.NewGuid()),
+                    new(id: TemporalHelper.BuildRebalanceProcessorId(network.Name, Guid.NewGuid()),
                     taskQueue: network.Type.ToString())
                     {
                         IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
+                        Memo = new Dictionary<string, object>
+                        {
+                            { "Summary", $"Rebalancing { TokenUnitHelper.FromBaseUnits(request.Amount, token.Decimals) } {token.Asset} in {network.DisplayName} from {wallet.Address} to {trustedWallet.Address}" },
+                        }
                     });
 
-        return Results.Ok();
+        return Results.Ok(workflowId);
     }
 }

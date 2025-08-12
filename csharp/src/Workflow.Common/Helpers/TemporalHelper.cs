@@ -46,4 +46,7 @@ public static class TemporalHelper
         => $"EventListenerWorkflow-{networkName.ToUpper()}";
 
     public static string BuildProcessorId(string networkName, TransactionType type, Guid uniqueId) => $"{networkName}-{type}-{uniqueId}";
+
+    public static string BuildRebalanceProcessorId(string networkName, Guid uniqueId) 
+        => $"Rebalance-{networkName}-{uniqueId}";
 }

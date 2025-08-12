@@ -21,5 +21,5 @@ public class CreateRouteRequest
 
     public bool IgnoreExpenseFee { get; set; }
 
-    public string? ServiceFee { get; set; }
+    public string ServiceFee { get; set; } = default!;
 }

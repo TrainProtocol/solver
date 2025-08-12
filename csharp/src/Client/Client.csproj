@@ -15,7 +15,11 @@
 	</ItemGroup>
 
 	<Target Name="NSwagGenerate" BeforeTargets="BeforeBuild" Condition="'$(TrainUrl)' != ''">
-		<Exec Command="$(NSwagExe_Net80) run $(ProjectDir)client.nswag /variables:TrainUrl=$(TrainUrl)" />
+		<Delete Files="$(ProjectDir)TrainSolverApiClient.cs" ContinueOnError="true" />
+
+		<Exec Command='$(NSwagExe_Net80) run "$(ProjectDir)client.nswag" /variables:TrainUrl=$(TrainUrl)' />
 	</Target>
+
+
 
 </Project>

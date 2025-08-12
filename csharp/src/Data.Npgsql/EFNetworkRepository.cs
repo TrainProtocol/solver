@@ -193,6 +193,7 @@ public class EFNetworkRepository(
             NetworkId = network.Id,
         };
 
+        dbContext.Tokens.Add(token);
         await dbContext.SaveChangesAsync();
 
         return token;

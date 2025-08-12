@@ -6,5 +6,5 @@ public class TransactionBuilderRequest : BaseRequest
 {
     public TransactionType Type { get; set; }
 
-    public string Args { get; set; } = null!;
+    public string PrepareArgs { get; set; } = null!;
 }

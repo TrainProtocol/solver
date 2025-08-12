@@ -1,5 +1,5 @@
 export interface HTLCCommitTransactionPrepareRequest {
-  receiever: string;
+  receiver: string;
   hopChains: string[];
   hopAssets: string[];
   hopAddresses: string[];
