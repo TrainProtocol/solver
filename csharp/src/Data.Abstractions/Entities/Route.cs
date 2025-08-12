@@ -19,7 +19,7 @@ public class Route : EntityBase
 
     public int RateProviderId { get; set; }
 
-    public int? ServiceFeeId { get; set; }
+    public int ServiceFeeId { get; set; }
 
     public RouteStatus Status { get; set; }
 
@@ -35,5 +35,5 @@ public class Route : EntityBase
 
     public Wallet DestinationWallet { get; set; } = null!;
 
-    public ServiceFee? ServiceFee { get; set; }
+    public ServiceFee ServiceFee { get; set; } = null!;
 }

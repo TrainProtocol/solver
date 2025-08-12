@@ -26,7 +26,7 @@ public class EFRouteRepository(
         BigInteger minAmount,
         BigInteger maxAmount,
         bool ignoreExpenseFee,
-        string? serviceFeeName)
+        string serviceFeeName)
     {
         var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceTokenSymbol);
 
@@ -63,6 +63,13 @@ public class EFRouteRepository(
         {
             throw new ArgumentException($"Rate provider {rateProviderName} not found");
         }
+       
+        var serviceFee = await feeRepository.GetServiceFeeAsync(serviceFeeName);
+
+        if (serviceFee == null)
+        {
+            throw new ArgumentException($"Service fee {serviceFeeName} not found");
+        }
 
         var route = new Route
         {
@@ -75,16 +82,9 @@ public class EFRouteRepository(
             MaxAmountInSource = maxAmount.ToString(),
             Status = RouteStatus.Active,
             IgnoreExpenseFee = ignoreExpenseFee,
+            ServiceFee = serviceFee,
         };
-
-        var serviceFee = string.IsNullOrEmpty(serviceFeeName)
-            ? null
-            : await feeRepository.GetServiceFeeAsync(serviceFeeName);
-
-        if (serviceFee != null)
-        {
-            route.ServiceFeeId = serviceFee.Id;
-        }
+       
 
         dbContext.Routes.Add(route);
         await dbContext.SaveChangesAsync();
@@ -101,7 +101,7 @@ public class EFRouteRepository(
        BigInteger minAmount,
        BigInteger maxAmount,
        RouteStatus status,
-       string? serviceFeeName)
+       string serviceFeeName)
     {
         var route = await GetAsync(
             sourceNetworkName,
@@ -123,17 +123,17 @@ public class EFRouteRepository(
             route.RateProviderId = rateProvider.Id;
         }
 
-        var serviceFee = string.IsNullOrEmpty(serviceFeeName)
-            ? null
-            : await feeRepository.GetServiceFeeAsync(serviceFeeName);
+        var serviceFee = await feeRepository.GetServiceFeeAsync(serviceFeeName);
 
-        if (serviceFee != null)
+        if (serviceFee == null)
         {
-            route.ServiceFeeId = serviceFee.Id;
+            throw new ArgumentException($"Service fee {serviceFeeName} not found");
         }
+
 
         route.MinAmountInSource = minAmount.ToString();
         route.MaxAmountInSource = maxAmount.ToString();
+        route.ServiceFee = serviceFee;
         route.Status = status;
 
         await dbContext.SaveChangesAsync();
