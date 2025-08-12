@@ -6,4 +6,5 @@ public enum NetworkType
     Solana,
     Starknet,
     Fuel,
+    Aztec,
 }
