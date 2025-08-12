@@ -40,8 +40,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         // @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
-    readonly MaxFeeMultiplier = 7;
-    readonly GasLimitMultiplier = 3;
 
   public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
     try {
@@ -203,10 +201,11 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
             txRequest.addCoinInput(coin);
         }
 
-        const estimatedDependencies = await wallet.provider.estimateTxDependencies(txRequest);
+        const estimatedDependencies = await wallet.provider.getTransactionCost(txRequest);
 
-        txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(this.MaxFeeMultiplier);
-        txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).add(bn("100000").mul(this.GasLimitMultiplier))
+        txRequest.maxFee = estimatedDependencies.maxFee;
+        
+        txRequest.gasLimit = estimatedDependencies.gasUsed;
 
         await this.ensureSufficientBalance(
             {
