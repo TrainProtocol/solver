@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Temporalio.Api.Enums.V1;
 using Temporalio.Client;
+using Temporalio.Converters;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
@@ -16,10 +17,31 @@ public static class RebalanceEndpoints
 {
     public static RouteGroupBuilder MapRebalanceEndpoints(this RouteGroupBuilder group)
     {
+        group.MapGet("/rebalance", GetAllAsync)
+          .Produces(StatusCodes.Status200OK);
+
         group.MapPost("/rebalance", RebalanceAsync)
             .Produces(StatusCodes.Status200OK);
 
         return group;
+    }
+
+    private static async Task<IResult> GetAllAsync(
+        ITemporalClient temporalClient)
+    {
+        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\"";
+        var results = new List<object>();
+
+        await foreach (var wf in temporalClient.ListWorkflowsAsync(query))
+        {
+            results.Add(new
+            {
+                WorkflowId = wf.Id,
+                Status = wf.Status.ToString()
+            });
+        }
+
+        return Results.Ok(results);
     }
 
     private static async Task<IResult> RebalanceAsync(
@@ -74,12 +96,12 @@ public static class RebalanceEndpoints
                             SignerAgentUrl = wallet.SignerAgent.Url,
                     },
                     new TransactionExecutionContext()],
-                    new(id: TemporalHelper.BuildProcessorId(network.Name, TransactionType.Transfer, Guid.NewGuid()),
+                    new(id: TemporalHelper.BuildRebalanceProcessorId(network.Name, Guid.NewGuid()),
                     taskQueue: network.Type.ToString())
                     {
                         IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
                     });
 
-        return Results.Ok();
+        return Results.Ok(workflowId);
     }
 }
