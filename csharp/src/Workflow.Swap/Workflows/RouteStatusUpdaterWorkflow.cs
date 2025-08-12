@@ -57,28 +57,42 @@ public class RouteStatusUpdaterWorkflow : IScheduledWorkflow
                 continue;
             }
 
-            var routesToDisable = group
-                .Where(route => route.Status == RouteStatus.Active && BigInteger.Parse(route.MaxAmountInSource) > balance.Amount)
-                .ToList();
 
-            if (routesToDisable.Any())
+            var routesIdsToDisable = new List<int>();
+            var routesIdsToEnable = new List<int>();
+
+            foreach (var route in group)
+            {
+                var balanceInSource = await ExecuteActivityAsync(
+                    (IRouteActivities x) => x.ConvertToSourceAsync(
+                       route,
+                       balance.Amount),
+                    TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
+
+                if (route.Status == RouteStatus.Active && balanceInSource < BigInteger.Parse(route.MaxAmountInSource))
+                {
+                    routesIdsToDisable.Add(route.Id);
+                }
+                else if (route.Status == RouteStatus.Inactive && balanceInSource >= BigInteger.Parse(route.MaxAmountInSource))
+                {
+                    routesIdsToEnable.Add(route.Id);
+                }
+            }
+
+            if (routesIdsToDisable.Any())
             {
                 await ExecuteActivityAsync(
                     (IRouteActivities x) => x.UpdateRoutesStatusAsync(
-                        group.Select(route => route.Id).ToArray(),
+                        routesIdsToDisable.ToArray(),
                         RouteStatus.Inactive),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
             }
 
-            var routesToEnable = group
-                .Where(route => route.Status == RouteStatus.Inactive && BigInteger.Parse(route.MaxAmountInSource) <= balance.Amount)
-                .ToList();
-
-            if (routesToEnable.Any())
+            if (routesIdsToEnable.Any())
             {
                 await ExecuteActivityAsync(
                     (IRouteActivities x) => x.UpdateRoutesStatusAsync(
-                        group.Select(route => route.Id).ToArray(),
+                        routesIdsToEnable.ToArray(),
                         RouteStatus.Active),
                     TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
             }
