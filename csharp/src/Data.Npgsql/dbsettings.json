@@ -1,5 +1,5 @@
 {
   "TrainSolver": {
-    "DatabaseConnectionString": "<DB_CONNECTION_STRING>"
+    "DatabaseConnectionString": "Server=prod-ls-psqlserver.postgres.database.azure.com;Database=train_solver;Port=5432;User Id=lsdbadmin;Password=tZ9lAo01j8qw;Ssl Mode=Require;Trust Server Certificate=true;MaxPoolSize=200;"
   }
 }
