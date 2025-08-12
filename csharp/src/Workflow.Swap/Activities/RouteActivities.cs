@@ -67,8 +67,7 @@ public class RouteActivities(
         var sourceAmount = destinationAmount.ConvertTokenAmount(
             route.Destination.Token.Decimals,
             route.Source.Token.Decimals,
-            TokenUnitHelper.ToBaseUnits(rate, route.Destination.Token.Decimals),
-            route.Destination.Token.Decimals);
+            rate);
 
         return sourceAmount;
     }
