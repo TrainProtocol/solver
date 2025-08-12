@@ -4,7 +4,7 @@ namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class HTLCCommitTransactionPrepareRequest
 {
-    public string Receiever { get; set; } = null!;
+    public string Receiver { get; set; } = null!;
 
     public string[] HopChains { get; set; }
 

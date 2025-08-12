@@ -99,8 +99,7 @@ public class QuoteService(
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(            
             route.SourceToken.Decimals,
             route.DestinationToken.Decimals,
-            TokenUnitHelper.ToBaseUnits(swapRate, route.SourceToken.Decimals),
-            route.SourceToken.Decimals);
+            swapRate);
 
         var quote = new QuoteWithSolverDto
         {

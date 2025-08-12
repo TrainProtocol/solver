@@ -41,7 +41,7 @@ public static class EVMTransactionBuilder
                 Data = new FunctionMessages.ApproveFunction
                 {
                     Spender = htlcContractAddress,
-                    Value = Web3.Convert.ToWei(request.Amount, currency.Decimals)
+                    Value = request.Amount
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
                 CallDataAsset = nativeCurrency.Symbol,
                 CallDataAmount = BigInteger.Zero,
@@ -75,7 +75,7 @@ public static class EVMTransactionBuilder
             response.Data = new TransferFunction
             {
                 To = request.ToAddress,
-                Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                Value = request.Amount,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.Amount = BigInteger.Zero;
@@ -168,9 +168,9 @@ public static class EVMTransactionBuilder
                 DestinationAsset = request.DestinationAsset,
                 DestinationAddress = request.DestinationAddress,
                 SourceAsset = request.SourceAsset,
-                Receiver = request.Receiever,
+                Receiver = request.Receiver,
                 Timelock = request.Timelock,
-                Amount = Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                Amount = request.Amount,
                 TokenContract = currency.Contract!
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
@@ -193,7 +193,7 @@ public static class EVMTransactionBuilder
                 DestinationAsset = request.DestinationAsset,
                 DestinationAddress = request.DestinationAddress,
                 SourceAsset = request.SourceAsset,
-                Receiver = request.Receiever,
+                Receiver = request.Receiver,
                 Timelock = request.Timelock,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 

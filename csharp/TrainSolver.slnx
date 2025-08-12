@@ -25,15 +25,18 @@
     <Project Path="src/Infrastructure/Infrastructure.csproj" />
     <Project Path="src/Infrastrucutre.Secret.Treasury/Infrastrucutre.Secret.Treasury.csproj" />
   </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Common/Common.csproj" />
+    <Project Path="src/SmartNodeInvoker/SmartNodeInvoker.csproj" Id="fa65e82e-9472-49f9-90bf-de90d8efe45b" />
+  </Folder>
   <Folder Name="/src/Workflow/">
     <Project Path="src/Workflow.Abstractions/Workflow.Abstractions.csproj" />
     <Project Path="src/Workflow.Common/Workflow.Common.csproj" />
     <Project Path="src/Workflow.EVM/Workflow.EVM.csproj" />
     <Project Path="src/Workflow.Swap/Workflow.Swap.csproj" />
   </Folder>
-  <Folder Name="/src/Workflow/Shared/">
-    <Project Path="src/Common/Common.csproj" />
-    <Project Path="src/SmartNodeInvoker/SmartNodeInvoker.csproj" Id="fa65e82e-9472-49f9-90bf-de90d8efe45b" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Common.Tests/Common.Tests.csproj" Id="215ed5de-73fb-4323-91be-ded23b7ec97f" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/DataSeeder/DataSeeder.csproj" />

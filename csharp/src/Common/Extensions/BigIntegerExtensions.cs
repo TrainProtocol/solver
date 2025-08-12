@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
+using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.Common.Extensions;
 
@@ -90,18 +91,12 @@ public static class BigIntegerExtensions
         this BigInteger amount,
         int fromDecimals,
         int toDecimals,
-        BigInteger rate,
-        int rateDecimals)
+        decimal rate)
     {
-        BigInteger numerator = amount * rate;
+        var amountInDecimal = TokenUnitHelper.FromBaseUnits(amount, fromDecimals);
 
-        int scale = fromDecimals + rateDecimals - toDecimals;
+        amountInDecimal *= rate;
 
-        if (scale > 0)
-            return numerator / BigInteger.Pow(10, scale);
-        else if (scale < 0)
-            return numerator * BigInteger.Pow(10, -scale);
-        else
-            return numerator;
+        return TokenUnitHelper.ToBaseUnits(amountInDecimal, toDecimals);
     }
 }
