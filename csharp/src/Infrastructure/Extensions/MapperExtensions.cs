@@ -123,6 +123,8 @@ public static partial class MapperExtensions
             MaxAmountInSource = route.MaxAmountInSource,
             Status = route.Status,
             RateProviderName = route.RateProvider.Name,
+            IgnoreExpenseFee = route.IgnoreExpenseFee,
+            ServiceFee = route.ServiceFee.ToDto(),
         };
     }
 
