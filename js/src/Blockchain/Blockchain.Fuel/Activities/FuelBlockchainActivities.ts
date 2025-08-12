@@ -41,7 +41,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     ) { }
 
     readonly MaxFeeMultiplier = 7;
-    readonly GasLimitMultiplier = 4;
+    readonly GasLimitMultiplier = 3;
 
   public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
     try {
