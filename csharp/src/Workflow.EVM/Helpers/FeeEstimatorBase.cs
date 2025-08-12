@@ -6,6 +6,7 @@ using Nethereum.JsonRpc.Client;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using System.Numerics;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.SmartNodeInvoker;
 using Train.Solver.Workflow.Abstractions.Models;
@@ -33,7 +34,8 @@ public abstract class FeeEstimatorBase(ISmartNodeInvoker smartNodeInvoker) : IFe
         string toAddress,
         string? tokenContract,
         BigInteger amount,
-        string? callData = null)
+        string? callData = null,
+        int increasePercentage = 100)
     {
         var callInput = new CallInput
         {
@@ -64,7 +66,7 @@ public abstract class FeeEstimatorBase(ISmartNodeInvoker smartNodeInvoker) : IFe
 
         if (estimatedGasResult.Succeeded)
         {
-            return estimatedGasResult.Data.Value;
+            return estimatedGasResult.Data.Value.PercentageIncrease(increasePercentage);
         }
         else
         {
