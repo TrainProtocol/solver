@@ -46,6 +46,35 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
         }
 
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ServiceFee>().HasData(
+            new ServiceFee { Id = 100000, Name = "Free", FeeInUsd = 0, FeePercentage = 0 },
+            new ServiceFee { Id = 100001, Name = "Default", FeeInUsd = 0, FeePercentage = 0 }
+        );
+
+        modelBuilder.Entity<RateProvider>().HasData(
+            new RateProvider { Id = 100000, Name = "SameAsset" },
+            new RateProvider { Id = 100001, Name = "Binance" }
+        );
+
+        var seedDate = new DateTime(2025, 8, 12, 0, 0, 0, DateTimeKind.Utc);
+
+        modelBuilder.Entity<TokenPrice>().HasData(
+            new TokenPrice { Id = 10002,  ExternalId = "bitcoin", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "BTC" },
+            new TokenPrice { Id = 10008,  ExternalId = "fuel-network", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "FUEL" },
+            new TokenPrice { Id = 10014,  ExternalId = "avalanche-2", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "AVAX" },
+            new TokenPrice { Id = 10018,  ExternalId = "optimism", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "OP" },
+            new TokenPrice { Id = 10026,  ExternalId = "ethereum", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "ETH" },
+            new TokenPrice { Id = 10035,  ExternalId = "solana", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "SOL" },
+            new TokenPrice { Id = 10043,  ExternalId = "dai", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "DAI" },
+            new TokenPrice { Id = 10046,  ExternalId = "usd-coin", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "USDC" },
+            new TokenPrice { Id = 10050,  ExternalId = "immutable-x", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "IMX" },
+            new TokenPrice { Id = 10054,  ExternalId = "binancecoin", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "BNB" },
+            new TokenPrice { Id = 10055,  ExternalId = "tether", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "USDT" },
+            new TokenPrice { Id = 10056,  ExternalId = "matic-network", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "MATIC" },
+            new TokenPrice { Id = 10063,  ExternalId = "polygon-ecosystem-token", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "POL" },
+            new TokenPrice { Id = 10069,  ExternalId = "ronin", LastUpdated = seedDate, CreatedDate = seedDate, Symbol = "RON" }
+        );
     }
 
     private static void SetupCustomRelations(ModelBuilder modelBuilder)
