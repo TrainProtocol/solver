@@ -1,28 +1,26 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
+import * as dotenv from 'dotenv';
 import 'reflect-metadata';
-import { AztecBlockchainActivities } from '../Activities/AztecBlockchainActivities';
 import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
 import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
-import * as UtilityActivities from '../../Blockchain.Abstraction/Activities/UtilityActivities';
+import { AztecBlockchainActivities } from '../Activities/AztecBlockchainActivities';
 
 export default async function run( taskQueue: string): Promise<void> {
+  dotenv.config();
 
   try {
-
     await AddCoreServices();
 
     const blockchainActivities = ExtractActivities(container.resolve(AztecBlockchainActivities));
 
     const activities = {
       ...blockchainActivities,
-      ...UtilityActivities,
     };
 
     const connection = await NativeConnection.connect({
       address: process.env.TrainSolver__TemporalServerHost,
     });
-
     const namespace = process.env.TrainSolver__TemporalNamespace;
 
     if (!namespace) {
@@ -40,7 +38,6 @@ export default async function run( taskQueue: string): Promise<void> {
     await worker.run();
   }
   catch (e) {
-    console.error(`Error starting worker: ${e.message}`);
-    return;
+    throw new Error(`Exception happened in AztecWorker: ${e.message}`);
   }
 }

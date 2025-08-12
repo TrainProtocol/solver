@@ -31,8 +31,6 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
     args: [refundRequest.commitId]
   }
 
-  const vaxo = JSON.stringify(contractFunctionInteraction)
-
   return {
     functionInteractions: [contractFunctionInteraction],
     amount: 0,

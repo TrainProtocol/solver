@@ -1,5 +1,5 @@
 import { Tx } from "@aztec/aztec.js";
-import { BaseSignRequest } from "../../app/dto/base.dto";
+import { BaseSignRequest, BaseSignResponse } from "../../app/dto/base.dto";
 
 export class AztecSignRequest extends BaseSignRequest {
     nodeUrl: string;
@@ -8,6 +8,6 @@ export class AztecSignRequest extends BaseSignRequest {
     functionInteractions: any[];    
 }
 
-export class AztecSignResponse {
+export class AztecSignResponse extends BaseSignResponse{
     tx: Tx
 }
