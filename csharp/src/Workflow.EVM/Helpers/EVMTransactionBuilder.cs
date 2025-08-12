@@ -75,7 +75,7 @@ public static class EVMTransactionBuilder
             response.Data = new TransferFunction
             {
                 To = request.ToAddress,
-                Value = Web3.Convert.ToWei(request.Amount, currency.Decimals),
+                Value = request.Amount,
             }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix();
 
             response.Amount = BigInteger.Zero;
