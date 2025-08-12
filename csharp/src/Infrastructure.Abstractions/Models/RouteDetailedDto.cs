@@ -2,7 +2,7 @@
 
 namespace Train.Solver.Infrastructure.Abstractions.Models;
 
-public class RouteDetailedDto : RouteDto
+public class RouteDetailedDto : ExtendedRouteDto
 {
     public required int Id { get; set; }
 

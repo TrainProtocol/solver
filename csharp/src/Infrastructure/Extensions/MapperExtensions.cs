@@ -90,6 +90,17 @@ public static partial class MapperExtensions
         return dto;
     }
 
+    public static ExtendedTokenNetworkDto ToWithExtendedNetworkDto(this Token token)
+    {
+        var dto = new ExtendedTokenNetworkDto
+        {
+            Network = token.Network.ToExtendedDto(),
+            Token = token.ToDto()
+        };
+
+        return dto;
+    }
+
     public static DetailedNetworkDto ToDetailedDto(this Network network)
     {
         var dto = new DetailedNetworkDto
@@ -110,14 +121,32 @@ public static partial class MapperExtensions
         return dto;
     }
 
+    public static ExtendedNetworkDto ToExtendedDto(this Network network)
+    {
+        var dto = new ExtendedNetworkDto
+        {
+            Name = network.Name,
+            DisplayName = network.DisplayName,
+            ChainId = network.ChainId,
+            Type = network.Type,
+            FeeType = network.FeeType,
+            FeePercentageIncrease = network.FeePercentageIncrease,
+            HTLCNativeContractAddress = network.HTLCNativeContractAddress,
+            HTLCTokenContractAddress = network.HTLCTokenContractAddress,
+            NativeToken = network.NativeToken?.ToDto(),
+        };
+
+        return dto;
+    }
+
     public static RouteDetailedDto ToDetailedDto(this Route route)
     {
         return new RouteDetailedDto
         {
             Id = route.Id,
-            Source = route.SourceToken.ToWithNetworkDto(),
+            Source = route.SourceToken.ToWithExtendedNetworkDto(),
             SourceWallet = route.SourceWallet.Address,
-            Destination = route.DestinationToken.ToWithNetworkDto(),
+            Destination = route.DestinationToken.ToWithExtendedNetworkDto(),
             DestinationWallet = route.DestinationWallet.Address,
             MinAmountInSource = route.MinAmountInSource,
             MaxAmountInSource = route.MaxAmountInSource,
