@@ -5,7 +5,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest} from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";

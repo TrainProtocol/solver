@@ -8,7 +8,7 @@ public class SwapDto
 
     public string Hashlock { get; set; } = null!;
 
-    public TokenNetworkDto Source { get; set; } = null!;
+    public ExtendedTokenNetworkDto Source { get; set; } = null!;
 
     public BigInteger SourceAmount { get; set; }
 
@@ -16,7 +16,7 @@ public class SwapDto
 
     public string SourceContractAddress { get; set; } = null!;
 
-    public TokenNetworkDto Destination { get; set; } = null!;
+    public ExtendedTokenNetworkDto Destination { get; set; } = null!;
 
     public BigInteger DestinationAmount { get; set; }
 
