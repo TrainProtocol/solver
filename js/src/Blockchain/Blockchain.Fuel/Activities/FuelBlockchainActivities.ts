@@ -5,7 +5,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest} from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
@@ -14,7 +14,7 @@ import { BalanceResponse } from "../../Blockchain.Abstraction/Models/BalanceRequ
 import { BaseRequest } from "../../Blockchain.Abstraction/Models/BaseRequest";
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
 import TrackBlockEventsAsync from "./Helper/FuelEventTracker";
-import { createAddLockSigCallData, createRefundCallData, createLockCallData, createRedeemCallData, createCommitCallData } from "./Helper/FuelTransactionBuilder";
+import { createAddLockSigCallData, createRefundCallData, createLockCallData, createRedeemCallData, createCommitCallData, createTransferCallData } from "./Helper/FuelTransactionBuilder";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { mapFuelStatusToInternal } from "./Helper/FuelTransactionStatusMapper";
 import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
@@ -40,30 +40,30 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         // @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
-    readonly MaxFeeMultiplier = 7;
-    readonly GasLimitMultiplier = 3;
 
-  public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
-    try {
-      switch (request.type) {
-        case TransactionType.HTLCLock:
-          return createLockCallData(request.network, request.prepareArgs);
-        case TransactionType.HTLCRedeem:
-          return createRedeemCallData(request.network, request.prepareArgs);
-        case TransactionType.HTLCRefund:
-          return createRefundCallData(request.network, request.prepareArgs);
-        case TransactionType.HTLCAddLockSig:
-          return createAddLockSigCallData(request.network, request.prepareArgs);
-        case TransactionType.HTLCCommit:
-          return createCommitCallData(request.network, request.prepareArgs);
-        default:
-          throw new Error(`Unknown function name ${request.type}`);
-      }
+    public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
+        try {
+            switch (request.type) {
+                case TransactionType.HTLCLock:
+                    return createLockCallData(request.network, request.prepareArgs);
+                case TransactionType.HTLCRedeem:
+                    return createRedeemCallData(request.network, request.prepareArgs);
+                case TransactionType.HTLCRefund:
+                    return createRefundCallData(request.network, request.prepareArgs);
+                case TransactionType.HTLCAddLockSig:
+                    return createAddLockSigCallData(request.network, request.prepareArgs);
+                case TransactionType.HTLCCommit:
+                    return createCommitCallData(request.network, request.prepareArgs);
+                case TransactionType.Transfer:
+                    return createTransferCallData(request.network, request.prepareArgs);
+                default:
+                    throw new Error(`Unknown function name ${request.type}`);
+            }
+        }
+        catch (error) {
+            throw error;
+        }
     }
-    catch (error) {
-      throw error;
-    }
-  }
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
 
@@ -203,10 +203,11 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
             txRequest.addCoinInput(coin);
         }
 
-        const estimatedDependencies = await wallet.provider.estimateTxDependencies(txRequest);
+        const estimatedDependencies = await wallet.provider.getTransactionCost(txRequest);
 
-        txRequest.maxFee = bn(estimatedDependencies.dryRunStatus.totalFee).mul(this.MaxFeeMultiplier);
-        txRequest.gasLimit = bn(estimatedDependencies.dryRunStatus.totalGas).add(bn("100000").mul(this.GasLimitMultiplier))
+        txRequest.maxFee = estimatedDependencies.maxFee;
+        
+        txRequest.gasLimit = estimatedDependencies.gasUsed;
 
         await this.ensureSufficientBalance(
             {
