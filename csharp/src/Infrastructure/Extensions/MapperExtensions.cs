@@ -12,13 +12,13 @@ public static partial class MapperExtensions
         {
             CommitId = swap.CommitId,
             Hashlock = swap.Hashlock,
-            Source = swap.Route.SourceToken.ToWithNetworkDto(),
+            Source = swap.Route.SourceToken.ToWithExtendedNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
             SourceAddress = swap.SourceAddress,
             SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ?
                 swap.Route.SourceToken.Network.HTLCNativeContractAddress :
                 swap.Route.SourceToken.Network.HTLCTokenContractAddress,
-            Destination = swap.Route.DestinationToken.ToWithNetworkDto(),
+            Destination = swap.Route.DestinationToken.ToWithExtendedNetworkDto(),
             DestinationAddress = swap.DestinationAddress,
             DestinationContractAddress = swap.Route.DestinationTokenId == swap.Route.DestinationToken.Network.NativeTokenId ?
                 swap.Route.DestinationToken.Network.HTLCNativeContractAddress :
