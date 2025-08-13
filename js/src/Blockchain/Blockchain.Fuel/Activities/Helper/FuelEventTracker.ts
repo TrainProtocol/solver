@@ -6,6 +6,7 @@ import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
 import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { formatAddress } from "../FuelBlockchainActivities";
+import { ethers } from "ethers";
 
 export default async function TrackBlockEventsAsync(
   network: DetailedNetworkDto,
@@ -97,7 +98,8 @@ export default async function TrackBlockEventsAsync(
 
         const data = decodedData[0] as TokenCommittedEvent;
         const timelock = DateTime.fromTai64(data.timelock);
-        const commitId = bn(data.Id).toHex();
+
+        const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
 
         const receiverAddress = solverAddresses.find(
           x => formatAddress(x) === formatAddress(data.srcReceiver.bits)
@@ -150,4 +152,11 @@ export default async function TrackBlockEventsAsync(
 
     throw error;
   }
+}
+
+function ensureHexLength(hex: string, bytes: number): string {
+  // Remove 0x prefix if present
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
+  // Pad to desired byte length (bytes → hex chars = bytes * 2)
+  return "0x" + cleanHex.padStart(bytes * 2, "0");
 }
