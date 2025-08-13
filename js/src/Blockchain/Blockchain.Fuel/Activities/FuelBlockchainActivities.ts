@@ -197,16 +197,20 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
         const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
 
-        const balance = await wallet.getCoins(await provider.getBaseAssetId());
+        const coinInputs = txRequest.getCoinInputs();
 
-        for (const coin of balance.coins) {
-            txRequest.addCoinInput(coin);
+        if (!coinInputs.length) {
+            const balance = await wallet.getCoins(await provider.getBaseAssetId());
+
+            for (const coin of balance.coins) {
+                txRequest.addCoinInput(coin);
+            }
         }
 
         const estimatedDependencies = await wallet.provider.getTransactionCost(txRequest);
 
         txRequest.maxFee = estimatedDependencies.maxFee;
-        
+
         txRequest.gasLimit = estimatedDependencies.gasUsed;
 
         await this.ensureSufficientBalance(
