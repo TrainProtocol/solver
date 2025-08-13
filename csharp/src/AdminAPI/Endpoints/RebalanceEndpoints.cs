@@ -19,7 +19,7 @@ public static class RebalanceEndpoints
     public static RouteGroupBuilder MapRebalanceEndpoints(this RouteGroupBuilder group)
     {
         group.MapGet("/rebalance", GetAllAsync)
-          .Produces(StatusCodes.Status200OK);
+          .Produces<List<RebalanceEntry>>(StatusCodes.Status200OK);
 
         group.MapPost("/rebalance", RebalanceAsync)
             .Produces(StatusCodes.Status200OK);
@@ -30,17 +30,47 @@ public static class RebalanceEndpoints
     private static async Task<IResult> GetAllAsync(
         ITemporalClient temporalClient)
     {
-        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\" AND `ExecutionStatus`=\"Running\"";
-        var results = new List<string>();
+        var query = $"`WorkflowId` STARTS_WITH \"Rebalance\"";
+        var results = new List<RebalanceEntry>();
 
-        await foreach (var wf in temporalClient.ListWorkflowsAsync(query))
+        await foreach (var wf in temporalClient.ListWorkflowsAsync(query, new WorkflowListOptions
+        {
+            Limit = 10,
+        }))
         {
             var whHandle = temporalClient.GetWorkflowHandle(wf.Id);
             var describedWorkflow = await whHandle.DescribeAsync();
 
             if (describedWorkflow.Memo.TryGetValue("Summary", out var summary) && summary != null)
             {
-                results.Add(summary.ToString()!);
+                var decoded = temporalClient.Options.DataConverter.ToValueAsync<string>(summary.Payload);
+
+                try
+                {
+                    var rebalanceEntry = new RebalanceEntry
+                    {
+                        Id = wf.Id,
+                        Status = wf.Status.ToString(),
+                        Summary = decoded.Result.FromJson<RebalanceSummary>(),
+                    };
+
+                    if (wf.Status == WorkflowExecutionStatus.Completed)
+                    {
+                        var wfResult = await whHandle.GetResultAsync<TransactionResponse>();
+
+                        rebalanceEntry.Transaction = new TransactionDto
+                        {
+                            Hash = wfResult.TransactionHash,
+                            Network = wfResult.NetworkName,
+                            Type = TransactionType.Transfer,
+                        };
+                    }
+
+                    results.Add(rebalanceEntry);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -76,12 +106,33 @@ public static class RebalanceEndpoints
             return Results.NotFound($"Wallet {request.FromAddress} not found on network {request.NetworkName}");
         }
 
+        string toAddress;
         var trustedWallet = await trustedWalletRepository.GetAsync(network.Type, request.ToAddress);
 
         if (trustedWallet is null)
         {
-            return Results.NotFound($"Trusted wallet {request.ToAddress} not found on network {request.NetworkName}");
+            var toWallet = await walletRepository.GetAsync(network.Type, request.ToAddress);
+
+            if (toWallet == null)
+            {
+                return Results.BadRequest($"To address {request.ToAddress} is not a trusted wallet, but a regular wallet.");
+            }
+
+            toAddress = toWallet.Address;
         }
+        else
+        {
+            toAddress = trustedWallet.Address;
+        }
+
+        var summary = new RebalanceSummary
+        {
+            Amount = request.Amount.ToString(),
+            Network = network.ToExtendedDto(),
+            Token = token.ToDto(),
+            From = wallet.Address,
+            To = toAddress,
+        };
 
         var workflowId = await temporalClient.StartWorkflowAsync(
                     TemporalHelper.ResolveProcessor(network.Type), [new TransactionRequest()
@@ -91,7 +142,7 @@ public static class RebalanceEndpoints
                               Amount = request.Amount,
                               Asset = token.Asset,
                               FromAddress = wallet.Address,
-                              ToAddress = trustedWallet.Address,
+                              ToAddress = toAddress,
                             }.ToJson(),
                             Type = TransactionType.Transfer,
                             Network = network.ToDetailedDto(),
@@ -105,7 +156,7 @@ public static class RebalanceEndpoints
                         IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
                         Memo = new Dictionary<string, object>
                         {
-                            { "Summary", $"Rebalancing { TokenUnitHelper.FromBaseUnits(request.Amount, token.Decimals) } {token.Asset} in {network.DisplayName} from {wallet.Address} to {trustedWallet.Address}" },
+                            { "Summary", summary.ToJson()},
                         }
                     });
 

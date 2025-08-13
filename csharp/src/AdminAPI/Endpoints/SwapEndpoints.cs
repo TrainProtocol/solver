@@ -11,10 +11,22 @@ public static class SwapEndpoints
 {
     public static RouteGroupBuilder MapSwapEndpoints(this RouteGroupBuilder group)
     {
+        group.MapGet("/swaps", GetAllAsync)
+            .Produces<List<SwapDto>>();
+
         group.MapGet("/swaps/{commitId}", GetAsync)
             .Produces<SwapDto>();
 
         return group;
+    }
+
+    private static async Task<IResult> GetAllAsync(
+        ISwapRepository repository,
+        uint page = 1)
+    {
+        var swaps = await repository.GetAllAsync(page);
+
+        return Results.Ok(swaps.Select(x => x.ToDto()));
     }
 
     private static async Task<IResult> GetAsync(

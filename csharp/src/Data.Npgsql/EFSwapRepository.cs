@@ -53,12 +53,9 @@ public class EFSwapRepository(
         return swap;
     }
 
-    public async Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20, string[]? addresses = null)
+    public async Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 15)
     {
         return await GetBaseQuery()
-            .Where(x => addresses == null
-                || addresses.Contains(x.SourceAddress.ToLower())
-                || addresses.Contains(x.DestinationAddress.ToLower()))
             .OrderByDescending(x => x.CreatedDate)
             .Skip((int)(page * size))
             .Take((int)size)
