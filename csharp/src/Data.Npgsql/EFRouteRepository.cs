@@ -158,7 +158,7 @@ public class EFRouteRepository(
         string destinationToken,
         BigInteger? amount)
     {
-        var query = GetBaseQuery([RouteStatus.Active]);
+        var query = GetBaseQuery(null);
 
         query = query.Where(x =>
             x.SourceToken.Asset == sourceToken
@@ -200,7 +200,7 @@ public class EFRouteRepository(
         await dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
+    private IQueryable<Route> GetBaseQuery(RouteStatus[]? statuses)
         => dbContext.Routes
             .Include(x => x.RateProvider)
             .Include(x => x.SourceWallet.SignerAgent)

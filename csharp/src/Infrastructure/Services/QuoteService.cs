@@ -17,8 +17,7 @@ namespace Train.Solver.Infrastructure.Services;
 public class QuoteService(
     IRouteRepository routeRepository,
     IFeeRepository feeRepository,
-    KeyedServiceResolver<IRateProvider> rateProviderResolver,
-    IOptions<TrainSolverOptions> options) : IQuoteService
+    KeyedServiceResolver<IRateProvider> rateProviderResolver) : IQuoteService
 {
     public virtual async Task<LimitDto> GetLimitAsync(SourceDestinationRequest request)
     {
@@ -32,6 +31,11 @@ public class QuoteService(
         if (route is null)
         {
             throw new RouteNotFoundException($"Route not found.");
+        }
+
+        if (route.Status != RouteStatus.Active)
+        {
+            throw new InvalidOperationException($"Route is not active.");
         }
 
         return await GetLimitAsync(route);
@@ -74,6 +78,11 @@ public class QuoteService(
         if (route is null)
         {
             throw new RouteNotFoundException($"Route not found.");
+        }
+
+        if (route.Status != RouteStatus.Active)
+        {
+            throw new InvalidOperationException($"Route is not active.");
         }
 
         if (shouldValidateLimit)
