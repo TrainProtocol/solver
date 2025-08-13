@@ -98,8 +98,8 @@ export default async function TrackBlockEventsAsync(
 
         const data = decodedData[0] as TokenCommittedEvent;
         const timelock = DateTime.fromTai64(data.timelock);
-        
-        const commitId = "0x" + bn(data.Id).toString(16).padStart(64, "0");
+
+        const commitId = bn(data.Id).toString(16).padStart(64, "0");
 
         const receiverAddress = solverAddresses.find(
           x => formatAddress(x) === formatAddress(data.srcReceiver.bits)
