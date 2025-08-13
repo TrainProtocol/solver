@@ -139,6 +139,11 @@ public class EVMBlockchainActivities(
                 async url =>
                     await new Web3(url).Eth.GetBalance.SendRequestAsync(request.Address));
 
+            if (!result.Succeeded)
+            {
+                throw new AggregateException(result.FailedNodes.Values);
+            }
+
             balance = result.Data;
         }
         else
