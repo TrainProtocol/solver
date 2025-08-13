@@ -10,7 +10,7 @@ public class RebalanceSummary
 
     public required string Amount { get; set; }
 
-    public required WalletDto From  { get; set; }
+    public required string From  { get; set; }
 
-    public required TrustedWalletDto To { get; set; }
+    public required string To { get; set; }
 }

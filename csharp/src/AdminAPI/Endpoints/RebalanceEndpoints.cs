@@ -106,11 +106,23 @@ public static class RebalanceEndpoints
             return Results.NotFound($"Wallet {request.FromAddress} not found on network {request.NetworkName}");
         }
 
+        string toAddress;
         var trustedWallet = await trustedWalletRepository.GetAsync(network.Type, request.ToAddress);
 
         if (trustedWallet is null)
         {
-            return Results.NotFound($"Trusted wallet {request.ToAddress} not found on network {request.NetworkName}");
+            var toWallet = await walletRepository.GetAsync(network.Type, request.ToAddress);
+
+            if (toWallet == null)
+            {
+                return Results.BadRequest($"To address {request.ToAddress} is not a trusted wallet, but a regular wallet.");
+            }
+
+            toAddress = toWallet.Address;
+        }
+        else
+        {
+            toAddress = trustedWallet.Address;
         }
 
         var summary = new RebalanceSummary
@@ -118,8 +130,8 @@ public static class RebalanceEndpoints
             Amount = request.Amount.ToString(),
             Network = network.ToExtendedDto(),
             Token = token.ToDto(),
-            From = wallet.ToDto(),
-            To = trustedWallet.ToDto(),
+            From = wallet.Address,
+            To = toAddress,
         };
 
         var workflowId = await temporalClient.StartWorkflowAsync(
@@ -130,7 +142,7 @@ public static class RebalanceEndpoints
                               Amount = request.Amount,
                               Asset = token.Asset,
                               FromAddress = wallet.Address,
-                              ToAddress = trustedWallet.Address,
+                              ToAddress = toAddress,
                             }.ToJson(),
                             Type = TransactionType.Transfer,
                             Network = network.ToDetailedDto(),
