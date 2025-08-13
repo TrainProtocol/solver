@@ -8,5 +8,7 @@ public interface ITokenPriceRepository
 
     Task<TokenPrice?> GetAsync(string symbol);
 
+    Task<TokenPrice?> CreateAsync(string symbol, string externalId);
+
     Task UpdateAsync(Dictionary<string, decimal> prices);
 }

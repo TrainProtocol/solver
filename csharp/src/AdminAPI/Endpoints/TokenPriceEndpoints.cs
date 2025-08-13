@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
@@ -14,12 +15,26 @@ public static class TokenPriceEndpoints
         group.MapGet("/token-prices", GetAllTokenPricesAsync)
             .Produces<List<TokenPriceDto>>();
 
+        group.MapPost("/token-prices", CreateTokenPriceAsync)
+           .Produces(200);
+
         return group;
     }
 
     private static async Task<IResult> GetAllTokenPricesAsync(ITokenPriceRepository repository)
     {
         var tokenPrices = await repository.GetAllAsync();
-        return Results.Ok(tokenPrices.Select(x=>x.ToDto()));
+        return Results.Ok(tokenPrices.Select(x => x.ToDto()));
+    }
+
+    private static async Task<IResult> CreateTokenPriceAsync(
+        ITokenPriceRepository repository,
+        CreateTokenPriceRequest request)
+    {
+        var tokenPrice = await repository.CreateAsync(request.Symbol, request.ExternalId);
+
+        return tokenPrice is null
+           ? Results.BadRequest("Failed to create token price")
+           : Results.Ok();
     }
 }

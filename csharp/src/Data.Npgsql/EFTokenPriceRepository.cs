@@ -6,6 +6,20 @@ namespace Train.Solver.Data.Npgsql;
 
 public class EFTokenPriceRepository(SolverDbContext dbContext) : ITokenPriceRepository
 {
+    public async Task<TokenPrice?> CreateAsync(string symbol, string externalId)
+    {
+        var tokenPrice = new TokenPrice
+        {
+            Symbol = symbol,
+            ExternalId = externalId,
+        };
+
+        dbContext.TokenPrices.Add(tokenPrice);
+        await dbContext.SaveChangesAsync();
+
+        return tokenPrice;
+    }
+
     public async Task<List<TokenPrice>> GetAllAsync()
     {
         return await dbContext.TokenPrices.ToListAsync();
