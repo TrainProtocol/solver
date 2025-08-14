@@ -66,7 +66,7 @@ public class SwapWorkflow : ISwapWorkflow
         {
             throw new ApplicationFailureException("Source or destination asset is not supported in the network");
         }
-       
+
         // Validate limit
         var limit = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetLimitAsync(new()
@@ -188,7 +188,7 @@ public class SwapWorkflow : ISwapWorkflow
                     throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
                 }
 
-                var childWorkflowTask = ExecuteTransactionAsync(new TransactionRequest()
+                await ExecuteTransactionAsync(new TransactionRequest()
                 {
                     PrepareArgs = new AddLockSigTransactionPrepareRequest
                     {
@@ -210,13 +210,9 @@ public class SwapWorkflow : ISwapWorkflow
                     SwapId = _swapId
                 });
 
-                var conditionTask = WaitConditionAsync(
+                userLocked = await WaitConditionAsync(
                     () => _htlcLockMessage != null,
                     timeout: _lpTimeLock - UtcNow);
-
-                await Task.WhenAll(childWorkflowTask, conditionTask);
-
-                userLocked = conditionTask.Result;
             }
 
             if (!userLocked
