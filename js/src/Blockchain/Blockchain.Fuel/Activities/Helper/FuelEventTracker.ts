@@ -133,8 +133,8 @@ export default async function TrackBlockEventsAsync(
 
         const timelock = DateTime.fromTai64(data.timelock);
         const hashlock = bn(data.hashlock).toHex();
-        const commitId = bn(data.Id).toHex();
-
+        const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
+        
         const lockMsg: HTLCLockEventMessage = {
           txId: transaction.id,
           commitId: commitId,
