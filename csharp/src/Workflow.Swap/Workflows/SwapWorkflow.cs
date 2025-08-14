@@ -56,7 +56,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         _sourceNetwork = await ExecuteActivityAsync(
            (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.SourceNetwork),
-           DefaultActivityOptions(Constants.CoreTaskQueue));
+           DefaultActivityOptions(Constants.CoreTaskQueue, $"Getting source network {_htlcCommitMessage.SourceNetwork}"));
 
         _destinationNetwork = await ExecuteActivityAsync(
             (INetworkActivities x) => x.GetNetworkAsync(_htlcCommitMessage.DestinationNetwork),

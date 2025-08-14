@@ -23,18 +23,19 @@ public static class TemporalHelper
         return await handle.GetResultAsync<TResult>().ConfigureAwait(true);
     }
 
-    public static ActivityOptions DefaultActivityOptions() =>
-        DefaultActivityOptions(null);
+    public static ActivityOptions DefaultActivityOptions(string? summary = null) =>
+        DefaultActivityOptions(null, summary);
 
-    public static ActivityOptions DefaultActivityOptions(NetworkType networkType) =>
-        DefaultActivityOptions(networkType.ToString());
+    public static ActivityOptions DefaultActivityOptions(NetworkType networkType, string? summary = null) =>
+        DefaultActivityOptions(networkType.ToString(), summary);
 
-    public static ActivityOptions DefaultActivityOptions(string? taskQueue) =>
+    public static ActivityOptions DefaultActivityOptions(string? taskQueue, string? summary = null) =>
         new()
         {
             ScheduleToCloseTimeout = TimeSpan.FromDays(2),
             StartToCloseTimeout = TimeSpan.FromHours(1),
-            TaskQueue = taskQueue
+            TaskQueue = taskQueue,
+            Summary = summary,
         };
 
     public static string ResolveProcessor(NetworkType networkType)
