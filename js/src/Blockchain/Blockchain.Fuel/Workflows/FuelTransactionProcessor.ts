@@ -57,7 +57,7 @@ export async function FuelTransactionProcessor(
             type: request.type,
         });
 
-        const rawTx = await defaultActivities.composeRawTransaction({
+        const rawTx = await nonRetryableActivities.composeRawTransaction({
             network: request.network,
             fromAddress: request.fromAddress,
             callData: preparedTransaction.data,
