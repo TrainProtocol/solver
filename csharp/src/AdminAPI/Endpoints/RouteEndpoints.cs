@@ -76,6 +76,7 @@ public static class RouteEndpoints
             request.MinAmount,
             request.MaxAmount,
             request.Status,
+            request.IgnoreExpenseFee,
             request.ServiceFee);
 
         return route is null
