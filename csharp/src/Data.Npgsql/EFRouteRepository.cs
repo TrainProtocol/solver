@@ -101,6 +101,7 @@ public class EFRouteRepository(
        BigInteger minAmount,
        BigInteger maxAmount,
        RouteStatus status,
+       bool ignoreExpenseFee,
        string serviceFeeName)
     {
         var route = await GetAsync(
@@ -134,6 +135,7 @@ public class EFRouteRepository(
         route.MinAmountInSource = minAmount.ToString();
         route.MaxAmountInSource = maxAmount.ToString();
         route.ServiceFee = serviceFee;
+        route.IgnoreExpenseFee = ignoreExpenseFee;
         route.Status = status;
 
         await dbContext.SaveChangesAsync();

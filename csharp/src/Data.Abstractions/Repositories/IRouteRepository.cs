@@ -42,6 +42,7 @@ public interface IRouteRepository
         string rateProviderName,
         BigInteger minAmount,
         BigInteger maxAmount,
-        RouteStatus status, 
+        RouteStatus status,
+        bool ignoreExpenseFee,
         string serviceFeeName);
 }
