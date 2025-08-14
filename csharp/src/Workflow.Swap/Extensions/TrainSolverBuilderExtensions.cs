@@ -27,6 +27,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<TokenPriceUpdaterWorkflow>()
             .AddWorkflow<RouteStatusUpdaterWorkflow>()
             .AddWorkflow<EventListenerWorkflow>()
+            .AddWorkflow<RefundWorkflow>()
             .AddWorkflow<EventListenerUpdaterWorkflow>();
 
         return builder;

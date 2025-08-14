@@ -5,7 +5,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest} from "fuels";
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
@@ -184,46 +184,53 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
 
     public async composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string> {
+        try {
+            const provider = new Provider(request.network.nodes[0].url);
+            const wallet = Wallet.fromAddress(request.fromAddress, provider);
+            const requestData = JSON.parse(request.callData);
 
-        const provider = new Provider(request.network.nodes[0].url);
-        const wallet = Wallet.fromAddress(request.fromAddress, provider);
-        const requestData = JSON.parse(request.callData);
+            const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.callData));
 
-        const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.callData));
+            if (!isTxnTypeScript) {
+                throw new Error("Transaction is not of type Script");
+            }
 
-        if (!isTxnTypeScript) {
-            throw new Error("Transaction is not of type Script");
+            const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
+
+            const coinInputs = txRequest.getCoinInputs();
+
+            if (!coinInputs.length) {
+                const balance = await wallet.getCoins(await provider.getBaseAssetId());
+
+                for (const coin of balance.coins) {
+                    txRequest.addCoinInput(coin);
+                }
+            }
+
+            const estimatedDependencies = await wallet.provider.getTransactionCost(txRequest);
+
+            txRequest.maxFee = estimatedDependencies.maxFee;
+
+            txRequest.gasLimit = estimatedDependencies.gasUsed;
+
+            await this.ensureSufficientBalance(
+                {
+                    network: request.network,
+                    rawData: txRequest,
+                    wallet: wallet,
+                    callDataAsset: request.callDataAsset,
+                    callDataAmount: request.callDataAmount
+                }
+            )
+
+            return JSON.stringify(txRequest);
+
         }
-
-        const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
-
-        const coinInputs = txRequest.getCoinInputs();
-
-        if (!coinInputs.length) {
-            const balance = await wallet.getCoins(await provider.getBaseAssetId());
-
-            for (const coin of balance.coins) {
-                txRequest.addCoinInput(coin);
+        catch (error) {
+            if (error.metadata.logs.includes("Not Future Timelock")) {
+                throw new InvalidTimelockException(`Transaction has an invalid timelock`);
             }
         }
-
-        const estimatedDependencies = await wallet.provider.getTransactionCost(txRequest);
-
-        txRequest.maxFee = estimatedDependencies.maxFee;
-
-        txRequest.gasLimit = estimatedDependencies.gasUsed;
-
-        await this.ensureSufficientBalance(
-            {
-                network: request.network,
-                rawData: txRequest,
-                wallet: wallet,
-                callDataAsset: request.callDataAsset,
-                callDataAmount: request.callDataAmount
-            }
-        )
-
-        return JSON.stringify(txRequest);
     }
 
     private async ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
