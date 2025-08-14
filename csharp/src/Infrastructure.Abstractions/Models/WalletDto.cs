@@ -17,3 +17,8 @@ public class WalletDto
 
     public string SignerAgent { get; set; } = null!;
 }
+
+public class DetailedWalletDto : WalletDto
+{
+    public new SignerAgentDto SignerAgent { get; set; } = null!;
+}

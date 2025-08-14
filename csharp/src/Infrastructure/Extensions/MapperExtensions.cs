@@ -10,6 +10,7 @@ public static partial class MapperExtensions
     {
         return new SwapDto
         {
+            Id = swap.Id,
             CommitId = swap.CommitId,
             Hashlock = swap.Hashlock,
             Source = swap.Route.SourceToken.ToWithExtendedNetworkDto(),
@@ -26,6 +27,32 @@ public static partial class MapperExtensions
             FeeAmount = BigInteger.Parse(swap.FeeAmount),
             Transactions = swap.Transactions.Select(t => t.ToDto()),
             DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
+        };
+    }
+
+    public static DetailedSwapDto ToDetailedDto(this Swap swap)
+    {
+        return new DetailedSwapDto
+        {
+            Id = swap.Id,
+            CommitId = swap.CommitId,
+            Hashlock = swap.Hashlock,
+            Source = swap.Route.SourceToken.ToWithExtendedNetworkDto(),
+            SourceAmount = BigInteger.Parse(swap.SourceAmount),
+            SourceAddress = swap.SourceAddress,
+            SourceContractAddress = swap.Route.SourceTokenId == swap.Route.SourceToken.Network.NativeTokenId ?
+                swap.Route.SourceToken.Network.HTLCNativeContractAddress :
+                swap.Route.SourceToken.Network.HTLCTokenContractAddress,
+            Destination = swap.Route.DestinationToken.ToWithExtendedNetworkDto(),
+            DestinationAddress = swap.DestinationAddress,
+            DestinationContractAddress = swap.Route.DestinationTokenId == swap.Route.DestinationToken.Network.NativeTokenId ?
+                swap.Route.DestinationToken.Network.HTLCNativeContractAddress :
+                swap.Route.DestinationToken.Network.HTLCTokenContractAddress,
+            FeeAmount = BigInteger.Parse(swap.FeeAmount),
+            Transactions = swap.Transactions.Select(t => t.ToDto()),
+            DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
+            SourceWallet = swap.Route.SourceWallet.ToDetailedDto(),
+            DestinationWallet = swap.Route.DestinationWallet.ToDetailedDto(),
         };
     }
 
@@ -174,6 +201,17 @@ public static partial class MapperExtensions
             Address = wallet.Address,
             NetworkType = wallet.NetworkType,
             SignerAgent = wallet.SignerAgent.Name,
+        };
+    }
+
+    public static DetailedWalletDto ToDetailedDto(this Wallet wallet)
+    {
+        return new DetailedWalletDto
+        {
+            Name = wallet.Name,
+            Address = wallet.Address,
+            NetworkType = wallet.NetworkType,
+            SignerAgent = wallet.SignerAgent.ToDto(),
         };
     }
 

@@ -12,6 +12,7 @@ using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Models;
 using System.Numerics;
 using Train.Solver.Common.Helpers;
+using Train.Solver.Infrastructure.Extensions;
 
 namespace Train.Solver.Workflow.Swap.Activities;
 
@@ -128,9 +129,10 @@ public class SwapActivities(
     }
 
     [Activity]
-    public async Task<List<string>> GetNonRefundedSwapIdsAsync()
+    public async Task<List<DetailedSwapDto>> GetNonRefundedSwapsAsync()
     {
-        return await swapRepository.GetNonRefundedSwapIdsAsync();
+        var swaps = await swapRepository.GetNonRefundedSwapsAsync();
+        return swaps.Select(x => x.ToDetailedDto()).ToList();
     }
 
     [Activity]

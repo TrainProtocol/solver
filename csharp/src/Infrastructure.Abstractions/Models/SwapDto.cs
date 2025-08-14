@@ -4,6 +4,8 @@ namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class SwapDto
 {
+    public int Id { get; set; }
+
     public string CommitId { get; set; } = null!;
 
     public string Hashlock { get; set; } = null!;
@@ -27,4 +29,11 @@ public class SwapDto
     public BigInteger FeeAmount { get; set; }
 
     public IEnumerable<TransactionDto> Transactions { get; set; } = [];
+}
+
+public class DetailedSwapDto : SwapDto
+{
+    public DetailedWalletDto SourceWallet { get; set; } = null!;
+
+    public DetailedWalletDto DestinationWallet { get; set; } = null!;
 }
