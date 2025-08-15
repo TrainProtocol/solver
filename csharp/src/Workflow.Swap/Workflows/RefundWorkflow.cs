@@ -42,7 +42,14 @@ public class RefundWorkflow : IRefundWorkflow
                 FromAddress = fromAddress,
                 SignerAgentUrl = signerAgent.Url,
                 SwapId = swap.Id,
-            }, new TransactionExecutionContext()));
+            }, new TransactionExecutionContext()), new ChildWorkflowOptions
+            {
+                Id = BuildProcessorId(
+                    network.Name,
+                    TransactionType.HTLCRefund,
+                    NewGuid()),
+                TaskQueue = network.Type.ToString(),
+            });
 
         await ExecuteActivityAsync(
             (ISwapActivities x) =>
