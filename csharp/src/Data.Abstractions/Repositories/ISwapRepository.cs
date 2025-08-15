@@ -9,7 +9,7 @@ public interface ISwapRepository
 
     Task<List<Swap>> GetAllAsync(uint page = 1, uint size = 20);
 
-    Task<List<Swap>> GetNonRefundedSwapsAsync();
+    Task<List<string>> GetNonRefundedSwapsAsync();
 
     Task<Swap> CreateAsync(
         string commitId,

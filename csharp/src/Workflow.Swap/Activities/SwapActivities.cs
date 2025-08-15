@@ -129,10 +129,14 @@ public class SwapActivities(
     }
 
     [Activity]
-    public async Task<List<DetailedSwapDto>> GetNonRefundedSwapsAsync()
+    public async Task<SwapDto> GetSwapAsync(string commitId)
     {
-        var swaps = await swapRepository.GetNonRefundedSwapsAsync();
-        return swaps.Select(x => x.ToDetailedDto()).ToList();
+        var swap = await swapRepository.GetAsync(commitId);
+
+        if (swap is null)
+            throw new Exception($"Swap with commitId {commitId} not found.");
+
+        return swap.ToDto();
     }
 
     [Activity]
