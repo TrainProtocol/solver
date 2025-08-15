@@ -4,4 +4,5 @@ public class TotalSwapMetrics
 {
     public decimal TotalVolumeInUsd { get; set; }
     public decimal TotalProfitInUsd { get; set; }
+    public decimal TotalCount { get; set; }
 }
