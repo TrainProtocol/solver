@@ -50,7 +50,8 @@ public static class RebalanceEndpoints
                     var rebalanceEntry = new RebalanceEntry
                     {
                         Id = wf.Id,
-                        Status = wf.Status.ToString(),
+                        Timestamp = wf.StartTime,
+                        Status = wf.Status,
                         Summary = decoded.Result.FromJson<RebalanceSummary>(),
                     };
 

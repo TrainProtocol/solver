@@ -10,4 +10,5 @@ public class UpdateRouteRequest
     public BigInteger MaxAmount { get; set; }
     public string ServiceFee { get; set; } = null!;
     public RouteStatus Status { get; set; }
+    public bool IgnoreExpenseFee { get; set; }
 }

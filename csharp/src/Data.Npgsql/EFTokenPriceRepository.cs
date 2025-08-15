@@ -44,6 +44,7 @@ public class EFTokenPriceRepository(SolverDbContext dbContext) : ITokenPriceRepo
             if (tokenPrices.TryGetValue(externalId, out var token))
             {
                 token.PriceInUsd = prices[externalId];
+                token.LastUpdated = DateTimeOffset.UtcNow;
             }
         }
 

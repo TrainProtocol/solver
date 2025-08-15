@@ -101,6 +101,7 @@ public class EFRouteRepository(
        BigInteger minAmount,
        BigInteger maxAmount,
        RouteStatus status,
+       bool ignoreExpenseFee,
        string serviceFeeName)
     {
         var route = await GetAsync(
@@ -134,6 +135,7 @@ public class EFRouteRepository(
         route.MinAmountInSource = minAmount.ToString();
         route.MaxAmountInSource = maxAmount.ToString();
         route.ServiceFee = serviceFee;
+        route.IgnoreExpenseFee = ignoreExpenseFee;
         route.Status = status;
 
         await dbContext.SaveChangesAsync();
@@ -158,7 +160,7 @@ public class EFRouteRepository(
         string destinationToken,
         BigInteger? amount)
     {
-        var query = GetBaseQuery([RouteStatus.Active]);
+        var query = GetBaseQuery(null);
 
         query = query.Where(x =>
             x.SourceToken.Asset == sourceToken
@@ -200,7 +202,7 @@ public class EFRouteRepository(
         await dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<Route> GetBaseQuery(RouteStatus[] statuses)
+    private IQueryable<Route> GetBaseQuery(RouteStatus[]? statuses)
         => dbContext.Routes
             .Include(x => x.RateProvider)
             .Include(x => x.SourceWallet.SignerAgent)

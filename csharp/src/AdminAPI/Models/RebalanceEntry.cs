@@ -1,4 +1,5 @@
-﻿using Train.Solver.Infrastructure.Abstractions.Models;
+﻿using Temporalio.Api.Enums.V1;
+using Train.Solver.Infrastructure.Abstractions.Models;
 
 namespace Train.Solver.AdminAPI.Models;
 
@@ -8,7 +9,9 @@ public class RebalanceEntry
 
     public required string Id { get; set; }
 
-    public required string Status { get; set; }
+    public required WorkflowExecutionStatus Status { get; set; }
+
+    public required DateTimeOffset Timestamp { get; set; }
 
     public TransactionDto? Transaction { get; set; }
 }

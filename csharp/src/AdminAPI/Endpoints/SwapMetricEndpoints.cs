@@ -12,10 +12,13 @@ public static class SwapMetricEndpoints
             .Produces<TotalSwapMetrics>();
 
         group.MapGet("/swap-metrics/daily-volume", GetDailyVolumeAsync)
-            .Produces<List<TimeSeriesMetric>>();
+            .Produces<List<TimeSeriesMetric<decimal>>>();
 
         group.MapGet("/swap-metrics/daily-profit", GetDailyProfitAsync)
-            .Produces<List<TimeSeriesMetric>>();
+            .Produces<List<TimeSeriesMetric<decimal>>>();
+
+        group.MapGet("/swap-metrics/daily-count", GetDailyCountAsync)
+            .Produces<List<TimeSeriesMetric<int>>>();
 
         return group;
     }
@@ -24,11 +27,12 @@ public static class SwapMetricEndpoints
         ISwapMetricRepository repository,
         [FromQuery] DateTime? startFrom)
     {
-        var (volume, profit) = await repository.GetTotalVolumeAndProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
+        var (volume, profit, count) = await repository.GetTotalVolumeAndProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
         return Results.Ok(new TotalSwapMetrics
         {
             TotalVolumeInUsd = volume,
-            TotalProfitInUsd = profit
+            TotalProfitInUsd = profit,
+            TotalCount = count
         });
     }
 
@@ -37,7 +41,7 @@ public static class SwapMetricEndpoints
         [FromQuery] DateTime? startFrom)
     {
         var data = await repository.GetDailyVolumeAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
-        var result = data.Select(x => new TimeSeriesMetric
+        var result = data.Select(x => new TimeSeriesMetric<decimal>
         {
             Date = x.Date,
             Value = x.Value
@@ -50,10 +54,23 @@ public static class SwapMetricEndpoints
         [FromQuery] DateTime? startFrom)
     {
         var data = await repository.GetDailyProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
-        var result = data.Select(x => new TimeSeriesMetric
+        var result = data.Select(x => new TimeSeriesMetric<decimal>
         {
             Date = x.Date,
             Value = x.Value
+        }).ToList();
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetDailyCountAsync(
+       ISwapMetricRepository repository,
+       [FromQuery] DateTime? startFrom)
+    {
+        var data = await repository.GetDailyCountAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
+        var result = data.Select(x => new TimeSeriesMetric<int>
+        {
+            Date = x.Date,
+            Value = x.Count
         }).ToList();
         return Results.Ok(result);
     }

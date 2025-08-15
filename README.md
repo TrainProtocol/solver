@@ -39,7 +39,7 @@ TrainSolver enables secure, atomic, and permissionless cross-chain asset transfe
 
 The architecture ensures:
 
-- **Trustless Transfers** — assets are only moved under user-approved conditions.
+- **Trust-Minimzed Transfers** — assets are only moved under user-approved conditions.
 - **Permissionless Integration** — no central approval is required for adding new blockchains.
 - **Scalable Design** — supports horizontal onboarding of new chains and workflows.
 
