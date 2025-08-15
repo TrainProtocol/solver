@@ -172,12 +172,6 @@ public class SolverDbContext(DbContextOptions<SolverDbContext> options) : DbCont
           .HasIndex(x => x.CommitId).IsUnique();
 
         modelBuilder.Entity<SwapMetric>()
-            .HasOne(m => m.Swap)
-            .WithOne(s => s.Metric)
-            .HasForeignKey<SwapMetric>(m => m.SwapId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<SwapMetric>()
             .HasIndex(m => m.SourceNetwork);
 
         modelBuilder.Entity<SwapMetric>()
