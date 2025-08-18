@@ -83,6 +83,12 @@ public static class SwapEndpoints
             return Results.BadRequest("Swap already refunded");
         }
 
+        if(swap.Route.SourceToken.Network.Name != request.NetworkName && 
+           swap.Route.DestinationToken.Network.Name != request.NetworkName)
+        {
+            return Results.BadRequest("Network name does not match swap source or destination network");
+        }
+
         var wallet = await walletRepository.GetAsync(request.Type, request.Address);
 
         if (wallet == null)
@@ -96,9 +102,9 @@ public static class SwapEndpoints
         }
 
         var workflowId = await temporalClient.StartWorkflowAsync(
-            (IRefundWorkflow w) => w.RunAsync(commitId, request.Address, wallet.SignerAgent.Name),
+            (IRefundWorkflow w) => w.RunAsync(commitId, request.NetworkName, request.Address, wallet.SignerAgent.Name),
                  new(id: TemporalHelper.BuildRefundId(commitId), taskQueue: Constants.CoreTaskQueue));
 
         return Results.Ok();
     }
-}
+} 

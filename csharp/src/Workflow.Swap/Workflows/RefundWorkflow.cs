@@ -14,15 +14,19 @@ namespace Train.Solver.Workflow.Swap.Workflows;
 public class RefundWorkflow : IRefundWorkflow
 {
     [WorkflowRun]
-    public async Task RunAsync(string commitId, string fromAddress, string signerAgentName)
+    public async Task RunAsync(string commitId, string networkName, string fromAddress, string signerAgentName)
     {
         var swap = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetSwapAsync(commitId),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
         var network = await ExecuteActivityAsync(
-               (INetworkActivities x) => x.GetNetworkAsync(swap.Destination.Network.Name),
+               (INetworkActivities x) => x.GetNetworkAsync(networkName),
                DefaultActivityOptions(Constants.CoreTaskQueue));
+
+        var asset = swap.Destination.Network.Name == network.Name
+            ? swap.Destination.Token.Symbol
+            : swap.Source.Token.Symbol;
 
         var signerAgent = await ExecuteActivityAsync(
             (IWalletActivities x) => x.GetSignerAgentAsync(signerAgentName),
@@ -35,7 +39,7 @@ public class RefundWorkflow : IRefundWorkflow
                 PrepareArgs = new HTLCRefundTransactionPrepareRequest
                 {
                     CommitId = swap.CommitId,
-                    Asset = swap.Destination.Token.Symbol,
+                    Asset = asset,
                 }.ToJson(),
                 Type = TransactionType.HTLCRefund,
                 Network = network,
