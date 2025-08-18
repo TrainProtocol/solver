@@ -67,6 +67,16 @@ public class SwapWorkflow : ISwapWorkflow
             throw new ApplicationFailureException("Source or destination asset is not supported in the network");
         }
 
+        var commitTransaction = await ExecuteActivityAsync(
+                (IBlockchainActivities x) => x.GetTransactionAsync(new GetTransactionRequest
+                {
+                    Network = _sourceNetwork,
+                    TransactionHash = _htlcCommitMessage.TxId,
+                }),
+                DefaultActivityOptions(_sourceNetwork.Type));
+
+        var transfer = commitTransaction.Actions.FirstOrDefault();
+
         // Validate limit
         var limit = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetLimitAsync(new()

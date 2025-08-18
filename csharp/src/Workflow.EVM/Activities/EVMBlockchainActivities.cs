@@ -1,4 +1,5 @@
 ﻿using Nethereum.ABI.EIP712;
+using Nethereum.Contracts;
 using Nethereum.Contracts.Standards.ERC1271.ContractDefinition;
 using Nethereum.Contracts.Standards.ERC20.ContractDefinition;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -95,7 +96,11 @@ public class EVMBlockchainActivities(
 
         foreach (var transactionId in request.TransactionHashes)
         {
-            transaction = await GetTransactionAsync(request.Network, transactionId);
+            transaction = await GetTransactionAsync(new GetTransactionRequest
+            {
+                Network = request.Network,
+                TransactionHash = transactionId,
+            });
         }
 
         if (transaction == null)
@@ -104,7 +109,7 @@ public class EVMBlockchainActivities(
         }
 
         return transaction;
-    } 
+    }
 
     [Activity]
     public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
@@ -487,7 +492,11 @@ public class EVMBlockchainActivities(
 
             try
             {
-                transactionResponse = await GetTransactionAsync(request.Network, request.SignedTransaction.Hash);
+                transactionResponse = await GetTransactionAsync(new GetTransactionRequest
+                {
+                    Network = request.Network,
+                    TransactionHash = request.SignedTransaction.Hash
+                });
 
                 if (transactionResponse != null)
                 {
@@ -656,21 +665,21 @@ public class EVMBlockchainActivities(
         };
     }
 
-    private async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
+    public async Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request)
     {
-        var nodes = network.Nodes.Select(x => x.Url);
+        var nodes = request.Network.Nodes.Select(x => x.Url);
 
         if (!nodes.Any())
         {
-            throw new Exception($"Node is not configured on {network.Name} network");
+            throw new Exception($"Node is not configured on {request.Network.Name} network");
         }
 
-        var nativeCurrency = network.Tokens
+        var nativeCurrency = request.Network.Tokens
             .Single(x => x.Contract is null);
 
-        var transactionResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
+        var transactionResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
                 async url =>
-                    await new Web3(url).Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionId));
+                    await new Web3(url).Eth.Transactions.GetTransactionByHash.SendRequestAsync(request.TransactionHash));
 
         if (!transactionResult.Succeeded)
         {
@@ -679,7 +688,7 @@ public class EVMBlockchainActivities(
 
         if (transactionResult.Data.BlockNumber is null)
         {
-            throw new TransactionNotComfirmedException($"Transaction not confirmed yet on {network.Name}");
+            throw new TransactionNotComfirmedException($"Transaction not confirmed yet on {request.Network.Name}");
         }
 
         if (string.IsNullOrEmpty(transactionResult.Data.To))
@@ -687,7 +696,7 @@ public class EVMBlockchainActivities(
             throw new Exception($"Transaction recipient is missing block number: {transactionResult.Data.BlockNumber}");
         }
 
-        var currentBlockNumberResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
+        var currentBlockNumberResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Blocks.GetBlockNumber.SendRequestAsync());
 
@@ -696,7 +705,7 @@ public class EVMBlockchainActivities(
             throw new AggregateException(currentBlockNumberResult.FailedNodes.Values);
         }
 
-        var transactionBlockResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
+        var transactionBlockResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async url =>
                 await new Web3(url).Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(transactionResult.Data.BlockNumber));
 
@@ -705,7 +714,7 @@ public class EVMBlockchainActivities(
             throw new AggregateException(transactionBlockResult.FailedNodes.Values);
         }
 
-        var transactionReceiptResult = await smartNodeInvoker.ExecuteAsync(network.Name, nodes,
+        var transactionReceiptResult = await smartNodeInvoker.ExecuteAsync(request.Network.Name, nodes,
             async nodeUrl => await new Web3(nodeUrl).Client
                 .SendRequestAsync<EVMTransactionReceipt>(
                     new RpcRequest(
@@ -723,7 +732,7 @@ public class EVMBlockchainActivities(
             throw new TransactionFailedException("Transaction failed");
         }
 
-        var feeEstimator = feeEstimatorFactory.Create(network.FeeType);
+        var feeEstimator = feeEstimatorFactory.Create(request.Network.FeeType);
         var transactionFee = feeEstimator.CalculateFee(
             transactionBlockResult.Data,
             transactionResult.Data,
@@ -735,7 +744,7 @@ public class EVMBlockchainActivities(
         var transactionModel = new TransactionResponse
         {
             Decimals = nativeCurrency.Decimals,
-            NetworkName = network.Name,
+            NetworkName = request.Network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transactionResult.Data.TransactionHash,
             FeeAmount = transactionFee,
@@ -744,6 +753,38 @@ public class EVMBlockchainActivities(
             Timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)transactionBlockResult.Data.Timestamp.Value * 1000),
             Confirmations = (int)(currentBlockNumberResult.Data.Value - transactionResult.Data.BlockNumber.Value) + 1
         };
+
+        var nativeValue = transactionResult.Data.Value?.Value ?? 0;
+
+        if (nativeValue > 0 && !string.IsNullOrEmpty(to))
+        {
+            transactionModel.Actions.Add(new TransferAction
+            {
+                Amount = nativeValue,
+                From = from,
+                To = to,
+                Symbol = nativeCurrency.Symbol,
+            });
+        }
+
+        var decoded = transactionReceiptResult.Data.DecodeAllEvents<TransferEventDTO>();
+
+        foreach (var e in decoded)
+        {
+            var tokenSymbol = request.Network.Tokens
+                .SingleOrDefault(x => x.Contract == e.Log.Address)?.Symbol;
+
+            if (!string.IsNullOrEmpty(tokenSymbol))
+            {
+                transactionModel.Actions.Add(new TransferAction
+                {
+                    From = e.Event.From,
+                    To = e.Event.To,
+                    Symbol = tokenSymbol,
+                    Amount = e.Event.Value
+                });
+            }
+        }
 
         return transactionModel;
     }

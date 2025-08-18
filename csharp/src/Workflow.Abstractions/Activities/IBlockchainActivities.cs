@@ -20,4 +20,7 @@ public interface IBlockchainActivities
 
     [Activity]
     Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
+
+    [Activity]
+    Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
 }
