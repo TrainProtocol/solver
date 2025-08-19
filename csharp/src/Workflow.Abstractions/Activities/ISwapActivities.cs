@@ -23,7 +23,7 @@ public interface ISwapActivities
     Task<LimitDto> GetLimitAsync(SourceDestinationRequest request);
 
     [Activity]
-    Task<List<string>> GetNonRefundedSwapIdsAsync();
+    Task<SwapDto> GetSwapAsync(string commitId);
 
     [Activity]
     Task<QuoteWithSolverDto> GetQuoteAsync(QuoteRequest request);

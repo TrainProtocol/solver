@@ -10,10 +10,6 @@ public class Swap : EntityBase
 
     public Route Route { get; set; } = null!;
 
-    public int? MetricId { get; set; }
-
-    public virtual SwapMetric? Metric { get; set; }
-
     public string SourceAddress { get; set; } = null!;
 
     public string DestinationAddress { get; set; } = null!;

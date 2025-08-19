@@ -1,7 +1,7 @@
 ﻿namespace Train.Solver.AdminAPI.Models;
 
-public class TimeSeriesMetric
+public class TimeSeriesMetric<T>
 {
     public DateTime Date { get; set; }
-    public decimal Value { get; set; }
+    public T Value { get; set; }
 }

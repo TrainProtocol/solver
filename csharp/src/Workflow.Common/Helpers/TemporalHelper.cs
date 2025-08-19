@@ -50,4 +50,7 @@ public static class TemporalHelper
 
     public static string BuildRebalanceProcessorId(string networkName, Guid uniqueId) 
         => $"Rebalance-{networkName}-{uniqueId}";
+
+    public static string BuildRefundId(string commitId)
+        => $"Refund-{commitId}";
 }

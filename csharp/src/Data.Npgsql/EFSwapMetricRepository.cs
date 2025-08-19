@@ -10,17 +10,18 @@ using Train.Solver.Data.Abstractions.Repositories;
 namespace Train.Solver.Data.Npgsql;
 internal class EFSwapMetricRepository(SolverDbContext dbContext) : ISwapMetricRepository
 {
-    public async Task<(decimal TotalVolumeInUsd, decimal TotalProfitInUsd)> GetTotalVolumeAndProfitAsync(DateTime startFrom)
+    public async Task<(decimal TotalVolumeInUsd, decimal TotalProfitInUsd, int Count)> GetTotalVolumeAndProfitAsync(DateTime startFrom)
     {
-        var result = await dbContext.SwapMetrics
+        var r = await dbContext.SwapMetrics
             .Where(m => m.CreatedDate >= startFrom)
             .GroupBy(_ => 1)
             .Select(g => new {
                 TotalVolume = g.Sum(x => x.VolumeInUsd),
-                TotalProfit = g.Sum(x => x.ProfitInUsd)
+                TotalProfit = g.Sum(x => x.ProfitInUsd),
+                Count = g.Count()
             }).FirstOrDefaultAsync();
 
-        return (result?.TotalVolume ?? 0, result?.TotalProfit ?? 0);
+        return (r?.TotalVolume ?? 0, r?.TotalProfit ?? 0, r?.Count ?? 0);
     }
 
     public async Task<List<(DateTime Date, decimal Value)>> GetDailyVolumeAsync(DateTime startFrom)
@@ -49,5 +50,17 @@ internal class EFSwapMetricRepository(SolverDbContext dbContext) : ISwapMetricRe
             }).ToListAsync();
 
         return result.Select(x => (x.Date, x.Value)).ToList();
+    }
+
+    public async Task<List<(DateTime Date, int Count)>> GetDailyCountAsync(DateTime startFrom)
+    {
+        var r = await dbContext.SwapMetrics
+            .Where(m => m.CreatedDate >= startFrom)
+            .GroupBy(m => m.CreatedDate.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        return r.Select(x => (x.Date, x.Count)).ToList();
     }
 }

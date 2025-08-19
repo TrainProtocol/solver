@@ -67,7 +67,7 @@ public class EFSwapRepository(
         return await GetBaseQuery().FirstOrDefaultAsync(x => x.CommitId == commitId);
     }
 
-    public async Task<List<string>> GetNonRefundedSwapIdsAsync()
+    public async Task<List<string>> GetNonRefundedSwapsAsync()
     {
         return await dbContext.Swaps
             .Where(x =>
@@ -75,9 +75,8 @@ public class EFSwapRepository(
                 &&
                 x.Transactions.All(t => t.Type != TransactionType.HTLCRefund)
                 &&
-                x.Transactions.Any(t => t.Type == TransactionType.HTLCLock)
-            )
-            .Select(s => s.CommitId)
+                x.Transactions.Any(t => t.Type == TransactionType.HTLCLock))
+            .Select(x => x.CommitId)
             .ToListAsync();
     }
 
