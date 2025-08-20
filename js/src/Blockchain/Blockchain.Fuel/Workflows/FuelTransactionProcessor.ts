@@ -35,14 +35,14 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-     const nextNonce = await defaultActivities.getNextNonce({
+     const nextNonce = await defaultActivities.GetNextNonce({
             address: request.fromAddress,
             network: request.network
         });
 
     try {       
 
-        await defaultActivities.checkCurrentNonce(
+        await defaultActivities.CheckCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
@@ -57,7 +57,7 @@ export async function FuelTransactionProcessor(
             type: request.type,
         });
 
-        const rawTx = await nonRetryableActivities.composeRawTransaction({
+        const rawTx = await nonRetryableActivities.ComposeRawTransaction({
             network: request.network,
             fromAddress: request.fromAddress,
             callData: preparedTransaction.data,
@@ -65,7 +65,7 @@ export async function FuelTransactionProcessor(
             callDataAmount: Number(preparedTransaction.callDataAmount),
         });
 
-        const signedRawData = await defaultActivities.signTransaction(
+        const signedRawData = await defaultActivities.SignTransaction(
             {
                 signerAgentUrl: request.signerAgentUrl,
                 networkType: NetworkType[request.network.type],
@@ -78,12 +78,12 @@ export async function FuelTransactionProcessor(
         );
 
         // sign transaction
-        const publishedTransaction = await nonRetryableActivities.publishTransaction({
+        const publishedTransaction = await nonRetryableActivities.PublishTransaction({
             network: request.network,
             signedRawData: signedRawData
         });
 
-        const transactionResponse = await defaultActivities.getTransaction({
+        const transactionResponse = await defaultActivities.GetTransaction({
             network: request.network,
             transactionHash: publishedTransaction,
         });
@@ -91,7 +91,7 @@ export async function FuelTransactionProcessor(
         transactionResponse.asset = preparedTransaction.callDataAsset;
         transactionResponse.amount = preparedTransaction.callDataAmount.toString();
 
-        await defaultActivities.updateCurrentNonce(
+        await defaultActivities.UpdateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
@@ -104,7 +104,7 @@ export async function FuelTransactionProcessor(
     }
     catch (error) {
 
-         await defaultActivities.updateCurrentNonce(
+         await defaultActivities.UpdateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,

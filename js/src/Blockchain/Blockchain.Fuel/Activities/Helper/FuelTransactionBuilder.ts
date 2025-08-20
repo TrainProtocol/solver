@@ -5,7 +5,7 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { Address, AssetId, B256Address, bn, Contract, DateTime, formatUnits, Provider, ScriptTransactionRequest, Wallet } from "fuels";
+import { Address, AssetId, bn, Contract, DateTime, Provider, ScriptTransactionRequest, Wallet } from "fuels";
 import abi from '../ABIs/train.json';
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
@@ -68,6 +68,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
     const provider = new Provider(network.nodes[0].url);
     const contractInstance = new Contract(htlcContractAddress, abi, provider);
     const receiverAddress = { bits: commitRequest.receiver };
+    const assetId: AssetId = new Address(token.contract).toAssetId();
 
     const callConfig = contractInstance.functions
         .commit(
@@ -82,7 +83,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             receiverAddress,
             DateTime.fromUnixSeconds(commitRequest.timelock).toTai64())
         .callParams({
-            forward: [Number(commitRequest.amount), await provider.getBaseAssetId()]
+            forward: [Number(commitRequest.amount), assetId.bits]
         })
         .txParams({
             maxFee: bn(1000000),
@@ -154,9 +155,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
 
     const receiverAddress = { bits: lockRequest.receiver };
 
-    const b256: B256Address = token.contract;
-    const address: Address = Address.fromB256(b256);
-    const assetId: AssetId = address.toAssetId();
+    const assetId: AssetId = new Address(token.contract).toAssetId();
     const sendAmount = Number(lockRequest.amount) + Number(lockRequest.reward);
 
     const callConfig = contractInstance.functions
