@@ -104,7 +104,7 @@ public class EVMBlockchainActivities(
         }
 
         return transaction;
-    } 
+    }
 
     [Activity]
     public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
@@ -220,8 +220,7 @@ public class EVMBlockchainActivities(
 
             var (eventType, typedEvent) = decodedEvent.Value;
 
-            if (eventType == typeof(EtherTokenCommittedEvent) ||
-                decodedEvent.Value.eventType == typeof(ERC20TokenCommitedEvent))
+            if (eventType == typeof(EtherTokenCommittedEvent))
             {
                 var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
 
@@ -248,6 +247,45 @@ public class EVMBlockchainActivities(
                     DestinationAsset = commitedEvent.DestinationAsset,
                     TimeLock = (long)commitedEvent.Timelock,
                     ReceiverAddress = FormatAddress(wallet),
+                };
+
+                result.HTLCCommitEventMessages.Add(message);
+            }
+            else if (eventType == typeof(ERC20TokenCommitedEvent))
+            {
+                var ercCommitedEvent = (ERC20TokenCommitedEvent)typedEvent;
+
+                var wallet = request.WalletAddresses.Where(x =>
+                    FormatAddress(x) == FormatAddress(ercCommitedEvent.Receiver)).FirstOrDefault();
+
+                if (wallet == null)
+                {
+                    continue;
+                }
+
+                var commitTokenContract = ercCommitedEvent.TokenContract;
+
+                if (!request.Network.Tokens.Any(x => x.Contract == commitTokenContract))
+                {
+                    continue;
+                }
+
+                var commitId = ercCommitedEvent.Id.ToHex(prefix: true);
+
+                var message = new HTLCCommitEventMessage
+                {
+                    TxId = log.TransactionHash,
+                    CommitId = commitId,
+                    Amount = ercCommitedEvent.Amount,
+                    SourceAsset = ercCommitedEvent.SourceAsset,
+                    SenderAddress = ercCommitedEvent.Sender,
+                    SourceNetwork = request.Network.Name,
+                    DestinationAddress = ercCommitedEvent.DestinationAddress,
+                    DestinationNetwork = ercCommitedEvent.DestinationChain,
+                    DestinationAsset = ercCommitedEvent.DestinationAsset,
+                    TimeLock = (long)ercCommitedEvent.Timelock,
+                    ReceiverAddress = FormatAddress(wallet),
+                    TokenContract = commitTokenContract,
                 };
 
                 result.HTLCCommitEventMessages.Add(message);
