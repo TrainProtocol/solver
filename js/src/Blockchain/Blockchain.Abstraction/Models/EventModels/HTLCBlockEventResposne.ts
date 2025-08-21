@@ -15,7 +15,7 @@ export interface HTLCCommitEventMessage {
   destinationNetwork: string;
   destinationAsset: string;
   timeLock: number;
-  tokenContract: string;
+  tokenContract?: string;
 }
 
 export interface HTLCLockEventMessage {
