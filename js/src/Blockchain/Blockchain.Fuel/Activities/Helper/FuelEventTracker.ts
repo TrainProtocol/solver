@@ -102,8 +102,17 @@ export default async function TrackBlockEventsAsync(
         const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
 
         const receiverAddress = solverAddresses.find(
-          x => FormatAddress(x) === FormatAddress(data.srcReceiver.bits)
-        );
+          x => FormatAddress(x) === FormatAddress(data.srcReceiver.bits));
+
+        if (!receiverAddress) {
+          continue;
+        }
+
+        const tokenContract = data.tokenContract;
+
+        if (!network.tokens.find(x => x.contract === tokenContract)) {
+          continue;
+        }
 
         const commitMsg: HTLCCommitEventMessage = {
           txId: transaction.id,
@@ -117,6 +126,7 @@ export default async function TrackBlockEventsAsync(
           destinationNetwork: data.dstChain.trim(),
           destinationAsset: data.dstAsset.trim(),
           timeLock: timelock.toUnixSeconds(),
+          tokenContract: data.tokenContract
         };
 
         response.htlcCommitEventMessages.push(commitMsg);
@@ -134,7 +144,7 @@ export default async function TrackBlockEventsAsync(
         const timelock = DateTime.fromTai64(data.timelock);
         const hashlock = ensureHexLength(bn(data.hashlock).toString(16), 32)
         const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
-        
+
         const lockMsg: HTLCLockEventMessage = {
           txId: transaction.id,
           commitId: commitId,
