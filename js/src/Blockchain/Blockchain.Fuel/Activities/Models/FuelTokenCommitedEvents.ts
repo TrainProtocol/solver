@@ -8,7 +8,7 @@ export interface TokenCommittedEvent {
   timelock: string;
   srcReceiver: AddressBits;
   sender: AddressBits;
-  tokenContract: string;
+  assetId: AddressBits;
 }
 
 interface AddressBits {

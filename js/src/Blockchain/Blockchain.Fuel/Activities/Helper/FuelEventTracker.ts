@@ -108,7 +108,7 @@ export default async function TrackBlockEventsAsync(
           continue;
         }
 
-        const tokenContract = data.tokenContract;
+        const tokenContract = data.assetId.bits;
 
         if (!network.tokens.find(x => x.contract === tokenContract)) {
           continue;
@@ -126,11 +126,10 @@ export default async function TrackBlockEventsAsync(
           destinationNetwork: data.dstChain.trim(),
           destinationAsset: data.dstAsset.trim(),
           timeLock: timelock.toUnixSeconds(),
-          tokenContract: data.tokenContract
+          tokenContract: tokenContract
         };
 
         response.htlcCommitEventMessages.push(commitMsg);
-
       }
       else if (transactionSelector === tokenLockAddedSelector) {
 
