@@ -31,7 +31,7 @@ public static class EVMTransactionBuilder
             ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
-        if (currency.Symbol != nativeCurrency.Symbol)
+        if (!isNative)
         {
             var response = new PrepareTransactionDto
             {
