@@ -8,18 +8,18 @@ import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModel
 import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
 
 export interface IFuelBlockchainActivities extends IBlockchainActivities {
-    getTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
 
+    GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
 
-    publishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
+    PublishTransaction(request: FuelPublishTransactionRequest): Promise<string>;
 
-    composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
+    ComposeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
 
-    signTransaction(request: FuelSignTransactionRequestModel): Promise<string>;
+    SignTransaction(request: FuelSignTransactionRequestModel): Promise<string>;
 
-    getNextNonce(request: NextNonceRequest): Promise<number>;
+    GetNextNonce(request: NextNonceRequest): Promise<number>;
 
-    checkCurrentNonce(request: CurrentNonceRequest): Promise<void>;
+    CheckCurrentNonce(request: CurrentNonceRequest): Promise<void>;
 
-    updateCurrentNonce(request: CurrentNonceRequest) : Promise<void>;
+    UpdateCurrentNonce(request: CurrentNonceRequest) : Promise<void>;
 }

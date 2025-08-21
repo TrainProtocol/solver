@@ -5,7 +5,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest } from "fuels";
+import { BigNumberCoder, Provider, Wallet, Signer, sha256, DateTime, bn, hashMessage, B256Coder, concat, Address, isTransactionTypeScript, transactionRequestify, ScriptTransactionRequest, AssetId } from "fuels";
 import { TransactionStatus } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 import { TransactionType } from "../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType";
 import { IFuelBlockchainActivities } from "./IFuelBlockchainActivities";
@@ -118,7 +118,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         return result;
     }
 
-    public async getTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
+    public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
 
         const provider = new Provider(request.network.nodes[0].url);
         const transaction = await provider.getTransactionResponse(request.transactionHash);
@@ -149,7 +149,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         return transactionResponse;
     }
 
-    public async publishTransaction(request: FuelPublishTransactionRequest): Promise<string> {
+    public async PublishTransaction(request: FuelPublishTransactionRequest): Promise<string> {
         let result: string;
 
         try {
@@ -183,11 +183,13 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    public async composeRawTransaction(request: FuelComposeTransactionRequest): Promise<string> {
+    public async ComposeRawTransaction(request: FuelComposeTransactionRequest): Promise<string> {
         try {
             const provider = new Provider(request.network.nodes[0].url);
             const wallet = Wallet.fromAddress(request.fromAddress, provider);
             const requestData = JSON.parse(request.callData);
+            const token = request.network.tokens.find(t => t.symbol === request.callDataAsset);
+            const nativeToken = request.network.nativeToken;
 
             const isTxnTypeScript = isTransactionTypeScript(JSON.parse(request.callData));
 
@@ -196,13 +198,30 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
             }
 
             const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
+            const isNative = token.symbol !== nativeToken.symbol;
 
             const coinInputs = txRequest.getCoinInputs();
 
-            if (!coinInputs.length) {
+            if (isNative || !coinInputs.length) {
+
                 const balance = await wallet.getCoins(await provider.getBaseAssetId());
 
                 for (const coin of balance.coins) {
+                    txRequest.addCoinInput(coin);
+                }
+            }
+            else if (!isNative) {
+                const nativeBalance = await wallet.getCoins(await provider.getBaseAssetId());
+
+                for (const coin of nativeBalance.coins) {
+                    txRequest.addCoinInput(coin);
+                }
+
+                const assetId: AssetId = new Address(token.contract).toAssetId();
+
+                const tokenBalance = await wallet.getCoins(assetId.bits);
+
+                for (const coin of tokenBalance.coins) {
                     txRequest.addCoinInput(coin);
                 }
             }
@@ -213,7 +232,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
             txRequest.gasLimit = estimatedDependencies.gasUsed;
 
-            await this.ensureSufficientBalance(
+            await this.EnsureSufficientBalance(
                 {
                     network: request.network,
                     rawData: txRequest,
@@ -233,7 +252,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    private async ensureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
+    private async EnsureSufficientBalance(request: FuelSufficientBalanceRequest): Promise<void> {
 
         const nativeAssetId = await request.wallet.provider.getBaseAssetId();
         const coinInputs = request.rawData.getCoinInputs();
@@ -275,7 +294,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    public async signTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
+    public async SignTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
 
         const treasuryClient = new TreasuryClient(request.signerAgentUrl);
 
@@ -284,7 +303,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         return response.signedTxn;
     }
 
-    public async getNextNonce(request: NextNonceRequest): Promise<number> {
+    public async GetNextNonce(request: NextNonceRequest): Promise<number> {
         const lockKey = buildLockKey(request.network.name, request.address);
 
         const nextNonceKey = buildNextNonceKey(request.network.name, request.address);
@@ -315,7 +334,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    public async checkCurrentNonce(request: CurrentNonceRequest): Promise<void> {
+    public async CheckCurrentNonce(request: CurrentNonceRequest): Promise<void> {
         const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
 
         const cached = await this.redis.get(currentNonceKey);
@@ -332,7 +351,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
 
 
-    public async updateCurrentNonce(request: CurrentNonceRequest): Promise<void> {
+    public async UpdateCurrentNonce(request: CurrentNonceRequest): Promise<void> {
         const lockKey = buildLockKey(request.network.name, request.address);
 
         const currentNonceKey = buildCurrentNonceKey(request.network.name, request.address);
@@ -354,6 +373,6 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     }
 }
 
-export function formatAddress(address: string): string {
+export function FormatAddress(address: string): string {
     return address.toLowerCase();
 }
