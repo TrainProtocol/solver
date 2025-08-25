@@ -39,7 +39,7 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
         data: JSON.stringify(txRequest),
         amount: "0",
         asset: network.nativeToken.symbol,
-        callDataAsset: token.symbol,
+        callDataAsset: network.nativeToken.symbol,
         callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
@@ -130,7 +130,7 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
         data: JSON.stringify(txRequest),
         amount: "0",
         asset: network.nativeToken.symbol,
-        callDataAsset: token.symbol,
+        callDataAsset: network.nativeToken.symbol,
         callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
@@ -224,7 +224,7 @@ export async function createAddLockSigCallData(network: DetailedNetworkDto, args
         data: JSON.stringify(txRequest),
         amount: "0",
         asset: network.nativeToken.symbol,
-        callDataAsset: token.symbol,
+        callDataAsset: network.nativeToken.symbol,
         callDataAmount: "0",
         toAddress: htlcContractAddress,
     };
