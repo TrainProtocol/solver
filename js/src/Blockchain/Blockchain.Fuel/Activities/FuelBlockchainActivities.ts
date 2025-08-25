@@ -249,6 +249,8 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
             if (error.metadata.logs.includes("Not Future Timelock")) {
                 throw new InvalidTimelockException(`Transaction has an invalid timelock`);
             }
+
+            throw error;
         }
     }
 
