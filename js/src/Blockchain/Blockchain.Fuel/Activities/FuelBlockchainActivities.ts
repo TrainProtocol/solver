@@ -198,11 +198,11 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
             }
 
             const txRequest = ScriptTransactionRequest.from(transactionRequestify(requestData));
-            const isNative = token.symbol !== nativeToken.symbol;
+            const isNative = token.symbol === nativeToken.symbol;
 
             const coinInputs = txRequest.getCoinInputs();
 
-            if (isNative || !coinInputs.length) {
+            if (isNative || coinInputs.length !== 0) {
 
                 const balance = await wallet.getCoins(await provider.getBaseAssetId());
 
@@ -259,9 +259,9 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         const nativeAssetId = await request.wallet.provider.getBaseAssetId();
         const coinInputs = request.rawData.getCoinInputs();
 
-        const nativeBalance = Number(
-            coinInputs.find(coin => coin.assetId === nativeAssetId).amount
-        );
+        const nativeBalance = coinInputs
+            .filter(coin => coin.assetId === nativeAssetId)
+            .reduce((sum, coin) => sum + Number(coin.amount), 0)
 
         const maxFee = Number(request.rawData.maxFee);
 
@@ -282,9 +282,9 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
             const topkenAssetId = new Address(token.contract).toAssetId().bits;
 
-            const tokenAssetBalance = Number(
-                coinInputs.find(coin => coin.assetId === topkenAssetId).amount
-            );
+            const tokenAssetBalance = coinInputs
+                .filter(coin => coin.assetId === topkenAssetId)
+                .reduce((sum, coin) => sum + Number(coin.amount), 0);
 
             if (tokenAssetBalance < request.callDataAmount) {
                 throw new Error(`Insufficient balance for ${request.callDataAsset}`);
