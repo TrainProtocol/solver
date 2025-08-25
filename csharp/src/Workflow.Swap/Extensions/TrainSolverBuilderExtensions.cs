@@ -28,6 +28,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<RouteStatusUpdaterWorkflow>()
             .AddWorkflow<EventListenerWorkflow>()
             .AddWorkflow<RefundWorkflow>()
+            .AddWorkflow<BalanceWorkflow>()
             .AddWorkflow<EventListenerUpdaterWorkflow>();
 
         return builder;

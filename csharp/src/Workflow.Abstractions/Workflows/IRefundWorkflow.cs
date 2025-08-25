@@ -1,5 +1,4 @@
-﻿
-using Temporalio.Workflows;
+﻿using Temporalio.Workflows;
 
 namespace Train.Solver.Workflow.Abstractions.Workflows;
 
