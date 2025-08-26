@@ -9,7 +9,7 @@ public interface INetworkRepository
 
     Task<Token?> GetTokenAsync(string networkName, string symbol);
 
-    Task<IEnumerable<Network>> GetAllAsync();
+    Task<IEnumerable<Network>> GetAllAsync(NetworkType[]? filterTypes);
 
     Task<Network?> CreateAsync(
         string networkName,

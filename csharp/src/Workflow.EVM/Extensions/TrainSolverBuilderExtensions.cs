@@ -22,7 +22,7 @@ public static class TrainSolverBuilderExtensions
             .AddTransientActivities<EVMBlockchainActivities>();
 
         builder.Services.AddTransient<IFeeEstimatorFactory, FeeEstimatorFactory>();
-        builder.Services.AddSmartNodeInvoker(builder.Options.RedisConnectionString, builder.Options.RedisDatabaseIndex);
+        builder.Services.AddSmartNodeInvoker();
         builder.Services.AddSingleton<IDistributedLockFactory>(x => RedLockFactory.Create(new List<RedLockMultiplexer>
         {
             new(ConnectionMultiplexer.Connect(builder.Options.RedisConnectionString))

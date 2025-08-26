@@ -14,17 +14,17 @@ namespace Train.Solver.Workflow.Swap.Workflows;
 public class BalanceWorkflow : IBalanceWorkflow
 {
     [WorkflowRun]
-    public async Task<Dictionary<TokenDto, BigInteger>> RunAsync(string networkName, string address)
+    public async Task<NetworkBalanceDto> RunAsync(string networkName, string address)
     {
         var network = await ExecuteActivityAsync(
                (INetworkActivities x) => x.GetNetworkAsync(networkName),
                DefaultActivityOptions(Constants.CoreTaskQueue));
 
-        var balances = new Dictionary<TokenDto, BigInteger>();
+        var balances = new List<TokenBalanceDto>();
 
         foreach (var token in network.Tokens)
         {
-            var balance = await ExecuteActivityAsync(
+            var balanceResponse = await ExecuteActivityAsync(
                 (IBlockchainActivities x) => x.GetBalanceAsync(new BalanceRequest()
                 {
                     Address = address,
@@ -33,9 +33,19 @@ public class BalanceWorkflow : IBalanceWorkflow
                 }),
                 DefaultActivityOptions(network.Type.ToString()));
 
-            balances[token] = balance.Amount;
+            balances.Add(new TokenBalanceDto
+            {
+                Amount = balanceResponse.Amount,
+                Token = token,
+            });
         }
 
-        return balances;
+        var networkBalance = new NetworkBalanceDto()
+        {
+            Balances = balances,
+            Network = network,
+        };
+
+        return networkBalance;
     }
 }

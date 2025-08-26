@@ -151,7 +151,7 @@ public static class RebalanceEndpoints
                             SignerAgentUrl = wallet.SignerAgent.Url,
                     },
                     new TransactionExecutionContext()],
-                    new(id: TemporalHelper.BuildRebalanceProcessorId(network.Name, Guid.NewGuid()),
+                    new(id: TemporalHelper.BuildRebalanceWorkflowId(network.Name, Guid.NewGuid()),
                     taskQueue: network.Type.ToString())
                     {
                         IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,

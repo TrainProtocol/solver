@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using System.Text.Json;
 using Temporalio.Client;
 using Temporalio.Converters;
@@ -32,6 +33,9 @@ public static class TrainSolverBuilderExtensions
         {
             services.Configure(configureOptions);
         }
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(options.RedisConnectionString));
+        services.AddTransient(sp => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase(options.RedisDatabaseIndex));
 
         services.AddTemporalWorkerClient(options.TemporalServerHost, options.TemporalNamespace);
 

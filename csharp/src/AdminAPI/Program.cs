@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using StackExchange.Redis;
 using System.Text.Json.Serialization;
 using Train.Solver.AdminAPI.Endpoints;
 using Train.Solver.Common.Extensions;

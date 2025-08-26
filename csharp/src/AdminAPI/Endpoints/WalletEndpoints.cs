@@ -1,12 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.Net;
+using System.Numerics;
+using Temporalio.Api.Cloud.Usage.V1;
+using Temporalio.Api.Enums.V1;
+using Temporalio.Client;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
+using Train.Solver.Infrastructure.Abstractions.Cache;
 using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Infrastructure.Cache;
 using Train.Solver.Infrastructure.Extensions;
+using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Workflows;
+using Train.Solver.Workflow.Common;
+using Train.Solver.Workflow.Common.Helpers;
 
 namespace Train.Solver.AdminAPI.Endpoints;
 
@@ -25,7 +37,46 @@ public static class WalletEndpoints
             .Produces(StatusCodes.Status200OK)
           .Produces(StatusCodes.Status404NotFound);
 
+        group.MapGet("/wallets/{networkType}/{address}/balances", GetBalanacesAsync)
+          .Produces<IEnumerable<NetworkBalanceDto>>(StatusCodes.Status200OK);
+
         return group;
+    }
+
+    private static async Task<IResult> GetBalanacesAsync(
+      ITemporalClient temporalClient,
+      IWalletRepository repository,
+      INetworkRepository networkRepository,
+      IBalanceCache balanceCache,
+      [FromRoute] NetworkType networkType,
+      [FromRoute] string address)
+    {
+        var wallet = await repository.GetAsync(networkType, address);
+
+        if (wallet == null)
+        {
+            return Results.NotFound($"Wallet {address} not found");
+        }
+
+        var networks = await networkRepository.GetAllAsync([networkType]);
+
+        var allBalances = new List<NetworkBalanceDto>();
+
+        foreach (var network in networks)
+        {
+
+            var balances = await temporalClient.ExecuteWorkflowAsync(
+                (IBalanceWorkflow wf) => wf.RunAsync(network.Name, address),
+                new(id: TemporalHelper.BuildBalanceWorkflowId(network.Name, Guid.NewGuid()),
+                taskQueue: Constants.CoreTaskQueue)
+                {
+                    IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
+                });
+
+            allBalances.Add(balances);
+        }
+
+        return Results.Ok(allBalances);
     }
 
     private static async Task<IResult> GetAllAsync(
