@@ -16,6 +16,7 @@ public static class TrainSolverBuilderExtensions
         var temporalBuilder = builder.Services
             .AddHostedTemporalWorker(Constants.CoreTaskQueue)
             .AddTransientActivities<UtilityActivities>()
+            .AddTransientActivities<CacheActivities>()
             .AddTransientActivities<RouteActivities>()
             .AddTransientActivities<WalletActivities>()
             .AddTransientActivities<SwapActivities>()
@@ -29,6 +30,7 @@ public static class TrainSolverBuilderExtensions
             .AddWorkflow<EventListenerWorkflow>()
             .AddWorkflow<RefundWorkflow>()
             .AddWorkflow<BalanceWorkflow>()
+            .AddWorkflow<BalanceUpdaterWorkflow>()
             .AddWorkflow<EventListenerUpdaterWorkflow>();
 
         return builder;
