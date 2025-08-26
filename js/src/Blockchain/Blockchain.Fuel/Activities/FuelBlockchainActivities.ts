@@ -202,7 +202,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
             const coinInputs = txRequest.getCoinInputs();
 
-            if (isNative || coinInputs.length !== 0) {
+            if (isNative && coinInputs.length === 0) {
 
                 const balance = await wallet.getCoins(await provider.getBaseAssetId());
 
@@ -210,7 +210,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
                     txRequest.addCoinInput(coin);
                 }
             }
-            else if (!isNative) {
+            else if (!isNative && coinInputs.length === 0) {
                 const nativeBalance = await wallet.getCoins(await provider.getBaseAssetId());
 
                 for (const coin of nativeBalance.coins) {
