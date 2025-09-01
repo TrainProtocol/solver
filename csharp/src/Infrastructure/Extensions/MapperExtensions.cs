@@ -12,6 +12,7 @@ public static partial class MapperExtensions
         {
             Id = swap.Id,
             CommitId = swap.CommitId,
+            Timestamp = swap.CreatedDate,
             Hashlock = swap.Hashlock,
             Source = swap.Route.SourceToken.ToWithExtendedNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
@@ -36,6 +37,7 @@ public static partial class MapperExtensions
         {
             Id = swap.Id,
             CommitId = swap.CommitId,
+            Timestamp = swap.CreatedDate,
             Hashlock = swap.Hashlock,
             Source = swap.Route.SourceToken.ToWithExtendedNetworkDto(),
             SourceAmount = BigInteger.Parse(swap.SourceAmount),
