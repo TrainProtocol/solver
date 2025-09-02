@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -49,7 +50,7 @@ public static class NetworkEndpoints
         INetworkRepository repository,
         [FromQuery] NetworkType[]? types)
     {
-        var networks = await repository.GetAllAsync(types);
+        var networks = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
         return Results.Ok(networks.Select(x => x.ToDetailedDto()));
     }
 
