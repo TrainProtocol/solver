@@ -11,11 +11,12 @@ using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Workflows;
 using Train.Solver.Workflow.Common;
 using Train.Solver.Common.Extensions;
+using Train.Solver.Workflow.Swap.Workflows.RedeemWorkflows;
 
 namespace Train.Solver.Workflow.Swap.Workflows;
 
 [Workflow]
-public class SwapWorkflow : ISwapWorkflow
+public class SwapWorkflow : BaseWorkflow, ISwapWorkflow
 {
     private static readonly TimeSpan _maxAcceptableCommitTimelockPeriod = TimeSpan.FromMinutes(45);
     private static readonly TimeSpan _minAcceptableTimelockPeriod = TimeSpan.FromMinutes(15);
@@ -225,26 +226,7 @@ public class SwapWorkflow : ISwapWorkflow
                 return;
             }
 
-            // Redeem user funds
-            var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionRequest()
-            {
-                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
-                {
-                    CommitId = _htlcCommitMessage!.CommitId,
-                    Asset = _htlcCommitMessage.DestinationAsset,
-                    Secret = hashlock.Secret,
-                    DestinationAddress = _htlcCommitMessage.DestinationAddress,
-                    SenderAddress = _destinationWalletAddress
-                }.ToJson(),
-                Type = TransactionType.HTLCRedeem,
-                Network = _destinationNetwork,
-                FromAddress = _destinationWalletAddress!,
-                SignerAgentUrl = _sourceWalletAgentUrl!,
-                SwapId = _swapId
-            });
-
-            // Redeem LP funds
-            var redeemInSourceTask = ExecuteTransactionAsync(new TransactionRequest()
+            var sourceRedeemRequest = new TransactionRequest()
             {
                 PrepareArgs = new HTLCRedeemTransactionPrepareRequest
                 {
@@ -259,7 +241,40 @@ public class SwapWorkflow : ISwapWorkflow
                 FromAddress = _sourceWalletAddress!,
                 SignerAgentUrl = _sourceWalletAgentUrl!,
                 SwapId = _swapId
-            });
+            };
+
+            var destinationRedeemRequest = new TransactionRequest()
+            {
+                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
+                {
+                    CommitId = _htlcCommitMessage!.CommitId,
+                    Asset = _htlcCommitMessage.DestinationAsset,
+                    Secret = hashlock.Secret,
+                    DestinationAddress = _htlcCommitMessage.DestinationAddress,
+                    SenderAddress = _destinationWalletAddress
+                }.ToJson(),
+                Type = TransactionType.HTLCRedeem,
+                Network = _destinationNetwork,
+                FromAddress = _destinationWalletAddress!,
+                SignerAgentUrl = _sourceWalletAgentUrl!,
+                SwapId = _swapId
+            };
+
+            switch (_destinationNetwork.Type)
+            {
+                case NetworkType.Aztec:
+                    await AztecRedeemWorkflow.destinationRedeemRequest);
+                    break;
+                default 
+                    await SourceDestinationRedeem()
+
+            }
+
+            // Redeem user funds
+            var redeemInDestinationTask = ExecuteTransactionAsync();
+
+            // Redeem LP funds
+            var redeemInSourceTask = ExecuteTransactionAsync();
 
             await Task.WhenAll(
                 redeemInDestinationTask,
@@ -337,36 +352,5 @@ public class SwapWorkflow : ISwapWorkflow
         }
 
         return Task.CompletedTask;
-    }
-
-    private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
-    {
-        var confirmedTransaction = await ExecuteChildTransactionProcessorWorkflowAsync(
-            transactionRequest.Network.Type,
-            x => x.RunAsync(transactionRequest, new TransactionExecutionContext()),
-            new ChildWorkflowOptions
-            {
-                Id = BuildProcessorId(
-                    transactionRequest.Network.Name,
-                    transactionRequest.Type,
-                    NewGuid()),
-                TaskQueue = transactionRequest.Network.Type.ToString(),
-            });
-
-        await ExecuteActivityAsync(
-            (ISwapActivities x) =>
-                x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
-            DefaultActivityOptions(Constants.CoreTaskQueue));
-
-        await ExecuteActivityAsync(
-            (ISwapActivities x) => x.UpdateExpensesAsync(
-                confirmedTransaction.NetworkName,
-                confirmedTransaction.FeeAsset,
-                confirmedTransaction.FeeAmount.ToString(),
-                confirmedTransaction.Asset,
-                transactionRequest.Type),
-            DefaultActivityOptions(Constants.CoreTaskQueue));
-
-        return confirmedTransaction;
     }
 }
