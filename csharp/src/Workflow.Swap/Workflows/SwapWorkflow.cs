@@ -188,7 +188,7 @@ public class SwapWorkflow : ISwapWorkflow
                     throw new ApplicationFailureException("Timelock remaining time is less than min acceptable value");
                 }
 
-                var remainingTimePeriodBetweenAddLockSigAndSolverLockInSeconds = _lpTimeLock.Second - _htlcAddLockSigMessage.Timelock;
+                var remainingTimePeriodBetweenAddLockSigAndSolverLockInSeconds = _lpTimeLock.ToUnixTimeSeconds() - _htlcAddLockSigMessage.Timelock;
 
                 if (remainingTimePeriodBetweenAddLockSigAndSolverLockInSeconds < _minAcceptableTimelockPeriod.TotalSeconds)
                 {
