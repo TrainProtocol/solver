@@ -1,5 +1,4 @@
-﻿
-using Temporalio.Workflows;
+﻿using Temporalio.Workflows;
 
 namespace Train.Solver.Workflow.Abstractions.Workflows;
 
@@ -7,5 +6,5 @@ namespace Train.Solver.Workflow.Abstractions.Workflows;
 public interface IRefundWorkflow
 {
     [WorkflowRun]
-    Task RunAsync(string commitId, string fromAddress, string signerAgentName);
+    Task RunAsync(string commitId, string networkName, string fromAddress, string signerAgentName);
 }

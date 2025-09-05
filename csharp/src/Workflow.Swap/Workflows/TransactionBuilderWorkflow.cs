@@ -3,6 +3,7 @@ using Train.Solver.Blockchain.Abstractions.Workflows;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Common;
 using Train.Solver.Workflow.Common.Helpers;
 using static Temporalio.Workflows.Workflow;
 
@@ -16,7 +17,7 @@ public class TransactionBuilderWorkflow : ITransactionBuilderWorkflow
     {
         var network = await ExecuteActivityAsync(
                (INetworkActivities x) => x.GetNetworkAsync(request.NetworkName),
-               TemporalHelper.DefaultActivityOptions());
+               TemporalHelper.DefaultActivityOptions(Constants.CoreTaskQueue));
 
         var buildTransaction = await ExecuteActivityAsync(
                (IBlockchainActivities x) => x.BuildTransactionAsync(new()

@@ -1,17 +1,16 @@
 export interface TokenCommittedEvent {
-    Id: string;
-    dstChain: string;
-    dstAddress: string;
-    dstAsset: string;
-    srcAsset: string;
-    amount: string;
-    timelock: string;
-    srcReceiver: AddressBits;
-    sender: AddressBits;
-  }
+  Id: string;
+  dstChain: string;
+  dstAddress: string;
+  dstAsset: string;
+  srcAsset: string;
+  amount: string;
+  timelock: string;
+  srcReceiver: AddressBits;
+  sender: AddressBits;
+  assetId: AddressBits;
+}
 
-  interface AddressBits{
-    bits: string;
-  }
-  
-  
+interface AddressBits {
+  bits: string;
+}

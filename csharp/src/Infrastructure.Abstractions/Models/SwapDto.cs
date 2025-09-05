@@ -6,6 +6,8 @@ public class SwapDto
 {
     public int Id { get; set; }
 
+    public DateTimeOffset Timestamp { get; set; }
+
     public string CommitId { get; set; } = null!;
 
     public string Hashlock { get; set; } = null!;

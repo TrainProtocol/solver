@@ -19,9 +19,10 @@ public class EFNetworkRepository(
             .FirstOrDefaultAsync(x => x.Name == networkName);
     }
 
-    public async Task<IEnumerable<Network>> GetAllAsync()
+    public async Task<IEnumerable<Network>> GetAllAsync(NetworkType[]? types)
     {
         return await dbContext.Networks
+            .Where(x => types == null || types.Contains(x.Type))
             .Include(x => x.Tokens)
             .ThenInclude(x => x.TokenPrice)
             .Include(x => x.Nodes)

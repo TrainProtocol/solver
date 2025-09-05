@@ -23,9 +23,6 @@ public static class TemporalHelper
         return await handle.GetResultAsync<TResult>().ConfigureAwait(true);
     }
 
-    public static ActivityOptions DefaultActivityOptions(string? summary = null) =>
-        DefaultActivityOptions(null, summary);
-
     public static ActivityOptions DefaultActivityOptions(NetworkType networkType, string? summary = null) =>
         DefaultActivityOptions(networkType.ToString(), summary);
 

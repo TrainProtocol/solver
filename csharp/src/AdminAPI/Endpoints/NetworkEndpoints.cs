@@ -2,6 +2,8 @@
 using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
 using Train.Solver.AdminAPI.Models;
+using Train.Solver.Common.Enums;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -44,10 +46,10 @@ public static class NetworkEndpoints
         return group;
     }
 
-    private static async Task<IResult> GetAllAsync(INetworkRepository repository)
+    private static async Task<IResult> GetAllAsync(INetworkRepository repository, NetworkType[]? types)
     {
-        var networks = await repository.GetAllAsync();
-        return Results.Ok(networks.Select(x=>x.ToDetailedDto()));
+        var networks = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
+        return Results.Ok(networks.Select(x => x.ToDetailedDto()));
     }
 
     private static async Task<IResult> GetAsync(

@@ -5,7 +5,7 @@ import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } 
 import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
 import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
-import { formatAddress } from "../FuelBlockchainActivities";
+import { FormatAddress } from "../FuelBlockchainActivities";
 import { ethers } from "ethers";
 
 export default async function TrackBlockEventsAsync(
@@ -102,8 +102,17 @@ export default async function TrackBlockEventsAsync(
         const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
 
         const receiverAddress = solverAddresses.find(
-          x => formatAddress(x) === formatAddress(data.srcReceiver.bits)
-        );
+          x => FormatAddress(x) === FormatAddress(data.srcReceiver.bits));
+
+        if (!receiverAddress) {
+          continue;
+        }
+
+        const tokenContract = data.assetId.bits;
+
+        if (!network.tokens.find(x => x.contract === tokenContract)) {
+          continue;
+        }
 
         const commitMsg: HTLCCommitEventMessage = {
           txId: transaction.id,
@@ -117,10 +126,10 @@ export default async function TrackBlockEventsAsync(
           destinationNetwork: data.dstChain.trim(),
           destinationAsset: data.dstAsset.trim(),
           timeLock: timelock.toUnixSeconds(),
+          tokenContract: tokenContract
         };
 
         response.htlcCommitEventMessages.push(commitMsg);
-
       }
       else if (transactionSelector === tokenLockAddedSelector) {
 
@@ -134,7 +143,7 @@ export default async function TrackBlockEventsAsync(
         const timelock = DateTime.fromTai64(data.timelock);
         const hashlock = ensureHexLength(bn(data.hashlock).toString(16), 32)
         const commitId = ensureHexLength(bn(data.Id).toString(16), 32);
-        
+
         const lockMsg: HTLCLockEventMessage = {
           txId: transaction.id,
           commitId: commitId,
