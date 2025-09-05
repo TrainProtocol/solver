@@ -1,11 +1,9 @@
-﻿using Temporalio.Workflows;
-using Train.Solver.Workflow.Abstractions.Models;
+﻿using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.Workflow.Swap.Workflows.RedeemWorkflows;
-
-public class SourceDestinationRedeem : BaseWorkflow
+ 
+public class SourceDestinationRedeemWorkflow : BaseWorkflow
 {
-    [WorkflowRun]
     public async Task RedeemAsync(
         TransactionRequest sourceRedeemRequest,
         TransactionRequest destinationRedeemRequest)

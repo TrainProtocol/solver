@@ -45,17 +45,17 @@ public class EventListenerWorkflow : IEventListenerWorkflow
         var solverWallets = await ExecuteActivityAsync(
             (ISwapActivities x) => x.GetRouteSourceWalletsAsync(
                 network.Type),
-                       new()
-                       {
-                           TaskQueue = Constants.CoreTaskQueue,
-                           StartToCloseTimeout = TimeSpan.FromSeconds(20),
-                           ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
-                           RetryPolicy = new()
-                           {
-                               InitialInterval = TimeSpan.FromSeconds(5),
-                               BackoffCoefficient = 1f,
-                           }
-                       });
+                new()
+                {
+                    TaskQueue = Constants.CoreTaskQueue,
+                    StartToCloseTimeout = TimeSpan.FromSeconds(20),
+                    ScheduleToCloseTimeout = TimeSpan.FromMinutes(20),
+                    RetryPolicy = new()
+                    {
+                        InitialInterval = TimeSpan.FromSeconds(5),
+                        BackoffCoefficient = 1f,
+                    }
+                });
 
         while (!Temporalio.Workflows.Workflow.CancellationToken.IsCancellationRequested)
         {

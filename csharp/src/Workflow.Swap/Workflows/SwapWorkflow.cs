@@ -260,26 +260,15 @@ public class SwapWorkflow : BaseWorkflow, ISwapWorkflow
                 SwapId = _swapId
             };
 
-            switch (_destinationNetwork.Type)
+            switch (_sourceNetwork.Type)
             {
                 case NetworkType.Aztec:
-                    await AztecRedeemWorkflow.destinationRedeemRequest);
+                    await new AztecRedeemWorkflow().RedeemAsync(destinationRedeemRequest);
                     break;
-                default 
-                    await SourceDestinationRedeem()
-
+                default:
+                    await new SourceDestinationRedeemWorkflow().RedeemAsync(sourceRedeemRequest, destinationRedeemRequest);
+                    break;
             }
-
-            // Redeem user funds
-            var redeemInDestinationTask = ExecuteTransactionAsync();
-
-            // Redeem LP funds
-            var redeemInSourceTask = ExecuteTransactionAsync();
-
-            await Task.WhenAll(
-                redeemInDestinationTask,
-                redeemInSourceTask);
-
         }
         catch (Exception e) when (TemporalException.IsCanceledException(e))
         {

@@ -1,14 +1,12 @@
-﻿using Temporalio.Workflows;
-using Train.Solver.Workflow.Abstractions.Models;
+﻿using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.Workflow.Swap.Workflows.RedeemWorkflows;
 
 public class AztecRedeemWorkflow : BaseWorkflow
 {
-    [WorkflowRun]
-    public async Task RedeemAsync(TransactionRequest redeemRequest)
+    public async Task RedeemAsync(TransactionRequest destinationRedeemRequest)
     {
         // Redeem LP funds
-        await ExecuteTransactionAsync(redeemRequest);
+        await ExecuteTransactionAsync(destinationRedeemRequest);
     }
 }

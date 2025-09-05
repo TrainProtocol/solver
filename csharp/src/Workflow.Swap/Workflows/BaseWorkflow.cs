@@ -5,7 +5,6 @@ using static Train.Solver.Workflow.Common.Helpers.TemporalHelper;
 using static Temporalio.Workflows.Workflow;
 using Train.Solver.Workflow.Common;
 
-
 namespace Train.Solver.Workflow.Swap.Workflows;
 
 public abstract class BaseWorkflow
