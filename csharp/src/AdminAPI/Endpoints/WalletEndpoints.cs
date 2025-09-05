@@ -1,10 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Numerics;
-using Temporalio.Api.Cloud.Usage.V1;
-using Temporalio.Api.Enums.V1;
-using Temporalio.Client;
 using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
@@ -13,10 +7,6 @@ using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Workflow.Abstractions.Models;
-using Train.Solver.Workflow.Abstractions.Workflows;
-using Train.Solver.Workflow.Common;
-using Train.Solver.Workflow.Common.Helpers;
 
 namespace Train.Solver.AdminAPI.Endpoints;
 

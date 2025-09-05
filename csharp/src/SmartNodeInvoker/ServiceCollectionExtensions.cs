@@ -11,12 +11,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
         services.AddTransient(sp => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase(dbIndex));
-        return services.AddSmartNodeInvoker();
-    }
-
-    public static IServiceCollection AddSmartNodeInvoker(
-        this IServiceCollection services)
-    {
         services.AddSingleton<ISmartNodeInvoker, SmartNodeInvoker>();
         return services;
     }

@@ -9,5 +9,5 @@ namespace Train.Solver.Workflow.Abstractions.Workflows;
 public interface IBalanceWorkflow
 {
     [WorkflowRun]
-    Task<NetworkBalanceDto> RunAsync(string networkName, string address);
+    Task<Dictionary<TokenDto, BigInteger>> RunAsync(string networkName, string address);
 }

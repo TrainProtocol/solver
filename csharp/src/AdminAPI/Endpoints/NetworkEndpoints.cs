@@ -46,9 +46,7 @@ public static class NetworkEndpoints
         return group;
     }
 
-    private static async Task<IResult> GetAllAsync(
-        INetworkRepository repository,
-        [FromQuery] NetworkType[]? types)
+    private static async Task<IResult> GetAllAsync(INetworkRepository repository)
     {
         var networks = await repository.GetAllAsync(types.IsNullOrEmpty() ? null : types);
         return Results.Ok(networks.Select(x => x.ToDetailedDto()));
