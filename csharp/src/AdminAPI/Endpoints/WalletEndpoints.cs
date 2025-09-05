@@ -64,12 +64,16 @@ public static class WalletEndpoints
 
         foreach (var network in networks)
         {
-            var networkBalance = await balanceCache.GetAsync(address, network.Name);
 
-            if (networkBalance != null)
-            {
-                allBalances.Add(networkBalance);
-            }
+            var balances = await temporalClient.ExecuteWorkflowAsync(
+                (IBalanceWorkflow wf) => wf.RunAsync(network.Name, address),
+                new(id: TemporalHelper.BuildBalanceWorkflowId(network.Name, Guid.NewGuid()),
+                taskQueue: Constants.CoreTaskQueue)
+                {
+                    IdReusePolicy = WorkflowIdReusePolicy.TerminateIfRunning,
+                });
+
+            allBalances.Add(balances);
         }
 
         return Results.Ok(allBalances);
