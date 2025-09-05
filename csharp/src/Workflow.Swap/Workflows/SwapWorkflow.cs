@@ -232,23 +232,30 @@ public class SwapWorkflow : ISwapWorkflow
                 return;
             }
 
-            // Redeem user funds
-            var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionRequest()
+            var tasks = new List<Task>();
+
+            if (_destinationNetwork.Type != NetworkType.Aztec)
             {
-                PrepareArgs = new HTLCRedeemTransactionPrepareRequest
+                // Redeem user funds
+                var redeemInDestinationTask = ExecuteTransactionAsync(new TransactionRequest()
                 {
-                    CommitId = _htlcCommitMessage!.CommitId,
-                    Asset = _htlcCommitMessage.DestinationAsset,
-                    Secret = hashlock.Secret,
-                    DestinationAddress = _htlcCommitMessage.DestinationAddress,
-                    SenderAddress = _destinationWalletAddress
-                }.ToJson(),
-                Type = TransactionType.HTLCRedeem,
-                Network = _destinationNetwork,
-                FromAddress = _destinationWalletAddress!,
-                SignerAgentUrl = _sourceWalletAgentUrl!,
-                SwapId = _swapId
-            });
+                    PrepareArgs = new HTLCRedeemTransactionPrepareRequest
+                    {
+                        CommitId = _htlcCommitMessage!.CommitId,
+                        Asset = _htlcCommitMessage.DestinationAsset,
+                        Secret = hashlock.Secret,
+                        DestinationAddress = _htlcCommitMessage.DestinationAddress,
+                        SenderAddress = _destinationWalletAddress
+                    }.ToJson(),
+                    Type = TransactionType.HTLCRedeem,
+                    Network = _destinationNetwork,
+                    FromAddress = _destinationWalletAddress!,
+                    SignerAgentUrl = _sourceWalletAgentUrl!,
+                    SwapId = _swapId
+                });
+
+                tasks.Add(redeemInDestinationTask);
+            }
 
             // Redeem LP funds
             var redeemInSourceTask = ExecuteTransactionAsync(new TransactionRequest()
@@ -268,9 +275,9 @@ public class SwapWorkflow : ISwapWorkflow
                 SwapId = _swapId
             });
 
-            await Task.WhenAll(
-                redeemInDestinationTask,
-                redeemInSourceTask);
+            tasks.Add(redeemInSourceTask);
+
+            await Task.WhenAll(tasks);
 
         }
         catch (Exception e) when (TemporalException.IsCanceledException(e))
