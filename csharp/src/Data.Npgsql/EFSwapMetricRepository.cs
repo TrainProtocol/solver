@@ -33,7 +33,9 @@ internal class EFSwapMetricRepository(SolverDbContext dbContext) : ISwapMetricRe
             {
                 Date = g.Key,
                 Value = g.Sum(x => x.VolumeInUsd)
-            }).ToListAsync();
+            })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
 
         return result.Select(x => (x.Date, x.Value)).ToList();
     }
@@ -47,7 +49,9 @@ internal class EFSwapMetricRepository(SolverDbContext dbContext) : ISwapMetricRe
             {
                 Date = g.Key,
                 Value = g.Sum(x => x.ProfitInUsd)
-            }).ToListAsync();
+            })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
 
         return result.Select(x => (x.Date, x.Value)).ToList();
     }
