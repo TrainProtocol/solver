@@ -31,13 +31,11 @@ import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModel
 import { buildLockKey as buildLockKey, buildCurrentNonceKey, buildNextNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 
-
 @injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
-        @inject("Redlock") private lockFactory: Redlock,
-        // @inject("TreasuryClient") private treasuryClient: TreasuryClient
+        @inject("Redlock") private lockFactory: Redlock
     ) { }
 
 

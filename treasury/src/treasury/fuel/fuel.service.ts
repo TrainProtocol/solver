@@ -1,10 +1,10 @@
-import { TreasuryService } from "src/app/interfaces/treasury.interface";
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Network } from "../shared/networks.types";
-import { PrivateKeyService } from "src/kv/vault.service";
 import { Address, isTransactionTypeScript, Provider, ScriptTransactionRequest, transactionRequestify, Wallet } from 'fuels';
-import { BaseSignResponse, GenerateResponse } from "src/app/dto/base.dto";
 import { FuelSignRequest } from "./fuel.dto";
+import { TreasuryService } from '../../app/interfaces/treasury.interface';
+import { PrivateKeyService } from '../../kv/vault.service';
+import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
 
 @Injectable()
 export class FuelTreasuryService extends TreasuryService {
