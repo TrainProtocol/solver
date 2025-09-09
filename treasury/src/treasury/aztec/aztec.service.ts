@@ -16,14 +16,17 @@ import { PrivateKeyService } from '../../kv/vault.service';
 import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
 import { PrivateKernelProver } from '@aztec/stdlib/interfaces/client';
 import { AztecAsyncKVStore } from '@aztec/kv-store';
+import { AztecConfigService } from './aztec.config';
 
 @Injectable()
 export class AztecTreasuryService extends TreasuryService {
 
     readonly network: Network = 'aztec';
+    readonly configService: AztecConfigService;
 
-    constructor(privateKeyService: PrivateKeyService) {
+    constructor(privateKeyService: PrivateKeyService, configService: AztecConfigService) {
         super(privateKeyService);
+        this.configService = configService;
     }
 
     async sign(request: AztecSignRequest): Promise<BaseSignResponse> {
@@ -52,8 +55,8 @@ export class AztecTreasuryService extends TreasuryService {
                 l1Contracts: await provider.getL1ContractAddresses(),
             };
 
-            const store = await createStore('store', {
-                dataDirectory: 'store',
+            const store = await createStore(request.address, {
+                dataDirectory: this.configService.storePath,
                 dataStoreMapSizeKB: 1e6,
             });
 
@@ -189,6 +192,11 @@ export class AztecTreasuryService extends TreasuryService {
         await this.privateKeyService.setAsync(addressResponse.toString(), salt.toString(), "private_salt");
 
         const address = addressResponse.toString()
+
+        await createStore(address, {
+            dataDirectory: this.configService.storePath,
+            dataStoreMapSizeKB: 1e6,
+        });
 
         return { address };
     }
