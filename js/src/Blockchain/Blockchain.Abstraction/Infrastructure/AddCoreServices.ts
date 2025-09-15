@@ -3,7 +3,6 @@ import Redis from 'ioredis';
 import Redlock from 'redlock';
 import { container } from 'tsyringe';
 import { ConvertToRedisUrl } from './RedisHelper/RedisFactory';
-import { TreasuryClient } from './TreasuryClient/treasuryClient';
 
 export async function AddCoreServices(): Promise<void> {
 
@@ -14,9 +13,7 @@ export async function AddCoreServices(): Promise<void> {
     retryDelay: 200,
     retryJitter: 100,
   });
-  // const treasuryClient = new TreasuryClient();
 
   container.register<Redlock>("Redlock", { useValue: redlock });
   container.register<Redis>("Redis", { useValue: redis });
-  // container.register<TreasuryClient>("TreasuryClient", { useValue: treasuryClient });
 }

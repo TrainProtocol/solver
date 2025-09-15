@@ -1,8 +1,8 @@
 export function ParseNonces(errorMessage: string): {
   expectedNonce: BigInt;
   providedNonce: BigInt;
-} | null {
-  
+} {
+
   if (!errorMessage) {
     return null;
   }
