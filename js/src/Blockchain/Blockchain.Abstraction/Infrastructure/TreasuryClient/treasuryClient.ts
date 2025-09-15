@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 
 export class TreasuryClient {
-  private apiClient
+  private apiClient;
 
   constructor(signerAgentUrl: string) {
     this.apiClient = axios.create({
