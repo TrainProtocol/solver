@@ -159,7 +159,7 @@ export async function StarknetTransactionProcessor(
     }
 }
 
-export async function checkAllowance(context: TransactionRequest): Promise<void> {
+async function checkAllowance(context: TransactionRequest): Promise<void> {
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.prepareArgs);
 
     const allowance = await defaultActivities.GetSpenderAllowance(
