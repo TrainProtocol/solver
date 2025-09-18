@@ -192,7 +192,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                                 ToAddress = request.FromAddress,
                             }.ToJson(),
                             Type = TransactionType.Transfer,
-                            SwapId = request.SwapId,
                         }, new TransactionExecutionContext
                         {
                             Nonce = context.Nonce,
@@ -261,7 +260,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 FromAddress = context.FromAddress,
                 SignerAgentUrl = context.SignerAgentUrl,
                 Network = context.Network,
-                SwapId = context.SwapId,
             },
             new()), new() { Id = TemporalHelper.BuildProcessorId(context.Network.Name, TransactionType.Approve, NewGuid()) });
 

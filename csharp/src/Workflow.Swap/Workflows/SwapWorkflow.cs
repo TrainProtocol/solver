@@ -165,7 +165,6 @@ public class SwapWorkflow : ISwapWorkflow
             Network = _destinationNetwork,
             FromAddress = _destinationWalletAddress!,
             SignerAgentUrl = _destinationWalletAgentUrl!,
-            SwapId = _swapId,
         });
 
         //_isLpLocked = true;
@@ -214,7 +213,6 @@ public class SwapWorkflow : ISwapWorkflow
                     Network = _sourceNetwork,
                     FromAddress = _sourceWalletAddress!,
                     SignerAgentUrl = _sourceWalletAgentUrl!,
-                    SwapId = _swapId
                 });
 
                 userLocked = await WaitConditionAsync(
@@ -251,7 +249,6 @@ public class SwapWorkflow : ISwapWorkflow
                     Network = _destinationNetwork,
                     FromAddress = _destinationWalletAddress!,
                     SignerAgentUrl = _sourceWalletAgentUrl!,
-                    SwapId = _swapId
                 });
 
                 tasks.Add(redeemInDestinationTask);
@@ -272,7 +269,6 @@ public class SwapWorkflow : ISwapWorkflow
                 Network = _sourceNetwork,
                 FromAddress = _sourceWalletAddress!,
                 SignerAgentUrl = _sourceWalletAgentUrl!,
-                SwapId = _swapId
             });
 
             tasks.Add(redeemInSourceTask);
@@ -311,7 +307,6 @@ public class SwapWorkflow : ISwapWorkflow
             Network = network,
             FromAddress = _destinationWalletAddress!,
             SignerAgentUrl = _destinationWalletAgentUrl!,
-            SwapId = _swapId!
         });
     }
 
@@ -370,7 +365,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         await ExecuteActivityAsync(
             (ISwapActivities x) =>
-                x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
+                x.CreateSwapTransactionAsync(_swapId, transactionRequest.Type, confirmedTransaction),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
