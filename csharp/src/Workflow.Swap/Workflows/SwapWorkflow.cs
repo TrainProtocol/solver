@@ -373,7 +373,9 @@ public class SwapWorkflow : ISwapWorkflow
                 confirmedTransaction.NetworkName,
                 confirmedTransaction.FeeAsset,
                 confirmedTransaction.FeeAmount.ToString(),
-                confirmedTransaction.Asset,
+                transactionRequest.Network.Name == _sourceNetwork!.Name 
+                    ? _htlcCommitMessage!.SourceAsset 
+                    : _htlcCommitMessage!.DestinationAsset,
                 transactionRequest.Type),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 

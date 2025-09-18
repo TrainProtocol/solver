@@ -126,8 +126,8 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
         var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
-        confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-        confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
+        //confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
+        //confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
 
         return confirmedTransaction;
     }
