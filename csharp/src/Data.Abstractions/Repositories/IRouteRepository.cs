@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -12,23 +13,9 @@ public interface IRouteRepository
         string sourceNetworkName,
         string sourceToken,
         string destinationNetworkName,
-        string destinationToken,
-        BigInteger? maxAmount);
+        string destinationToken);
 
-    Task<Route?> CreateAsync(
-        string sourceNetworkName,
-        string sourceToken,
-        string sourceWalletAddress,
-        NetworkType sourceWalletType,
-        string destinationNetworkName,
-        string destinationToken,
-        string destinationWalletAddress,
-        NetworkType destinationWalletType,
-        string rateProvider,
-        BigInteger minAmount,
-        BigInteger maxAmount,
-        bool ignoreExpenseFee,
-        string serviceFee);
+    Task<Route?> CreateAsync(CreateRouteRequest request);
 
     Task UpdateRoutesStatusAsync(int[] ids, RouteStatus status);
 
@@ -39,10 +26,5 @@ public interface IRouteRepository
         string sourceToken,
         string destinationNetworkName,
         string destinationToken, 
-        string rateProviderName,
-        BigInteger minAmount,
-        BigInteger maxAmount,
-        RouteStatus status,
-        bool ignoreExpenseFee,
-        string serviceFeeName);
+        UpdateRouteRequest request);
 }

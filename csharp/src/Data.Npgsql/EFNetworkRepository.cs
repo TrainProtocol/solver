@@ -2,6 +2,7 @@
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Npgsql;
 
@@ -29,23 +30,9 @@ public class EFNetworkRepository(
             .ToListAsync();
     }
 
-    public async Task<Network?> CreateAsync(
-       string networkName,
-       string displayName,
-       NetworkType type,
-       TransactionFeeType feeType,
-       string chainId,
-       int feePercentageIncrease,
-       string htlcNativeContractAddress,
-       string htlcTokenContractAddress,
-       string nativeTokenSymbol,
-       string nativeTokenPriceSymbol,
-       string? nativeTokenContract,
-       int nativeTokenDecimals,
-       string nodeUrl,
-       string nodeProvider)
+    public async Task<Network?> CreateAsync(CreateNetworkRequest request)
     {
-        var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == networkName);
+        var networkExists = await dbContext.Networks.AnyAsync(x => x.Name == request.NetworkName);
 
         if (networkExists)
             return null;
@@ -56,31 +43,31 @@ public class EFNetworkRepository(
         {
             var network = new Network
             {
-                Name = networkName,
-                ChainId = chainId,
-                DisplayName = displayName,
-                FeePercentageIncrease = feePercentageIncrease,
-                FeeType = feeType,
-                HTLCNativeContractAddress = htlcNativeContractAddress,
-                HTLCTokenContractAddress = htlcTokenContractAddress,
-                Type = type,
+                Name = request.NetworkName,
+                ChainId = request.ChainId,
+                DisplayName = request.DisplayName,
+                FeePercentageIncrease = request.FeePercentageIncrease,
+                FeeType = request.FeeType,
+                HTLCNativeContractAddress = request.HtlcNativeContractAddress,
+                HTLCTokenContractAddress = request.HtlcTokenContractAddress,
+                Type = request.Type,
             };
 
             dbContext.Networks.Add(network);
             await dbContext.SaveChangesAsync();
 
-            var tokenPrice = await tokenPriceRepository.GetAsync(nativeTokenPriceSymbol);
+            var tokenPrice = await tokenPriceRepository.GetAsync(request.NativeTokenPriceSymbol);
 
             if (tokenPrice == null)
             {
-                throw new Exception($"Token price for '{nativeTokenPriceSymbol}' not found.");
+                throw new Exception($"Token price for '{request.NativeTokenPriceSymbol}' not found.");
             }
 
             var token = new Token
             {
-                Asset = nativeTokenSymbol,
-                Decimals = nativeTokenDecimals,
-                TokenContract = nativeTokenContract,
+                Asset = request.NativeTokenSymbol,
+                Decimals = request.NativeTokenDecimals,
+                TokenContract = request.NativeTokenContract,
                 NetworkId = network.Id,
                 TokenPriceId = tokenPrice.Id,
             };
@@ -90,8 +77,8 @@ public class EFNetworkRepository(
 
             var node = new Node
             {
-                ProviderName = nodeProvider,
-                Url = nodeUrl,
+                ProviderName = request.NodeProvider,
+                Url = request.NodeUrl,
             };
 
             network.Nodes.Add(node);
@@ -109,11 +96,7 @@ public class EFNetworkRepository(
 
     public async Task<Network?> UpdateAsync(
        string networkName,
-       string displayName,
-       TransactionFeeType feeType,
-       int feePercentageIncrease,
-       string htlcNativeContractAddress,
-       string htlcTokenContractAddress)
+       UpdateNetworkRequest request)
     {
         var network = await GetAsync(networkName);
 
@@ -122,11 +105,11 @@ public class EFNetworkRepository(
             throw new Exception("Network not found");
         }
 
-        network.DisplayName = displayName;
-        network.FeeType = feeType;
-        network.FeePercentageIncrease = feePercentageIncrease;
-        network.HTLCNativeContractAddress = htlcNativeContractAddress;
-        network.HTLCTokenContractAddress = htlcTokenContractAddress;
+        network.DisplayName = request.DisplayName;
+        network.FeeType = request.FeeType;
+        network.FeePercentageIncrease = request.FeePercentageIncrease;
+        network.HTLCNativeContractAddress = request.HtlcNativeContractAddress;
+        network.HTLCTokenContractAddress = request.HtlcTokenContractAddress;
 
         await dbContext.SaveChangesAsync();
 
@@ -135,8 +118,7 @@ public class EFNetworkRepository(
 
     public async Task<Node?> CreateNodeAsync(
         string networkName,
-        string providerName,
-        string url)
+        CreateNodeRequest request)
     {
         var network = await GetAsync(networkName);
 
@@ -145,7 +127,7 @@ public class EFNetworkRepository(
             return null;
         }
 
-        var node = new Node { Url = url, ProviderName = providerName, NetworkId = network.Id };
+        var node = new Node { Url = request.Url, ProviderName = request.ProviderName, NetworkId = network.Id };
         network.Nodes.Add(node);
         await dbContext.SaveChangesAsync();
 
@@ -161,10 +143,7 @@ public class EFNetworkRepository(
 
     public async Task<Token?> CreateTokenAsync(
         string networkName,
-        string symbol,
-        string priceSymbol,
-        string? contract,
-        int decimals)
+        CreateTokenRequest request)
     {
         var network = await GetAsync(networkName);
 
@@ -173,23 +152,23 @@ public class EFNetworkRepository(
             return null;
         }
 
-        if (network.Tokens.Any(x => x.Asset == symbol && x.TokenContract == contract))
+        if (network.Tokens.Any(x => x.Asset == request.Symbol && x.TokenContract == request.Contract))
         {
             return null;
         }
 
-        var tokenPrice = await tokenPriceRepository.GetAsync(priceSymbol);
+        var tokenPrice = await tokenPriceRepository.GetAsync(request.PriceSymbol);
 
         if (tokenPrice == null)
         {
-            throw new Exception($"Token price for '{priceSymbol}' not found.");
+            throw new Exception($"Token price for '{request.PriceSymbol}' not found.");
         }
 
         var token = new Token
         {
-            Asset = symbol,
-            Decimals = decimals,
-            TokenContract = contract,
+            Asset = request.Symbol,
+            Decimals = request.Decimals,
+            TokenContract = request.Contract,
             TokenPriceId = tokenPrice.Id,
             NetworkId = network.Id,
         };

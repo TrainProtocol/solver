@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -66,21 +66,7 @@ public static class NetworkEndpoints
         INetworkRepository repository,
         [FromBody] CreateNetworkRequest request)
     {
-        var network = await repository.CreateAsync(
-            request.NetworkName,
-            request.DisplayName,
-            request.Type,
-            request.FeeType,
-            request.ChainId,
-            request.FeePercentageIncrease,
-            request.HtlcNativeContractAddress,
-            request.HtlcTokenContractAddress,
-            request.NativeTokenSymbol,
-            request.NativeTokenPriceSymbol,
-            request.NativeTokenContract,
-            request.NativeTokenDecimals,
-            request.NodeUrl,
-            request.NodeProvider);
+        var network = await repository.CreateAsync(request);
 
         return network is null
            ? Results.BadRequest("Failed to create network")
@@ -94,11 +80,7 @@ public static class NetworkEndpoints
     {
         var network = await repository.UpdateAsync(
             networkName,
-            request.DisplayName,
-            request.FeeType,
-            request.FeePercentageIncrease,
-            request.HtlcNativeContractAddress,
-            request.HtlcTokenContractAddress);
+            request);
 
         return network is null
            ? Results.BadRequest("Failed to update network")
@@ -111,7 +93,7 @@ public static class NetworkEndpoints
         [FromBody] CreateNodeRequest request)
     {
         var node = await repository.CreateNodeAsync(
-            networkName, request.ProviderName, request.Url);
+            networkName, request);
 
         return node is null
            ? Results.BadRequest("Failed to create node")
@@ -134,10 +116,7 @@ public static class NetworkEndpoints
     {
         var token = await repository.CreateTokenAsync(
             networkName,
-            request.Symbol,
-            request.PriceSymbol,
-            request.Contract,
-            request.Decimals);
+            request);
 
         return token is null
            ? Results.BadRequest("Failed to create token")

@@ -7,6 +7,7 @@ using Train.Solver.Workflow.EVM.FunctionMessages;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.EVM.Models;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 

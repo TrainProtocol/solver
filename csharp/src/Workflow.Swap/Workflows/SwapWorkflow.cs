@@ -353,7 +353,8 @@ public class SwapWorkflow : ISwapWorkflow
         return Task.CompletedTask;
     }
 
-    private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
+    private async Task<TransactionResponse> ExecuteTransactionAsync(
+        TransactionRequest transactionRequest)
     {
         var confirmedTransaction = await ExecuteChildTransactionProcessorWorkflowAsync(
             transactionRequest.Network.Type,

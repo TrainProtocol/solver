@@ -27,8 +27,7 @@ public class EFSwapRepository(
             sourceNetworkName,
             sourceAsset,
             destinationNetworkName,
-            destinationAsset,
-            null);
+            destinationAsset);
 
         if (route == null)
         {

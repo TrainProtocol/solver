@@ -6,15 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Train.Solver.Common.Enums;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Data.Npgsql;
 
 public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWalletRepository
 {
-    public async Task<TrustedWallet?> CreateAsync(NetworkType type, string address, string name)
+    public async Task<TrustedWallet?> CreateAsync(CreateTrustedWalletRequest request)
     {
-        var trustedWalletExists = await dbContext.TrustedWallets.AnyAsync(x => x.Address == address);
+        var trustedWalletExists = await dbContext.TrustedWallets.AnyAsync(x => x.Address == request.Address);
 
         if (trustedWalletExists)
         {
@@ -23,9 +24,9 @@ public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWall
 
         var trustedWallet = new TrustedWallet
         {
-            Address = address,
-            Name = name,
-            NetworkType = type,
+            Address = request.Address,
+            Name = request.Name,
+            NetworkType = request.NetworkType,
         };
 
         dbContext.TrustedWallets.Add(trustedWallet);
@@ -54,7 +55,7 @@ public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWall
         return trustedWallet;
     }
 
-    public async Task<TrustedWallet?> UpdateAsync(NetworkType type, string address, string name)
+    public async Task<TrustedWallet?> UpdateAsync(NetworkType type, string address, UpdateTrustedWalletRequest request)
     {
         var trustedWallet = await GetAsync(type, address);
 
@@ -64,7 +65,7 @@ public class EFTrustedWalletRepository(SolverDbContext dbContext) : ITrustedWall
             return null;
         }
 
-        trustedWallet.Name = name;
+        trustedWallet.Name = request.Name;
         await dbContext.SaveChangesAsync();
 
         return trustedWallet;

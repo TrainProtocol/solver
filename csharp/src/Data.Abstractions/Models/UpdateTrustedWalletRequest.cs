@@ -1,4 +1,4 @@
-﻿namespace Train.Solver.AdminAPI.Models;
+﻿namespace Train.Solver.Data.Abstractions.Models;
 
 public class UpdateTrustedWalletRequest
 {

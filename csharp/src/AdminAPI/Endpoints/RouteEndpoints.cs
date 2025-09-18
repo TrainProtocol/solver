@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -40,19 +40,7 @@ public static class RouteEndpoints
         [FromBody] CreateRouteRequest request)
     {
         var route = await repository.CreateAsync(
-            request.SourceNetworkName,
-            request.SourceToken,
-            request.SourceWalletAddress,
-            request.SourceWalletType,
-            request.DestinationNetworkName,
-            request.DestinationToken,
-            request.DestinationWalletAddress,
-            request.DestinationWalletType,
-            request.RateProvider,
-            request.MinAmount,
-            request.MaxAmount,
-            request.IgnoreExpenseFee,
-            request.ServiceFee);
+            request);
 
         return route is null
             ? Results.BadRequest("Failed to create route")
@@ -72,12 +60,7 @@ public static class RouteEndpoints
             sourceToken,
             destinationNetwork,
             destinationToken,
-            request.RateProvider,
-            request.MinAmount,
-            request.MaxAmount,
-            request.Status,
-            request.IgnoreExpenseFee,
-            request.ServiceFee);
+            request);
 
         return route is null
             ? Results.BadRequest("Failed to update route")

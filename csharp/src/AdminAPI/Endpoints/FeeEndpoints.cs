@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
-using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -35,7 +34,7 @@ public static class FeeEndpoints
         IFeeRepository repository,
         [FromBody] CreateServiceFeeRequest request)
     {
-        var fee = await repository.CreateServiceFeeAsync(request.Name, request.FeeInUsd, request.PercentageFee);
+        var fee = await repository.CreateServiceFeeAsync(request);
         return fee is null
             ? Results.BadRequest("Failed to create service fee")
             : Results.Ok();
@@ -46,7 +45,7 @@ public static class FeeEndpoints
       string name,
       [FromBody] UpdateServiceFeeRequest request)
     {
-        var fee = await repository.UpdateServiceFeeAsync(name, request.FeeInUsd, request.PercentageFee);
+        var fee = await repository.UpdateServiceFeeAsync(name, request);
       
         return fee is null
             ? Results.BadRequest("Failed to create service fee")
