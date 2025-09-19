@@ -6,4 +6,5 @@ export interface EstimateFeeRequest extends BaseRequest {
     fromAddress: string,
     asset: string,
     callData?: string
+    nonce: string
 }

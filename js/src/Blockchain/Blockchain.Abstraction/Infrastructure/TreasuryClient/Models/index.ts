@@ -1,11 +1,13 @@
 import { TreasuryGenerateAddressResponseModel } from './TreasuryGenerateAddressResponseModel';
 import { TreasurySignTransactionResponseModel } from './TreasurySignTransactionResponseModel';
 import { BaseSignTransactionRequestModel } from './TreasurySignTransactionRequestModel';
-import { FuelSignTransactionRequest } from './FuelSignTransactionRequest';
+import { FuelSignTransactionRequestModel } from './FuelSignTransactionRequestModel';
+import { StarknetSignTransactionRequestModel } from './StarknetSignTransactionRequestModel';
 
 export {
     TreasuryGenerateAddressResponseModel,
     TreasurySignTransactionResponseModel,
     BaseSignTransactionRequestModel,
-    FuelSignTransactionRequest
+    FuelSignTransactionRequestModel,
+    StarknetSignTransactionRequestModel
 };  

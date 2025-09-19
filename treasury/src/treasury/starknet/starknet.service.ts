@@ -1,26 +1,40 @@
 import { Injectable } from '@nestjs/common';
 import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
-import { StarknetSignRequest, StarknetSignResponse } from './starknet.dto';
+import { StarknetSignRequest } from './starknet.dto';
 import { PrivateKeyService } from 'src/kv/vault.service';
-import { GenerateResponse } from '../../app/dto/base.dto';
+import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
+import { Call, ec, Invocation, InvocationsSignerDetails, Signer, stark, transaction } from 'starknet';
 
 @Injectable()
 export class StarknetTreasuryService extends TreasuryService {
- 
+
   readonly network: Network = 'starknet';
 
-  constructor(privateKeyService: PrivateKeyService){
+  constructor(privateKeyService: PrivateKeyService) {
     super(privateKeyService);
   }
 
-  // TODO: Implement the Starknet signing logic
-  sign(req: StarknetSignRequest): Promise<StarknetSignResponse> {
-    throw new Error('Method not implemented.');
+  async sign(request: StarknetSignRequest): Promise<BaseSignResponse> {
+    const privateKey = await this.privateKeyService.getAsync(request.address);
+
+    const transferCalls: Call = JSON.parse(request.unsignedTxn);
+    const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+
+    const calldata = transaction.getExecuteCalldata([transferCalls], signerDetails.cairoVersion);
+    const signature = await new Signer(privateKey).signTransaction([transferCalls], signerDetails);
+
+    const response: Invocation = {
+      ...stark.v3Details(signerDetails),
+      contractAddress: request.address,
+      calldata,
+      signature,
+    };
+
+    return { signedTxn: JSON.stringify(response) };
   }
 
-  // TODO: Implement the Starknet address generation(if applicable)
-  generate(): Promise<GenerateResponse> {
+  async generate(): Promise<GenerateResponse> {
     throw new Error('Method not implemented.');
   }
 }

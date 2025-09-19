@@ -2,11 +2,9 @@
 import { bn, Contract, DateTime, Provider, ReceiptType } from "fuels";
 import abi from '../ABIs/train.json';
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { TokenCommittedEvent } from "../Models/FuelTokenCommitedEvents";
-import { TokenLockedEvent } from "../Models/FuelTokenLockedEvent";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { FormatAddress } from "../FuelBlockchainActivities";
-import { ethers } from "ethers";
+import { TokenCommittedEvent, TokenLockedEvent } from "../Models/EventModels";
 
 export default async function TrackBlockEventsAsync(
   network: DetailedNetworkDto,

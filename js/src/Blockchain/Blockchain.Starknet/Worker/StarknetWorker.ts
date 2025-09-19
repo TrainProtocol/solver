@@ -1,5 +1,4 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
-import * as dotenv from 'dotenv';
 import 'reflect-metadata';
 import { StarknetBlockchainActivities } from '../Activities/StarknetBlockchainActivities';
 import { extractActivities as ExtractActivities } from '../../../TemporalHelper/ActivityParser';
@@ -7,7 +6,6 @@ import { container } from 'tsyringe';
 import { AddCoreServices } from '../../Blockchain.Abstraction/Infrastructure/AddCoreServices';
 
 export default async function run( taskQueue: string): Promise<void> {
-  dotenv.config();
 
   try {
 
