@@ -35,12 +35,12 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-     const nextNonce = await defaultActivities.GetNextNonce({
-            address: request.fromAddress,
-            network: request.network
-        });
+    const nextNonce = await defaultActivities.GetNextNonce({
+        address: request.fromAddress,
+        network: request.network
+    });
 
-    try {       
+    try {
 
         await defaultActivities.CheckCurrentNonce(
             {
@@ -77,7 +77,6 @@ export async function FuelTransactionProcessor(
             }
         );
 
-        // sign transaction
         const publishedTransaction = await nonRetryableActivities.PublishTransaction({
             network: request.network,
             signedRawData: signedRawData
@@ -104,7 +103,7 @@ export async function FuelTransactionProcessor(
     }
     catch (error) {
 
-         await defaultActivities.UpdateCurrentNonce(
+        await defaultActivities.UpdateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,

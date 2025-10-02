@@ -1,4 +1,4 @@
-import { ApplicationFailure, continueAsNew, proxyActivities, uuid4 } from '@temporalio/workflow';
+import { proxyActivities } from '@temporalio/workflow';
 import { IAztecBlockchainActivities } from '../Activities/IAztecBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
@@ -9,7 +9,6 @@ import { TransactionResponse } from '../../Blockchain.Abstraction/Models/Receipt
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
 import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
-import { buildProcessorId } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 
 const defaultActivities = proxyActivities<IAztecBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -73,7 +72,6 @@ export async function AztecTransactionProcessor(
             }
         );
 
-        // sign transaction
         const publishedTransaction = await nonRetryableActivities.publishTransaction({
             network: request.network,
             signedTx: signedRawData
@@ -96,7 +94,6 @@ export async function AztecTransactionProcessor(
         )
 
         return transactionResponse;
-
     }
     catch (error) {
 
@@ -107,18 +104,6 @@ export async function AztecTransactionProcessor(
                 currentNonce: nextNonce
             }
         )
-
-        if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
-
-            const processorId = buildProcessorId(uuid4(), request.network.name, request.type);
-
-            await continueAsNew(AztecTransactionProcessor, {
-                args: [request, context],
-                workflowId: processorId,
-            });
-        }
-        else {
-            throw error;
-        }
+        throw error;
     }
 }

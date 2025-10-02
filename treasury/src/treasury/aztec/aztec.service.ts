@@ -1,19 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Network } from "../shared/networks.types";
-import { AztecSignRequest } from "./aztec.dto";
+import { AztecSignRequest, AztecSignResponse } from "./aztec.dto";
 import { AuthWitness, AztecAddress, ContractArtifact, ContractFunctionInteraction, createAztecNodeClient, Fr, FunctionAbi, getAllFunctionAbis, Logger, SponsoredFeePaymentMethod, Tx, waitForPXE } from "@aztec/aztec.js";
 import { createPXEService } from "@aztec/pxe/server";
 import { createStore } from "@aztec/kv-store/lmdb";
 import { deriveSigningKey } from '@aztec/stdlib/keys';
 import { TokenContract } from '@aztec/noir-contracts.js/Token';
 import { getSponsoredFPCInstance } from "./FPC";
-import { getSchnorrAccount, getSchnorrAccountContractAddress } from "@aztec/accounts/schnorr";
+import { getSchnorrAccount } from "@aztec/accounts/schnorr";
 import { getPXEServiceConfig } from "@aztec/pxe/config";
 import { TrainContract } from "./Train";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { PrivateKeyService } from '../../kv/vault.service';
-import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
+import { GenerateResponse } from '../../app/dto/base.dto';
 import { PrivateKernelProver } from '@aztec/stdlib/interfaces/client';
 import { AztecAsyncKVStore } from '@aztec/kv-store';
 import { AztecConfigService } from './aztec.config';
@@ -29,11 +29,8 @@ export class AztecTreasuryService extends TreasuryService {
         this.configService = configService;
     }
 
-    async sign(request: AztecSignRequest): Promise<BaseSignResponse> {
-
+    async sign(request: AztecSignRequest): Promise<AztecSignResponse> {
         try {
-
-            let signedTxn: string;
 
             const privateKey = await this.privateKeyService.getAsync(request.address);
             const privateSalt = await this.privateKeyService.getAsync(request.address, "private_salt");
@@ -86,12 +83,14 @@ export class AztecTreasuryService extends TreasuryService {
 
             const schnorrWallet = await schnorrAccount.getWallet();
             const tokenContractInstance = await provider.getContract(AztecAddress.fromString(request.tokenContract));
+
             await pxe.registerContract({
                 instance: tokenContractInstance,
                 artifact: TokenContractArtifact,
             });
 
             const contractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(request.contractAddress))
+
             await pxe.registerContract({
                 instance: contractInstanceWithAddress,
                 artifact: TrainContractArtifact,
@@ -102,8 +101,7 @@ export class AztecTreasuryService extends TreasuryService {
 
             if (contractFunctionInteraction.authwiths) {
 
-                for (let i = 0; i < contractFunctionInteraction.authwiths.length; i++) {
-                    const authWith = contractFunctionInteraction.authwiths[i];
+                contractFunctionInteraction.authwiths.forEach(async (authWith) => {
 
                     const requestContractClass = await provider.getContract(AztecAddress.fromString(authWith.interactionAddress))
                     const contractClassMetadata = await pxe.getContractClassMetadata(requestContractClass.currentContractClassId, true)
@@ -115,13 +113,12 @@ export class AztecTreasuryService extends TreasuryService {
                     const functionAbi = getFunctionAbi(contractClassMetadata.artifact, authWith.functionName);
 
                     if (!functionAbi) {
-
+                        throw new BadRequestException("Unable to get function ABI");
                     }
 
-                    let functionInteraction: ContractFunctionInteraction;
                     authWith.args.unshift(schnorrWallet.getAddress());
 
-                    functionInteraction = new ContractFunctionInteraction(
+                    const functionInteraction = new ContractFunctionInteraction(
                         schnorrWallet,
                         AztecAddress.fromString(authWith.interactionAddress),
                         functionAbi,
@@ -136,7 +133,7 @@ export class AztecTreasuryService extends TreasuryService {
                     });
 
                     authWitnesses.push(witness);
-                }
+                });
             }
 
             const requestcontractClass = await provider.getContract(AztecAddress.fromString(contractFunctionInteraction.interactionAddress))
@@ -147,9 +144,8 @@ export class AztecTreasuryService extends TreasuryService {
             }
 
             const functionAbi = getFunctionAbi(contractClassMetadata.artifact, contractFunctionInteraction.functionName);
-            let functionInteraction: ContractFunctionInteraction;
 
-            functionInteraction = new ContractFunctionInteraction(
+            const functionInteraction = new ContractFunctionInteraction(
                 schnorrWallet,
                 AztecAddress.fromString(contractFunctionInteraction.interactionAddress),
                 functionAbi,
@@ -159,12 +155,10 @@ export class AztecTreasuryService extends TreasuryService {
                 [...authWitnesses]
             );
 
-            const provenTx = await functionInteraction.prove({
-                fee:
-                    { paymentMethod },
-            });
+            const provenTx = await functionInteraction.prove({ from: AztecAddress.fromString(request.address), fee: { paymentMethod } });
 
             const tx = new Tx(
+                provenTx.getTxHash(),
                 provenTx.data,
                 provenTx.clientIvcProof,
                 provenTx.contractClassLogFields,
@@ -172,8 +166,8 @@ export class AztecTreasuryService extends TreasuryService {
             );
 
             const signedTxHex = tx.toBuffer().toString("hex");
+            const signedTxn = JSON.stringify({ signedTx: signedTxHex });
 
-            signedTxn = JSON.stringify({ signedTx: signedTxHex });
             return { signedTxn };
 
         }
@@ -182,23 +176,8 @@ export class AztecTreasuryService extends TreasuryService {
         }
     }
 
-    async generate(): Promise<GenerateResponse> {
-
-        const prKey = Fr.random();
-        const salt = Fr.random();
-        const addressResponse = await getSchnorrAccountContractAddress(prKey, salt);
-
-        await this.privateKeyService.setAsync(addressResponse.toString(), prKey.toString());
-        await this.privateKeyService.setAsync(addressResponse.toString(), salt.toString(), "private_salt");
-
-        const address = addressResponse.toString()
-
-        await createStore(address, {
-            dataDirectory: this.configService.storePath,
-            dataStoreMapSizeKB: 1e6,
-        });
-
-        return { address };
+    generate(): Promise<GenerateResponse> {
+        throw new Error('Method not implemented.');
     }
 }
 

@@ -2,6 +2,7 @@
 import { AztecAddress, createAztecNodeClient } from '@aztec/aztec.js';
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
+import { ensureHexPrefix, removeHexPrefix } from '../../../Blockchain.Abstraction/Extensions/StringExtensions';
 
 export default async function TrackBlockEventsAsync(
     network: DetailedNetworkDto,
@@ -10,6 +11,7 @@ export default async function TrackBlockEventsAsync(
     solverAddresses: string[],
 ): Promise<HTLCBlockEventResponse> {
 
+    const MinBlockInterval = 3;
     const tokenCommittedSelector = 2050960156;
     const tokenLockAddedSelector = 3251955602;
 
@@ -20,7 +22,9 @@ export default async function TrackBlockEventsAsync(
     };
 
     try {
-        if (fromBlock == toBlock) fromBlock = fromBlock - 3;
+        if (fromBlock == toBlock) {
+            fromBlock = fromBlock - MinBlockInterval
+        };
 
         const provider = createAztecNodeClient(network.nodes[0].url);
 
@@ -43,6 +47,7 @@ export default async function TrackBlockEventsAsync(
             const blockNumber = await provider.getBlock(id.blockNumber)
             const txId = blockNumber.body.txEffects[id.txIndex].txHash.toString();
 
+            //In all events, these values order are fixed
             let commitId = fields[1].toString();
             let timelock = fields[4].toNumber()
 
@@ -67,7 +72,7 @@ export default async function TrackBlockEventsAsync(
                     amount: amount.toString(),
                     receiverAddress: receiverAddress,
                     sourceNetwork: network.name,
-                    senderAddress: '0',
+                    senderAddress: '',
                     sourceAsset: sourceAsset,
                     destinationAddress: destAddress,
                     destinationNetwork: destNetwork,
@@ -102,9 +107,7 @@ export default async function TrackBlockEventsAsync(
 }
 
 function readLowest30BytesAsString(hex: string): string {
-    if (hex.startsWith('0x')) {
-        hex = hex.slice(2);
-    }
+    removeHexPrefix(hex)
 
     const byteLength = hex.length / 2;
 
@@ -138,5 +141,5 @@ function hashLockToHexValidated(high: bigint, low: bigint): string {
     // Convert to hex and pad to 64 characters
     const hexString = combined.toString(16).padStart(64, '0');
 
-    return '0x' + hexString;
+    return ensureHexPrefix(hexString);
 }

@@ -57,8 +57,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     }
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
-        let result: BalanceResponse = { amount: 1000000000000 }
-        return result;
+        return { amount: 1000000000000 };
     }
 
     public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
@@ -71,11 +70,6 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
             blockNumber: lastBlockNumber,
             blockHash: blockHash.toString()
         };
-    }
-
-    public async ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
-
-        return true;
     }
 
     public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
@@ -129,14 +123,14 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
 
     public async publishTransaction(request: AztecPublishTransactionRequest): Promise<string> {
 
-        const parsed = JSON.parse(request.signedTx) as { signedTx: string };
+        const parsed = JSON.parse(request.signedTx);
         const buf = Buffer.from(parsed.signedTx, "hex");
         const signedTx = Tx.fromBuffer(buf);
 
         const provider = createAztecNodeClient(request.network.nodes[0].url);
 
         await provider.sendTx(signedTx);
-        const txHash = (await signedTx.getTxHash()).toString()
+        const txHash = signedTx.getTxHash().toString();
 
         return txHash;
     }
@@ -207,5 +201,9 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
         finally {
             await lock.release().catch(() => { });
         }
+    }
+
+    ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
+        throw new Error("Method not implemented.");
     }
 }

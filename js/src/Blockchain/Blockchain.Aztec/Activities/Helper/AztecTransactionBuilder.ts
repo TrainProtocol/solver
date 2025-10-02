@@ -1,4 +1,4 @@
-import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { decodeJson, ensureHexPrefix, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { HTLCLockTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest";
 import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRedeemTransactionPrepareRequest";
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
@@ -7,6 +7,7 @@ import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/Detai
 import { AztecAddress, Fr } from "@aztec/aztec.js";
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import crypto from 'crypto';
+import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
 
 export async function createRefundCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
@@ -27,10 +28,8 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
     args: [refundRequest.commitId],
   }
 
-  const json = JSON.stringify(functionInteraction);
-
   return {
-    data: json,
+    data: JSON.stringify(functionInteraction),
     amount: "0",
     asset: network.nativeToken.symbol,
     callDataAsset: token.symbol,
@@ -81,21 +80,19 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
       }]
   }
 
-  const json = JSON.stringify(functionInteraction);
-
   return {
-    data: json,
+    data: JSON.stringify(functionInteraction),
     amount: "0",
     asset: network.nativeToken.symbol,
     callDataAsset: token.symbol,
-    callDataAmount: "0",
+    callDataAmount: commitRequest.amount.toString(),
     toAddress: htlcContractAddress,
   };
 }
 
 export async function createRedeemCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
-  const redeemRequest =   decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
+  const redeemRequest = decodeJson<HTLCRedeemTransactionPrepareRequest>(args);
   const token = network.tokens.find(t => t.symbol === redeemRequest.asset);
 
   if (!token) {
@@ -106,8 +103,7 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
     ? network.htlcNativeContractAddress
     : network.htlcTokenContractAddress
 
-  const toHex = (n: bigint) => '0x' + n.toString(16);
-  const [secretHigh, secretLow] = hexToU128Limbs(toHex(BigInt(redeemRequest.secret)));
+  const [secretHigh, secretLow] = hexToU128Limbs(toHex((BigInt(redeemRequest.secret))));
   const [ownershipKeyHigh, ownershipKeyLow] = hexToU128Limbs(toHex(BigInt(redeemRequest.secret)));
 
   let functionInteraction: FunctionInteraction = {
@@ -122,10 +118,8 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
     ],
   }
 
-  const json = JSON.stringify(functionInteraction);
-
   return {
-    data: json,
+    data: JSON.stringify(functionInteraction),
     amount: "0",
     asset: network.nativeToken.symbol,
     callDataAsset: token.symbol,
@@ -148,7 +142,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
     ? network.htlcNativeContractAddress
     : network.htlcTokenContractAddress
 
-  const randomness = BigInt('0x' + crypto.randomBytes(31).toString('hex')).toString()
+  const randomness = BigInt(ensureHexPrefix(crypto.randomBytes(31).toString('hex'))).toString()
   const hashlock = hexToU128Limbs(lockRequest.hashlock);
   const ownershipHash = hexToU128Limbs(normalizeHex(lockRequest.receiver));
 
@@ -181,15 +175,41 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
       }]
   }
 
-  const json = JSON.stringify(functionInteraction);
+  return {
+    data: JSON.stringify(functionInteraction),
+    amount: lockRequest.amount.toString(),
+    asset: network.nativeToken.symbol,
+    callDataAsset: lockRequest.sourceAsset,
+    callDataAmount: lockRequest.amount.toString(),
+    toAddress: htlcContractAddress,
+  };
+}
+
+export async function createTransferCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
+
+  const transferRequest = decodeJson<TransferPrepareRequest>(args);
+  const token = network.tokens.find(t => t.symbol === transferRequest.asset);
+
+  if (!token) {
+    throw new Error(`Token not found for network ${network.name} and asset ${transferRequest.asset}`)
+  };
+
+  let functionInteraction: FunctionInteraction = {
+    interactionAddress: token.contract,
+    functionName: "transfer",
+    args: [
+      transferRequest.toAddress,
+      transferRequest.amount
+    ],
+  }
 
   return {
-    data: json,
-    amount: (lockRequest.amount + lockRequest.reward).toString(),
-    asset: lockRequest.sourceAsset,
-    callDataAsset: lockRequest.sourceAsset,
-    callDataAmount: (lockRequest.amount + lockRequest.reward).toString(),
-    toAddress: htlcContractAddress,
+    data: JSON.stringify(functionInteraction),
+    amount: transferRequest.amount.toString(),
+    asset: token.symbol,
+    callDataAsset: token.symbol,
+    callDataAmount: transferRequest.amount.toString(),
+    toAddress: transferRequest.toAddress,
   };
 }
 
