@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
 import { StarknetSignRequest, StarknetSignResponse } from './starknet.dto';
-import { PrivateKeyService } from 'src/kv/vault.service';
 import { GenerateResponse } from '../../app/dto/base.dto';
+import { PrivateKeyService } from '../../kv/vault.service';
 
 @Injectable()
 export class StarknetTreasuryService extends TreasuryService {

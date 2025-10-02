@@ -2,10 +2,12 @@ import { TreasuryGenerateAddressResponseModel } from './TreasuryGenerateAddressR
 import { TreasurySignTransactionResponseModel } from './TreasurySignTransactionResponseModel';
 import { BaseSignTransactionRequestModel } from './TreasurySignTransactionRequestModel';
 import { FuelSignTransactionRequest } from './FuelSignTransactionRequest';
+import { AztecSignTransactionRequest } from './AztecSignTransactionRequest';
 
 export {
     TreasuryGenerateAddressResponseModel,
     TreasurySignTransactionResponseModel,
     BaseSignTransactionRequestModel,
-    FuelSignTransactionRequest
+    FuelSignTransactionRequest,
+    AztecSignTransactionRequest,
 };  

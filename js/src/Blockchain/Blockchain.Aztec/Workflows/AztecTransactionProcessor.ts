@@ -1,5 +1,5 @@
-import { ApplicationFailure, continueAsNew, executeChild, proxyActivities, uuid4 } from '@temporalio/workflow';
-import { IFuelBlockchainActivities } from '../Activities/IFuelBlockchainActivities';
+import { proxyActivities } from '@temporalio/workflow';
+import { IAztecBlockchainActivities } from '../Activities/IAztecBlockchainActivities';
 import { InvalidTimelockException } from '../../Blockchain.Abstraction/Exceptions/InvalidTimelockException';
 import { HashlockAlreadySetException } from '../../Blockchain.Abstraction/Exceptions/HashlockAlreadySetException';
 import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exceptions/AlreadyClaimedExceptions';
@@ -9,14 +9,13 @@ import { TransactionResponse } from '../../Blockchain.Abstraction/Models/Receipt
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
 import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
-import { buildProcessorId } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
 
-const defaultActivities = proxyActivities<IFuelBlockchainActivities>({
+const defaultActivities = proxyActivities<IAztecBlockchainActivities>({
     startToCloseTimeout: '1 hour',
     scheduleToCloseTimeout: '2 days',
 });
 
-const nonRetryableActivities = proxyActivities<IFuelBlockchainActivities>({
+const nonRetryableActivities = proxyActivities<IAztecBlockchainActivities>({
     startToCloseTimeout: '1 hour',
     scheduleToCloseTimeout: '2 days',
     retry: {
@@ -30,19 +29,19 @@ const nonRetryableActivities = proxyActivities<IFuelBlockchainActivities>({
     },
 });
 
-export async function FuelTransactionProcessor(
+export async function AztecTransactionProcessor(
     request: TransactionRequest,
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-    const nextNonce = await defaultActivities.GetNextNonce({
+    const nextNonce = await defaultActivities.getNextNonce({
         address: request.fromAddress,
         network: request.network
     });
 
     try {
 
-        await defaultActivities.CheckCurrentNonce(
+        await defaultActivities.checkCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
@@ -57,32 +56,28 @@ export async function FuelTransactionProcessor(
             type: request.type,
         });
 
-        const rawTx = await nonRetryableActivities.ComposeRawTransaction({
-            network: request.network,
-            fromAddress: request.fromAddress,
-            callData: preparedTransaction.data,
-            callDataAsset: preparedTransaction.callDataAsset,
-            callDataAmount: Number(preparedTransaction.callDataAmount),
-        });
+        const token = request.network.tokens.find(t => t.symbol === preparedTransaction.asset);
 
-        const signedRawData = await defaultActivities.SignTransaction(
+        const signedRawData = await defaultActivities.signTransaction(
             {
                 signerAgentUrl: request.signerAgentUrl,
                 networkType: NetworkType[request.network.type],
                 signRequest: {
-                    unsignedTxn: rawTx,
                     address: request.fromAddress,
+                    unsignedTxn: preparedTransaction.data,
                     nodeUrl: request.network.nodes[0].url,
+                    contractAddress: preparedTransaction.toAddress,
+                    tokenContract: token.contract,
                 }
             }
         );
 
-        const publishedTransaction = await nonRetryableActivities.PublishTransaction({
+        const publishedTransaction = await nonRetryableActivities.publishTransaction({
             network: request.network,
-            signedRawData: signedRawData
+            signedTx: signedRawData
         });
 
-        const transactionResponse = await defaultActivities.GetTransaction({
+        const transactionResponse = await defaultActivities.getTransaction({
             network: request.network,
             transactionHash: publishedTransaction,
         });
@@ -90,7 +85,7 @@ export async function FuelTransactionProcessor(
         transactionResponse.asset = preparedTransaction.callDataAsset;
         transactionResponse.amount = preparedTransaction.callDataAmount.toString();
 
-        await defaultActivities.UpdateCurrentNonce(
+        await defaultActivities.updateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
@@ -99,29 +94,16 @@ export async function FuelTransactionProcessor(
         )
 
         return transactionResponse;
-
     }
     catch (error) {
 
-        await defaultActivities.UpdateCurrentNonce(
+        await defaultActivities.updateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
                 currentNonce: nextNonce
             }
         )
-
-        if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
-
-            const processorId = buildProcessorId(uuid4(), request.network.name, request.type);
-
-            await continueAsNew(FuelTransactionProcessor, {
-                args: [request, context],
-                workflowId: processorId,
-            });
-        }
-        else {
-            throw error;
-        }
+        throw error;
     }
 }

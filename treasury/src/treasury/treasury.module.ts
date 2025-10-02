@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { EvmTreasuryService as EvmTreasuryService } from './evm/evm.service';
 import { TREASURIES } from './shared/constants.treasury';
 import { StarknetTreasuryService as StarknetTreasuryService } from './starknet/starknet.service';
-import { VaultModule } from 'src/kv/vault.module';
 import { FuelTreasuryService } from './fuel/fuel.service';
+import { VaultModule } from '../kv/vault.module';
+import { AztecTreasuryService } from './aztec/aztec.service';
+import { AztecConfigService } from './aztec/aztec.config';
 
 @Module({
   imports: [VaultModule],
@@ -11,12 +13,14 @@ import { FuelTreasuryService } from './fuel/fuel.service';
     EvmTreasuryService,
     StarknetTreasuryService,
     FuelTreasuryService,
+    AztecTreasuryService,
+    AztecConfigService,
     {
       provide: TREASURIES,
-      useFactory: (evm, starknet, fuel) => [evm, starknet, fuel],
-      inject: [EvmTreasuryService, StarknetTreasuryService, FuelTreasuryService],
+      useFactory: (evm, starknet, fuel, aztec) => [evm, starknet, fuel, aztec],
+      inject: [EvmTreasuryService, StarknetTreasuryService, FuelTreasuryService, AztecTreasuryService],
     },
   ],
   exports: [TREASURIES],
-  })
-export class TreasuryModule {}
+})
+export class TreasuryModule { }
