@@ -7,7 +7,7 @@ import { createStore } from "@aztec/kv-store/lmdb";
 import { deriveSigningKey } from '@aztec/stdlib/keys';
 import { TokenContract } from '@aztec/noir-contracts.js/Token';
 import { getSponsoredFPCInstance } from "./FPC";
-import { getSchnorrAccount } from "@aztec/accounts/schnorr";
+import { getSchnorrAccount, getSchnorrAccountContractAddress } from "@aztec/accounts/schnorr";
 import { getPXEServiceConfig } from "@aztec/pxe/config";
 import { TrainContract } from "./Train";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
@@ -176,8 +176,23 @@ export class AztecTreasuryService extends TreasuryService {
         }
     }
 
-    generate(): Promise<GenerateResponse> {
-        throw new Error('Method not implemented.');
+    async generate(): Promise<GenerateResponse> {
+        
+         const prKey = Fr.random();
+        const salt = Fr.random();
+        const addressResponse = await getSchnorrAccountContractAddress(prKey, salt);
+
+        await this.privateKeyService.setAsync(addressResponse.toString(), prKey.toString());
+        await this.privateKeyService.setAsync(addressResponse.toString(), salt.toString(), "private_salt");
+
+        const address = addressResponse.toString()
+
+        await createStore(address, {
+            dataDirectory: this.configService.storePath,
+            dataStoreMapSizeKB: 1e6,
+        });
+
+        return { address };
     }
 }
 
