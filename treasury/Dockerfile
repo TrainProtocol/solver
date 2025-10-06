@@ -3,6 +3,9 @@ FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /usr/src/app
 
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 COPY ./treasury/package*.json ./
 
 RUN npm ci
@@ -14,6 +17,9 @@ RUN npm run build
 # Production stage with production dependencies only
 FROM node:${NODE_VERSION}-alpine AS production
 WORKDIR /usr/src/app
+
+# Install build dependencies for production dependencies
+RUN apk add --no-cache python3 make g++
 
 COPY ./treasury/package*.json ./
 
