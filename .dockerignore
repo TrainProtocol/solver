@@ -1,0 +1,14 @@
+# Exclude host node_modules and build artifacts from the docker build context
+**/node_modules
+**/dist
+
+# Logs, env files
+npm-debug.log*
+.env
+.env.*
+
+# OS files
+.DS_Store
+
+# Optional: ignore local Dockerfiles if you build from subfolders
+#Dockerfile
