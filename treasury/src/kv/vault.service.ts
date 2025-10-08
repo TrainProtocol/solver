@@ -33,7 +33,7 @@ export class PrivateKeyService {
         try {
             await this.getTokenAsync();
             await this.vault.write(`${this.privateKeyConfig.mountPath}/data/${address}`, {
-                data: { [this.pkKey]: privateKey }
+                data: { [pkKey]: privateKey }
             });
         }
         catch (error) {
