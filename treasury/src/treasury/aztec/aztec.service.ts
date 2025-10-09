@@ -178,7 +178,7 @@ export class AztecTreasuryService extends TreasuryService {
 
     async generate(): Promise<GenerateResponse> {
         
-         const prKey = Fr.random();
+        const prKey = Fr.random();
         const salt = Fr.random();
         const addressResponse = await getSchnorrAccountContractAddress(prKey, salt);
 
