@@ -31,10 +31,22 @@ export class PrivateKeyService {
 
     public async setAsync(address: string, privateKey: string, pkKey: string = 'private_key'): Promise<void> {
         try {
+            
             await this.getTokenAsync();
+            let existingData: Record<string, any> = {};
+            try {
+                const existing = await this.vault.read(`${this.privateKeyConfig.mountPath}/data/${address}`);
+                if (existing?.data?.data) {
+                    existingData = existing.data.data;
+                }
+            } catch (readError: any) {
+                if (readError?.response?.statusCode !== 404) {
+                    throw readError;
+                }
+            }
+
             await this.vault.write(`${this.privateKeyConfig.mountPath}/data/${address}`, {
-                data: { [pkKey]: privateKey }
-            });
+                data: { ...existingData, [pkKey]: privateKey }})
         }
         catch (error) {
             this.handleVaultError(error);
