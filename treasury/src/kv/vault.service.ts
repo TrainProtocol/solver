@@ -22,7 +22,7 @@ export class PrivateKeyService {
         try {
             await this.getTokenAsync();
             const { data } = await this.vault.read(`${this.privateKeyConfig.mountPath}/data/${address}`);
-            return data.data[this.pkKey];
+            return data.data[pkKey];
         }
         catch (error) {
             this.handleVaultError(error);
