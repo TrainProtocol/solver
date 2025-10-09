@@ -18,7 +18,7 @@ export class PrivateKeyService {
         this.initLogin();
     }
 
-    public async getAsync(address: string, pkKey: string = 'private_key'): Promise<string> {
+    public async getAsync(address: string, pkKey: string = this.pkKey): Promise<string> {
         try {
             await this.getTokenAsync();
             const { data } = await this.vault.read(`${this.privateKeyConfig.mountPath}/data/${address}`);
@@ -29,24 +29,28 @@ export class PrivateKeyService {
         }
     }
 
-    public async setAsync(address: string, privateKey: string, pkKey: string = 'private_key'): Promise<void> {
+    public async setAsync(address: string, privateKey: string, pkKey: string = this.pkKey): Promise<void> {
         try {
             
             await this.getTokenAsync();
-            let existingData: Record<string, any> = {};
-            try {
-                const existing = await this.vault.read(`${this.privateKeyConfig.mountPath}/data/${address}`);
-                if (existing?.data?.data) {
-                    existingData = existing.data.data;
-                }
-            } catch (readError: any) {
-                if (readError?.response?.statusCode !== 404) {
-                    throw readError;
-                }
-            }
 
             await this.vault.write(`${this.privateKeyConfig.mountPath}/data/${address}`, {
-                data: { ...existingData, [pkKey]: privateKey }})
+                data: { [pkKey]: privateKey }
+            });
+        }
+        catch (error) {
+            this.handleVaultError(error);
+        }
+    }
+
+    public async setDictAsync(address: string, keyVaulePair: Record<string, string>): Promise<void> {
+        try {
+
+            await this.getTokenAsync();
+
+            await this.vault.write(`${this.privateKeyConfig.mountPath}/data/${address}`, {
+                data: { keyVaulePair }
+            });
         }
         catch (error) {
             this.handleVaultError(error);

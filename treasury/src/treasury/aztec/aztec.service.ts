@@ -177,15 +177,20 @@ export class AztecTreasuryService extends TreasuryService {
     }
 
     async generate(): Promise<GenerateResponse> {
-        
+
         const prKey = Fr.random();
         const salt = Fr.random();
-        const addressResponse = await getSchnorrAccountContractAddress(prKey, salt);
+        const address = (await getSchnorrAccountContractAddress(prKey, salt)).toString();
 
-        await this.privateKeyService.setAsync(addressResponse.toString(), prKey.toString());
-        await this.privateKeyService.setAsync(addressResponse.toString(), salt.toString(), "private_salt");
+        // await this.privateKeyService.setAsync(addressResponse.toString(), prKey.toString());
+        //salt.toString(), "private_salt"
 
-        const address = addressResponse.toString()
+        const dict: Record<string, string> = {
+            "private_salt": salt.toString(),
+            "private_key": prKey.toString(),
+        };
+
+        await this.privateKeyService.setDictAsync(address.toString(), dict);
 
         await createStore(address, {
             dataDirectory: this.configService.storePath,
