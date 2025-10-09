@@ -182,12 +182,9 @@ export class AztecTreasuryService extends TreasuryService {
         const salt = Fr.random();
         const address = (await getSchnorrAccountContractAddress(prKey, salt)).toString();
 
-        // await this.privateKeyService.setAsync(addressResponse.toString(), prKey.toString());
-        //salt.toString(), "private_salt"
-
         const dict: Record<string, string> = {
-            "private_salt": salt.toString(),
             "private_key": prKey.toString(),
+            "private_salt": salt.toString(),
         };
 
         await this.privateKeyService.setDictAsync(address.toString(), dict);
