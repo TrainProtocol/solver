@@ -30,7 +30,7 @@ public static class TreasuryClientFactory
         var httpClient = new HttpClient
         {
             BaseAddress = new Uri(baseUrl),
-            Timeout = TimeSpan.FromSeconds(480)
+            Timeout = TimeSpan.FromMinutes(10)
         };
 
         return RestService.For<ITreasuryClient>(httpClient, refitSettings);
