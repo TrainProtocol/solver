@@ -104,7 +104,7 @@ public class EVMBlockchainActivities(
         }
 
         return transaction;
-    } 
+    }
 
     [Activity]
     public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
@@ -498,6 +498,10 @@ public class EVMBlockchainActivities(
             {
                 return request.SignedTransaction.Hash;
             }
+            catch (Exception)
+            {
+                // swallow exception and continue to process the original error
+            }
 
             foreach (var innerEx in result.FailedNodes.Values)
             {
@@ -675,6 +679,11 @@ public class EVMBlockchainActivities(
         if (!transactionResult.Succeeded)
         {
             throw new AggregateException(transactionResult.FailedNodes.Values);
+        }
+
+        if (transactionResult.Data is null)
+        {
+            throw new Exception($"Transaction {transactionId} not found on {network.Name}");
         }
 
         if (transactionResult.Data.BlockNumber is null)
