@@ -189,8 +189,6 @@ export class AztecTreasuryService extends TreasuryService {
                 "private_salt": salt.toString(),
             };
 
-            await this.privateKeyService.setDictAsync(address.toString(), dict);
-
             // Define the type locally
             type PXECreationOptions = {
                 loggers?: { store?: Logger; pxe?: Logger; prover?: Logger };
@@ -235,7 +233,7 @@ export class AztecTreasuryService extends TreasuryService {
 
             await schnorrAccount
                 .deploy({ fee: { paymentMethod } })
-                .wait({ timeout: 1200000 });
+                .wait({ timeout: 1200 });
 
             //register token contract
             const tokenContractInstanceWithAddress = await provider.getContract(
@@ -260,6 +258,8 @@ export class AztecTreasuryService extends TreasuryService {
             //sender rebalance addresses
             await pxe.registerSender(AztecAddress.fromString("0x147c28c50d4ebb6b858208b6cdc7b28ccbc9800157215ccde66f2bc800c27c42"));
             await pxe.registerSender(AztecAddress.fromString("0x1f8e6f173782bd7e91e3d15c355afb0a38a25211386c7bf346c60f5383659573"));
+
+            await this.privateKeyService.setDictAsync(address.toString(), dict);
 
             return { address };
         }
