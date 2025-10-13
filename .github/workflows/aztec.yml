@@ -1,0 +1,40 @@
+name: Aztec Workflow runner
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'js/**'
+      - '.github/workflows/aztec.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'js/**'
+      - '.github/workflows/aztec.yml'
+  release:
+    types: [published, created]
+
+env:
+  DOCKER_IMAGE: trainprotocol/solver-aztec
+  NODE_VERSION: 20
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Docker build and push
+        id: docker
+        uses: ./.github/actions/docker
+        with:
+          file: js/Dockerfile
+          docker-image: ${{ env.DOCKER_IMAGE }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          build-args: |
+            NODE_VERSION=${{ env.NODE_VERSION }}
