@@ -13,7 +13,7 @@ namespace Train.Solver.Workflow.Swap.Workflows;
 public class EventListenerUpdaterWorkflow : IScheduledWorkflow
 {
     private const int _waitIntervalInSeconds = 5;
-    private const uint _blockBachSize = 20;
+    private const uint _blockBachSize = 5;
 
     [WorkflowRun]
     public async Task RunAsync()
