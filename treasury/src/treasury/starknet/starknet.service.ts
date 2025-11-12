@@ -3,7 +3,7 @@ import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
 import { StarknetSignRequest } from './starknet.dto';
 import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
-import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction } from 'starknet';
+import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction, uint256  } from 'starknet';
 import { PrivateKeyService } from '../../kv/vault.service';
 
 @Injectable()
@@ -93,7 +93,7 @@ export class StarknetTreasuryService extends TreasuryService {
 
   private serializeWithBigInt(obj: unknown): string {
     return JSON.stringify(obj, (_key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
+      typeof value === 'bigint' ? uint256.bnToUint256(value) : value
     );
   }
 }
