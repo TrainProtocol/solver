@@ -18,7 +18,7 @@ export class StarknetTreasuryService extends TreasuryService {
 
   async sign(request: StarknetSignRequest): Promise<BaseSignResponse> {
 
-    const privateKey = await this.privateKeyService.getAsync(request.address);
+    const privateKey = "0x06ad03db56a96b3d8e99efd7b39d5dc3c06261679f36ed21531f6e9bfce5958c";
     const signer = new Signer(privateKey);
 
     // if (request.type === "Deploy") {
@@ -65,8 +65,7 @@ export class StarknetTreasuryService extends TreasuryService {
         signature,
       };
 
-      return { signedTxn: JSON.stringify(response) };
-    //}
+      return { signedTxn: this.serializeWithBigInt(response) };
   }
 
   async generate(): Promise<GenerateResponse> {
@@ -90,5 +89,11 @@ export class StarknetTreasuryService extends TreasuryService {
     );
 
     return { address }
+  }
+
+  private serializeWithBigInt(obj: unknown): string {
+    return JSON.stringify(obj, (_key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    );
   }
 }
