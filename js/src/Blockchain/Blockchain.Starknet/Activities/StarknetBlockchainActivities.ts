@@ -39,8 +39,8 @@ import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/Detailed
 import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanceModels";
 import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
 import { SignTransactionRequest } from "../Models/SignTransactionRequest";
-import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/TreasuryClient";
 import { sendInvocation } from "./Helper/Client";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/TreasuryClient";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {

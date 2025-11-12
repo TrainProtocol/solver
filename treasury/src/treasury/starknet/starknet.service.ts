@@ -21,42 +21,37 @@ export class StarknetTreasuryService extends TreasuryService {
     const privateKey = await this.privateKeyService.getAsync(request.address);
     const signer = new Signer(privateKey);
 
-    if (request.type === "Deploy") {
-      const pubKey = await signer.getPubKey();
+    // if (request.type === "Deploy") {
+    //   const pubKey = await signer.getPubKey();
 
-      const axSigner = new CairoCustomEnum({ Starknet: { pubkey: pubKey } });
-      const axGuardian = new CairoOption<unknown>(CairoOptionVariant.None);
+    //   const axSigner = new CairoCustomEnum({ Starknet: { pubkey: pubKey } });
+    //   const axGuardian = new CairoOption<unknown>(CairoOptionVariant.None);
 
-      const AXConstructorCallData = CallData.compile({
-        owner: axSigner,
-        guardian: axGuardian,
-      });
+    //   const AXConstructorCallData = CallData.compile({
+    //     owner: axSigner,
+    //     guardian: axGuardian,
+    //   });
 
-      const AXcontractAddress = hash.calculateContractAddressFromHash(
-        pubKey,
-        this.argentXaccountClassHash,
-        AXConstructorCallData,
-        0
-      );
+    //   const AXcontractAddress = hash.calculateContractAddressFromHash(
+    //     pubKey,
+    //     this.argentXaccountClassHash,
+    //     AXConstructorCallData,
+    //     0
+    //   );
 
-      const deployAccountPayload = {
-        classHash: this.argentXaccountClassHash,
-        constructorCalldata: AXConstructorCallData,
-        contractAddress: request.address,
-        addressSalt: pubKey,
-      };
+    //   const deployAccountPayload = {
+    //     classHash: this.argentXaccountClassHash,
+    //     constructorCalldata: AXConstructorCallData,
+    //     contractAddress: request.address,
+    //     addressSalt: pubKey,
+    //   };
 
-      const deployDetails: DeployAccountSignerDetails =
-      {
+    //   const deployDetails: DeployAccountSignerDetails =
+    //   {
 
-      }
-
-
-
-
-
-    }
-    else {
+    //   }
+    // }
+    //else {
       const transferCalls: Call = JSON.parse(request.unsignedTxn);
       const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
 
@@ -71,7 +66,7 @@ export class StarknetTreasuryService extends TreasuryService {
       };
 
       return { signedTxn: JSON.stringify(response) };
-    }
+    //}
   }
 
   async generate(): Promise<GenerateResponse> {
