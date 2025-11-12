@@ -1,3 +1,9 @@
+export interface TokenLockedEvent {
+    hashlock: bigint;
+    timelock: bigint;
+    Id: bigint;
+}
+
 export interface TokenCommittedEvent {
     Id: bigint;
     dstChain: bigint;
@@ -9,5 +15,4 @@ export interface TokenCommittedEvent {
     tokenContract: string;
     srcReceiver: bigint;
     sender: bigint;
-  }
-  
+}

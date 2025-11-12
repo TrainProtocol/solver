@@ -1,5 +1,5 @@
 import { BaseSignTransactionRequestModel } from "./TreasurySignTransactionRequestModel";
 
-export interface FuelSignTransactionRequest  extends BaseSignTransactionRequestModel {
+export interface FuelSignTransactionRequestModel  extends BaseSignTransactionRequestModel {
     nodeUrl: string;
 }

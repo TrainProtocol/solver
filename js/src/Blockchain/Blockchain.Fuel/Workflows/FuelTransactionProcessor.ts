@@ -65,17 +65,15 @@ export async function FuelTransactionProcessor(
             callDataAmount: Number(preparedTransaction.callDataAmount),
         });
 
-        const signedRawData = await defaultActivities.SignTransaction(
-            {
-                signerAgentUrl: request.signerAgentUrl,
-                networkType: NetworkType[request.network.type],
-                signRequest: {
-                    unsignedTxn: rawTx,
-                    address: request.fromAddress,
-                    nodeUrl: request.network.nodes[0].url,
-                }
+        const signedRawData = await defaultActivities.SignTransaction({
+            signerAgentUrl: request.signerAgentUrl,
+            networkType: NetworkType[request.network.type],
+            signRequest: {
+                unsignedTxn: rawTx,
+                address: request.fromAddress,
+                nodeUrl: request.network.nodes[0].url,
             }
-        );
+        });
 
         const publishedTransaction = await nonRetryableActivities.PublishTransaction({
             network: request.network,
@@ -88,15 +86,13 @@ export async function FuelTransactionProcessor(
         });
 
         transactionResponse.asset = preparedTransaction.callDataAsset;
-        transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+        transactionResponse.amount = preparedTransaction.callDataAmount;
 
-        await defaultActivities.UpdateCurrentNonce(
-            {
-                address: request.fromAddress,
-                network: request.network,
-                currentNonce: nextNonce
-            }
-        )
+        await defaultActivities.UpdateCurrentNonce({
+            address: request.fromAddress,
+            network: request.network,
+            currentNonce: nextNonce
+        });
 
         return transactionResponse;
 
@@ -108,8 +104,7 @@ export async function FuelTransactionProcessor(
                 address: request.fromAddress,
                 network: request.network,
                 currentNonce: nextNonce
-            }
-        )
+            });
 
         if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
 

@@ -1,4 +1,4 @@
-import { AztecSignTransactionRequest } from "../../../Blockchain.Abstraction/Infrastructure/TreasuryClient/Models";
+import { AztecSignTransactionRequest } from "../../../Blockchain.Abstraction/Infrastructure/TreasuryClient/Models/AztecSignTransactionRequest";
 
 export interface AztecSignTransactionRequestModel {
     networkType: string;

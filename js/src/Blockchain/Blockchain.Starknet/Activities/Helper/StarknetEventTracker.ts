@@ -1,13 +1,11 @@
 import { CallData, hash, num, Provider } from "starknet";
-import { TokenLockedEvent as TokenLockAddedEvent, TokenLockedEvent } from "../../Models/StarknetTokenLockedEvent";
 import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
-import { TokenCommittedEvent as TokenCommittedEvent } from "../../Models/StarknetTokenCommittedEvent";
 import { formatAddress} from "../StarknetBlockchainActivities";
-import { formatUnits } from "ethers/lib/utils";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { BigIntToAscii, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { TokenCommittedEvent, TokenLockedEvent } from "../../Models/EventModels";
 
 
 export async function TrackBlockEventsAsync(
@@ -76,7 +74,7 @@ export async function TrackBlockEventsAsync(
             response.htlcCommitEventMessages.push(commitMsg);
         }
         else if (eventName.endsWith("TokenLockAdded")) {
-            const data = eventData as unknown as TokenLockAddedEvent;
+            const data = eventData as unknown as TokenLockedEvent;
 
             const lockMsg: HTLCLockEventMessage = {
                 txId: parsed.transaction_hash,
@@ -94,4 +92,4 @@ export async function TrackBlockEventsAsync(
 
 export type ContractEvent =
     | Partial<{ TokenCommitted: TokenCommittedEvent }>
-    | Partial<{ TokenLockAdded: TokenLockAddedEvent }>;
+    | Partial<{ TokenLockAdded: TokenLockedEvent }>;

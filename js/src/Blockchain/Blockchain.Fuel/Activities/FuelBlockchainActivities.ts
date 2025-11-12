@@ -24,7 +24,7 @@ import { inject, injectable } from "tsyringe";
 import Redis from "ioredis";
 import Redlock from "redlock";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
-import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
+import { SignTransactionRequest } from "./Models/FuelSignTransactionModel";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
 import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
@@ -294,7 +294,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    public async SignTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
+    public async SignTransaction(request: SignTransactionRequest): Promise<string> {
 
         const treasuryClient = new TreasuryClient(request.signerAgentUrl);
 

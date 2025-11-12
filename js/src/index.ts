@@ -14,9 +14,9 @@ switch (network) {
     case 'Fuel':
         fuelWorker(network);
         break;
-    case 'Aztec':
-        aztecWorker(network);
-        break;
+    // case 'Aztec':
+    //     aztecWorker(network);
+    //     break;
     default:
         console.error(`Unknown network: ${network}. Supported networks are: Starknet, Fuel.`);
         process.exit(1);

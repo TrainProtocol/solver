@@ -6,13 +6,13 @@ import { AlreadyClaimedExceptions } from '../../Blockchain.Abstraction/Exception
 import { HTLCAlreadyExistsException } from '../../Blockchain.Abstraction/Exceptions/HTLCAlreadyExistsException';
 import { TransactionFailedException } from '../../Blockchain.Abstraction/Exceptions/TransactionFailedException';
 import { buildProcessorId, decodeJson } from '../../Blockchain.Abstraction/Extensions/StringExtensions';
-import { AllowanceRequest } from '../../Blockchain.Abstraction/Models/AllowanceRequest';
 import { TransactionResponse } from '../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse';
 import { TransactionExecutionContext } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionExecutionContext';
 import { TransactionRequest } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionRequest';
 import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCLockTransactionPrepareRequest';
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
+import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -49,7 +49,15 @@ export async function StarknetTransactionProcessor(
         fromAddress: request.fromAddress,
         swapId: request.swapId,
     });
+
     try {
+
+        if (!context.nonce) {
+            context.nonce = await defaultActivities.GetNextNonce({
+                network: request.network,
+                address: request.fromAddress,
+            });
+        }
 
         if (!context.fee) {
             context.fee = await nonRetryableActivities.EstimateFee({
@@ -59,32 +67,46 @@ export async function StarknetTransactionProcessor(
                 fromAddress: request.fromAddress,
                 asset: preparedTransaction.asset!,
                 callData: preparedTransaction.data,
+                nonce: context.nonce
             });
         }
 
-        if (!context.nonce) {
-            context.nonce = await defaultActivities.getNextNonce({
-                network: request.network,
+        await defaultActivities.EnsureSufficientBalance(
+            {
                 address: request.fromAddress,
-            });
-        }
+                amount: preparedTransaction.callDataAmount,
+                asset: preparedTransaction.asset,
+                feeAmount: context.fee.FixedFeeData.FeeInWei,
+                network: request.network
+            }
+        );
 
-        const simulationTxId = await nonRetryableActivities.SimulateTransaction({
-            network: request.network,
-            fromAddress: request.fromAddress,
-            nonce: context.nonce,
+        const rawTx = await defaultActivities.ComposeRawTransaction({
+            address: request.fromAddress,
             callData: preparedTransaction.data,
-            fee: context.fee,
+            network: request.network,
+            nonce: context.nonce
         });
 
-        context.publishedTransactionIds.push(simulationTxId);
+        const signedRawData = await defaultActivities.SignTransaction({
+            signerAgentUrl: request.signerAgentUrl,
+            networkType: NetworkType[request.network.type],
+            signRequest: {
+                unsignedTxn: rawTx.unsignedTxn,
+                signerInvocationDetails: rawTx.signerInvocationDetails,
+                address: request.fromAddress,
+            }
+        });
+
+        await nonRetryableActivities.SimulateTransaction({
+            nonce: context.nonce,
+            network: request.network,
+            signedRawData: signedRawData
+        });
 
         const txId = await nonRetryableActivities.PublishTransaction({
             network: request.network,
-            fromAddress: request.fromAddress,
-            nonce: context.nonce,
-            callData: preparedTransaction.data,
-            fee: context.fee,
+            signedRawData: signedRawData
         });
 
         context.publishedTransactionIds.push(txId);
@@ -98,7 +120,6 @@ export async function StarknetTransactionProcessor(
         confirmed.amount = preparedTransaction.callDataAmount.toString();
 
         return confirmed;
-
     }
     catch (error) {
         if (error instanceof InvalidTimelockException && context.nonce) {
@@ -138,7 +159,7 @@ export async function StarknetTransactionProcessor(
     }
 }
 
-export async function checkAllowance(context: TransactionRequest): Promise<void> {
+async function checkAllowance(context: TransactionRequest): Promise<void> {
     const lockRequest = decodeJson<HTLCLockTransactionPrepareRequest>(context.prepareArgs);
 
     const allowance = await defaultActivities.GetSpenderAllowance(
@@ -146,7 +167,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
             network: context.network,
             ownerAddress: context.fromAddress!,
             asset: lockRequest.sourceAsset,
-        } as AllowanceRequest);
+        });
 
     if (lockRequest.amount > allowance) {
 
@@ -171,7 +192,7 @@ export async function checkAllowance(context: TransactionRequest): Promise<void>
         };
 
         const processorId = buildProcessorId(uuid4(), context.network.name, context.type);
-        
+
         await executeChild(StarknetTransactionProcessor,
             {
                 args: [approveRequest, childContext],
