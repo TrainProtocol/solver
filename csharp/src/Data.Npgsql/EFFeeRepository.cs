@@ -2,21 +2,19 @@
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Npgsql;
 
 public class EFFeeRepository(INetworkRepository networkRepository, SolverDbContext dbContext) : IFeeRepository
 {
-    public async Task<ServiceFee?> CreateServiceFeeAsync(
-        string name,
-        decimal feeInUsd,
-        decimal percentageFee)
+    public async Task<ServiceFee?> CreateServiceFeeAsync(CreateServiceFeeRequest request)
     {
         var serviceFee = new ServiceFee
         {
-            Name = name,
-            FeeInUsd = feeInUsd,
-            FeePercentage = percentageFee
+            Name = request.Name,
+            FeeInUsd = request.FeeInUsd,
+            FeePercentage = request.PercentageFee
         };
 
         dbContext.ServiceFees.Add(serviceFee);
@@ -53,8 +51,7 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
 
     public async Task<ServiceFee?> UpdateServiceFeeAsync(
         string name,
-        decimal feeInUsd,
-        decimal percentageFee)
+        UpdateServiceFeeRequest request)
     {
         var serviceFee = await GetServiceFeeAsync(name);
 
@@ -63,8 +60,8 @@ public class EFFeeRepository(INetworkRepository networkRepository, SolverDbConte
             throw new Exception($"Service fee {name} not found");
         }
 
-        serviceFee.FeePercentage = percentageFee;
-        serviceFee.FeeInUsd = feeInUsd;
+        serviceFee.FeePercentage = request.PercentageFee;
+        serviceFee.FeeInUsd = request.FeeInUsd;
 
         await dbContext.SaveChangesAsync();
 

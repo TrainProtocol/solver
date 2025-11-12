@@ -1,6 +1,6 @@
 ﻿using Train.Solver.Common.Enums;
 
-namespace Train.Solver.AdminAPI.Models;
+namespace Train.Solver.Data.Abstractions.Models;
 
 public class CreateNetworkRequest
 {

@@ -3,7 +3,7 @@ import { events } from 'starknet';
 import trainAbi from '../ABIs/Train.json';
 import { formatAddress} from "../StarknetBlockchainActivities";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { BigIntToAscii, ToHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { BigIntToAscii, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { TokenCommittedEvent, TokenLockedEvent } from "../../Models/EventModels";
 
@@ -50,7 +50,7 @@ export async function TrackBlockEventsAsync(
             const data = eventData as unknown as TokenCommittedEvent;
 
             const receiverAddress = solverAddresses.find(
-                x => formatAddress(x) === formatAddress(ToHex(data.srcReceiver))
+                x => formatAddress(x) === formatAddress(toHex(data.srcReceiver))
             );
 
             if (!receiverAddress) {
@@ -59,11 +59,11 @@ export async function TrackBlockEventsAsync(
 
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
-                commitId: ToHex(data.Id),
+                commitId: toHex(data.Id),
                 amount: Number(data.amount).toString(),
                 receiverAddress: receiverAddress,
                 sourceNetwork: network.name,
-                senderAddress: formatAddress(ToHex(data.sender)),
+                senderAddress: formatAddress(toHex(data.sender)),
                 sourceAsset: BigIntToAscii(data.srcAsset),
                 destinationAddress: data.dstAddress,
                 destinationNetwork: BigIntToAscii(data.dstChain),
@@ -78,8 +78,8 @@ export async function TrackBlockEventsAsync(
 
             const lockMsg: HTLCLockEventMessage = {
                 txId: parsed.transaction_hash,
-                commitId: ToHex(data.Id),
-                hashLock: ToHex(data.hashlock),
+                commitId: toHex(data.Id),
+                hashLock: toHex(data.hashlock),
                 timeLock: Number(data.timelock),
             };
 

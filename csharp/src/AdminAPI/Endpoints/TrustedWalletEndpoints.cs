@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -43,9 +43,7 @@ public static class TrustedWalletEndpoints
         [FromBody] CreateTrustedWalletRequest request)
     {
         var wallet = await repository.CreateAsync(
-            request.NetworkType,
-            request.Address,
-            request.Name);
+            request);
 
         return wallet is null
             ? Results.BadRequest("Failed to create trusted wallet")
@@ -61,7 +59,7 @@ public static class TrustedWalletEndpoints
         var wallet = await repository.UpdateAsync(
             networkType,
             address,
-            request.Name);
+            request);
 
         return wallet is null
             ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")

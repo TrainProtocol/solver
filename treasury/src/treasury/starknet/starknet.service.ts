@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
 import { StarknetSignRequest } from './starknet.dto';
-import { PrivateKeyService } from 'src/kv/vault.service';
 import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
 import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction } from 'starknet';
+import { PrivateKeyService } from '../../kv/vault.service';
 
 @Injectable()
 export class StarknetTreasuryService extends TreasuryService {

@@ -5,12 +5,6 @@ namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class TransactionResponse
 {
-    public BigInteger Amount { get; set; }
-
-    public string Asset { get; set; } = null!;
-
-    public required int Decimals { get; set; }
-
     public required string NetworkName { get; set; } = null!;
 
     public required string TransactionHash { get; set; } = null!;

@@ -45,7 +45,6 @@ public class RefundWorkflow : IRefundWorkflow
                 Network = network,
                 FromAddress = fromAddress,
                 SignerAgentUrl = signerAgent.Url,
-                SwapId = swap.Id,
             }, new TransactionExecutionContext()), new ChildWorkflowOptions
             {
                 Id = BuildProcessorId(

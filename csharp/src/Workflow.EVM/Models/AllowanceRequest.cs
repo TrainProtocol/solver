@@ -1,4 +1,6 @@
-﻿namespace Train.Solver.Workflow.Abstractions.Models;
+﻿using Train.Solver.Workflow.Abstractions.Models;
+
+namespace Train.Solver.Workflow.EVM.Models;
 
 public class AllowanceRequest : BaseRequest
 {

@@ -1,5 +1,6 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -11,15 +12,9 @@ public interface IFeeRepository
 
     Task<ServiceFee> GetServiceFeeAsync(string name);
 
-    Task<ServiceFee?> CreateServiceFeeAsync(
-        string name, 
-        decimal feeInUsd,
-        decimal percentageFee);
+    Task<ServiceFee?> CreateServiceFeeAsync(CreateServiceFeeRequest request);
 
-    Task<ServiceFee?> UpdateServiceFeeAsync(
-       string name,
-       decimal feeInUsd,
-       decimal percentageFee);
+    Task<ServiceFee?> UpdateServiceFeeAsync(string name, UpdateServiceFeeRequest request);
 
     Task UpdateExpenseAsync(
         string networkName,

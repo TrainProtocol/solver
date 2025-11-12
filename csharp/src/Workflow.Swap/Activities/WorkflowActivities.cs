@@ -96,7 +96,6 @@ public class WorkflowActivities(
                     Network = destinationNetwork.ToDetailedDto(),
                     FromAddress = swap.Route.DestinationWallet.Address,
                     SignerAgentUrl = swap.Route.DestinationWallet.SignerAgent.Url,
-                    SwapId = swap.Id,
             }, new TransactionExecutionContext()],
                 new(id: TemporalHelper.BuildProcessorId(swap.Route.DestinationToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.Route.DestinationToken.Network.Type.ToString())
                 {
@@ -129,7 +128,6 @@ public class WorkflowActivities(
                     Network = sourceNetwork.ToDetailedDto(),
                     FromAddress = swap.Route.SourceWallet.Address,
                     SignerAgentUrl = swap.Route.SourceWallet.SignerAgent.Url,
-                    SwapId = swap.Id,
             }, new TransactionExecutionContext()],
             new(id: TemporalHelper.BuildProcessorId(swap.Route.SourceToken.Network.Name, TransactionType.HTLCRefund, Guid.NewGuid()), taskQueue: swap.Route.SourceToken.Network.Type.ToString())
             {

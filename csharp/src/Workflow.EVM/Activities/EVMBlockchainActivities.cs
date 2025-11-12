@@ -734,7 +734,6 @@ public class EVMBlockchainActivities(
 
         var transactionModel = new TransactionResponse
         {
-            Decimals = nativeCurrency.Decimals,
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transactionResult.Data.TransactionHash,

@@ -1,17 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Data.Npgsql;
 
 public class EFTokenPriceRepository(SolverDbContext dbContext) : ITokenPriceRepository
 {
-    public async Task<TokenPrice?> CreateAsync(string symbol, string externalId)
+    public async Task<TokenPrice?> CreateAsync(CreateTokenPriceRequest request)
     {
         var tokenPrice = new TokenPrice
         {
-            Symbol = symbol,
-            ExternalId = externalId,
+            Symbol = request.Symbol,
+            ExternalId = request.ExternalId,
         };
 
         dbContext.TokenPrices.Add(tokenPrice);

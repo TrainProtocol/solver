@@ -1,5 +1,6 @@
 import starknetWorker from './Blockchain/Blockchain.Starknet/Worker/StarknetWorker';
 import fuelWorker from './Blockchain/Blockchain.Fuel/Worker/FuelWorker';
+import aztecWorker from './Blockchain/Blockchain.Aztec/Worker/AztecWorker';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,6 +13,9 @@ switch (network) {
         break;
     case 'Fuel':
         fuelWorker(network);
+        break;
+    case 'Aztec':
+        aztecWorker(network);
         break;
     default:
         console.error(`Unknown network: ${network}. Supported networks are: Starknet, Fuel.`);

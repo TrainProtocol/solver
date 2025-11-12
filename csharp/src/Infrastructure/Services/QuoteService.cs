@@ -25,8 +25,7 @@ public class QuoteService(
             request.SourceNetwork,
             request.SourceToken,
             request.DestinationNetwork,
-            request.DestinationToken,
-            null);
+            request.DestinationToken);
 
         if (route is null)
         {
@@ -72,8 +71,7 @@ public class QuoteService(
             request.SourceNetwork,
             request.SourceToken,
             request.DestinationNetwork,
-            request.DestinationToken,
-            shouldValidateLimit ? request.Amount : null);
+            request.DestinationToken);
 
         if (route is null)
         {
@@ -137,8 +135,6 @@ public class QuoteService(
     {
         BigInteger fixedFee = default;
         BigInteger? expenseFee = default;
-        BigInteger percentageFee = default;
-
 
         if (!route.IgnoreExpenseFee)
         {
@@ -153,8 +149,8 @@ public class QuoteService(
         var (Fee, Percentage) = CalculateServiceFee(route);
 
         fixedFee += Fee;
-        percentageFee = amount.PercentOf(Percentage);
 
+        var percentageFee = amount.PercentOf(Percentage);
         var totalFee = fixedFee + percentageFee;
         var totalServiceFee = Fee + percentageFee;
 

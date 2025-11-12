@@ -11,8 +11,4 @@ public class PrepareTransactionDto
     public string Asset { get; set; } = null!;
 
     public BigInteger Amount { get; set; }
-
-    public string CallDataAsset { get; set; } = null!;
-
-    public BigInteger CallDataAmount { get; set; } 
 }

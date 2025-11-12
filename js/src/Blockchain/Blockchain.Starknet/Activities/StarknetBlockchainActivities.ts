@@ -12,7 +12,6 @@ import Redis from "ioredis";
 import Redlock from "redlock";
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
-import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 import { buildLockKey, buildCurrentNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
@@ -178,12 +177,18 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         const lastBlockNumber = await provider.getBlockNumber();
 
-        const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
+        const blockData = await provider.getBlockWithTxHashes(lastBlockNumber);
 
-        return {
-            blockNumber: lastBlockNumber,
-            blockHash: blockData.block_hash,
-        };
+        const isConfirmed = "block_hash" in blockData;
+        if (isConfirmed) {
+            return {
+                blockNumber: lastBlockNumber,
+                blockHash: blockData.block_hash,
+            };
+        }
+        else {
+            throw new Error("Block doesn't confirmed")
+        }
     }
 
     public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {

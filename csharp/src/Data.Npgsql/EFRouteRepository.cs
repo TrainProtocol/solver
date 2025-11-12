@@ -4,6 +4,7 @@ using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Helpers;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Npgsql;
 
@@ -13,62 +14,49 @@ public class EFRouteRepository(
     IFeeRepository feeRepository,
     IWalletRepository walletRepository) : IRouteRepository
 {
-    public async Task<Route?> CreateAsync(
-        string sourceNetworkName,
-        string sourceTokenSymbol,
-        string sourceWalletAddress,
-        NetworkType sourceWalletType,
-        string destinationNetworkName,
-        string destinationTokenSymbol,
-        string destinationWalletAddress,
-        NetworkType destinationWalletType,
-        string rateProviderName,
-        BigInteger minAmount,
-        BigInteger maxAmount,
-        bool ignoreExpenseFee,
-        string serviceFeeName)
+    public async Task<Route?> CreateAsync(CreateRouteRequest request)
     {
-        var sourceToken = await networkRepository.GetTokenAsync(sourceNetworkName, sourceTokenSymbol);
+        var sourceToken = await networkRepository.GetTokenAsync(request.SourceNetworkName, request.SourceToken);
 
         if (sourceToken == null)
         {
-            throw new ArgumentException($"Source token {sourceTokenSymbol} not found in network {sourceNetworkName}");
+            throw new ArgumentException($"Source token {request.SourceToken} not found in network {request.SourceNetworkName}");
         }
 
-        var destinationToken = await networkRepository.GetTokenAsync(destinationNetworkName, destinationTokenSymbol);
+        var destinationToken = await networkRepository.GetTokenAsync(request.DestinationNetworkName, request.DestinationToken);
 
         if (destinationToken == null)
         {
-            throw new ArgumentException($"Destination token {destinationTokenSymbol} not found in network {destinationNetworkName}");
+            throw new ArgumentException($"Destination token {request.DestinationToken} not found in network {request.DestinationNetworkName}");
         }
 
-        var sourceWallet = await walletRepository.GetAsync(sourceWalletType, sourceWalletAddress);
+        var sourceWallet = await walletRepository.GetAsync(request.SourceWalletType, request.SourceWalletAddress);
 
         if (sourceWallet == null)
         {
-            throw new ArgumentException($"Source wallet {sourceWalletAddress} not found for network {sourceNetworkName}");
+            throw new ArgumentException($"Source wallet {request.SourceWalletAddress} not found for network {request.SourceNetworkName}");
         }
 
-        var destinationWallet = await walletRepository.GetAsync(destinationWalletType, destinationWalletAddress);
+        var destinationWallet = await walletRepository.GetAsync(request.DestinationWalletType, request.DestinationWalletAddress);
 
         if (destinationWallet == null)
         {
-            throw new ArgumentException($"Destination wallet {destinationWalletAddress} not found for network {destinationNetworkName}");
+            throw new ArgumentException($"Destination wallet {request.DestinationWalletAddress} not found for network {request.DestinationNetworkName}");
         }
 
         var rateProvider = await dbContext.RateProviders
-            .FirstOrDefaultAsync(x => x.Name == rateProviderName);
+            .FirstOrDefaultAsync(x => x.Name == request.RateProvider);
 
         if (rateProvider == null)
         {
-            throw new ArgumentException($"Rate provider {rateProviderName} not found");
+            throw new ArgumentException($"Rate provider {request.RateProvider} not found");
         }
        
-        var serviceFee = await feeRepository.GetServiceFeeAsync(serviceFeeName);
+        var serviceFee = await feeRepository.GetServiceFeeAsync(request.ServiceFee);
 
         if (serviceFee == null)
         {
-            throw new ArgumentException($"Service fee {serviceFeeName} not found");
+            throw new ArgumentException($"Service fee {request.ServiceFee} not found");
         }
 
         var route = new Route
@@ -78,10 +66,10 @@ public class EFRouteRepository(
             SourceWallet = sourceWallet,
             DestinationWallet = destinationWallet,
             RateProvider = rateProvider,
-            MinAmountInSource = minAmount.ToString(),
-            MaxAmountInSource = maxAmount.ToString(),
+            MinAmountInSource = request.MinAmount.ToString(),
+            MaxAmountInSource = request.MaxAmount.ToString(),
             Status = RouteStatus.Active,
-            IgnoreExpenseFee = ignoreExpenseFee,
+            IgnoreExpenseFee = request.IgnoreExpenseFee,
             ServiceFee = serviceFee,
         };
        
@@ -97,19 +85,13 @@ public class EFRouteRepository(
        string sourceToken,
        string destinationNetworkName,
        string destinationToken,
-       string rateProviderName,
-       BigInteger minAmount,
-       BigInteger maxAmount,
-       RouteStatus status,
-       bool ignoreExpenseFee,
-       string serviceFeeName)
+       UpdateRouteRequest request)
     {
         var route = await GetAsync(
             sourceNetworkName,
             sourceToken,
             destinationNetworkName,
-            destinationToken,
-            amount: null);
+            destinationToken);
 
         if (route == null)
         {
@@ -117,26 +99,26 @@ public class EFRouteRepository(
         }
 
         var rateProvider = await dbContext.RateProviders
-            .FirstOrDefaultAsync(x => x.Name == rateProviderName);
+            .FirstOrDefaultAsync(x => x.Name == request.RateProvider);
 
         if (rateProvider != null)
         {
             route.RateProviderId = rateProvider.Id;
         }
 
-        var serviceFee = await feeRepository.GetServiceFeeAsync(serviceFeeName);
+        var serviceFee = await feeRepository.GetServiceFeeAsync(request.ServiceFee);
 
         if (serviceFee == null)
         {
-            throw new ArgumentException($"Service fee {serviceFeeName} not found");
+            throw new ArgumentException($"Service fee {request.ServiceFee} not found");
         }
 
-
-        route.MinAmountInSource = minAmount.ToString();
-        route.MaxAmountInSource = maxAmount.ToString();
+        
+        route.MinAmountInSource = request.MinAmount.ToString();
+        route.MaxAmountInSource = request.MaxAmount.ToString();
         route.ServiceFee = serviceFee;
-        route.IgnoreExpenseFee = ignoreExpenseFee;
-        route.Status = status;
+        route.IgnoreExpenseFee = request.IgnoreExpenseFee;
+        route.Status = request.Status;
 
         await dbContext.SaveChangesAsync();
 
@@ -157,8 +139,7 @@ public class EFRouteRepository(
         string sourceNetworkName,
         string sourceToken,
         string destinationNetworkName,
-        string destinationToken,
-        BigInteger? amount)
+        string destinationToken)
     {
         var query = GetBaseQuery(null);
 
@@ -173,16 +154,6 @@ public class EFRouteRepository(
         if (route == null)
         {
             return null;
-        }
-
-        if (amount != null)
-        {
-            var routeMaxAmount = route.MaxAmountInSource;
-
-            if (amount > BigInteger.Parse(routeMaxAmount))
-            {
-                return null;
-            }
         }
 
         return route;

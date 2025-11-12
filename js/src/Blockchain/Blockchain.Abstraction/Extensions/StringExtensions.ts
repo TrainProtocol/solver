@@ -18,7 +18,7 @@ export function hexToBigInt(hex: string): bigint {
 
 export function BigIntToAscii(bigint: bigint): string {
 
-  const hex = ToHex(bigint)
+  const hex = toHex(bigint)
   let str = '';
   for (let i = 0; i < hex.length; i += 2) {
     const code = parseInt(hex.substr(i, 2), 16);
@@ -31,10 +31,18 @@ export function parseHexToUTF8(hex: string): string {
   return Buffer.from(removeHexPrefix(hex), 'hex').toString('utf8');
 }
 
-export function ToHex(value: bigint): string {
-  return '0x' + value.toString(16);
+export function toHex(value: bigint): string {
+  return ensureHexPrefix(value.toString(16));
 }
 
 export function buildProcessorId(guid: string, networkName: string, type: TransactionType): string {
   return `${networkName}-${TransactionType[type]}-${guid}`;
+}
+
+export function ensureHexPrefix(hexString: string): string {
+  if (!hexString.startsWith("0x")) {
+    hexString = "0x" + hexString;
+  }
+
+  return hexString;
 }

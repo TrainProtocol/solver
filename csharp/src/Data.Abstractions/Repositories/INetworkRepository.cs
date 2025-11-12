@@ -1,5 +1,6 @@
 ﻿using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Abstractions.Repositories;
 
@@ -11,36 +12,15 @@ public interface INetworkRepository
 
     Task<IEnumerable<Network>> GetAllAsync(NetworkType[]? types);
 
-    Task<Network?> CreateAsync(
-        string networkName,
-        string displayName,
-        NetworkType type,
-        TransactionFeeType feeType,
-        string chainId,
-        int feePercentageIncrease,
-        string htlcNativeContractAddress,
-        string htlcTokenContractAddress,
-        string nativeTokenSymbol,
-        string nativeTokenPriceSymbol,
-        string? nativeTokenContract,
-        int nativeTokenDecimals,
-        string nodeUrl,
-        string nodeProvider);
+    Task<Network?> CreateAsync(CreateNetworkRequest request);
 
-    Task<Node?> CreateNodeAsync(
-        string networkName,
-        string providerName,
-        string url);
+    Task<Node?> CreateNodeAsync(string networkName, CreateNodeRequest request);
 
-    Task<Token?> CreateTokenAsync(
-       string networkName,
-       string symbol,
-       string priceSymbol,
-       string? contract,
-       int decimals);
+    Task<Token?> CreateTokenAsync(string networkName, CreateTokenRequest request);
 
     Task DeleteTokenAsync(string networkName, string symbol);
 
     Task DeleteNodeAsync(string networkName, string providerName);
-    Task<Network?> UpdateAsync(string networkName, string displayName, TransactionFeeType feeType, int feePercentageIncrease, string htlcNativeContractAddress, string htlcTokenContractAddress);
+
+    Task<Network?> UpdateAsync(string networkName, UpdateNetworkRequest request);
 }

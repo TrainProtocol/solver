@@ -7,6 +7,7 @@ using Train.Solver.Workflow.EVM.FunctionMessages;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.EVM.Models;
 
 namespace Train.Solver.Workflow.EVM.Helpers;
 
@@ -43,8 +44,6 @@ public static class EVMTransactionBuilder
                     Spender = htlcContractAddress,
                     Value = request.Amount
                 }.GetCallData().ToHex().EnsureEvenLengthHex().EnsureHexPrefix(),
-                CallDataAsset = nativeCurrency.Symbol,
-                CallDataAmount = BigInteger.Zero,
             };
 
             return response;
@@ -80,15 +79,11 @@ public static class EVMTransactionBuilder
 
             response.Amount = BigInteger.Zero;
             response.ToAddress = currency.Contract!;
-            response.CallDataAsset = currency.Symbol;
-            response.CallDataAmount = request.Amount;
         }
         else
         {
             response.Amount = request.Amount;
             response.ToAddress = request.ToAddress;
-            response.CallDataAsset = currency.Symbol;
-            response.CallDataAmount = request.Amount;
         }
 
         return response;
@@ -132,8 +127,6 @@ public static class EVMTransactionBuilder
             Amount = BigInteger.Zero,
             Asset = nativeCurrency.Symbol,
             ToAddress = htlcContractAddress,
-            CallDataAsset = request.Asset,
-            CallDataAmount = BigInteger.Zero
         };
 
         return response;
@@ -176,8 +169,6 @@ public static class EVMTransactionBuilder
 
             response.Amount = BigInteger.Zero;
             response.Asset = nativeCurrency.Symbol;
-            response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount;
         }
         else
         {
@@ -199,8 +190,6 @@ public static class EVMTransactionBuilder
 
             response.Amount = request.Amount;
             response.Asset = nativeCurrency.Symbol;
-            response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount;
         }
 
         return response;
@@ -252,8 +241,6 @@ public static class EVMTransactionBuilder
 
             response.Amount = BigInteger.Zero;
             response.Asset = nativeCurrency.Symbol;
-            response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount + request.Reward;
         }
         else
         {
@@ -273,8 +260,6 @@ public static class EVMTransactionBuilder
 
             response.Amount = request.Amount;
             response.Asset = nativeCurrency.Symbol;
-            response.CallDataAsset = request.SourceAsset;
-            response.CallDataAmount = request.Amount + request.Reward;
         }
 
         var htlcContractAddress = isNative
@@ -317,8 +302,6 @@ public static class EVMTransactionBuilder
             Amount = BigInteger.Zero,
             ToAddress = htlcContractAddress,
             Asset = network.NativeToken.Symbol,
-            CallDataAsset = request.Asset,
-            CallDataAmount = BigInteger.Zero,
         };
     }
 
@@ -349,8 +332,6 @@ public static class EVMTransactionBuilder
             Amount = BigInteger.Zero,
             ToAddress = htlcContractAddress,
             Asset = network.NativeToken.Symbol,
-            CallDataAsset = request.Asset,
-            CallDataAmount = BigInteger.Zero,
         };
     }
 }

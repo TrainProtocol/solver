@@ -8,9 +8,6 @@ public static class SwapMetricEndpoints
 {
     public static RouteGroupBuilder MapSwapMetricEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet("/swap-metrics/totals", GetTotalVolumeAndProfitAsync)
-            .Produces<TotalSwapMetrics>();
-
         group.MapGet("/swap-metrics/daily-volume", GetDailyVolumeAsync)
             .Produces<List<TimeSeriesMetric<decimal>>>();
 
@@ -21,19 +18,6 @@ public static class SwapMetricEndpoints
             .Produces<List<TimeSeriesMetric<int>>>();
 
         return group;
-    }
-
-    private static async Task<IResult> GetTotalVolumeAndProfitAsync(
-        ISwapMetricRepository repository,
-        [FromQuery] DateTime? startFrom)
-    {
-        var (volume, profit, count) = await repository.GetTotalVolumeAndProfitAsync(startFrom ?? DateTime.UtcNow.AddDays(-30));
-        return Results.Ok(new TotalSwapMetrics
-        {
-            TotalVolumeInUsd = volume,
-            TotalProfitInUsd = profit,
-            TotalCount = count
-        });
     }
 
     private static async Task<IResult> GetDailyVolumeAsync(

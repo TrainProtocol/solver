@@ -3,9 +3,10 @@ import {
   TreasuryGenerateAddressResponseModel,
   TreasurySignTransactionResponseModel,
   FuelSignTransactionRequestModel,
-  StarknetSignTransactionRequestModel
+  StarknetSignTransactionRequestModel,
 } from "./Models";
 import axios from "axios";
+import { AztecSignTransactionRequest } from "./Models/AztecSignTransactionRequest";
 
 export class TreasuryClient {
   private apiClient;
@@ -20,7 +21,7 @@ export class TreasuryClient {
 
   async signTransaction(
     networkType: string,
-    request: BaseSignTransactionRequestModel | FuelSignTransactionRequestModel | StarknetSignTransactionRequestModel
+    request: BaseSignTransactionRequestModel | FuelSignTransactionRequestModel | StarknetSignTransactionRequestModel | AztecSignTransactionRequest
   ): Promise<TreasurySignTransactionResponseModel> {
     const res = await this.apiClient.post(
       `${networkType.toLowerCase()}/sign`,

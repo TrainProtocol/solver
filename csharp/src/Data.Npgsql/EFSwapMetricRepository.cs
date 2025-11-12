@@ -10,20 +10,6 @@ using Train.Solver.Data.Abstractions.Repositories;
 namespace Train.Solver.Data.Npgsql;
 internal class EFSwapMetricRepository(SolverDbContext dbContext) : ISwapMetricRepository
 {
-    public async Task<(decimal TotalVolumeInUsd, decimal TotalProfitInUsd, int Count)> GetTotalVolumeAndProfitAsync(DateTime startFrom)
-    {
-        var r = await dbContext.SwapMetrics
-            .Where(m => m.CreatedDate >= startFrom)
-            .GroupBy(_ => 1)
-            .Select(g => new {
-                TotalVolume = g.Sum(x => x.VolumeInUsd),
-                TotalProfit = g.Sum(x => x.ProfitInUsd),
-                Count = g.Count()
-            }).FirstOrDefaultAsync();
-
-        return (r?.TotalVolume ?? 0, r?.TotalProfit ?? 0, r?.Count ?? 0);
-    }
-
     public async Task<List<(DateTime Date, decimal Value)>> GetDailyVolumeAsync(DateTime startFrom)
     {
         var result = await dbContext.SwapMetrics
