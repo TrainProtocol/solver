@@ -18,7 +18,7 @@ import { TransactionFailedException } from "../../Blockchain.Abstraction/Excepti
 import { createAztecNodeClient, Tx, TxHash } from "@aztec/aztec.js";
 import { mapAztecStatusToInternal } from "./Helper/AztecTransactionStatusMapper";
 import { AztecPublishTransactionRequest } from "../Models/AztecPublishTransactionRequest";
-import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/TreasuryClient";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 import { AztecSignTransactionRequestModel } from "./Models/AztecSignTransactionModel";
 import { buildLockKey as buildLockKey, buildCurrentNonceKey, buildNextNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";

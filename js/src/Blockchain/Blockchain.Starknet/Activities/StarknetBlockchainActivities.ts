@@ -39,7 +39,7 @@ import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanc
 import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
 import { SignTransactionRequest } from "../Models/SignTransactionRequest";
 import { sendInvocation } from "./Helper/Client";
-import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/TreasuryClient";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {

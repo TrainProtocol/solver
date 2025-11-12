@@ -23,7 +23,7 @@ import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exception
 import { inject, injectable } from "tsyringe";
 import Redis from "ioredis";
 import Redlock from "redlock";
-import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/TreasuryClient";
+import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 import { SignTransactionRequest } from "./Models/FuelSignTransactionModel";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
