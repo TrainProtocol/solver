@@ -18,7 +18,7 @@ export class StarknetTreasuryService extends TreasuryService {
 
   async sign(request: StarknetSignRequest): Promise<BaseSignResponse> {
 
-    const privateKey = "0x06ad03db56a96b3d8e99efd7b39d5dc3c06261679f36ed21531f6e9bfce5958c";
+    const privateKey = await this.privateKeyService.getAsync(request.address);
     const signer = new Signer(privateKey);
 
     // if (request.type === "Deploy") {
