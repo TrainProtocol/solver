@@ -27,7 +27,7 @@ RUN npm ci --production && npm cache clean --force
 
 COPY --from=builder /usr/src/app/dist ./dist
 
-ENV PORT=80
-EXPOSE 80
+ENV PORT=8080
+EXPOSE 8080
 
 CMD ["node", "dist/src/main"]
