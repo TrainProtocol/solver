@@ -65,7 +65,7 @@ export class StarknetTreasuryService extends TreasuryService {
         signature,
       };
 
-      return { signedTxn: this.serializeWithBigInt(response) };
+      return { signedTxn: JSON.stringify(response) };
   }
 
   async generate(): Promise<GenerateResponse> {
