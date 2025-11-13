@@ -103,7 +103,7 @@ export function createLockCallData(network: DetailedNetworkDto, args: string): P
         shortString.encodeShortString(lockRequest.destinationNetwork),
         byteArray.byteArrayFromString(lockRequest.destinationAddress),
         shortString.encodeShortString(lockRequest.destinationAsset),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.amount.toString(), token.decimals))),
+        cairo.uint256(lockRequest.amount.toString()),
         token.contract
     ];
 
