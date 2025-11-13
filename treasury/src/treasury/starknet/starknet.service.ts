@@ -55,14 +55,13 @@ export class StarknetTreasuryService extends TreasuryService {
       const transferCalls: Call = JSON.parse(request.unsignedTxn);
       const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
 
-      const calldata = transaction.getExecuteCalldata([transferCalls], signerDetails.cairoVersion);
       const signature = await signer.signTransaction([transferCalls], signerDetails);
 
       const response: Invocation = {
-        ...stark.v3Details(signerDetails),
-        contractAddress: request.address,
-        calldata,
-        signature,
+        contractAddress: transferCalls.contractAddress,
+        calldata: transferCalls.calldata,
+        entrypoint: transferCalls.entrypoint,
+        signature
       };
 
       return { signedTxn: this.serializeWithBigInt(response) };
