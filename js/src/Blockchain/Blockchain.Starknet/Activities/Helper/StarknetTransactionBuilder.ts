@@ -165,10 +165,10 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     const approveRequest = decodeJson<ApprovePrepareRequest>(args);
 
-    const token = network.tokens.find(t => t.symbol === approveRequest.asset);
+    const token = network.tokens.find(t => t.symbol === approveRequest.Asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.asset}`)
+        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.Asset}`)
     };
 
     const spenderAddress = token.contract
@@ -177,7 +177,7 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     const callData = [
         spenderAddress,
-        cairo.uint256(Number(utils.parseUnits(approveRequest.amount.toString(), token.decimals)))
+        cairo.uint256(approveRequest.Amount.toString())
     ];
 
     const methodCall: Invocation = {

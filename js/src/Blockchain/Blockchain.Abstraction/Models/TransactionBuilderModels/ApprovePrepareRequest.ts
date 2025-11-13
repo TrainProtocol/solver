@@ -1,4 +1,4 @@
 export interface ApprovePrepareRequest {
-    asset: string;
-    amount: number;
+    Asset: string;
+    Amount: number;
   }
