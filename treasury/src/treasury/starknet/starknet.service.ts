@@ -3,7 +3,7 @@ import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
 import { StarknetSignRequest } from './starknet.dto';
 import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
-import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction, uint256  } from 'starknet';
+import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, CallDetails, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction, uint256  } from 'starknet';
 import { PrivateKeyService } from '../../kv/vault.service';
 
 @Injectable()
@@ -65,7 +65,7 @@ export class StarknetTreasuryService extends TreasuryService {
         signature,
       };
 
-      return { signedTxn: JSON.stringify(response) };
+      return { signedTxn: this.serializeWithBigInt(response) };
   }
 
   async generate(): Promise<GenerateResponse> {
