@@ -11,6 +11,7 @@ using System.Numerics;
 using System.Text.Json;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
@@ -24,7 +25,7 @@ public static class SolanaTransactionBuilder
         string solverAccount,
         string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCLockTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCLockTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -117,7 +118,7 @@ public static class SolanaTransactionBuilder
         string solverAccount,
         string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCRedeemTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCRedeemTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -208,7 +209,7 @@ public static class SolanaTransactionBuilder
         string solverAccount,
         string args)
     {
-        var request = JsonSerializer.Deserialize<HTLCRefundTransactionPrepareRequest>(args);
+        var request = args.FromJson<HTLCRefundTransactionPrepareRequest>();
 
         if (request is null)
         {
@@ -287,7 +288,7 @@ public static class SolanaTransactionBuilder
         DetailedNetworkDto network,
         string args)
     {
-        var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
+        var request = args.FromJson<TransferPrepareRequest>();
 
         if (request is null)
         {
@@ -355,7 +356,7 @@ public static class SolanaTransactionBuilder
         string solverAccount,
         string args)
     {
-        var request = JsonSerializer.Deserialize<AddLockSigTransactionPrepareRequest>(args);
+        var request = args.FromJson<AddLockSigTransactionPrepareRequest>();
 
         if (request is null)
         {

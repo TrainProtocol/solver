@@ -506,6 +506,7 @@ public class SolanaBlockchainActivities(
         return result;
     }
 
+    [Activity]
     public async Task<string> SignTransactionAsync(SolanaSignTransactionRequest request)
     {
         var signedTransaction = await privateKeyProvider.SignAsync(

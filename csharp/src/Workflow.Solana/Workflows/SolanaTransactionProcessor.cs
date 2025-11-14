@@ -22,7 +22,8 @@ public class SolanaTransactionProcessor
             {
                 Network = request.Network,
                 PrepareArgs = request.PrepareArgs,
-                Type = request.Type
+                Type = request.Type,
+                FromAddress = request.FromAddress,
             }),
             TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
