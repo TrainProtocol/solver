@@ -254,16 +254,9 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
+    public Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
-        var network = await networkRepository.GetAsync(request.Network.Name);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.Network.Name} not found");
-        }
-
-        var currency = network.Tokens.Single(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = request.Network.Tokens.Single(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
         {
@@ -291,7 +284,7 @@ public class SolanaBlockchainActivities(
         verifier.BlockUpdate(message, 0, message.Length);
         var isValid = verifier.VerifySignature(signatureBytes);
 
-        return isValid;
+        return Task.FromResult(isValid);
     }
 
     [Activity]
