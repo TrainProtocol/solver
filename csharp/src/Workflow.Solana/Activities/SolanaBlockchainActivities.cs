@@ -382,23 +382,11 @@ public class SolanaBlockchainActivities(
     [Activity]
     public async Task<string> PublishTransactionAsync(SolanaPublishTransactionRequest request)
     {
-        var network = await networkRepository.GetAsync(request.Network.Name);
-
-        if (network is null)
-        {
-            throw new ArgumentNullException(nameof(network), $"Network {request.Network.Name} not found");
-        }
-
-        if (network == null)
-        {
-            throw new($"Network {request.Network.Name} not found");
-        }
-
-        var node = network.Nodes.FirstOrDefault();
+        var node = request.Network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
-            throw new($"Node for network: {network.Name} is not configured");
+            throw new($"Node for network: {request.Network.Name} is not configured");
         }
 
         var rpcClient = ClientFactory.GetClient(node.Url);
@@ -413,10 +401,10 @@ public class SolanaBlockchainActivities(
             {
                 if (transactionResult.ServerErrorCode == BlockhashNotFoundErrorCode)
                 {
-                    throw new NonceMissMatchException($"Nonce miss match in network {network}, Reason: {transactionResult.RawRpcResponse}.");
+                    throw new NonceMissMatchException($"Nonce miss match in network {request.Network.Name}, Reason: {transactionResult.RawRpcResponse}.");
                 }
 
-                throw new Exception($"Failed to submit {network.Name} transaction due to error: {transactionResult.RawRpcResponse}");
+                throw new Exception($"Failed to submit {request.Network.Name} transaction due to error: {transactionResult.RawRpcResponse}");
             }
 
             if (!string.IsNullOrEmpty(transactionResult.Result))
