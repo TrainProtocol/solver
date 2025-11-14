@@ -15,7 +15,6 @@ export class SolanaTreasuryService extends TreasuryService {
     super(privateKeyService);
   }
 
-  // TODO: Implement the Starknet signing logic
   async sign(request: BaseSignRequest): Promise<BaseSignResponse> {
     
     const privateKey = await this.privateKeyService.getAsync(request.address);
@@ -29,7 +28,6 @@ export class SolanaTreasuryService extends TreasuryService {
     return { signedTxn: transaction.serialize().toString('base64') };
   }
 
-  // TODO: Implement the Starknet address generation(if applicable)
   async generate(): Promise<GenerateResponse> {
     const keypair = Keypair.generate();
 

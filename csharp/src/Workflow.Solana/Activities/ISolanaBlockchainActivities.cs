@@ -9,19 +9,16 @@ namespace Train.Solver.Workflow.Solana.Activities;
 public interface ISolanaBlockchainActivities
 {
     [Activity]
-    Task<string> GetNextNonceAsync(NextNonceRequest request);
-
-    [Activity]
     Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
 
     [Activity]
-    Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId);
+    Task<TransactionResponse> GetTransactionAsync(SolanaGetReceiptRequest request);
 
     [Activity]
     Task SimulateTransactionAsync(SolanaPublishTransactionRequest request);
 
     [Activity]
-    Task<string> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request);
+    Task<SolanaComposeTransactionResponse> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request);
 
     [Activity]
     Task<string> PublishTransactionAsync(SolanaPublishTransactionRequest request);

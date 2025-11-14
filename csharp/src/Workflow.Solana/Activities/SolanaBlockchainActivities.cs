@@ -24,6 +24,7 @@ using Train.Solver.Workflow.Abstractions.Activities;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.Solana.Helpers;
 using Train.Solver.Workflow.Solana.Models;
+using Transaction = Solnet.Rpc.Models.Transaction;
 
 namespace Train.Solver.Workflow.Solana.Activities;
 
@@ -126,13 +127,13 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<TransactionResponse> GetTransactionAsync(DetailedNetworkDto network, string transactionId)
+    public virtual async Task<TransactionResponse> GetTransactionAsync(SolanaGetReceiptRequest request)
     {
-        var node = network.Nodes.FirstOrDefault();
+        var node = request.Network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
-            throw new($"Primary node is not configured on {network.Name} network");
+            throw new($"Primary node is not configured on {request.Network.Name} network");
         }
 
         var rpcClient = ClientFactory.GetClient(node.Url);
@@ -145,9 +146,9 @@ public class SolanaBlockchainActivities(
         {
             transaction = await GetTransactionReceiptAsync(
                 rpcClient,
-                network,
+                request.Network,
                 epochInfoResponse.Result,
-                transactionId);
+                request.TxHash);
         }
         catch (AggregateException ae)
         {
@@ -158,11 +159,11 @@ public class SolanaBlockchainActivities(
                 throw transactionNotConfirmedException;
             }
 
-            var status = await rpcClient.GetSignatureStatusAsync(transactionId);
+            var status = await rpcClient.GetSignatureStatusAsync(request.TxHash);
 
             if (status.Result.Value.FirstOrDefault() != null)
             {
-                throw new TransactionNotComfirmedException($"Transaction is not confirmed yet, TxHash: {transactionId}.");
+                throw new TransactionNotComfirmedException($"Transaction is not confirmed yet, TxHash: {request.TxHash}.");
             }
 
             throw;
@@ -172,6 +173,8 @@ public class SolanaBlockchainActivities(
         {
             throw new TransactionFailedException("Transaction failed");
         }
+
+        await CheckBlockHeightAsync(rpcClient, request.TransactionBlockHeight);
 
         return transaction;
     }
@@ -253,30 +256,6 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public virtual async Task<string> GetNextNonceAsync(NextNonceRequest request)
-    {
-        var node = request.Network.Nodes.FirstOrDefault();
-
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node), $"Node for network: {request.Network.Name} is not configured");
-        }
-
-        var rpcClient = ClientFactory.GetClient(node.Url);
-
-        var latestBlockHashResponse = await ClientFactory
-            .GetClient(node.Url)
-            .GetLatestBlockHashAsync();
-
-        if (!latestBlockHashResponse.WasSuccessful)
-        {
-            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
-        }
-
-        return latestBlockHashResponse.Result.Value.Blockhash;
-    }
-
-    [Activity]
     public async Task<bool> ValidateAddLockSignatureAsync(AddLockSignatureRequest request)
     {
         var network = await networkRepository.GetAsync(request.Network.Name);
@@ -349,7 +328,7 @@ public class SolanaBlockchainActivities(
     }
 
     [Activity]
-    public async Task<string> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request)
+    public async Task<SolanaComposeTransactionResponse> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request)
     {
         var solanaAddress = new PublicKey(request.FromAddress);
 
@@ -402,7 +381,11 @@ public class SolanaBlockchainActivities(
 
         var rawTxResult = Convert.ToBase64String(builder.Serialize());
 
-        return rawTxResult;
+        return new()
+        {
+            LastValidBlockHeight = latestBlockHashResponse.Result.Value.LastValidBlockHeight.ToString(),
+            RawTx = rawTxResult
+        };
     }
 
     [Activity]
@@ -460,23 +443,6 @@ public class SolanaBlockchainActivities(
     private static bool ValidateAddress(string address)
         => PublicKey.IsValid(address);
 
-    //private async Task<byte[]> SignSolanaTransactionAsync(
-    //    TransactionBuilder builder,
-    //    List<string> managedAddresses)
-    //{
-    //    var signers = new List<Account>();
-
-    //    foreach (var address in managedAddresses)
-    //    {
-    //        var privateKeyResult = await privateKeyProvider.GetAsync(address);
-
-    //        var solanaAccount = new Account(privateKeyResult, address);
-    //        signers.Add(solanaAccount);
-    //    }
-
-    //    return builder.Build(signers);
-    //}
-
     //private static BigInteger ComputeRentFee(
     //   string networkName,
     //   List<TransactionInstruction> instructions)
@@ -507,37 +473,22 @@ public class SolanaBlockchainActivities(
         return transactionHash;
     }
 
-    //private async Task CheckBlockHeightAsync(
-    //    Network network,
-    //    string fromAddress)
-    //{
-    //    var primaryNode = network.Nodes.FirstOrDefault();
+    private async Task CheckBlockHeightAsync(
+        IRpcClient rpcClient,
+        string lastValidBlockHeight)
+    {
+        var epochInfoResponseResult = await rpcClient.GetEpochInfoAsync();
 
-    //    if (primaryNode is null)
-    //    {
-    //        throw new ArgumentNullException(nameof(primaryNode), $"Primary node is not configured on {network.Name} network");
-    //    }
+        if (!epochInfoResponseResult.WasSuccessful)
+        {
+            throw new Exception($"Failed to get latestBlock");
+        }
 
-    //    var primaryRpcClient = ClientFactory.GetClient(primaryNode.Url);
-
-    //    var epochInfoResponseResult = await primaryRpcClient.GetEpochInfoAsync();
-
-    //    if (!epochInfoResponseResult.WasSuccessful)
-    //    {
-    //        throw new Exception($"Failed to get latestBlock for {network.Name} network");
-    //    }
-
-    //    if (!string.IsNullOrEmpty(fromAddress))
-    //    {
-    //        var lastValidBlockHeight = await cache.StringGetAsync(
-    //            RedisHelper.BuildNonceKey(network.Name, fromAddress));
-
-    //        if (lastValidBlockHeight.HasValue && ulong.Parse(lastValidBlockHeight.ToString()) <= epochInfoResponseResult.Result.BlockHeight)
-    //        {
-    //            throw new TransactionFailedRetriableException("Transaction not found");
-    //        }
-    //    }
-    //}
+        if (ulong.Parse(lastValidBlockHeight) <= epochInfoResponseResult.Result.BlockHeight)
+        {
+            throw new TransactionFailedRetriableException("Transaction not found");
+        }
+    }
 
     private static async Task<TransactionResponse> GetTransactionReceiptAsync(
         IRpcClient rpcClient,
@@ -586,7 +537,7 @@ public class SolanaBlockchainActivities(
 
         if (string.IsNullOrEmpty(signedTransaction))
         {
-            throw new Exception($"Failed to sign transaction for {request.FromAddress} on {transactionInput.ChainId}");
+            throw new Exception($"Failed to sign transaction for {request.FromAddress} on network {request.Network.Name}. RawTx {request.UnsignRawTransaction}");
         }
 
         return signedTransaction;

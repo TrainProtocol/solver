@@ -25,17 +25,8 @@ public class SolanaTransactionProcessor
                 Type = request.Type
             }),
             TemporalHelper.DefaultActivityOptions(request.Network.Type));
-                
-        var lastValidBLockHash = await ExecuteActivityAsync(
-            (ISolanaBlockchainActivities x) => x.GetNextNonceAsync(
-                new NextNonceRequest()
-                {
-                    Address = request.FromAddress,
-                    Network = request.Network,
-                }),
-            TemporalHelper.DefaultActivityOptions(request.Network.Type));
 
-        var rawTx = await ExecuteActivityAsync(
+        var composedTransaction = await ExecuteActivityAsync(
             (ISolanaBlockchainActivities x) => x.ComposeSolanaTranscationAsync(new SolanaComposeTransactionRequest()
             {
                 Network = request.Network,
@@ -48,7 +39,7 @@ public class SolanaTransactionProcessor
             (ISolanaBlockchainActivities x) => x.SignTransactionAsync(new SolanaSignTransactionRequest()
             {
                 Network = request.Network,
-                UnsignRawTransaction = rawTx,
+                UnsignRawTransaction = composedTransaction.RawTx,
                 FromAddress = request.FromAddress,
                 SignerAgentUrl = request.SignerAgentUrl
             }),
@@ -63,7 +54,7 @@ public class SolanaTransactionProcessor
                 (ISolanaBlockchainActivities x) => x.SimulateTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
-                        RawTx = rawTx,
+                        RawTx = composedTransaction.RawTx,
                         Network= request.Network
                     }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
@@ -74,7 +65,7 @@ public class SolanaTransactionProcessor
                 (ISolanaBlockchainActivities x) => x.PublishTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
-                        RawTx = rawTx,
+                        RawTx = composedTransaction.RawTx,
                         Network = request.Network
                     }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
@@ -82,9 +73,12 @@ public class SolanaTransactionProcessor
             //Wait for transaction receipt
 
             confirmedTransaction = await ExecuteActivityAsync(
-                (ISolanaBlockchainActivities x) => x.GetTransactionAsync(                    
-                    request.Network,
-                    transactionId),
+                (ISolanaBlockchainActivities x) => x.GetTransactionAsync(new SolanaGetReceiptRequest
+                {
+                    TxHash = transactionId,
+                    Network = request.Network,
+                    TransactionBlockHeight = composedTransaction.LastValidBlockHeight
+                }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
         }
         catch (ActivityFailureException ex)
