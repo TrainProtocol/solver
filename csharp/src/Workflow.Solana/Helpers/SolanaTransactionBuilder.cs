@@ -8,7 +8,6 @@ using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 using System.Numerics;
-using System.Text.Json;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 using Train.Solver.Common.Extensions;
