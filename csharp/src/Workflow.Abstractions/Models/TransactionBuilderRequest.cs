@@ -7,4 +7,6 @@ public class TransactionBuilderRequest : BaseRequest
     public TransactionType Type { get; set; }
 
     public string PrepareArgs { get; set; } = null!;
+
+    public string? FromAddress { get; set; }
 }

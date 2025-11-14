@@ -1,13 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using StackExchange.Redis;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Train.Solver.Common.Enums;
 using Train.Solver.Common.Helpers;
 
 namespace Train.Solver.SmartNodeInvoker;
@@ -77,7 +69,6 @@ public class SmartNodeInvoker(IDatabase cache) : ISmartNodeInvoker
             .Select(s => s.Node)
             .ToList();
     }
-
 
     private async Task IncrementScoreAsync(string redisKey, string node, int delta)
     {

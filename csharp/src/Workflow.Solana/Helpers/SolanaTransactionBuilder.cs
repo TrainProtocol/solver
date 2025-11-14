@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using System.Text.Json;
-using Nethereum.Hex.HexConvertors.Extensions;
+﻿using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
 using Solnet.Extensions;
@@ -9,17 +7,20 @@ using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
-using Train.Solver.Blockchain.Abstractions.Models;
-using Train.Solver.Data.Abstractions.Entities;
+using System.Numerics;
+using System.Text.Json;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Models;
 
-namespace Train.Solver.Blockchain.Solana.Helpers;
+namespace Train.Solver.Workflow.Solana.Helpers;
 
 public static class SolanaTransactionBuilder
 {
-    public static async Task<PrepareTransactionResponse> BuildHTLCLockTransactionAsync(
-        Network network,
+    public static async Task<PrepareTransactionDto> BuildHTLCLockTransactionAsync(
+        DetailedNetworkDto network,
         string solverAccount,
         string args)
     {
@@ -30,7 +31,7 @@ public static class SolanaTransactionBuilder
             throw new Exception($"Occured exception during deserializing {args}");
         }
 
-        var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.SourceAsset.ToUpper());
+        var currency = network.Tokens.SingleOrDefault(x => x.Symbol.ToUpper() == request.SourceAsset.ToUpper());
 
         if (currency is null)
         {
@@ -38,19 +39,22 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.SourceAsset} for {network.Name} is missing");
         }
 
-        var isNative = currency.Id == network.NativeTokenId;
+        var account = new Account();
+
+        var isNative = currency.Symbol.ToUpper() == network.NativeToken!.Symbol.ToUpper();
+
         var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
-            throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
+            throw new($"Node is not configured on {network.Name} network");
         }
+
+        var rpcClient = ClientFactory.GetClient(node.Url);
 
         var htlcContractAddress = isNative
             ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
-
-        var rpcClient = ClientFactory.GetClient(node.Url);
 
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
@@ -67,50 +71,49 @@ public static class SolanaTransactionBuilder
             new HTLCLockRequest
             {
                 Hashlock = request.Hashlock.HexToByteArray(),
-                Id = request.Id.HexToByteArray(),
+                Id = request.CommitId.HexToByteArray(),
                 SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.Receiver),
-                Amount = BigInteger.Parse(request.Amount),
+                Amount = request.Amount,
                 Timelock = new BigInteger(request.Timelock),
-                SourceAsset = currency.Asset,
+                SourceAsset = currency.Symbol,
                 DestinationNetwork = request.DestinationNetwork,
                 SourceAddress = request.DestinationAddress,
                 DestinationAsset = request.DestinationAsset,
-                SourceTokenPublicKey = new PublicKey(currency.TokenContract),
-                Reward = BigInteger.Parse(request.Reward),
+                SourceTokenPublicKey = new PublicKey(currency.Contract),
+                Reward = request.Reward,
                 RewardTimelock = new BigInteger(request.RewardTimelock),
             });
 
-        var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
+        var latestBlockResult = await rpcClient.GetLatestBlockHashAsync();
 
-        if (!latestBlockHashResponse.WasSuccessful)
+        if (!latestBlockResult.WasSuccessful)
         {
-            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+            throw new ($"Failed to get last valid block");
         }
 
-        builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
+        builder.SetRecentBlockHash(latestBlockResult.Result.Value.Blockhash);
 
         var serializedTx = Convert.ToBase64String(builder.Serialize());
-        var response = new PrepareTransactionResponse
+
+        var response = new PrepareTransactionDto
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
-            AmountInWei = "0",
-            CallDataAmountInWei = request.Amount,
-            CallDataAsset = currency.Asset,
+            Asset = network.NativeToken.Symbol,
+            Amount = 0
         };
 
         if (isNative)
         {
-            response.AmountInWei = request.Amount;
+            response.Amount = request.Amount;
         }
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCRedeemTransactionAsync(
-        Network network,
+    public static async Task<PrepareTransactionDto> BuildHTLCRedeemTransactionAsync(
+        DetailedNetworkDto network,
         string solverAccount,
         string args)
     {
@@ -131,7 +134,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.SenderAddress), "Sender address is required");
         }
        
-        var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = network.Tokens.SingleOrDefault(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
         {
@@ -139,37 +142,38 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var isNative = currency.Id == network.NativeTokenId;
+        var isNative = currency.Symbol.ToUpper() == network.NativeToken!.Symbol.ToUpper();
+
         var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
         {
-            throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
+            throw new($"Node is not configured on {network.Name} network");
         }
+
+        var rpcClient = ClientFactory.GetClient(node.Url);
 
         var htlcContractAddress = isNative
             ? network.HTLCNativeContractAddress
             : network.HTLCTokenContractAddress;
 
-        var rpcClient = ClientFactory.GetClient(node.Url);
-
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
 
-        await GetOrCreateAssociatedTokenAccount(
+         await GetOrCreateAssociatedTokenAccount(
             rpcClient,
             builder,
             currency,
-            new PublicKey(request.DestinationAddress),
+            new PublicKey(solverAccount),
             new PublicKey(solverAccount));
 
         builder.SetRedeemTransactionInstruction(
             new PublicKey(htlcContractAddress),
             new HTLCRedeemRequest
             {
-                Id = request.Id.HexToByteArray(),
+                Id = request.CommitId.HexToByteArray(),
                 Secret = BigInteger.Parse(request.Secret).ToHexBigInteger().HexValue.HexToByteArray(),
-                SourceTokenPublicKey = new PublicKey(currency.TokenContract),
+                SourceTokenPublicKey = new PublicKey(currency.Contract),
                 SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress),
                 SenderPublicKey = new PublicKey(request.SenderAddress),
@@ -178,31 +182,29 @@ public static class SolanaTransactionBuilder
                     new PublicKey(request.SenderAddress),
             });
 
-        var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
+        var latestBlockResult = await rpcClient.GetLatestBlockHashAsync();
 
-        if (!latestBlockHashResponse.WasSuccessful)
+        if (!latestBlockResult.WasSuccessful)
         {
-            throw new Exception($"Failed to get latest block hash, error: {latestBlockHashResponse.RawRpcResponse}");
+            throw new($"Failed to get last valid block");
         }
 
-        builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
+        builder.SetRecentBlockHash(latestBlockResult.Result.Value.Blockhash);
 
         var serializedTx = Convert.ToBase64String(builder.Serialize());
-        var response = new PrepareTransactionResponse
+        var response = new PrepareTransactionDto
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
-            AmountInWei = "0",
-            CallDataAsset = currency.Asset,
-            CallDataAmountInWei = "0",
+            Asset = network.NativeToken.Symbol,
+            Amount = 0,
         };
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCRefundTransactionAsync(
-        Network network,
+    public static async Task<PrepareTransactionDto> BuildHTLCRefundTransactionAsync(
+        DetailedNetworkDto network,
         string solverAccount,
         string args)
     {
@@ -218,14 +220,15 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.DestinationAddress), "Receiver address is required");
         }
 
-        var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = network.Tokens.SingleOrDefault(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
         {
             throw new ArgumentNullException(nameof(currency), "Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var isNative = currency.Id == network.NativeTokenId;
+        var isNative = currency.Symbol.ToUpper() == network.NativeToken!.Symbol.ToUpper();
+
         var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
@@ -253,8 +256,8 @@ public static class SolanaTransactionBuilder
             new PublicKey(htlcContractAddress),
             new HTLCRefundRequest
             {
-                Id = request.Id.HexToByteArray(),
-                SourceTokenPublicKey = new PublicKey(currency.TokenContract),
+                Id = request.CommitId.HexToByteArray(),
+                SourceTokenPublicKey = new PublicKey(currency.Contract),
                 SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress)
             });
@@ -269,22 +272,21 @@ public static class SolanaTransactionBuilder
         builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
 
         var serializedTx = Convert.ToBase64String(builder.Serialize());
-        var response = new PrepareTransactionResponse
+        var response = new PrepareTransactionDto
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
-            AmountInWei = "0",
-            CallDataAsset = currency.Asset,
-            CallDataAmountInWei = "0",
+            Asset = network.NativeToken.Symbol,
+            Amount = 0,
         };
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildTransferTransactionAsync(Network network, string args)
+    public static async Task<PrepareTransactionDto> BuildTransferTransactionAsync(
+        DetailedNetworkDto network,
+        string args)
     {
-
         var request = JsonSerializer.Deserialize<TransferPrepareRequest>(args);
 
         if (request is null)
@@ -299,7 +301,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(node), $"Node is not configured on {network.Name} network");
         }
 
-        var currency = network.Tokens.SingleOrDefault(x => x.Asset == request.Asset);
+        var currency = network.Tokens.SingleOrDefault(x => x.Symbol == request.Asset);
 
         if (currency is null)
         {
@@ -335,28 +337,21 @@ public static class SolanaTransactionBuilder
 
         builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
 
-        if (request.Memo != null)
-        {
-            builder.AddInstruction(MemoProgram.NewMemo(publicKeyFromAddress, request.Memo));
-        }
-
         var serializedTx = Convert.ToBase64String(builder.Serialize());
 
-        var response = new PrepareTransactionResponse
+        var response = new PrepareTransactionDto
         {
             Data = serializedTx,
             ToAddress = request.ToAddress,
             Asset = request.Asset,
-            AmountInWei = amountInBaseUnits.ToString(),
-            CallDataAmountInWei = amountInBaseUnits.ToString(),
-            CallDataAsset = currency.Asset,
+            Amount = request.Amount,
         };
 
         return response;
     }
 
-    public static async Task<PrepareTransactionResponse> BuildHTLCAddlockSigTransactionAsync(
-        Network network,
+    public static async Task<PrepareTransactionDto> BuildHTLCAddlockSigTransactionAsync(
+        DetailedNetworkDto network,
         string solverAccount,
         string args)
     {
@@ -377,7 +372,7 @@ public static class SolanaTransactionBuilder
             throw new ArgumentNullException(nameof(request.SignerAddress), "Sender address is required");
         }
 
-        var currency = network.Tokens.SingleOrDefault(x => x.Asset.ToUpper() == request.Asset.ToUpper());
+        var currency = network.Tokens.SingleOrDefault(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
         {
@@ -385,7 +380,7 @@ public static class SolanaTransactionBuilder
                 $"Currency {request.Asset} for {network.Name} is missing");
         }
 
-        var isNative = currency.Id == network.NativeTokenId;
+        var isNative = currency.Symbol.ToUpper() == network.NativeToken!.Symbol.ToUpper();
         var node = network.Nodes.FirstOrDefault();
 
         if (node is null)
@@ -408,7 +403,7 @@ public static class SolanaTransactionBuilder
             {
                 AddLockSigMessageRequest = new()
                 {
-                    Id = request.Id.HexToByteArray(),
+                    Id = request.CommitId.HexToByteArray(),
                     Hashlock = request.Hashlock.HexToByteArray(),
                     Timelock = request.Timelock,
                     SignerPublicKey = new PublicKey(request.SignerAddress),
@@ -427,14 +422,12 @@ public static class SolanaTransactionBuilder
         builder.SetRecentBlockHash(latestBlockHashResponse.Result.Value.Blockhash);
 
         var serializedTx = Convert.ToBase64String(builder.Serialize());
-        var response = new PrepareTransactionResponse
+        var response = new PrepareTransactionDto
         {
             Data = serializedTx,
             ToAddress = htlcContractAddress,
-            Asset = network.NativeToken.Asset,
-            AmountInWei = "0",
-            CallDataAsset = currency.Asset,
-            CallDataAmountInWei = "0",
+            Asset = network.NativeToken.Symbol,
+            Amount = 0,
         };
 
         return response;
@@ -442,7 +435,7 @@ public static class SolanaTransactionBuilder
 
     public static async Task<TransactionBuilder> CreateTransactionInstructionAsync(
         this TransactionBuilder builder,
-        Token currency,
+        TokenDto currency,
         IRpcClient rpcClient,
         PublicKey publicKeyFromAddress,
         string toAddress,
@@ -451,7 +444,7 @@ public static class SolanaTransactionBuilder
     {
         var publicKeyToAddress = new PublicKey(toAddress);
 
-        if (string.IsNullOrEmpty(currency.TokenContract))
+        if (string.IsNullOrEmpty(currency.Contract))
         {
             //SolanaTransactionProcessorWorkflow transfer
             builder.AddInstruction(
@@ -466,9 +459,9 @@ public static class SolanaTransactionBuilder
             {
                 //SPL token transfer
                 var token = new TokenDef(
-                    currency.TokenContract,
-                    currency.Asset,
-                    currency.Asset,
+                    currency.Contract,
+                    currency.Symbol,
+                    currency.Symbol,
                     currency.Decimals);
 
                 var tokenDefs = new TokenMintResolver();
@@ -483,18 +476,18 @@ public static class SolanaTransactionBuilder
                 {
                     destination = destinationWallet.JitCreateAssociatedTokenAccount(
                         builder,
-                        currency.TokenContract,
+                        currency.Contract,
                         publicKeyFromAddress);
                 }
                 else
                 {
                     destination = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(publicKeyToAddress,
-                        new PublicKey(currency.TokenContract));
+                        new PublicKey(currency.Contract));
                 }
 
                 var source = sourceWallet.JitCreateAssociatedTokenAccount(
                     builder,
-                    currency.TokenContract,
+                    currency.Contract,
                     publicKeyFromAddress);
 
                 builder.AddInstruction(
@@ -513,19 +506,19 @@ public static class SolanaTransactionBuilder
         return builder;
     }
 
-    public async static Task GetOrCreateAssociatedTokenAccount(
+    private static async Task GetOrCreateAssociatedTokenAccount(
         IRpcClient rpcClient,
         TransactionBuilder builder,
-        Token currency,
+        TokenDto currency,
         PublicKey ownerPublicKey,
         PublicKey feePayerPublicKey)
     {
         try
         {
             var token = new TokenDef(
-                currency.TokenContract,
-                currency.Asset,
-                currency.Asset,
+                currency.Contract,
+                currency.Symbol,
+                currency.Symbol,
                 currency.Decimals);
 
             var tokenDefs = new TokenMintResolver();
@@ -535,7 +528,7 @@ public static class SolanaTransactionBuilder
 
             wallet.JitCreateAssociatedTokenAccount(
                 builder,
-                currency.TokenContract,
+                currency.Contract,
                 feePayerPublicKey);
         }
         catch (TokenWalletException ex)

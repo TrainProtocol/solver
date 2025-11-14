@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
-using Train.Solver.Workflow.Abstractions.Models;
 
-namespace Train.Solver.Workflow.EVM.Models;
+namespace Train.Solver.Workflow.Abstractions.Models;
 
 public class EstimateFeeRequest : BaseRequest
 {
