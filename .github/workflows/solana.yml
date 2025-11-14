@@ -6,12 +6,12 @@ on:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/evm.yml'
+      - '.github/workflows/solana.yml'
   pull_request:
     branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/evm.yml'
+      - '.github/workflows/solana.yml'
   release:
     types: [published, created]
 
@@ -33,7 +33,7 @@ jobs:
         id: docker
         uses: ./.github/actions/docker
         with:
-          file: csharp/src/Workflow.EVM/Dockerfile
+          file: csharp/src/Workflow.Solana/Dockerfile
           docker-image: ${{ env.DOCKER_IMAGE }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
