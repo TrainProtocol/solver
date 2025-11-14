@@ -1,6 +1,7 @@
 name: Solana Workflow runner
 
 on:
+  workflow_dispatch:
   push:
     branches: [ disable ]
     paths:

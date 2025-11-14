@@ -1,6 +1,4 @@
-﻿using Train.Solver.Common.Enums;
-
-namespace Train.Solver.Infrastructure.Abstractions.Models;
+﻿namespace Train.Solver.Infrastructure.Abstractions.Models;
 
 public class DetailedNetworkDto : ExtendedNetworkDto
 {
