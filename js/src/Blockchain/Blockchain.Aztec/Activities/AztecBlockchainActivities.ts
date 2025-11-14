@@ -15,7 +15,8 @@ import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/Tra
 import TrackBlockEventsAsync from "./Helper/AztecEventTracker";
 import { createRefundCallData, createLockCallData, createRedeemCallData, createCommitCallData } from "./Helper/AztecTransactionBuilder";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
-import { createAztecNodeClient, Tx, TxHash } from "@aztec/aztec.js";
+import { Tx, TxHash } from "@aztec/aztec.js/tx";
+import { createAztecNodeClient } from '@aztec/aztec.js/node';
 import { mapAztecStatusToInternal } from "./Helper/AztecTransactionStatusMapper";
 import { AztecPublishTransactionRequest } from "../Models/AztecPublishTransactionRequest";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";

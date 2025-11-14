@@ -1,4 +1,4 @@
-import { TxStatus } from "@aztec/aztec.js";
+import { TxStatus } from "@aztec/aztec.js/tx";
 import { TransactionStatus } from '../../../Blockchain.Abstraction/Models/TransacitonModels/TransactionStatus';
 
 export function mapAztecStatusToInternal(status: TxStatus): TransactionStatus {

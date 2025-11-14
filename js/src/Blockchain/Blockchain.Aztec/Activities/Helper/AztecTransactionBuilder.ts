@@ -4,7 +4,8 @@ import { HTLCRedeemTransactionPrepareRequest } from "../../../Blockchain.Abstrac
 import { HTLCRefundTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCRefundTransactionPrepareRequest";
 import { HTLCCommitTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCCommitTransactionPrepareRequest";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
-import { AztecAddress, Fr } from "@aztec/aztec.js";
+import { AztecAddress } from '@aztec/aztec.js/addresses';
+import { Fr } from '@aztec/foundation/fields';
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import crypto from 'crypto';
 import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";

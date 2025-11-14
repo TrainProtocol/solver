@@ -17,7 +17,7 @@ import { AztecConfigService } from './aztec/aztec.config';
     AztecConfigService,
     {
       provide: TREASURIES,
-      useFactory: (evm, starknet, fuel) => [evm, starknet, fuel],
+      useFactory: (evm, starknet, fuel, aztec) => [evm, starknet, fuel, aztec],
       inject: [EvmTreasuryService, StarknetTreasuryService, FuelTreasuryService],
     },
   ],

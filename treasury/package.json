@@ -18,11 +18,12 @@
     "test:e2e": "jest --config ./e2e/jest-e2e.json"
   },
   "dependencies": {
-    "@aztec/accounts": "^2.0.3",
-    "@aztec/aztec.js": "^2.0.3",
-    "@aztec/kv-store": "^2.0.3",
-    "@aztec/noir-contracts.js": "^2.0.3",
-    "@aztec/pxe": "^2.0.3",
+    "@aztec/accounts": "3.0.0-devnet.2",
+    "@aztec/aztec.js": "3.0.0-devnet.2",
+    "@aztec/bb-prover": "3.0.0-devnet.2",
+    "@aztec/noir-contracts.js": "3.0.0-devnet.2",
+    "@aztec/pxe": "3.0.0-devnet.2",
+    "@aztec/test-wallet": "3.0.0-devnet.2",
     "@nestjs/common": "11.1.2",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "11.1.2",

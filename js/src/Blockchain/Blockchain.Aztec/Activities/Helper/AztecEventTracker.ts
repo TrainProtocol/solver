@@ -1,5 +1,6 @@
 
-import { AztecAddress, createAztecNodeClient } from '@aztec/aztec.js';
+import { AztecAddress } from '@aztec/aztec.js/addresses';
+import { createAztecNodeClient } from '@aztec/aztec.js/node';
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
 import { ensureHexPrefix, removeHexPrefix } from '../../../Blockchain.Abstraction/Extensions/StringExtensions';

@@ -1,22 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Network } from "../shared/networks.types";
 import { AztecSignRequest, AztecSignResponse } from "./aztec.dto";
-import { AuthWitness, AztecAddress, ContractArtifact, ContractFunctionInteraction, createAztecNodeClient, Fr, FunctionAbi, getAllFunctionAbis, Logger, SponsoredFeePaymentMethod, Tx, waitForPXE } from "@aztec/aztec.js";
-import { createPXEService } from "@aztec/pxe/server";
-import { createStore } from "@aztec/kv-store/lmdb";
-import { deriveSigningKey } from '@aztec/stdlib/keys';
-import { TokenContract } from '@aztec/noir-contracts.js/Token';
-import { getSponsoredFPCInstance } from "./FPC";
-import { getSchnorrAccount, getSchnorrAccountContractAddress } from "@aztec/accounts/schnorr";
-import { getPXEServiceConfig } from "@aztec/pxe/config";
 import { TrainContract } from "./Train";
-import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { PrivateKeyService } from '../../kv/vault.service';
 import { GenerateResponse } from '../../app/dto/base.dto';
-import { PrivateKernelProver } from '@aztec/stdlib/interfaces/client';
-import { AztecAsyncKVStore } from '@aztec/kv-store';
 import { AztecConfigService } from './aztec.config';
+import { Tx } from "@aztec/aztec.js/tx";
+import { ContractFunctionInteraction, getContractInstanceFromInstantiationParams, toSendOptions } from '@aztec/aztec.js/contracts';
+import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
+import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC';
+import { TestWallet } from '@aztec/test-wallet/server';
+import { createStore } from '@aztec/kv-store/lmdb';
+import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
+import { getPXEConfig } from '@aztec/pxe/server';
+import { getSchnorrAccountContractAddress } from '@aztec/accounts/schnorr';
+import { Fr } from '@aztec/aztec.js/fields';
+import { deriveSigningKey } from '@aztec/stdlib/keys';
+import { AztecAddress } from '@aztec/aztec.js/addresses';
+import { TokenContract } from '@aztec/noir-contracts.js/Token';
+import { AuthWitness } from '@aztec/stdlib/auth-witness';
+import { ContractFunctionInteractionCallIntent } from '@aztec/aztec.js/authorization';
+import { ContractArtifact, FunctionAbi, getAllFunctionAbis } from '@aztec/aztec.js/abi';
 
 @Injectable()
 export class AztecTreasuryService extends TreasuryService {
@@ -34,67 +39,42 @@ export class AztecTreasuryService extends TreasuryService {
 
             const privateKey = await this.privateKeyService.getAsync(request.address);
             const privateSalt = await this.privateKeyService.getAsync(request.address, "private_salt");
-            const TrainContractArtifact = TrainContract.artifact;
-            const TokenContractArtifact = TokenContract.artifact;
+            const provider: AztecNode = createAztecNodeClient(request.nodeUrl);
+            const l1Contracts = await provider.getL1ContractAddresses();
 
-            // Define the type locally
-            type PXECreationOptions = {
-                loggers?: { store?: Logger; pxe?: Logger; prover?: Logger };
-                useLogSuffix?: boolean | string;
-                prover?: PrivateKernelProver;
-                store?: AztecAsyncKVStore;
-            };
-
-            const provider = createAztecNodeClient(request.nodeUrl);
-
-            const fullConfig = {
-                ...getPXEServiceConfig(),
-                l1Contracts: await provider.getL1ContractAddresses(),
-            };
+            const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
 
             const store = await createStore(request.address, {
                 dataDirectory: this.configService.storePath,
-                dataStoreMapSizeKB: 1e6,
+                dataStoreMapSizeKb: 1e6,
             });
 
-            const options: PXECreationOptions = {
-                loggers: {},
-                store,
-            };
+            const wallet = await TestWallet.create(provider, fullConfig, { store });
 
-            const pxe = await createPXEService(provider, fullConfig, options);
-            await waitForPXE(pxe);
-
-            const sponsoredFPC = await getSponsoredFPCInstance();
-            const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPC.address);
-            await pxe.registerContract({
-                instance: sponsoredFPC,
-                artifact: SponsoredFPCContract.artifact,
-            });
-
-            const schnorrAccount = await getSchnorrAccount(
-                pxe,
+            const accountManager = await wallet.createSchnorrAccount(
                 Fr.fromString(privateKey),
+                Fr.fromString(privateSalt),
                 deriveSigningKey(Fr.fromString(privateKey)),
-                Fr.fromString(privateSalt)
             );
 
-            await schnorrAccount.register();
+            const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
+                SponsoredFPCContract.artifact,
+                { salt: new Fr(0) },
+            );
 
-            const schnorrWallet = await schnorrAccount.getWallet();
-            const tokenContractInstance = await provider.getContract(AztecAddress.fromString(request.tokenContract));
+            await wallet.registerContract(
+                sponsoredFPCInstance,
+                SponsoredFPCContract.artifact,
+            );
 
-            await pxe.registerContract({
-                instance: tokenContractInstance,
-                artifact: TokenContractArtifact,
-            });
+            const token = await TokenContract.at(AztecAddress.fromString(request.tokenContract), wallet);
+            const contractInstance = await TrainContract.at(AztecAddress.fromString(request.contractAddress), wallet);
 
-            const contractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(request.contractAddress))
+            const contractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(request.contractAddress));
+            await wallet.registerContract(contractInstanceWithAddress, TrainContract.artifact);
 
-            await pxe.registerContract({
-                instance: contractInstanceWithAddress,
-                artifact: TrainContractArtifact,
-            })
+            const tokenInstance = await provider.getContract(AztecAddress.fromString(request.tokenContract));
+            await wallet.registerContract(tokenInstance, TokenContract.artifact)
 
             const contractFunctionInteraction: FunctionInteraction = JSON.parse(request.unsignedTxn);
             let authWitnesses: AuthWitness[] = [];
@@ -104,7 +84,7 @@ export class AztecTreasuryService extends TreasuryService {
                 contractFunctionInteraction.authwiths.forEach(async (authWith) => {
 
                     const requestContractClass = await provider.getContract(AztecAddress.fromString(authWith.interactionAddress))
-                    const contractClassMetadata = await pxe.getContractClassMetadata(requestContractClass.currentContractClassId, true)
+                    const contractClassMetadata = await wallet.getContractClassMetadata(requestContractClass.currentContractClassId, true)
 
                     if (!contractClassMetadata.artifact) {
                         throw new BadRequestException(`Artifact not registered`);
@@ -116,10 +96,10 @@ export class AztecTreasuryService extends TreasuryService {
                         throw new BadRequestException("Unable to get function ABI");
                     }
 
-                    authWith.args.unshift(schnorrWallet.getAddress());
+                    authWith.args.unshift();
 
                     const functionInteraction = new ContractFunctionInteraction(
-                        schnorrWallet,
+                        wallet,
                         AztecAddress.fromString(authWith.interactionAddress),
                         functionAbi,
                         [
@@ -127,17 +107,22 @@ export class AztecTreasuryService extends TreasuryService {
                         ],
                     );
 
-                    const witness = await schnorrWallet.createAuthWit({
+                    const intent: ContractFunctionInteractionCallIntent = {
                         caller: AztecAddress.fromString(authWith.callerAddress),
                         action: functionInteraction,
-                    });
+                    };
+
+                    const witness = await wallet.createAuthWit(
+                        AztecAddress.fromString(authWith.senderAddress),
+                        intent,
+                    );
 
                     authWitnesses.push(witness);
                 });
             }
 
             const requestcontractClass = await provider.getContract(AztecAddress.fromString(contractFunctionInteraction.interactionAddress))
-            const contractClassMetadata = await pxe.getContractClassMetadata(requestcontractClass.currentContractClassId, true)
+            const contractClassMetadata = await wallet.getContractClassMetadata(requestcontractClass.currentContractClassId, true)
 
             if (!contractClassMetadata.artifact) {
                 throw new BadRequestException(`Artifact not registered`);
@@ -146,7 +131,7 @@ export class AztecTreasuryService extends TreasuryService {
             const functionAbi = getFunctionAbi(contractClassMetadata.artifact, contractFunctionInteraction.functionName);
 
             const functionInteraction = new ContractFunctionInteraction(
-                schnorrWallet,
+                wallet,
                 AztecAddress.fromString(contractFunctionInteraction.interactionAddress),
                 functionAbi,
                 [
@@ -155,7 +140,20 @@ export class AztecTreasuryService extends TreasuryService {
                 [...authWitnesses]
             );
 
-            const provenTx = await functionInteraction.prove({ from: AztecAddress.fromString(request.address), fee: { paymentMethod } });
+            const executionPayload = await functionInteraction.request({
+                authWitnesses: [...authWitnesses],
+                fee: { paymentMethod: new SponsoredFeePaymentMethod(sponsoredFPCInstance.address) },
+            });
+
+            var sendOptions = await toSendOptions(
+                {
+                    from: AztecAddress.fromString(request.address),
+                    authWitnesses: [...authWitnesses],
+                    fee: { paymentMethod: new SponsoredFeePaymentMethod(sponsoredFPCInstance.address) },
+                },
+            );
+
+            const provenTx = await wallet.proveTx(executionPayload, sendOptions);
 
             const tx = new Tx(
                 provenTx.getTxHash(),
@@ -189,75 +187,59 @@ export class AztecTreasuryService extends TreasuryService {
                 "private_salt": salt.toString(),
             };
 
-            // Define the type locally
-            type PXECreationOptions = {
-                loggers?: { store?: Logger; pxe?: Logger; prover?: Logger };
-                useLogSuffix?: boolean | string;
-                prover?: PrivateKernelProver;
-                store?: AztecAsyncKVStore;
-            };
+            const provider = createAztecNodeClient("https://devnet.aztec-labs.com");
 
-            const provider = createAztecNodeClient("https://aztec-alpha-testnet-fullnode.zkv.xyz");
+            const l1Contracts = await provider.getL1ContractAddresses();
 
-            const fullConfig = {
-                ...getPXEServiceConfig(),
-                l1Contracts: await provider.getL1ContractAddresses(),
-            };
+            const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
 
             const store = await createStore(address, {
                 dataDirectory: this.configService.storePath,
-                dataStoreMapSizeKB: 1e6,
+                dataStoreMapSizeKb: 1e6,
             });
 
-            const options: PXECreationOptions = {
-                loggers: {},
-                store,
-            };
+            const wallet = await TestWallet.create(provider, fullConfig, { store });
 
-            const pxe = await createPXEService(provider, fullConfig, options);
-            await waitForPXE(pxe);
+            const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
+                SponsoredFPCContract.artifact,
+                { salt: new Fr(0) },
+            );
+            
+            const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPCInstance.address);
 
-            const sponsoredFPC = await getSponsoredFPCInstance();
-            const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPC.address);
-            await pxe.registerContract({
-                instance: sponsoredFPC,
-                artifact: SponsoredFPCContract.artifact,
-            });
-
-            const schnorrAccount = await getSchnorrAccount(
-                pxe,
+            const schnorrAccount = await wallet.createSchnorrAccount(
                 pkKey,
-                deriveSigningKey(pkKey),
                 salt,
+                deriveSigningKey(pkKey),
             );
 
-            await schnorrAccount
-                .deploy({ fee: { paymentMethod } })
-                .wait({ timeout: 1200 });
+            await (await schnorrAccount.getDeployMethod())
+                .send({ from: AztecAddress.ZERO, fee: { paymentMethod: paymentMethod } })
+                .wait();
 
             //register token contract
             const tokenContractInstanceWithAddress = await provider.getContract(
-                AztecAddress.fromString("0x19370dc2a7507ab1d30651601940e1821f8081e6ba8171d2017985e307b30863")
+                AztecAddress.fromString("0x04593cd209ec9cce4c2bf3af9003c262fbda9157d75788f47e45a14db57fac3b")
             );
 
-            await pxe.registerContract({
+            await wallet.registerContract({
                 instance: tokenContractInstanceWithAddress,
                 artifact: TokenContractArtifact,
             });
 
             //register train contract
             const contractInstanceWithAddress = await provider.getContract(
-                AztecAddress.fromString("0x1f8e6f173782bd7e91e3d15c355afb0a38a25211386c7bf346c60f5383659573")
+                AztecAddress.fromString("0x07fbdc90f60f474514ab79c99b50ef27b91ce594c168a38cb1dcadae3244f859")
             );
 
-            await pxe.registerContract({
+            await wallet.registerContract({
                 instance: contractInstanceWithAddress,
                 artifact: TrainContractArtifact,
             });
 
             //sender rebalance addresses
-            await pxe.registerSender(AztecAddress.fromString("0x147c28c50d4ebb6b858208b6cdc7b28ccbc9800157215ccde66f2bc800c27c42"));
-            await pxe.registerSender(AztecAddress.fromString("0x1f8e6f173782bd7e91e3d15c355afb0a38a25211386c7bf346c60f5383659573"));
+            await wallet.registerSender(AztecAddress.fromString("0x1c34568017bacdf953140c8a7498ad113ea3fac1dfaf6963928194c85fc3bb2b"));
+            await wallet.registerSender(AztecAddress.fromString("0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70"));
 
             await this.privateKeyService.setDictAsync(address.toString(), dict);
 
