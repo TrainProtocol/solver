@@ -78,15 +78,6 @@ public static class EventDecoder
                         continue;
                     }
 
-                    var destinationCurrency = currencies
-                        .FirstOrDefault(x => x.Symbol == commitEvent.DestinationAsset
-                                             && network.Name == commitEvent.DestinationNetwork);
-
-                    if (destinationCurrency is null)
-                    {
-                        continue;
-                    }
-
                     var sourceCurrency = network.Tokens
                         .FirstOrDefault(x => x.Symbol == commitEvent.SourceAsset);
 
