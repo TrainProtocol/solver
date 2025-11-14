@@ -1,4 +1,4 @@
-﻿using Train.Solver.Data.Npgsql.Extensions;
+﻿using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Workflow.Solana.Extensions;
@@ -15,7 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services
             .AddTrainSolver(hostContext.Configuration)
             .WithOpenTelemetryLogging("Solana Runner")
-            .WithNpgsqlRepositories()
+            .WithTreasury()
             .WithSolanaWorkflows();
     })
     .Build();

@@ -16,7 +16,6 @@ using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Models;
 using Train.Solver.Blockchain.Solana.Programs;
 using Train.Solver.Common.Enums;
-using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Exceptions;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -29,7 +28,6 @@ using Transaction = Solnet.Rpc.Models.Transaction;
 namespace Train.Solver.Workflow.Solana.Activities;
 
 public class SolanaBlockchainActivities(
-    INetworkRepository networkRepository,
     IPrivateKeyProvider privateKeyProvider) : ISolanaBlockchainActivities, IBlockchainActivities
 {
     private const int MaxConcurrentTaskCount = 4;
