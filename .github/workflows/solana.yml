@@ -3,15 +3,15 @@ name: Solana Workflow runner
 on:
   workflow_dispatch:
   push:
-    branches: [ disable ]
+    branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/solana.yml'
+      - '.github/workflows/evm.yml'
   pull_request:
-    branches: [ disable ]
+    branches: [ main, dev ]
     paths:
       - 'csharp/**'
-      - '.github/workflows/solana.yml'
+      - '.github/workflows/evm.yml'
   release:
     types: [published, created]
 
@@ -22,7 +22,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-        
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
         id: docker
         uses: ./.github/actions/docker
         with:
-          file: csharp/src/Workflow.Solana/Dockerfile
+          file: csharp/src/Workflow.EVM/Dockerfile
           docker-image: ${{ env.DOCKER_IMAGE }}
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
