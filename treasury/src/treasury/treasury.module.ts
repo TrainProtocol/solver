@@ -6,6 +6,7 @@ import { FuelTreasuryService } from './fuel/fuel.service';
 import { VaultModule } from '../kv/vault.module';
 import { AztecTreasuryService } from './aztec/aztec.service';
 import { AztecConfigService } from './aztec/aztec.config';
+import { SolanaTreasuryService } from './solana/solana.service';
 
 @Module({
   imports: [VaultModule],
@@ -15,6 +16,7 @@ import { AztecConfigService } from './aztec/aztec.config';
     FuelTreasuryService,
     AztecTreasuryService,
     AztecConfigService,
+    SolanaTreasuryService,
     {
       provide: TREASURIES,
       useFactory: (evm, starknet, fuel) => [evm, starknet, fuel],

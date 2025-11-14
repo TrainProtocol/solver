@@ -28,7 +28,7 @@ using Transaction = Solnet.Rpc.Models.Transaction;
 namespace Train.Solver.Workflow.Solana.Activities;
 
 public class SolanaBlockchainActivities(
-    IPrivateKeyProvider privateKeyProvider) : ISolanaBlockchainActivities, IBlockchainActivities
+    IPrivateKeyProvider privateKeyProvider) : ISolanaBlockchainActivities, IBlockchainActivities 
 {
     private const int MaxConcurrentTaskCount = 4;
     private const int LamportsPerRent = 3000000;
