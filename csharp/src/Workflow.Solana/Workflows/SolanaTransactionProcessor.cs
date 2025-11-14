@@ -55,7 +55,7 @@ public class SolanaTransactionProcessor
                 (ISolanaBlockchainActivities x) => x.SimulateTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
-                        RawTx = composedTransaction.RawTx,
+                        RawTx = signedTx,
                         Network= request.Network
                     }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
@@ -66,7 +66,7 @@ public class SolanaTransactionProcessor
                 (ISolanaBlockchainActivities x) => x.PublishTransactionAsync(
                     new SolanaPublishTransactionRequest()
                     {
-                        RawTx = composedTransaction.RawTx,
+                        RawTx = signedTx,
                         Network = request.Network
                     }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
