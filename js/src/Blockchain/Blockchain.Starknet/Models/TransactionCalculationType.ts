@@ -1,5 +1,4 @@
-import { BigNumberish, Calldata, constants } from "starknet";
-import { ETransactionVersion2 } from "starknet-types-07";
+import { BigNumberish, Calldata, constants, ETransactionVersion2 } from "starknet";
 
 export type CalcV2InvokeTxHashArgs = {
   senderAddress: BigNumberish;

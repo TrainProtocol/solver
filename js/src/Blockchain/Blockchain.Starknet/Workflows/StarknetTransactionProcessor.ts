@@ -13,6 +13,7 @@ import { HTLCLockTransactionPrepareRequest } from '../../Blockchain.Abstraction/
 import { TransferPrepareRequest } from '../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest';
 import { TransactionType } from '../../Blockchain.Abstraction/Models/TransacitonModels/TransactionType';
 import { NetworkType } from '../../Blockchain.Abstraction/Models/Dtos/NetworkDto';
+import { StarknetFeeModel } from '../Models/StarknetFeeModel';
 
 const defaultActivities = proxyActivities<IStarknetBlockchainActivities>({
     startToCloseTimeout: '1 hour',
@@ -59,16 +60,20 @@ export async function StarknetTransactionProcessor(
             });
         }
 
+        let fee: StarknetFeeModel;
+
         if (!context.fee) {
-            context.fee = await nonRetryableActivities.EstimateFee({
+            fee = await nonRetryableActivities.EstimateFee({
                 network: request.network,
                 toAddress: preparedTransaction.toAddress,
                 amount: Number(preparedTransaction.amount),
                 fromAddress: request.fromAddress,
                 asset: preparedTransaction.asset!,
                 callData: preparedTransaction.data,
-                nonce: context.nonce
+                nonce: context.nonce,
             });
+
+            context.fee = fee;
         }
 
         await defaultActivities.EnsureSufficientBalance(
@@ -85,7 +90,8 @@ export async function StarknetTransactionProcessor(
             address: request.fromAddress,
             callData: preparedTransaction.data,
             network: request.network,
-            nonce: context.nonce
+            nonce: context.nonce,
+            resourceBounds: fee.ResourceBounds,
         });
 
         const signedRawData = await defaultActivities.SignTransaction({
@@ -101,12 +107,17 @@ export async function StarknetTransactionProcessor(
         await nonRetryableActivities.SimulateTransaction({
             nonce: context.nonce,
             network: request.network,
-            signedRawData: signedRawData
+            signedRawData: signedRawData,
+            signerInvocationDetails: rawTx.signerInvocationDetails,
+            fromAddress: request.fromAddress,
         });
 
         const txId = await nonRetryableActivities.PublishTransaction({
             network: request.network,
-            signedRawData: signedRawData
+            signedRawData: signedRawData,
+            signerInvocationDetails: rawTx.signerInvocationDetails,
+            nonce: context.nonce,
+            fromAddress: request.fromAddress,
         });
 
         context.publishedTransactionIds.push(txId);
@@ -174,8 +185,8 @@ async function checkAllowance(context: TransactionRequest): Promise<void> {
         const approveRequest: TransactionRequest = {
             signerAgentUrl: context.signerAgentUrl,
             prepareArgs: JSON.stringify({
-                Amount: 1000000000,
-                Asset: lockRequest.sourceAsset,
+                amount: 1000000000,
+                asset: lockRequest.sourceAsset,
 
             }),
             type: TransactionType.Approve,

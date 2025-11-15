@@ -1,7 +1,6 @@
 ﻿using Train.Solver.Infrastructure.DependencyInjection;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
 using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
-using Train.Solver.Workflow.EVM.Activities;
 using Train.Solver.Workflow.EVM.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)

@@ -1,29 +1,28 @@
 ﻿using Temporalio.Activities;
-using Train.Solver.Blockchain.Abstractions.Models;
 using Train.Solver.Blockchain.Solana.Models;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Solana.Models;
 
-namespace Train.Solver.Blockchain.Solana.Activities;
+namespace Train.Solver.Workflow.Solana.Activities;
 
 public interface ISolanaBlockchainActivities
 {
     [Activity]
-    Task<Fee> EstimateFeeAsync(EstimateFeeRequest request);
+    Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request);
 
     [Activity]
-    Task<string> GetNextNonceAsync(NextNonceRequest request);
-
-    [Activity]
-    Task<PrepareTransactionResponse> BuildTransactionAsync(TransactionBuilderRequest request);
-
-    [Activity]
-    Task<TransactionResponse> GetTransactionAsync(GetTransactionRequest request);
+    Task<TransactionResponse> GetTransactionAsync(SolanaGetReceiptRequest request);
 
     [Activity]
     Task SimulateTransactionAsync(SolanaPublishTransactionRequest request);
 
     [Activity]
-    Task<byte[]> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request);
+    Task<SolanaComposeTransactionResponse> ComposeSolanaTranscationAsync(SolanaComposeTransactionRequest request);
 
     [Activity]
     Task<string> PublishTransactionAsync(SolanaPublishTransactionRequest request);
+
+    [Activity]
+    Task<string> SignTransactionAsync(SolanaSignTransactionRequest request);
 }

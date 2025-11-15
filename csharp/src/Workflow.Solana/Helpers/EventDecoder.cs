@@ -1,15 +1,13 @@
-﻿using System.Numerics;
-using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Web3;
+﻿using Nethereum.Hex.HexConvertors.Extensions;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
-using Solnet.Rpc.Models;
 using Solnet.Wallet;
-using Train.Solver.Blockchain.Abstractions.Models;
+using System.Numerics;
 using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Blockchain.Solana.Models;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
-using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Infrastructure.Abstractions.Models;
+using Train.Solver.Workflow.Abstractions.Models;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 
@@ -17,10 +15,9 @@ public static class EventDecoder
 {
     public static async Task<HTLCBlockEventResponse> GetBlockEventsAsync(
         IRpcClient rpcClient,
-        int block,
-        Network network,        
-        List<Token> currencies,
-        string solverAccount)
+        DetailedNetworkDto network,        
+        string[] solverAccounts,
+        int block)
     {
         var blockResponseResult = await rpcClient.GetParsedEventBlockAsync(block);
 
@@ -30,6 +27,8 @@ public static class EventDecoder
         }
 
         var result = new HTLCBlockEventResponse();
+
+        var currencies = network.Tokens;
 
         if (blockResponseResult.Result != null && blockResponseResult.Result.Transactions.Any())
         {
@@ -48,6 +47,8 @@ public static class EventDecoder
                 var isLockEvent = transaction.Meta.LogMessages
                     .Any(x => x.Contains(SolanaConstants.HtlcConstants.addLockEventPrefixPattern));
 
+                var accountForSimulation = solverAccounts.First();
+
                 if (isCommitEvent)
                 {
                     var prefixPattern = "Program return: " + htlcTokenContractAddress + " ";
@@ -61,31 +62,24 @@ public static class EventDecoder
 
                     var commitEvent = await DeserializeCommitEventDataAsync(
                         rpcClient,
-                        id,
                         network,
-                        solverAccount);
+                        id,
+                        accountForSimulation);
 
                     if (commitEvent == null)
                     {
                         continue;
                     }
 
-                    if (commitEvent.ReceiverAddress != solverAccount)
-                    {
-                        continue;
-                    }
+                    var receiverAddress = commitEvent.ReceiverAddress;
 
-                    var destinationCurrency = currencies
-                        .FirstOrDefault(x => x.Asset == commitEvent.DestinationAsset
-                                             && x.Network.Name == commitEvent.DestinationNetwork);
-
-                    if (destinationCurrency is null)
+                    if (!solverAccounts.Contains(receiverAddress))
                     {
                         continue;
                     }
 
                     var sourceCurrency = network.Tokens
-                        .FirstOrDefault(x => x.Asset == commitEvent.SourceAsset);
+                        .FirstOrDefault(x => x.Symbol == commitEvent.SourceAsset);
 
                     if (sourceCurrency is null)
                     {
@@ -95,9 +89,9 @@ public static class EventDecoder
                     var commitEventMessage = new HTLCCommitEventMessage
                     {
                         TxId = transaction.Transaction.Signatures.First(),
-                        Id = commitEvent.Id,
-                        AmountInWei = commitEvent.AmountInWei,
-                        ReceiverAddress = solverAccount,
+                        CommitId = commitEvent.Id,
+                        Amount = BigInteger.Parse(commitEvent.AmountInWei),
+                        ReceiverAddress = receiverAddress,
                         SourceNetwork = network.Name,
                         SourceAsset = commitEvent.SourceAsset,
                         DestinationAddress = commitEvent.DestinationAddress,
@@ -105,8 +99,6 @@ public static class EventDecoder
                         DestinationAsset = commitEvent.DestinationAsset,
                         SenderAddress = commitEvent.SenderAddress,
                         TimeLock = commitEvent.TimeLock,
-                        DestinationNetworkType = destinationCurrency.Network.Type,
-                        SourceNetworkType = sourceCurrency.Network.Type
                     };
 
                     result.HTLCCommitEventMessages.Add(commitEventMessage);
@@ -125,9 +117,9 @@ public static class EventDecoder
 
                     var addLockMessageResult = await DeserializeAddLockEventDataAsync(
                         rpcClient,
-                        id,
                         network,
-                        solverAccount);
+                        id,
+                        accountForSimulation);
 
                     if (addLockMessageResult == null)
                     {
@@ -146,8 +138,8 @@ public static class EventDecoder
 
     private static async Task<SolanaHTLCCommitEventModel> DeserializeCommitEventDataAsync(
         IRpcClient rpcClient,
+        DetailedNetworkDto network,
         string commitId,
-        Network network,
         string solverAccount)
     {
         if (solverAccount is null)
@@ -194,13 +186,12 @@ public static class EventDecoder
         response.Id = commitId;
 
         return response;
-
     }
 
     private static async Task<HTLCLockEventMessage?> DeserializeAddLockEventDataAsync(
         IRpcClient rpcClient,
-        string id,
-        Network network,
+        DetailedNetworkDto network,
+        string commitId,
         string solverAccount)
     {
         try
@@ -218,7 +209,7 @@ public static class EventDecoder
 
             builder.SetGetDetailsInstruction(
                 new PublicKey(htlcContractAddress),
-                id.HexToByteArray());
+                commitId.HexToByteArray());
 
             var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
 
@@ -248,7 +239,7 @@ public static class EventDecoder
 
             var response = new HTLCLockEventMessage();
 
-            response.Id = id;
+            response.CommitId = commitId;
 
             response.HashLock = ExtractString(
                 simulatedTransaction.Result.Value.Logs.FirstOrDefault(x =>

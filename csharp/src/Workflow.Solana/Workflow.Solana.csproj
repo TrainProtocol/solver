@@ -12,10 +12,12 @@
 	</ItemGroup>
 	
   <ItemGroup>
-	<ProjectReference Include="..\Workflow.Common\Workflows.Common.csproj" />
+	<ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
+	<ProjectReference Include="..\SmartNodeInvoker\SmartNodeInvoker.csproj" />
+	<ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+	<ProjectReference Include="..\Workflow.Common\Workflow.Common.csproj" />
 	<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
 	<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
-	<ProjectReference Include="..\Infrastructure.Secret.HashicorpKeyVault\Infrastructure.Secret.HashicorpKeyVault.csproj" />
   </ItemGroup>
 
 </Project>

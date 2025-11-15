@@ -1,8 +1,22 @@
-import { Abi, cairo, Call, Contract, hash, RpcProvider, shortString, uint256, addAddressPadding, Invocation, SuccessfulTransactionReceiptResponse, InvocationsSignerDetails, stark, AccountInvocations, TransactionType as StarknetTransactionType, v3hash } from "starknet";
-import { TypedData, TypedDataRevision } from "starknet-types-07";
+import { 
+    Uint256,
+    Abi, cairo, Call, Contract,
+    hash, RpcProvider, shortString, uint256, addAddressPadding,
+    Invocation, SuccessfulTransactionReceiptResponse, InvocationsSignerDetails,
+    stark, AccountInvocations, TransactionType as StarknetTransactionType, v3hash, 
+    WeierstrassSignatureType,
+    Account,
+    TypedData,
+    TypedDataRevision,
+    AccountInvocationItem,
+    V3InvocationsSignerDetails,
+    CallData,
+    RawArgs,
+    transaction} 
+    from "starknet";
 import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
-import { PublishTransactionRequest, SimulateTransactionRequest } from "../Models/TransactionModels";
+import { PublishTransactionRequest} from "../Models/TransactionModels";
 import { BigNumber, utils } from "ethers";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
 import { ParseNonces } from "./Helper/ErrorParser";
@@ -38,8 +52,10 @@ import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/Detailed
 import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanceModels";
 import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
 import { SignTransactionRequest } from "../Models/SignTransactionRequest";
-import { sendInvocation } from "./Helper/Client";
+import { InvokeTransactionV3, sendInvocation } from "./Helper/Client";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
+import { StarknetFeeModel } from "../Models/StarknetFeeModel";
+import { resourceBoundsToHexString, signatureToHexArray, toHex } from "./Helper/Utils";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
@@ -152,7 +168,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         const blockData = await provider.getBlockWithTxHashes(confrimedTransaction.block_number);
 
-        const feeAmount = confrimedTransaction.actual_fee;
+        const feeAmount = confrimedTransaction.actual_fee.amount;
 
         let transactionModel: TransactionResponse = {
             transactionHash: transactionHash,
@@ -161,7 +177,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
             status: transactionStatus,
             feeAsset: network.nativeToken.symbol,
-            feeAmount: feeAmount.toString(),
+            feeAmount: Number(feeAmount).toString(),
             timestamp: new Date(blockData.timestamp * 1000),
             networkName: network.name
         };
@@ -246,22 +262,59 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async PublishTransaction(request: PublishTransactionRequest): Promise<string> {
+        let invocation : any = JSON.parse(request.signedRawData);
+        let signatureString = JSON.stringify(invocation.signature);
 
-        const invocation: Invocation = JSON.parse(request.signedRawData);
+        const signature = this.deserializeWithBigInt(signatureString) as WeierstrassSignatureType;
+
+        invocation.signature = signature;
+        const signerDetails: V3InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+        const a = JSON.stringify(invocation.calldata);
+
+        var data : Call = 
+        {
+            contractAddress: invocation.contractAddress,
+            entrypoint: invocation.entrypoint,
+            calldata: invocation.calldata
+        };
+
+        const calld = transaction.getExecuteCalldata([data], signerDetails.cairoVersion);
+
+        const accountInvocations: InvokeTransactionV3 = 
+        {
+            type: "INVOKE",
+            sender_address: request.fromAddress,
+            calldata: CallData.toHex(calld),
+            version: signerDetails.version,
+            signature: signatureToHexArray(invocation.signature),
+            nonce: toHex(signerDetails.nonce),
+            resource_bounds: resourceBoundsToHexString(signerDetails.resourceBounds),
+            tip: toHex(signerDetails.tip),
+            paymaster_data: [],
+            account_deployment_data: [],
+            fee_data_availability_mode: signerDetails.feeDataAvailabilityMode,
+            nonce_data_availability_mode: signerDetails.nonceDataAvailabilityMode
+        };
+
         const nodeUrl = request.network.nodes[0].url;
 
-        const txHash = await sendInvocation(nodeUrl, invocation);
+        const txHash = await sendInvocation(nodeUrl, accountInvocations);
 
         return txHash;
     }
 
-    public async SimulateTransaction(request: SimulateTransactionRequest): Promise<void> {
+    public async SimulateTransaction(request: PublishTransactionRequest): Promise<void> {
 
         const provider = new RpcProvider({
             nodeUrl: request.network.nodes[0].url
         });
 
-        const invocation: Invocation = JSON.parse(request.signedRawData);
+        let invocation: Invocation = this.deserializeWithBigInt(request.signedRawData);
+
+        const signature = invocation.signature as WeierstrassSignatureType;
+
+        invocation.signature = signature;
+        const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
 
         const accountInvocations: AccountInvocations =
             [
@@ -270,7 +323,8 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                     contractAddress: invocation.contractAddress,
                     entrypoint: invocation.entrypoint,
                     nonce: request.nonce,
-                    signature: invocation.signature
+                    signature: invocation.signature,
+                    ...stark.v3Details(signerDetails),
                 }
             ];
 
@@ -296,37 +350,50 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee> {
+    public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<StarknetFeeModel> {
         try {
 
             const provider = new RpcProvider({
                 nodeUrl: feeRequest.network.nodes[0].url
             });
 
-            const transferCall: Invocation = JSON.parse(feeRequest.callData);
+            const account = new Account(provider, feeRequest.fromAddress, "0x0");
 
-            const feeEstimateResponse = await provider.getInvokeEstimateFee(
-                transferCall,
-                {
-                    nonce: feeRequest.nonce
-                });
+            var transferCall: Call = JSON.parse(feeRequest.callData);
 
-            if (!feeEstimateResponse?.suggestedMaxFee) {
-                throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
+            var fees = await account.estimateFee([transferCall]);
+
+            // const signature = JSON.parse(feeRequest.signature).signature;
+            // const r = uint256.uint256ToBN(signature.r);
+            // const recovery = signature.recovery;
+            // const s = uint256.uint256ToBN(signature.s);
+
+            // transferCall.signature = {r, s, recovery} as WeierstrassSignatureType;
+
+            // const feeEstimateResponse = await provider.getInvokeEstimateFee(
+            //     transferCall,
+            //     {
+            //         nonce: feeRequest.nonce
+            //     }
+            // );
+
+            if (!fees?.suggestedMaxFee) {
+                throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(fees)}`);
             };
 
             const feeInWei = BigNumber
-                .from(feeEstimateResponse.suggestedMaxFee)
+                .from(fees.suggestedMaxFee)
                 .mul(this.FEE_ESTIMATE_MULTIPLIER);
 
             const fixedfeeData: FixedFeeData = {
                 FeeInWei: feeInWei.toString(),
             };
 
-            const result: Fee =
+            const result: StarknetFeeModel =
             {
                 Asset: feeRequest.network.nativeToken.symbol,
                 FixedFeeData: fixedfeeData,
+                ResourceBounds: fees.resourceBounds
             }
 
             return result;
@@ -349,12 +416,13 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             asset: nativeTokenAsset
         });
 
+        const nativeTokenAmount = BigNumber.from(nativeTokenBalance.amount.toString());
         const amount = BigNumber.from(request.amount);
         const feeAmount = BigNumber.from(request.feeAmount);
 
         if (nativeTokenAsset === request.asset) {
 
-            if (BigNumber.from(nativeTokenBalance.amount).lt(amount.add(feeAmount))) {
+            if (nativeTokenAmount.lt(amount.add(feeAmount))) {
                 throw new Error(`Insufficient balance for fee. Balance: ${nativeTokenBalance.amount} asset ${nativeTokenAsset}, Fee: ${amount.add(feeAmount)}`);
             }
         }
@@ -447,7 +515,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const ercContract = new Contract(tokenAbi, token.contract, provider);
             var response: BigInt = await ercContract.allowance(request.ownerAddress, spenderAddress);
 
-            return Number(utils.formatUnits(response.toString(), token.decimals))
+            return Number(response.toString())
         }
         catch (error) {
             throw error;
@@ -463,18 +531,18 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const chainId = await provider.getChainId();
 
         const signerDetails: InvocationsSignerDetails = {
-            ...stark.v3Details({}),
+            ...stark.v3Details({ resourceBounds: request.resourceBounds, tip: 0 }),
             walletAddress: request.address,
             nonce: request.nonce,
             version: "0x3",
             chainId,
             cairoVersion: '1',
-            skipValidate: false
+            skipValidate: true,
         };
 
         const parsedInvocation: Invocation = JSON.parse(request.callData);
 
-        const transferCall: Call =
+        let transferCall: Call =
         {
             contractAddress: parsedInvocation.contractAddress,
             entrypoint: parsedInvocation.entrypoint,
@@ -496,6 +564,28 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         const response = await treasuryClient.signTransaction(request.networkType, request.signRequest);
 
         return response.signedTxn;
+    }
+
+    private deserializeWithBigInt(json: string): any {
+        return JSON.parse(json, (_key, value) => {
+            // Detect if this value is a uint256-like object
+            if (
+            value &&
+            typeof value === "object" &&
+            "low" in value &&
+            "high" in value &&
+            Object.keys(value).length === 2
+            ) {
+            try {
+                // Convert back to bigint
+                return uint256.uint256ToBN(value);
+            } catch {
+                // If it's not a valid uint256, return as-is
+                return value;
+            }
+            }
+            return value;
+        });
     }
 }
 

@@ -3,7 +3,7 @@ import { TreasuryService } from '../../app/interfaces/treasury.interface';
 import { Network } from '../shared/networks.types';
 import { StarknetSignRequest } from './starknet.dto';
 import { BaseSignResponse, GenerateResponse } from '../../app/dto/base.dto';
-import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction, uint256  } from 'starknet';
+import { CairoCustomEnum, CairoOption, CairoOptionVariant, Call, CallData, CallDetails, DeployAccountSignerDetails, ec, hash, Invocation, InvocationsSignerDetails, Signer, stark, transaction, uint256  } from 'starknet';
 import { PrivateKeyService } from '../../kv/vault.service';
 
 @Injectable()
@@ -55,17 +55,16 @@ export class StarknetTreasuryService extends TreasuryService {
       const transferCalls: Call = JSON.parse(request.unsignedTxn);
       const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
 
-      const calldata = transaction.getExecuteCalldata([transferCalls], signerDetails.cairoVersion);
       const signature = await signer.signTransaction([transferCalls], signerDetails);
 
       const response: Invocation = {
-        ...stark.v3Details(signerDetails),
-        contractAddress: request.address,
-        calldata,
-        signature,
+        contractAddress: transferCalls.contractAddress,
+        calldata: transferCalls.calldata,
+        entrypoint: transferCalls.entrypoint,
+        signature
       };
 
-      return { signedTxn: JSON.stringify(response) };
+      return { signedTxn: this.serializeWithBigInt(response) };
   }
 
   async generate(): Promise<GenerateResponse> {

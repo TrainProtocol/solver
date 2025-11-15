@@ -12,11 +12,12 @@ import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/T
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
 import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanceModels";
-import { PublishTransactionRequest, SimulateTransactionRequest } from "../Models/TransactionModels";
+import { PublishTransactionRequest } from "../Models/TransactionModels";
 import { SignTransactionRequest } from "../Models/SignTransactionRequest";
+import { StarknetFeeModel } from "../Models/StarknetFeeModel";
 
 export interface IStarknetBlockchainActivities extends IBlockchainActivities {
-  SimulateTransaction(request: SimulateTransactionRequest): Promise<void>;
+  SimulateTransaction(request: PublishTransactionRequest): Promise<void>;
 
   GetSpenderAllowance(request: AllowanceRequest): Promise<number>;
 
@@ -24,7 +25,7 @@ export interface IStarknetBlockchainActivities extends IBlockchainActivities {
 
   GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse>;
 
-  EstimateFee(request: EstimateFeeRequest): Promise<Fee>;
+  EstimateFee(request: EstimateFeeRequest): Promise<StarknetFeeModel>;
 
   GetNextNonce(request: NextNonceRequest): Promise<string>;
 
