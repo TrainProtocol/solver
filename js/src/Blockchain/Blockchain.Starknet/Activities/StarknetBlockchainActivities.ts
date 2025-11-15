@@ -10,7 +10,9 @@ import {
     TypedDataRevision,
     AccountInvocationItem,
     V3InvocationsSignerDetails,
-    CallData} 
+    CallData,
+    RawArgs,
+    transaction} 
     from "starknet";
 import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
@@ -166,7 +168,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         const blockData = await provider.getBlockWithTxHashes(confrimedTransaction.block_number);
 
-        const feeAmount = confrimedTransaction.actual_fee;
+        const feeAmount = confrimedTransaction.actual_fee.amount;
 
         let transactionModel: TransactionResponse = {
             transactionHash: transactionHash,
@@ -175,7 +177,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
             status: transactionStatus,
             feeAsset: network.nativeToken.symbol,
-            feeAmount: feeAmount.toString(),
+            feeAmount: Number(feeAmount).toString(),
             timestamp: new Date(blockData.timestamp * 1000),
             networkName: network.name
         };
@@ -260,27 +262,38 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
     }
 
     public async PublishTransaction(request: PublishTransactionRequest): Promise<string> {
-        let invocation: Invocation = this.deserializeWithBigInt(request.signedRawData);
+        let invocation : any = JSON.parse(request.signedRawData);
+        let signatureString = JSON.stringify(invocation.signature);
 
-        const signature = invocation.signature as WeierstrassSignatureType;
+        const signature = this.deserializeWithBigInt(signatureString) as WeierstrassSignatureType;
 
         invocation.signature = signature;
-        const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+        const signerDetails: V3InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+        const a = JSON.stringify(invocation.calldata);
+
+        var data : Call = 
+        {
+            contractAddress: invocation.contractAddress,
+            entrypoint: invocation.entrypoint,
+            calldata: invocation.calldata
+        };
+
+        const calld = transaction.getExecuteCalldata([data], signerDetails.cairoVersion);
 
         const accountInvocations: InvokeTransactionV3 = 
         {
-            type: 'INVOKE',
+            type: "INVOKE",
             sender_address: request.fromAddress,
-            calldata: CallData.toHex(invocation.calldata),
+            calldata: CallData.toHex(calld),
             version: signerDetails.version,
-            signature: signatureToHexArray(signature),
+            signature: signatureToHexArray(invocation.signature),
             nonce: toHex(signerDetails.nonce),
-            resource_bounds: resourceBoundsToHexString((signerDetails as V3InvocationsSignerDetails).resourceBounds),
-            tip: toHex((signerDetails as V3InvocationsSignerDetails).tip),
+            resource_bounds: resourceBoundsToHexString(signerDetails.resourceBounds),
+            tip: toHex(signerDetails.tip),
             paymaster_data: [],
             account_deployment_data: [],
-            fee_data_availability_mode: (signerDetails as V3InvocationsSignerDetails).feeDataAvailabilityMode,
-            nonce_data_availability_mode: (signerDetails as V3InvocationsSignerDetails).nonceDataAvailabilityMode,
+            fee_data_availability_mode: signerDetails.feeDataAvailabilityMode,
+            nonce_data_availability_mode: signerDetails.nonceDataAvailabilityMode
         };
 
         const nodeUrl = request.network.nodes[0].url;
@@ -529,7 +542,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
         const parsedInvocation: Invocation = JSON.parse(request.callData);
 
-        const transferCall: Call =
+        let transferCall: Call =
         {
             contractAddress: parsedInvocation.contractAddress,
             entrypoint: parsedInvocation.entrypoint,

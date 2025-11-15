@@ -35,7 +35,7 @@ function serializeWithBigInt(obj: unknown): string {
   }
 
   export interface InvokeTransactionV3 {
-    type: 'INVOKE';
+    type: any;
     sender_address: string;
     calldata: string[];
     version: string;

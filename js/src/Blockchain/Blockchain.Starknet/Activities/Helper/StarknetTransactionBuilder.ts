@@ -1,5 +1,5 @@
 import { utils } from "ethers";
-import { cairo, Call, shortString, byteArray, Invocation } from "starknet";
+import { cairo, Call, shortString, byteArray, Invocation} from "starknet";
 import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { ApprovePrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
 import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
@@ -95,7 +95,7 @@ export function createLockCallData(network: DetailedNetworkDto, args: string): P
     const callData = [
         cairo.uint256(lockRequest.commitId),
         cairo.uint256(lockRequest.hashlock),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.reward.toString(), token.decimals))),
+        cairo.uint256(lockRequest.reward.toString()),
         cairo.uint256(lockRequest.rewardTimelock),
         cairo.uint256(lockRequest.timelock),
         lockRequest.receiver,
