@@ -97,7 +97,7 @@ export async function AztecTransactionProcessor(
     }
     catch (error) {
 
-        await defaultActivities.updateCurrentNonce(
+        await defaultActivities.updateCurrentNonce( 
             {
                 address: request.fromAddress,
                 network: request.network,
