@@ -14,7 +14,6 @@ import { TestWallet } from '@aztec/test-wallet/server';
 import { createStore } from '@aztec/kv-store/lmdb';
 import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
 import { getPXEConfig } from '@aztec/pxe/server';
-import { getSchnorrAccountContractAddress } from '@aztec/accounts/schnorr';
 import { Fr } from '@aztec/aztec.js/fields';
 import { deriveSigningKey } from '@aztec/stdlib/keys';
 import { AztecAddress } from '@aztec/aztec.js/addresses';
@@ -22,6 +21,10 @@ import { TokenContract } from '@aztec/noir-contracts.js/Token';
 import { AuthWitness } from '@aztec/stdlib/auth-witness';
 import { ContractFunctionInteractionCallIntent } from '@aztec/aztec.js/authorization';
 import { ContractArtifact, FunctionAbi, getAllFunctionAbis } from '@aztec/aztec.js/abi';
+import { SchnorrAccountContract } from '@aztec/accounts/schnorr';
+import { getAccountContractAddress } from '@aztec/aztec.js/account';
+
+
 
 @Injectable()
 export class AztecTreasuryService extends TreasuryService {
@@ -178,7 +181,10 @@ export class AztecTreasuryService extends TreasuryService {
         try {
             const pkKey = Fr.random();
             const salt = Fr.random();
-            const address = (await getSchnorrAccountContractAddress(pkKey, salt)).toString();
+
+            const accountContract = new SchnorrAccountContract(deriveSigningKey(pkKey));
+            const address = (await getAccountContractAddress(accountContract, pkKey, salt)).toString();
+
             const TrainContractArtifact = TrainContract.artifact;
             const TokenContractArtifact = TokenContract.artifact;
 
@@ -200,11 +206,12 @@ export class AztecTreasuryService extends TreasuryService {
 
             const wallet = await TestWallet.create(provider, fullConfig, { store });
 
+
             const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
                 SponsoredFPCContract.artifact,
                 { salt: new Fr(0) },
             );
-            
+
             const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPCInstance.address);
 
             const schnorrAccount = await wallet.createSchnorrAccount(
@@ -213,11 +220,16 @@ export class AztecTreasuryService extends TreasuryService {
                 deriveSigningKey(pkKey),
             );
 
-            await (await schnorrAccount.getDeployMethod())
-                .send({ from: AztecAddress.ZERO, fee: { paymentMethod: paymentMethod } })
-                .wait();
+            await wallet.registerContract(
+                sponsoredFPCInstance,
+                SponsoredFPCContract.artifact,
+            );
 
-            //register token contract
+            await (await schnorrAccount.getDeployMethod())
+                .send({ from: AztecAddress.ZERO, fee: { paymentMethod } })
+                .wait({ timeout: 300000 });
+
+            //register token contract   
             const tokenContractInstanceWithAddress = await provider.getContract(
                 AztecAddress.fromString("0x04593cd209ec9cce4c2bf3af9003c262fbda9157d75788f47e45a14db57fac3b")
             );
@@ -240,6 +252,7 @@ export class AztecTreasuryService extends TreasuryService {
             //sender rebalance addresses
             await wallet.registerSender(AztecAddress.fromString("0x1c34568017bacdf953140c8a7498ad113ea3fac1dfaf6963928194c85fc3bb2b"));
             await wallet.registerSender(AztecAddress.fromString("0x04030b28dc89132e12478f78e55c4fd4c1454b62fe54dd4a3e749867b58b6d70"));
+            await wallet.registerSender(AztecAddress.fromString("0x2fd22a1f24263bed186fc8588027ee40fbfa7f59153eaf586102cf70eb5916b3"));
 
             await this.privateKeyService.setDictAsync(address.toString(), dict);
 

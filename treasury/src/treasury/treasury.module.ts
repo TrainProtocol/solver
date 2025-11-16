@@ -19,8 +19,8 @@ import { SolanaTreasuryService } from './solana/solana.service';
     SolanaTreasuryService,
     {
       provide: TREASURIES,
-      useFactory: (evm, starknet, fuel, solana) => [evm, starknet, fuel, solana],
-      inject: [EvmTreasuryService, StarknetTreasuryService, FuelTreasuryService, SolanaTreasuryService],
+      useFactory: (evm, starknet, fuel, solana, aztec) => [evm, starknet, fuel, solana, aztec],
+      inject: [EvmTreasuryService, StarknetTreasuryService, FuelTreasuryService, SolanaTreasuryService, AztecTreasuryService],
     },
   ],
   exports: [TREASURIES],
