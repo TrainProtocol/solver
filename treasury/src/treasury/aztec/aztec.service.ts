@@ -24,6 +24,8 @@ import { ContractArtifact, FunctionAbi, getAllFunctionAbis } from '@aztec/aztec.
 import { SchnorrAccountContract } from '@aztec/accounts/schnorr';
 import { getAccountContractAddress } from '@aztec/aztec.js/account';
 
+
+
 @Injectable()
 export class AztecTreasuryService extends TreasuryService {
 
@@ -45,45 +47,47 @@ export class AztecTreasuryService extends TreasuryService {
 
             const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
 
-            const accountContract = new SchnorrAccountContract(deriveSigningKey(Fr.fromString(privateKey)));
-            const solverAddress = (await getAccountContractAddress(accountContract, Fr.fromString(privateKey), Fr.fromString(privateSalt))).toString();
-
             const store = await createStore(request.address, {
                 dataDirectory: this.configService.storePath,
                 dataStoreMapSizeKb: 1e6,
             });
 
-            const pxe = await TestWallet.create(provider, fullConfig, { store });
+            const wallet = await TestWallet.create(provider, fullConfig, { store });
+
+            const accountManager = await wallet.createSchnorrAccount(
+                Fr.fromString(privateKey),
+                Fr.fromString(privateSalt),
+                deriveSigningKey(Fr.fromString(privateKey)),
+            );
 
             const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
                 SponsoredFPCContract.artifact,
                 { salt: new Fr(0) },
             );
 
-            await pxe.registerContract(
+            await wallet.registerContract(
                 sponsoredFPCInstance,
                 SponsoredFPCContract.artifact,
             );
 
-            await pxe.createSchnorrAccount(
-                Fr.fromString(privateKey),
-                Fr.fromString(privateSalt),
-                deriveSigningKey(Fr.fromString(privateKey)),
-            );
+            const token = await TokenContract.at(AztecAddress.fromString(request.tokenContract), wallet);
+            const contractInstance = await TrainContract.at(AztecAddress.fromString(request.contractAddress), wallet);
 
             const contractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(request.contractAddress));
-            await pxe.registerContract(contractInstanceWithAddress, TrainContract.artifact);
+            await wallet.registerContract(contractInstanceWithAddress, TrainContract.artifact);
 
             const tokenInstance = await provider.getContract(AztecAddress.fromString(request.tokenContract));
-            await pxe.registerContract(tokenInstance, TokenContract.artifact)
+            await wallet.registerContract(tokenInstance, TokenContract.artifact)
 
             const contractFunctionInteraction: FunctionInteraction = JSON.parse(request.unsignedTxn);
             let authWitnesses: AuthWitness[] = [];
 
             if (contractFunctionInteraction.authwiths) {
-                for (const authWith of contractFunctionInteraction.authwiths) {
-                    const requestContractClass = await provider.getContract(AztecAddress.fromString(authWith.interactionAddress));
-                    const contractClassMetadata = await pxe.getContractClassMetadata(requestContractClass.currentContractClassId, true);
+
+                contractFunctionInteraction.authwiths.forEach(async (authWith) => {
+
+                    const requestContractClass = await provider.getContract(AztecAddress.fromString(authWith.interactionAddress))
+                    const contractClassMetadata = await wallet.getContractClassMetadata(requestContractClass.currentContractClassId, true)
 
                     if (!contractClassMetadata.artifact) {
                         throw new BadRequestException(`Artifact not registered`);
@@ -95,13 +99,15 @@ export class AztecTreasuryService extends TreasuryService {
                         throw new BadRequestException("Unable to get function ABI");
                     }
 
-                    authWith.args.unshift(solverAddress);
+                    authWith.args.unshift();
 
                     const functionInteraction = new ContractFunctionInteraction(
-                        pxe,
+                        wallet,
                         AztecAddress.fromString(authWith.interactionAddress),
                         functionAbi,
-                        [...authWith.args],
+                        [
+                            ...authWith.args
+                        ],
                     );
 
                     const intent: ContractFunctionInteractionCallIntent = {
@@ -109,17 +115,17 @@ export class AztecTreasuryService extends TreasuryService {
                         action: functionInteraction,
                     };
 
-                    const witness = await pxe.createAuthWit(
-                        AztecAddress.fromString(solverAddress),
+                    const witness = await wallet.createAuthWit(
+                        AztecAddress.fromString(authWith.senderAddress),
                         intent,
                     );
 
                     authWitnesses.push(witness);
-                }
+                });
             }
 
             const requestcontractClass = await provider.getContract(AztecAddress.fromString(contractFunctionInteraction.interactionAddress))
-            const contractClassMetadata = await pxe.getContractClassMetadata(requestcontractClass.currentContractClassId, true)
+            const contractClassMetadata = await wallet.getContractClassMetadata(requestcontractClass.currentContractClassId, true)
 
             if (!contractClassMetadata.artifact) {
                 throw new BadRequestException(`Artifact not registered`);
@@ -128,7 +134,7 @@ export class AztecTreasuryService extends TreasuryService {
             const functionAbi = getFunctionAbi(contractClassMetadata.artifact, contractFunctionInteraction.functionName);
 
             const functionInteraction = new ContractFunctionInteraction(
-                pxe,
+                wallet,
                 AztecAddress.fromString(contractFunctionInteraction.interactionAddress),
                 functionAbi,
                 [
@@ -150,7 +156,7 @@ export class AztecTreasuryService extends TreasuryService {
                 },
             );
 
-            const provenTx = await pxe.proveTx(executionPayload, sendOptions);
+            const provenTx = await wallet.proveTx(executionPayload, sendOptions);
 
             const tx = new Tx(
                 provenTx.getTxHash(),
@@ -164,6 +170,7 @@ export class AztecTreasuryService extends TreasuryService {
             const signedTxn = JSON.stringify({ signedTx: signedTxHex });
 
             return { signedTxn };
+
         }
         catch (error) {
             throw new BadRequestException(`Invalid unsigned transaction: ${error.message}`);
@@ -199,12 +206,14 @@ export class AztecTreasuryService extends TreasuryService {
 
             const wallet = await TestWallet.create(provider, fullConfig, { store });
 
+
             const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
                 SponsoredFPCContract.artifact,
                 { salt: new Fr(0) },
             );
 
             const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPCInstance.address);
+
             const schnorrAccount = await wallet.createSchnorrAccount(
                 pkKey,
                 salt,
@@ -260,6 +269,7 @@ interface FunctionInteraction {
     functionName: string,
     args: any[],
     callerAddress?: string,
+    senderAddress?: string,
     authwiths?: FunctionInteraction[],
 }
 
@@ -271,8 +281,3 @@ function getFunctionAbi(
     if (!fn) { }
     return fn;
 }
-
-
-
-// const token = await TokenContract.at(AztecAddress.fromString(request.tokenContract), wallet);
-// const contractInstance = await TrainContract.at(AztecAddress.fromString(request.contractAddress), wallet);
