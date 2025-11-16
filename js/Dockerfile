@@ -3,16 +3,21 @@ ARG NODE_VERSION
 
 FROM node:${NODE_VERSION} AS builder
 
-RUN apk add --no-cache python3 make g++
+RUN apt-get update \
+ && apt-get install -y python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY js/ .
+
+COPY js/package*.json ./
 RUN npm ci
+
+COPY js/ .
 RUN npm run build
 
-# Final production image
 FROM node:${NODE_VERSION} AS final
-RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 COPY --from=builder /app .
+
+CMD ["npm", "run", "start"]
