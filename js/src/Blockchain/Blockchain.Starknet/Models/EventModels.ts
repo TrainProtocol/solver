@@ -7,7 +7,6 @@ export interface TokenLockedEvent {
 export interface TokenCommittedEvent {
     Id: bigint;
     dstChain: bigint;
-    dstAddress: string;
     dstAsset: bigint;
     srcAsset: bigint;
     amount: bigint;

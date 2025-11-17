@@ -1,9 +1,8 @@
-import { CallData, hash, num, Provider } from "starknet";
-import { events } from 'starknet';
+import { CallData, hash, num, Provider, events } from "starknet";
 import trainAbi from '../ABIs/Train.json';
-import { formatAddress} from "../StarknetBlockchainActivities";
+import { formatAddress } from "../StarknetBlockchainActivities";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { BigIntToAscii, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { BigIntToAscii, ensureHexPrefix, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { TokenCommittedEvent, TokenLockedEvent } from "../../Models/EventModels";
 
@@ -57,6 +56,8 @@ export async function TrackBlockEventsAsync(
                 continue;
             }
 
+           const dstAddress = ensureHexPrefix(rawEvents[0].data[8]);
+
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
                 commitId: toHex(data.Id),
@@ -65,7 +66,7 @@ export async function TrackBlockEventsAsync(
                 sourceNetwork: network.name,
                 senderAddress: formatAddress(toHex(data.sender)),
                 sourceAsset: BigIntToAscii(data.srcAsset),
-                destinationAddress: data.dstAddress,
+                destinationAddress: dstAddress,
                 destinationNetwork: BigIntToAscii(data.dstChain),
                 destinationAsset: BigIntToAscii(data.dstAsset),
                 timeLock: Number(data.timelock)
