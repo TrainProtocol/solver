@@ -48,8 +48,9 @@ export class PrivateKeyService {
 
             await this.getTokenAsync();
 
+            // write the provided key/value pairs at the top-level under `data`
             await this.vault.write(`${this.privateKeyConfig.mountPath}/data/${address}`, {
-                data: { keyVaulePair }
+                data: keyVaulePair
             });
         }
         catch (error) {
