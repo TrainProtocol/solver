@@ -56,7 +56,9 @@ export async function TrackBlockEventsAsync(
                 continue;
             }
 
-           const dstAddress = ensureHexPrefix(rawEvents[0].data[8]);
+            const logEvent = rawEvents.find(x => x.transaction_hash === parsed.transaction_hash);
+
+           const dstAddress = ensureHexPrefix(logEvent.data[8]);
 
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
