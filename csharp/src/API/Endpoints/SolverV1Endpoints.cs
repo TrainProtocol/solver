@@ -23,7 +23,7 @@ public static class SolverV1Endpoints
             .Produces<ApiResponse<QuoteWithSolverDto>>();
 
         group.MapGet("/swaps/{commitId}", GetSwapAsync)
-            .Produces<ApiResponse<SwapDto>>();
+            .Produces<ApiResponse<DetailedSwapDto>>();
 
         group.MapPost("/transactions/build", BuildTransactionAsync)
             .Produces<ApiResponse<PrepareTransactionDto>>();
@@ -121,7 +121,7 @@ public static class SolverV1Endpoints
             });
         }
 
-        return Results.Ok(new ApiResponse<SwapDto> { Data = swap.ToDto() });
+        return Results.Ok(new ApiResponse<DetailedSwapDto> { Data = swap.ToDetailedDto() });
     }
     private static async Task<IResult> GetRoutesAsync(
         HttpContext httpContext,
