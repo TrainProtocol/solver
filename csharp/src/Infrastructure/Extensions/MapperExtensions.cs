@@ -28,8 +28,6 @@ public static partial class MapperExtensions
             FeeAmount = BigInteger.Parse(swap.FeeAmount),
             Transactions = swap.Transactions.Select(t => t.ToDto()),
             DestinationAmount = BigInteger.Parse(swap.DestinationAmount),
-            SourceWalletAddress = swap.Route.SourceWallet.Address,
-            DestinationWalletAddress = swap.Route.DestinationWallet.Address,
         };
     }
 

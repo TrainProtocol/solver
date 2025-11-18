@@ -31,10 +31,6 @@ public class SwapDto
     public BigInteger FeeAmount { get; set; }
 
     public IEnumerable<TransactionDto> Transactions { get; set; } = [];
-    
-    public string SourceWalletAddress { get; set; } = null!;
-    
-    public string DestinationWalletAddress { get; set; } = null!;
 }
 
 public class DetailedSwapDto : SwapDto
