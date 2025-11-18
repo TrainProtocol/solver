@@ -58,7 +58,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     }
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
-        return { amount: 1000000000000 };
+        return { amount: "1000000000000" };
     }
 
     public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {

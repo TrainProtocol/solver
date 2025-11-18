@@ -109,7 +109,7 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const balanceInWei = BigNumber.from(uint256.uint256ToBN(balanceResult.balance as any).toString());
 
             let result: BalanceResponse = {
-                amount: Number(balanceInWei)
+                amount: balanceInWei.toString()
             }
 
             return result;

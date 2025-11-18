@@ -72,7 +72,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
 
         const result: BalanceResponse =
         {
-            amount: Number(balanceResult),
+            amount: balanceResult.toString(),
         }
 
         return result;
