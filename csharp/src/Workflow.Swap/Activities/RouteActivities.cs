@@ -64,7 +64,7 @@ public class RouteActivities(
             Destination = route.Destination,
         });
 
-        var sourceAmount = destinationAmount.ConvertTokenAmount(
+        var sourceAmount = destinationAmount.ConvertSendAmount(
             route.Destination.Token.Decimals,
             route.Source.Token.Decimals,
             rate);
