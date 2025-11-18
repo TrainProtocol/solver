@@ -14,6 +14,9 @@ using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
 using Train.Solver.Workflow.Solana.Programs.HTLCProgram;
 using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram;
+using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
 namespace Train.Solver.Workflow.Solana.Helpers;
 
@@ -59,18 +62,11 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
 
-        await GetOrCreateAssociatedTokenAccount(
-            rpcClient,
-            builder,
-            currency,
-            new PublicKey(solverAccount),
-            new PublicKey(solverAccount));
-
         if (isNative)
         {
             builder.SetSolLockTransactionInstruction(
                 new PublicKey(htlcContractAddress),
-                new HTLCSplLockRequest
+                new HTLCSolLockRequest
                 {
                     Id = request.CommitId.HexToByteArray(),
                     Hashlock = request.Hashlock.HexToByteArray(),
@@ -88,6 +84,13 @@ public static class SolanaTransactionBuilder
         }
         else
         {
+            await GetOrCreateAssociatedTokenAccount(
+                rpcClient,
+                builder,
+                currency,
+                new PublicKey(solverAccount),
+                new PublicKey(solverAccount));
+
             builder.SetSplLockTransactionInstruction(
                 new PublicKey(htlcContractAddress),
                 new HTLCSplLockRequest
@@ -183,27 +186,43 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
 
-        await GetOrCreateAssociatedTokenAccount(
-           rpcClient,
-           builder,
-           currency,
-           new PublicKey(solverAccount),
-           new PublicKey(solverAccount));
+        if (isNative)
+        {
+            builder.SetSolRedeemTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HTLCSolRedeemRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    Secret = BigInteger.Parse(request.Secret).ToHexBigInteger().HexValue.HexToByteArray(),
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.DestinationAddress),
+                    SenderPublicKey = new PublicKey(request.SenderAddress),
+                });
+        }
+        else
+        {
+            await GetOrCreateAssociatedTokenAccount(
+                rpcClient,
+                builder,
+                currency,
+                new PublicKey(solverAccount),
+                new PublicKey(solverAccount));
 
-        builder.SetRedeemTransactionInstruction(
-            new PublicKey(htlcContractAddress),
-            new HTLCRedeemRequest
-            {
-                Id = request.CommitId.HexToByteArray(),
-                Secret = BigInteger.Parse(request.Secret).ToHexBigInteger().HexValue.HexToByteArray(),
-                SourceTokenPublicKey = new PublicKey(currency.Contract),
-                SignerPublicKey = new PublicKey(solverAccount),
-                ReceiverPublicKey = new PublicKey(request.DestinationAddress),
-                SenderPublicKey = new PublicKey(request.SenderAddress),
-                RewardPublicKey = request.DestinationAddress == solverAccount ?
-                    new PublicKey(request.DestinationAddress) :
-                    new PublicKey(request.SenderAddress),
-            });
+            builder.SetSplRedeemTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HTLCSplRedeemRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    Secret = BigInteger.Parse(request.Secret).ToHexBigInteger().HexValue.HexToByteArray(),
+                    SourceTokenPublicKey = new PublicKey(currency.Contract),
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.DestinationAddress),
+                    SenderPublicKey = new PublicKey(request.SenderAddress),
+                    RewardPublicKey = request.DestinationAddress == solverAccount ?
+                        new PublicKey(request.DestinationAddress) :
+                        new PublicKey(request.SenderAddress),
+                });
+        }
 
         var latestBlockResult = await rpcClient.GetLatestBlockHashAsync();
 
@@ -268,22 +287,36 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
 
-        await GetOrCreateAssociatedTokenAccount(
-            rpcClient,
-            builder,
-            currency,
-            new PublicKey(request.DestinationAddress),
-            new PublicKey(solverAccount));
+        if (isNative)
+        {
+            builder.SetSolRefundTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HtlcSolRefundRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.DestinationAddress)
+                });
+        }
+        else
+        {
+            await GetOrCreateAssociatedTokenAccount(
+                rpcClient,
+                builder,
+                currency,
+                new PublicKey(request.DestinationAddress),
+                new PublicKey(solverAccount));
 
-        builder.SetRefundTransactionInstruction(
-            new PublicKey(htlcContractAddress),
-            new HTLCRefundRequest
-            {
-                Id = request.CommitId.HexToByteArray(),
-                SourceTokenPublicKey = new PublicKey(currency.Contract),
-                SignerPublicKey = new PublicKey(solverAccount),
-                ReceiverPublicKey = new PublicKey(request.DestinationAddress)
-            });
+            builder.SetSplRefundTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HtlcSplRefundRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    SourceTokenPublicKey = new PublicKey(currency.Contract),
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.DestinationAddress)
+                });
+        }
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
 
@@ -422,7 +455,7 @@ public static class SolanaTransactionBuilder
 
         builder.SetAddLockSigInstruction(
             new PublicKey(htlcContractAddress),
-            new HTLCAddlocksigRequest
+            new HtlcAddlocksigRequest
             {
                 AddLockSigMessageRequest = new()
                 {

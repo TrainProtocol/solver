@@ -4,10 +4,12 @@ using Solnet.Wallet;
 using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
 namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 
-public static class HtlcInstructionKeyProvider
+public static class HtlcSplInstructionKeyProvider
 {
     public static List<AccountMeta> CreateSplLockAccountKeys(
         HTLCSplLockRequest htlcLockRequest,
@@ -30,7 +32,7 @@ public static class HtlcInstructionKeyProvider
 
     public static List<AccountMeta> CreateSolLockAccountKeys(
         HTLCSolLockRequest htlcLockRequest,
-        HTLCSolPdaResponse htlcPdaResponse)
+        HtlcSolPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -60,7 +62,7 @@ public static class HtlcInstructionKeyProvider
         return keys;
     }
 
-    public static IList<AccountMeta> CreateSolLockRewardAccountKeys(HTLCSolLockRequest htlcLockRequest, HTLCSolPdaResponse htlcPdaResponse)
+    public static IList<AccountMeta> CreateSolLockRewardAccountKeys(HTLCSolLockRequest htlcLockRequest, HtlcSolPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -73,8 +75,8 @@ public static class HtlcInstructionKeyProvider
         return keys;
     }
 
-    public static List<AccountMeta> SetRefundAccountKeys(
-        HTLCRefundRequest refundRequest,
+    public static List<AccountMeta> SetSplRefundAccountKeys(
+        HtlcSplRefundRequest refundRequest,
         HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
@@ -94,7 +96,7 @@ public static class HtlcInstructionKeyProvider
     }
 
     public static List<AccountMeta> CreateRedeemAccountKeys(
-       HTLCRedeemRequest htlcRedeemRequest,
+       HTLCSplRedeemRequest htlcRedeemRequest,
        HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
@@ -128,7 +130,7 @@ public static class HtlcInstructionKeyProvider
     }
 
     public static List<AccountMeta> CreateAddLockSigAccountKeys(
-        HTLCAddlocksigRequest hTLCAddlocksigRequest,
+        HtlcAddlocksigRequest hTLCAddlocksigRequest,
         HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>

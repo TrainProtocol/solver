@@ -1,9 +1,9 @@
 ﻿using Solnet.Wallet;
 using Train.Solver.Blockchain.Solana.Models;
 
-namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+namespace Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
-public class HTLCAddlocksigRequest
+public class HtlcAddlocksigRequest
 {
     public SolanaAddLockSigMessageRequest AddLockSigMessageRequest { get; set; } = null!;
 
