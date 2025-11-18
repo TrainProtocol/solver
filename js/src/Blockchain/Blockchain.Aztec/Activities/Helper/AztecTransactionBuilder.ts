@@ -215,6 +215,14 @@ export async function createTransferCallData(network: DetailedNetworkDto, args: 
   };
 }
 
+interface FunctionInteraction {
+  interactionAddress: string,
+  functionName: string,
+  args: any[],
+  callerAddress?: string,
+  authwiths?: FunctionInteraction[],
+}
+
 export const hexToUint256HexStrings = (hex: string): string[] => {
   let h = hex.startsWith('0x') ? hex.slice(2) : hex;
   if (h.length % 2) h = '0' + h;

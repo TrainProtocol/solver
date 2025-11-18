@@ -177,7 +177,7 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     const callData = [
         spenderAddress,
-        cairo.uint256(approveRequest.Amount.toString())
+        cairo.uint256(approveRequest.amount.toString())
     ];
 
     const methodCall: Invocation = {

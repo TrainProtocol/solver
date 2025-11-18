@@ -60,12 +60,17 @@ export async function AztecTransactionProcessor(
 
         const signedRawData = await defaultActivities.signTransaction(
             {
+                signerAgentUrl: request.signerAgentUrl,
                 networkType: NetworkType[request.network.type],
                 tokenContract: token.contract,
                 contractAddress: preparedTransaction.toAddress,
                 solverAddress: request.fromAddress,
                 nodeUrl: request.network.nodes[0].url,
-                unsignedTxn: preparedTransaction.data,
+                    unsignedTxn: preparedTransaction.data,
+                    nodeUrl: request.network.nodes[0].url,
+                    contractAddress: preparedTransaction.toAddress,
+                    tokenContract: token.contract,
+                }
             }
         );
 
@@ -94,7 +99,7 @@ export async function AztecTransactionProcessor(
     }
     catch (error) {
 
-        await defaultActivities.updateCurrentNonce(
+        await defaultActivities.updateCurrentNonce( 
             {
                 address: request.fromAddress,
                 network: request.network,
