@@ -9,6 +9,7 @@ import { Fr } from '@aztec/foundation/fields';
 import { PrepareTransactionResponse } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
 import crypto from 'crypto';
 import { TransferPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferPrepareRequest";
+import { AztecFunctionInteractionModel } from "../Models/AztecFunctionInteractionModel";
 
 export async function createRefundCallData(network: DetailedNetworkDto, args: string): Promise<PrepareTransactionResponse> {
 
@@ -23,7 +24,7 @@ export async function createRefundCallData(network: DetailedNetworkDto, args: st
     ? network.htlcNativeContractAddress
     : network.htlcTokenContractAddress;
 
-  let functionInteraction: FunctionInteraction = {
+  let functionInteraction: AztecFunctionInteractionModel = {
     interactionAddress: htlcContractAddress,
     functionName: "refund_private",
     args: [refundRequest.commitId],
@@ -54,7 +55,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
 
   const randomness = BigInt('0x' + crypto.randomBytes(31).toString('hex')).toString()
 
-  let functionInteraction: FunctionInteraction = {
+  let functionInteraction: AztecFunctionInteractionModel = {
     interactionAddress: htlcContractAddress,
     functionName: "commit_private_user",
     args: [
@@ -107,7 +108,7 @@ export async function createRedeemCallData(network: DetailedNetworkDto, args: st
   const [secretHigh, secretLow] = hexToU128Limbs(toHex((BigInt(redeemRequest.secret))));
   const [ownershipKeyHigh, ownershipKeyLow] = hexToU128Limbs(toHex(BigInt(redeemRequest.secret)));
 
-  let functionInteraction: FunctionInteraction = {
+  let functionInteraction: AztecFunctionInteractionModel = {
     interactionAddress: htlcContractAddress,
     functionName: "redeem_private",
     args: [
@@ -147,7 +148,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
   const hashlock = hexToU128Limbs(lockRequest.hashlock);
   const ownershipHash = hexToU128Limbs(normalizeHex(lockRequest.receiver));
 
-  let functionInteraction: FunctionInteraction = {
+  let functionInteraction: AztecFunctionInteractionModel = {
     interactionAddress: htlcContractAddress,
     functionName: "lock_private_solver",
     args: [
@@ -195,7 +196,7 @@ export async function createTransferCallData(network: DetailedNetworkDto, args: 
     throw new Error(`Token not found for network ${network.name} and asset ${transferRequest.asset}`)
   };
 
-  let functionInteraction: FunctionInteraction = {
+  let functionInteraction: AztecFunctionInteractionModel = {
     interactionAddress: token.contract,
     functionName: "transfer",
     args: [
@@ -212,14 +213,6 @@ export async function createTransferCallData(network: DetailedNetworkDto, args: 
     callDataAmount: transferRequest.amount.toString(),
     toAddress: transferRequest.toAddress,
   };
-}
-
-interface FunctionInteraction {
-  interactionAddress: string,
-  functionName: string,
-  args: any[],
-  callerAddress?: string,
-  authwiths?: FunctionInteraction[],
 }
 
 export const hexToUint256HexStrings = (hex: string): string[] => {

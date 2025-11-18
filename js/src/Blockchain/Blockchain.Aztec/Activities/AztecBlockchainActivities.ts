@@ -16,7 +16,6 @@ import TrackBlockEventsAsync from "./Helper/AztecEventTracker";
 import { createRefundCallData, createLockCallData, createRedeemCallData, createCommitCallData } from "./Helper/AztecTransactionBuilder";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { Tx, TxHash } from "@aztec/aztec.js/tx";
-import { createAztecNodeClient } from '@aztec/aztec.js/node';
 import { mapAztecStatusToInternal } from "./Helper/AztecTransactionStatusMapper";
 import { AztecPublishTransactionRequest } from "../Models/AztecPublishTransactionRequest";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
@@ -29,12 +28,36 @@ import Redis from "ioredis";
 import Redlock from "redlock";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
+import { TrainContract } from "./Helper/Train";
+import { PrivateKeyService } from '../KeyVault/vault.service';
+
+// import { AztecSignRequest, AztecSignResponse } from "./aztec.dto";
+import { ContractFunctionInteraction, getContractInstanceFromInstantiationParams, toSendOptions } from '@aztec/aztec.js/contracts';
+// import { AztecConfigService } from './aztec.config';
+import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
+import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC';
+import { TestWallet } from '@aztec/test-wallet/server';
+import { createStore } from '@aztec/kv-store/lmdb';
+import { AztecNode, createAztecNodeClient } from '@aztec/aztec.js/node';
+import { getPXEConfig } from '@aztec/pxe/server';
+import { Fr } from '@aztec/aztec.js/fields';
+import { deriveSigningKey } from '@aztec/stdlib/keys';
+import { AztecAddress } from '@aztec/aztec.js/addresses';
+import { TokenContract } from '@aztec/noir-contracts.js/Token';
+import { AuthWitness } from '@aztec/stdlib/auth-witness';
+import { ContractFunctionInteractionCallIntent } from '@aztec/aztec.js/authorization';
+import { ContractArtifact, FunctionAbi, getAllFunctionAbis } from '@aztec/aztec.js/abi';
+import { SchnorrAccountContract } from '@aztec/accounts/schnorr';
+import { getAccountContractAddress } from '@aztec/aztec.js/account';
+import { AztecFunctionInteractionModel } from "./Models/AztecFunctionInteractionModel";
+import { PrivateKeyConfigService } from "../KeyVault/vault.config";
 
 @injectable()
 export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
         @inject("Redlock") private lockFactory: Redlock,
+        @inject("PrivateKeyService") private privateKeyService: PrivateKeyService,
     ) { }
 
     public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
@@ -114,12 +137,141 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     }
 
     public async signTransaction(request: AztecSignTransactionRequestModel): Promise<string> {
+        try {
 
-        const treasuryClient = new TreasuryClient(request.signerAgentUrl);
+            // const privateKeyService = new PrivateKeyService();
+            // privateKeyService.init(new PrivateKeyConfigService({ get: (key: string) => process.env[key] } as any));
 
-        const response = await treasuryClient.signTransaction(request.networkType, request.signRequest);
+            const privateKey = await this.privateKeyService.getAsync(request.solverAddress);
+            const privateSalt = await this.privateKeyService.getAsync(request.solverAddress, "private_salt");
+            const provider: AztecNode = createAztecNodeClient(request.nodeUrl);
+            const l1Contracts = await provider.getL1ContractAddresses();
 
-        return response.signedTxn;
+            const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
+
+            const accountContract = new SchnorrAccountContract(deriveSigningKey(Fr.fromString(privateKey)));
+            const solverAddress = (await getAccountContractAddress(accountContract, Fr.fromString(privateKey), Fr.fromString(privateSalt))).toString();
+
+            const store = await createStore(request.solverAddress, {
+                dataDirectory: "C:/Users/kosta/OneDrive/Desktop/aztecTr",
+                dataStoreMapSizeKb: 1e6,
+            });
+
+            const pxe = await TestWallet.create(provider, fullConfig, { store });
+
+            const sponsoredFPCInstance = await getContractInstanceFromInstantiationParams(
+                SponsoredFPCContract.artifact,
+                { salt: new Fr(0) },
+            );
+
+            await pxe.registerContract(
+                sponsoredFPCInstance,
+                SponsoredFPCContract.artifact,
+            );
+
+            await pxe.createSchnorrAccount(
+                Fr.fromString(privateKey),
+                Fr.fromString(privateSalt),
+                deriveSigningKey(Fr.fromString(privateKey)),
+            );
+
+            const contractInstanceWithAddress = await provider.getContract(AztecAddress.fromString(request.contractAddress));
+            await pxe.registerContract(contractInstanceWithAddress, TrainContract.artifact);
+
+            const tokenInstance = await provider.getContract(AztecAddress.fromString(request.tokenContract));
+            await pxe.registerContract(tokenInstance, TokenContract.artifact)
+
+            const contractFunctionInteraction: AztecFunctionInteractionModel = JSON.parse(request.unsignedTxn);
+            let authWitnesses: AuthWitness[] = [];
+
+            if (contractFunctionInteraction.authwiths) {
+                for (const authWith of contractFunctionInteraction.authwiths) {
+                    const requestContractClass = await provider.getContract(AztecAddress.fromString(authWith.interactionAddress));
+                    const contractClassMetadata = await pxe.getContractClassMetadata(requestContractClass.currentContractClassId, true);
+
+                    if (!contractClassMetadata.artifact) {
+                        throw new Error(`Artifact not registered`);
+                    }
+
+                    const functionAbi = getFunctionAbi(contractClassMetadata.artifact, authWith.functionName);
+
+                    if (!functionAbi) {
+                        throw new Error("Unable to get function ABI");
+                    }
+
+                    authWith.args.unshift(solverAddress);
+
+                    const functionInteraction = new ContractFunctionInteraction(
+                        pxe,
+                        AztecAddress.fromString(authWith.interactionAddress),
+                        functionAbi,
+                        [...authWith.args],
+                    );
+
+                    const intent: ContractFunctionInteractionCallIntent = {
+                        caller: AztecAddress.fromString(authWith.callerAddress),
+                        action: functionInteraction,
+                    };
+
+                    const witness = await pxe.createAuthWit(
+                        AztecAddress.fromString(solverAddress),
+                        intent,
+                    );
+
+                    authWitnesses.push(witness);
+                }
+            }
+
+            const requestcontractClass = await provider.getContract(AztecAddress.fromString(contractFunctionInteraction.interactionAddress))
+            const contractClassMetadata = await pxe.getContractClassMetadata(requestcontractClass.currentContractClassId, true)
+
+            if (!contractClassMetadata.artifact) {
+                throw new Error(`Artifact not registered`);
+            }
+
+            const functionAbi = getFunctionAbi(contractClassMetadata.artifact, contractFunctionInteraction.functionName);
+
+            const functionInteraction = new ContractFunctionInteraction(
+                pxe,
+                AztecAddress.fromString(contractFunctionInteraction.interactionAddress),
+                functionAbi,
+                [
+                    ...contractFunctionInteraction.args
+                ],
+                [...authWitnesses]
+            );
+
+            const executionPayload = await functionInteraction.request({
+                authWitnesses: [...authWitnesses],
+                fee: { paymentMethod: new SponsoredFeePaymentMethod(sponsoredFPCInstance.address) },
+            });
+
+            var sendOptions = await toSendOptions(
+                {
+                    from: AztecAddress.fromString(request.solverAddress),
+                    authWitnesses: [...authWitnesses],
+                    fee: { paymentMethod: new SponsoredFeePaymentMethod(sponsoredFPCInstance.address) },
+                },
+            );
+
+            const provenTx = await pxe.proveTx(executionPayload, sendOptions);
+
+            const tx = new Tx(
+                provenTx.getTxHash(),
+                provenTx.data,
+                provenTx.clientIvcProof,
+                provenTx.contractClassLogFields,
+                provenTx.publicFunctionCalldata,
+            );
+
+            const signedTxHex = tx.toBuffer().toString("hex");
+            const signedTxn = JSON.stringify({ signedTx: signedTxHex });
+
+            return signedTxn;
+        }
+        catch (error) {
+            throw new Error(`Error while signing transaction: ${error.message}`);
+        }
     }
 
     public async publishTransaction(request: AztecPublishTransactionRequest): Promise<string> {
@@ -207,4 +359,13 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
+}
+
+function getFunctionAbi(
+    artifact: ContractArtifact,
+    fnName: string,
+): FunctionAbi | undefined {
+    const fn = getAllFunctionAbis(artifact).find(({ name }) => name === fnName);
+    if (!fn) { }
+    return fn;
 }
