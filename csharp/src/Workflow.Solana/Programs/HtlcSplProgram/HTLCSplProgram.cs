@@ -5,7 +5,6 @@ using Train.Solver.Blockchain.Solana.Programs;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
-using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
 using Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
 namespace Train.Solver.Workflow.Solana.Programs.HTLCProgram;
@@ -150,25 +149,6 @@ public static class HTLCSplProgram
             HtlcPublicKey = htlcPubKey,
             HtlcTokenAccount = htlcTokenAccount,
             HtlcBump = htlcBump
-        };
-    }
-
-    private static HtlcSolPdaResponse GetSolHtlcParams(
-        byte[] Id,
-        PublicKey htlcProgramIdKey)
-    {
-        var htlc = PublicKey.TryFindProgramAddress(
-           new List<byte[]>()
-               {
-                    Id
-               },
-           htlcProgramIdKey,
-           out PublicKey htlcPubKey,
-           out _);
-
-        return new()
-        {
-            HtlcPublicKey = htlcPubKey
         };
     }
 }
