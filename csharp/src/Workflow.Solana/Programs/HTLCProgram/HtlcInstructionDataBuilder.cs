@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Text;
 using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
 
 namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 
@@ -19,13 +20,13 @@ public class HtlcInstructionDataBuilder
             Span = span,
             EncoderFunc = encoderFunc
         });
-    }
+    }   
 
     public byte[] CreateLockData(
-        HTLCLockRequest lockRequest)
+        HTLCSolLockRequest lockRequest)
     {
         var destinationAssetData = Encoding.UTF8.GetBytes(lockRequest.DestinationAsset);
-        var sourceAddressData = Encoding.UTF8.GetBytes(lockRequest.SourceAddress);
+        var destionationAddressData = Encoding.UTF8.GetBytes(lockRequest.DestinationAddress);
         var destinationNetworkData = Encoding.UTF8.GetBytes(lockRequest.DestinationNetwork);
         var sourceAssetData = Encoding.UTF8.GetBytes(lockRequest.SourceAsset);
 
@@ -33,7 +34,7 @@ public class HtlcInstructionDataBuilder
         SetFieldData("hashlock", lockRequest.Hashlock.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("timelock", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
         SetFieldData("destinationNetwork", destinationNetworkData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
-        SetFieldData("sourceAddress", sourceAddressData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
+        SetFieldData("destinationAddress", destionationAddressData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("destinationAsset", destinationAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("sourceAsset", sourceAssetData.Length + 4, (v, buf, off) => FieldEncoder.EncodeByteArrayWithLength((byte[])v, buf, ref off));
         SetFieldData("receiver", 32, (v, buf, off) => buf.WritePubKey((PublicKey)v, off));
@@ -45,7 +46,7 @@ public class HtlcInstructionDataBuilder
             { "hashlock", lockRequest.Hashlock},
             { "timelock", lockRequest.Timelock},
             { "destinationNetwork", destinationNetworkData },
-            { "sourceAddress", sourceAddressData },
+            { "destinationAddress", destionationAddressData },
             { "destinationAsset", destinationAssetData },
             { "sourceAsset", sourceAssetData },
             { "receiver", lockRequest.ReceiverPublicKey },
@@ -58,7 +59,7 @@ public class HtlcInstructionDataBuilder
     }
 
     public byte[] CreateLockRewardData(
-        HTLCLockRequest lockRequest)
+        HTLCSolLockRequest lockRequest)
     {
         SetFieldData("id", lockRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("rewardTimelock", 8, (v, buf, off) => buf.WriteBigInt((BigInteger)v, off, 8, isUnsigned: true, isBigEndian: false));
@@ -78,7 +79,7 @@ public class HtlcInstructionDataBuilder
 
     public byte[] CreateRedeemData(
         HTLCRedeemRequest redeemRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         SetFieldData("id", redeemRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("secret", redeemRequest.Secret.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
@@ -99,7 +100,7 @@ public class HtlcInstructionDataBuilder
 
     public byte[] CreateRefundData(
         HTLCRefundRequest refundRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         SetFieldData("id", refundRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("htlcBump", 1, (v, buf, off) => buf.WriteU8((byte)v, off));
@@ -116,7 +117,7 @@ public class HtlcInstructionDataBuilder
     }
 
     public byte[] CreateGetDetailsData(
-        HTLCPdaResponse hTLCPdaResponse,
+        HTLCSplPdaResponse hTLCPdaResponse,
         byte[] id)
     {
         SetFieldData("id", id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
@@ -135,7 +136,7 @@ public class HtlcInstructionDataBuilder
 
     public byte[] CreateAddLockSigData(
         HTLCAddlocksigRequest addLockSigRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         SetFieldData("id", addLockSigRequest.AddLockSigMessageRequest.Id.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
         SetFieldData("hashlock", addLockSigRequest.AddLockSigMessageRequest.Hashlock.Length, (v, buf, off) => FieldEncoder.EncodeByteArray((byte[])v, buf, ref off));
@@ -154,7 +155,6 @@ public class HtlcInstructionDataBuilder
             instructionExecutionOrder,
             FieldEncoder.Sighash(SolanaConstants.AddLockSigSighash));
     }
-
 
     private byte[] BuildInstructionData(Dictionary<string, object> instructionExecutionOrder, byte[] descriminator)
     {

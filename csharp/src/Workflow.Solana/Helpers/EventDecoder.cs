@@ -5,9 +5,9 @@ using Solnet.Wallet;
 using System.Numerics;
 using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Blockchain.Solana.Models;
-using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 

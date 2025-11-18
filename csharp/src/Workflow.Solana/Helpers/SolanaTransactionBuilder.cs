@@ -8,12 +8,12 @@ using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
 using System.Numerics;
-using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
 using Train.Solver.Common.Extensions;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
 
 namespace Train.Solver.Workflow.Solana.Helpers;
 
@@ -66,30 +66,53 @@ public static class SolanaTransactionBuilder
             new PublicKey(solverAccount),
             new PublicKey(solverAccount));
 
-        builder.SetLockTransactionInstruction(
-            new PublicKey(htlcContractAddress),
-            new HTLCLockRequest
-            {
-                Hashlock = request.Hashlock.HexToByteArray(),
-                Id = request.CommitId.HexToByteArray(),
-                SignerPublicKey = new PublicKey(solverAccount),
-                ReceiverPublicKey = new PublicKey(request.Receiver),
-                Amount = request.Amount,
-                Timelock = new BigInteger(request.Timelock),
-                SourceAsset = currency.Symbol,
-                DestinationNetwork = request.DestinationNetwork,
-                SourceAddress = request.DestinationAddress,
-                DestinationAsset = request.DestinationAsset,
-                SourceTokenPublicKey = new PublicKey(currency.Contract),
-                Reward = request.Reward,
-                RewardTimelock = new BigInteger(request.RewardTimelock),
-            });
+        if (isNative)
+        {
+            builder.SetSolLockTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HTLCSplLockRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    Hashlock = request.Hashlock.HexToByteArray(),
+                    Timelock = new BigInteger(request.Timelock),
+                    Amount = request.Amount,
+                    DestinationNetwork = request.DestinationNetwork,
+                    DestinationAsset = request.DestinationAsset,
+                    SourceAsset = currency.Symbol,
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.Receiver),
+                    DestinationAddress = request.DestinationAddress,
+                    Reward = request.Reward,
+                    RewardTimelock = new BigInteger(request.RewardTimelock),
+                });
+        }
+        else
+        {
+            builder.SetSplLockTransactionInstruction(
+                new PublicKey(htlcContractAddress),
+                new HTLCSplLockRequest
+                {
+                    Id = request.CommitId.HexToByteArray(),
+                    Hashlock = request.Hashlock.HexToByteArray(),
+                    Timelock = new BigInteger(request.Timelock),
+                    Amount = request.Amount,
+                    DestinationNetwork = request.DestinationNetwork,
+                    DestinationAsset = request.DestinationAsset,
+                    SourceAsset = currency.Symbol,
+                    SignerPublicKey = new PublicKey(solverAccount),
+                    ReceiverPublicKey = new PublicKey(request.Receiver),
+                    DestinationAddress = request.DestinationAddress,
+                    SourceTokenPublicKey = new PublicKey(currency.Contract),
+                    Reward = request.Reward,
+                    RewardTimelock = new BigInteger(request.RewardTimelock),
+                });
+        }
 
         var latestBlockResult = await rpcClient.GetLatestBlockHashAsync();
 
         if (!latestBlockResult.WasSuccessful)
         {
-            throw new ($"Failed to get last valid block");
+            throw new($"Failed to get last valid block");
         }
 
         builder.SetRecentBlockHash(latestBlockResult.Result.Value.Blockhash);
@@ -133,7 +156,7 @@ public static class SolanaTransactionBuilder
         {
             throw new ArgumentNullException(nameof(request.SenderAddress), "Sender address is required");
         }
-       
+
         var currency = network.Tokens.SingleOrDefault(x => x.Symbol.ToUpper() == request.Asset.ToUpper());
 
         if (currency is null)
@@ -160,12 +183,12 @@ public static class SolanaTransactionBuilder
         var builder = new TransactionBuilder()
             .SetFeePayer(new PublicKey(solverAccount));
 
-         await GetOrCreateAssociatedTokenAccount(
-            rpcClient,
-            builder,
-            currency,
-            new PublicKey(solverAccount),
-            new PublicKey(solverAccount));
+        await GetOrCreateAssociatedTokenAccount(
+           rpcClient,
+           builder,
+           currency,
+           new PublicKey(solverAccount),
+           new PublicKey(solverAccount));
 
         builder.SetRedeemTransactionInstruction(
             new PublicKey(htlcContractAddress),
@@ -177,7 +200,7 @@ public static class SolanaTransactionBuilder
                 SignerPublicKey = new PublicKey(solverAccount),
                 ReceiverPublicKey = new PublicKey(request.DestinationAddress),
                 SenderPublicKey = new PublicKey(request.SenderAddress),
-                RewardPublicKey = request.DestinationAddress == solverAccount?
+                RewardPublicKey = request.DestinationAddress == solverAccount ?
                     new PublicKey(request.DestinationAddress) :
                     new PublicKey(request.SenderAddress),
             });
@@ -535,5 +558,5 @@ public static class SolanaTransactionBuilder
         {
             throw new Exception("Failed to load token wallet", ex);
         }
-    }    
+    }
 }
