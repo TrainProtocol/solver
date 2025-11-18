@@ -1,7 +1,7 @@
 ﻿using Solnet.Wallet;
 using System.Numerics;
 
-namespace Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
+namespace Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
 
 public class HTLCSolLockRequest
 {

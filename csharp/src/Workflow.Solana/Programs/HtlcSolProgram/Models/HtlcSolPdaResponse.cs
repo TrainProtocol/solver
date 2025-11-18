@@ -1,8 +1,8 @@
 ﻿using Solnet.Wallet;
 
-namespace Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
+namespace Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
 
-public class HtlcSolPdaResponse
+public class HTLCSolPdaResponse
 {
     public required PublicKey HtlcPublicKey { get; set; } = null!;
 }
