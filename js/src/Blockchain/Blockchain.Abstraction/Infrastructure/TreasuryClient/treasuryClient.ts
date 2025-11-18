@@ -14,8 +14,7 @@ export class TreasuryClient {
   constructor(signerAgentUrl: string) {
     this.apiClient = axios.create({
       baseURL: `${signerAgentUrl}/api/treasury/`,
-      timeout: process.env.TrainSolver__TreasuryTimeout ?
-        parseInt(process.env.TrainSolver__TreasuryTimeout) : 30000
+      timeout: 60000
     });
   }
 
