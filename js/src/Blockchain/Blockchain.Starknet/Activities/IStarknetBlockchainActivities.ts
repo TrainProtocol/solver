@@ -10,24 +10,34 @@ import { TransactionResponse } from "../../Blockchain.Abstraction/Models/Receipt
 import { AddLockSignatureRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/AddLockSignatureRequest";
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { PrepareTransactionResponse } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransferBuilderResponse";
-import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
+import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
+import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanceModels";
+import { PublishTransactionRequest } from "../Models/TransactionModels";
+import { SignTransactionRequest } from "../Models/SignTransactionRequest";
+import { StarknetFeeModel } from "../Models/StarknetFeeModel";
 
 export interface IStarknetBlockchainActivities extends IBlockchainActivities {
-  SimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string>;
+  SimulateTransaction(request: PublishTransactionRequest): Promise<void>;
 
   GetSpenderAllowance(request: AllowanceRequest): Promise<number>;
 
-  PublishTransaction(request: StarknetPublishTransactionRequest): Promise<string>;
+  PublishTransaction(request: PublishTransactionRequest): Promise<string>;
 
   GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse>;
 
-  EstimateFee(request: EstimateFeeRequest): Promise<Fee>;
+  EstimateFee(request: EstimateFeeRequest): Promise<StarknetFeeModel>;
 
-  getNextNonce(request: NextNonceRequest): Promise<string>;
+  GetNextNonce(request: NextNonceRequest): Promise<string>;
 
   BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse>;
 
   GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse>;
 
-  ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>
+  ValidateAddLockSignature(request: AddLockSignatureRequest): Promise<boolean>;
+
+  EnsureSufficientBalance(request: EnsureSufficientBalanceRequest): Promise<void>;
+
+  ComposeRawTransaction(request: ComposeRawTransactionRequest): Promise<ComposeRawTransactionResponse>;
+
+  SignTransaction(request: SignTransactionRequest): Promise<string>;
 }

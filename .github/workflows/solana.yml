@@ -1,13 +1,14 @@
 name: Solana Workflow runner
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ disable ]
+    branches: [ main, dev ]
     paths:
       - 'csharp/**'
       - '.github/workflows/solana.yml'
   pull_request:
-    branches: [ disable ]
+    branches: [ main, dev ]
     paths:
       - 'csharp/**'
       - '.github/workflows/solana.yml'
@@ -21,7 +22,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-        
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

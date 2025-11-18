@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -34,10 +34,7 @@ public static class SignerAgentEndpoints
         ISignerAgentRepository repository,
         [FromBody] CreateSignerAgentRequest request)
     {
-        var signerAgent = await repository.CreateAsync(
-            request.Name,
-            request.Url,
-            request.SupportedTypes);
+        var signerAgent = await repository.CreateAsync(request);
 
         return signerAgent is null
             ? Results.BadRequest("Failed to create signer wallet")

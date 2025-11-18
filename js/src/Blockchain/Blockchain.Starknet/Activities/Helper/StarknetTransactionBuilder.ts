@@ -1,5 +1,5 @@
 import { utils } from "ethers";
-import { cairo, Call, shortString, byteArray } from "starknet";
+import { cairo, Call, shortString, byteArray, Invocation} from "starknet";
 import { decodeJson } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { ApprovePrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/ApprovePrepareRequest";
 import { HTLCAddLockSigTransactionPrepareRequest } from "../../../Blockchain.Abstraction/Models/TransactionBuilderModels/HTLCAddLockSigTransactionPrepareRequest";
@@ -27,7 +27,7 @@ export function createRefundCallData(network: DetailedNetworkDto, args: string):
 
     const callData = [cairo.uint256(refundRequest.commitId)];
 
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: htlcContractAddress,
         entrypoint: "refund",
         calldata: callData
@@ -62,7 +62,7 @@ export function createRedeemCallData(network: DetailedNetworkDto, args: string):
         cairo.uint256(redeemRequest.secret)
     ];
 
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: htlcContractAddress,
         entrypoint: "redeem",
         calldata: callData
@@ -95,7 +95,7 @@ export function createLockCallData(network: DetailedNetworkDto, args: string): P
     const callData = [
         cairo.uint256(lockRequest.commitId),
         cairo.uint256(lockRequest.hashlock),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.reward.toString(), token.decimals))),
+        cairo.uint256(lockRequest.reward.toString()),
         cairo.uint256(lockRequest.rewardTimelock),
         cairo.uint256(lockRequest.timelock),
         lockRequest.receiver,
@@ -103,11 +103,11 @@ export function createLockCallData(network: DetailedNetworkDto, args: string): P
         shortString.encodeShortString(lockRequest.destinationNetwork),
         byteArray.byteArrayFromString(lockRequest.destinationAddress),
         shortString.encodeShortString(lockRequest.destinationAsset),
-        cairo.uint256(Number(utils.parseUnits(lockRequest.amount.toString(), token.decimals))),
+        cairo.uint256(lockRequest.amount.toString()),
         token.contract
     ];
 
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: htlcContractAddress,
         entrypoint: "lock",
         calldata: callData
@@ -145,7 +145,7 @@ export function createAddLockSigCallData(network: DetailedNetworkDto, args: stri
         cairo.uint256(addLockSigRequest.timelock),
         addLockSigRequest.signatureArray
     ];
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: htlcContractAddress,
         entrypoint: "addLockSig",
         calldata: callData
@@ -165,10 +165,10 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     const approveRequest = decodeJson<ApprovePrepareRequest>(args);
 
-    const token = network.tokens.find(t => t.symbol === approveRequest.asset);
+    const token = network.tokens.find(t => t.symbol === approveRequest.Asset);
 
     if (!token) {
-        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.asset}`)
+        throw new Error(`Token not found for network ${network.name} and asset ${approveRequest.Asset}`)
     };
 
     const spenderAddress = token.contract
@@ -177,10 +177,10 @@ export function createApproveCallData(network: DetailedNetworkDto, args: string)
 
     const callData = [
         spenderAddress,
-        cairo.uint256(Number(utils.parseUnits(approveRequest.amount.toString(), token.decimals)))
+        cairo.uint256(approveRequest.Amount.toString())
     ];
 
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: token.contract,
         entrypoint: "approve",
         calldata: callData
@@ -210,7 +210,7 @@ export function createTransferCallData(network: DetailedNetworkDto, args: string
         cairo.uint256(Number(utils.parseUnits(transferRequest.amount.toString(), token.decimals)))
     ];
 
-    const methodCall: Call = {
+    const methodCall: Invocation = {
         contractAddress: token.contract,
         entrypoint: "transfer",
         calldata: callData

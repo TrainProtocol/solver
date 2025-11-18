@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Common.Extensions;
-using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions;
 using Train.Solver.Infrastructure.Abstractions.Models;
@@ -56,7 +55,7 @@ public static class WalletEndpoints
 
         var generatedAddress = await privateKeyProvider.GenerateAsync(signerAgent.Url, request.NetworkType);
 
-        var wallet = await repository.CreateAsync(request.SignerAgent, request.NetworkType, generatedAddress, request.Name);
+        var wallet = await repository.CreateAsync(generatedAddress, request);
         return wallet is null
             ? Results.BadRequest("Could not create wallet")
             : Results.Ok();
@@ -71,7 +70,7 @@ public static class WalletEndpoints
         var wallet = await repository.UpdateAsync(
             networkType,
             address,
-            request.Name);
+            request);
 
         return wallet is null
             ? Results.NotFound($"Trusted wallet '{address}' not found on network '{networkType}'")

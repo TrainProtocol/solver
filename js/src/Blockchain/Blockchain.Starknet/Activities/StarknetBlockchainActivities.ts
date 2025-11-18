@@ -1,20 +1,31 @@
-import { Abi, Account, cairo, Call, constants, Contract, hash, RpcProvider, shortString, transaction, TransactionType as StarknetTransactionType, uint256, addAddressPadding } from "starknet";
-import { ETransactionVersion2, TypedData, TypedDataRevision } from "starknet-types-07";
+import { 
+    Uint256,
+    Abi, cairo, Call, Contract,
+    hash, RpcProvider, shortString, uint256, addAddressPadding,
+    Invocation, SuccessfulTransactionReceiptResponse, InvocationsSignerDetails,
+    stark, AccountInvocations, TransactionType as StarknetTransactionType, v3hash, 
+    WeierstrassSignatureType,
+    Account,
+    TypedData,
+    TypedDataRevision,
+    AccountInvocationItem,
+    V3InvocationsSignerDetails,
+    CallData,
+    RawArgs,
+    transaction} 
+    from "starknet";
 import { injectable, inject } from "tsyringe";
 import erc20Json from './ABIs/ERC20.json'
-import { StarknetPublishTransactionRequest } from "../Models/StarknetPublishTransactionRequest ";
+import { PublishTransactionRequest} from "../Models/TransactionModels";
 import { BigNumber, utils } from "ethers";
 import { InvalidTimelockException } from "../../Blockchain.Abstraction/Exceptions/InvalidTimelockException";
-import { PrivateKeyRepository } from "../../Blockchain.Abstraction/Models/WalletsModels/PrivateKeyRepository";
 import { ParseNonces } from "./Helper/ErrorParser";
-import { CalcV2InvokeTxHashArgs } from "../Models/StarknetTransactioCalculationType";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { TrackBlockEventsAsync } from "./Helper/StarknetEventTracker";
 import Redis from "ioredis";
 import Redlock from "redlock";
 import { validateTransactionStatus } from "./Helper/StarknetTransactionStatusValidator";
 import { createLockCallData, createRedeemCallData, createRefundCallData, createAddLockSigCallData, createApproveCallData, createTransferCallData, createCommitCallData } from "./Helper/StarknetTransactionBuilder";
-import { BLOCK_WITH_TX_HASHES } from "starknet-types-07/dist/types/api/components";
 import { buildLockKey, buildCurrentNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 import { AllowanceRequest } from "../../Blockchain.Abstraction/Models/AllowanceRequest";
@@ -38,220 +49,22 @@ import { TransactionType } from "../../Blockchain.Abstraction/Models/Transaciton
 import { TransactionBuilderRequest } from "../../Blockchain.Abstraction/Models/TransactionBuilderModels/TransactionBuilderRequest";
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
 import { DetailedNetworkDto } from "../../Blockchain.Abstraction/Models/DetailedNetworkDto";
+import { EnsureSufficientBalanceRequest } from "../Models/EnsureSufficientBalanceModels";
+import { ComposeRawTransactionRequest, ComposeRawTransactionResponse } from "../Models/ComposeRawTxModels";
+import { SignTransactionRequest } from "../Models/SignTransactionRequest";
+import { InvokeTransactionV3, sendInvocation } from "./Helper/Client";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
+import { StarknetFeeModel } from "../Models/StarknetFeeModel";
+import { resourceBoundsToHexString, signatureToHexArray, toHex } from "./Helper/Utils";
 
 @injectable()
 export class StarknetBlockchainActivities implements IStarknetBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
         @inject("Redlock") private lockFactory: Redlock,
-        @inject("TreasuryClient") private treasuryClient: TreasuryClient
     ) { }
 
-    readonly FeeSymbol = "ETH";
-    readonly FeeDecimals = 18;
     readonly FEE_ESTIMATE_MULTIPLIER = BigInt(4);
-
-    public async GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
-        let transaction: TransactionResponse = null;
-
-        for (const transactionId of request.TransactionHashes) {
-            transaction = await this.GetTransactionByHashAsync(request.network, transactionId);
-        }
-
-        if (!transaction) {
-            throw new TransactionNotComfirmedException("Transaction not confirmed");
-        }
-
-        return transaction;
-    }
-
-    public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
-
-        const transaction = await this.GetTransactionByHashAsync(request.network, request.transactionHash);
-
-        if (!transaction) {
-            throw new TransactionNotComfirmedException(`Transaction ${request.transactionHash} not found`);
-        }
-
-        return transaction;
-    }
-
-    private async GetTransactionByHashAsync(network: DetailedNetworkDto, transactionHash: string): Promise<TransactionResponse> {
-
-        const provider = new RpcProvider({ nodeUrl: network.nodes[0].url });
-
-        const statusResponse = await provider.getTransactionStatus(transactionHash);
-
-        const { finality_status, execution_status } = statusResponse;
-
-        const transactionStatus = validateTransactionStatus(finality_status, execution_status);
-
-        if (transactionStatus === TransactionStatus.Failed) {
-            throw new TransactionFailedException(`Transaction ${transactionHash} failed with status: ${execution_status}`);
-        }
-
-        const transactionReceiptResponse = await provider.getTransactionReceipt(transactionHash);
-
-        const confrimedTransaction = transactionReceiptResponse.isSuccess() ? transactionReceiptResponse : null;
-
-        if (!confrimedTransaction) {
-            return null;
-        }
-
-        const feeInWei = confrimedTransaction.actual_fee.amount;
-
-        const feeAmount = Number(utils.formatUnits(BigNumber.from(feeInWei), this.FeeDecimals));
-
-        let transactionModel: TransactionResponse = {
-            transactionHash: transactionHash,
-            decimals: network.nativeToken.decimals,
-            feeDecimals: network.nativeToken.decimals,
-            confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
-            status: transactionStatus,
-            feeAsset: network.nativeToken.symbol,
-            feeAmount: feeAmount.toString(),
-            timestamp: new Date(),
-            networkName: network.name,
-        };
-
-        const isConfirmed = "block_number" in confrimedTransaction;
-
-        if (isConfirmed) {
-            const blockNumber = confrimedTransaction.block_number as string;
-            const blockData = await provider.getBlockWithTxHashes(blockNumber);
-
-            transactionModel.timestamp = new Date(blockData.timestamp * 1000);
-        }
-
-        return transactionModel;
-    }
-
-    public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
-
-        const provider = new RpcProvider({
-            nodeUrl: request.network.nodes[0].url,
-        });
-
-        const lastBlockNumber = await provider.getBlockNumber();
-
-        const blockData = await provider.getBlockWithTxHashes(lastBlockNumber) as BLOCK_WITH_TX_HASHES;
-
-        return {
-            blockNumber: lastBlockNumber,
-            blockHash: blockData.block_hash,
-        };
-    }
-
-    public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
-
-        const provider = new RpcProvider({
-            nodeUrl: request.network.nodes[0].url
-        });
-
-        return TrackBlockEventsAsync(
-            request.network,
-            provider,
-            request.walletAddresses,
-            request.fromBlock,
-            request.toBlock,
-        );
-    }
-
-    public async getNextNonce(request: NextNonceRequest): Promise<string> {
-        const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
-
-        const formattedAddress = formatAddress(request.address);
-        const lockKey = buildLockKey(request.network.name, formattedAddress);
-        const nonceKey = buildCurrentNonceKey(request.network.name, formattedAddress);
-
-        const lock = await this.lockFactory.acquire(
-            [lockKey],
-            TimeSpan.FromSeconds(25),
-            {
-                retryDelay: TimeSpan.FromSeconds(1),
-                retryCount: 20,
-            }
-        );
-
-        try {
-            let currentNonce = BigInt(-1);
-
-            const cached = await this.redis.get(nonceKey);
-            if (cached !== null) {
-                currentNonce = BigInt(cached);
-            }
-
-            const nonceHex = await provider.getNonceForAddress(formattedAddress, "pending");
-            let nonce = BigInt(nonceHex);
-
-            if (nonce <= currentNonce) {
-                nonce = currentNonce + BigInt(1);
-            }
-
-            await this.redis.set(nonceKey, nonce.toString(), "EX", TimeSpan.FromDays(7));
-
-            return nonce.toString();
-        } finally {
-            await lock.release().catch(() => { });
-        }
-    }
-
-    public async PublishTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
-        let result: string;
-
-        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
-
-        const provider = new RpcProvider({
-            nodeUrl: request.network.nodes[0].url
-        });
-
-        const account = new Account(provider, request.fromAddress, privateKey, '1');
-
-        var transferCall: Call = JSON.parse(request.callData);
-
-        const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
-
-        const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.fromAddress,
-            version: ETransactionVersion2.V1,
-            compiledCalldata: compiledCallData,
-            maxFee: request.fee.FixedFeeData.FeeInWei,
-            chainId: request.network.chainId as constants.StarknetChainId,
-            nonce: request.nonce
-        };
-
-        const calcualtedTxHash = hash.calculateInvokeTransactionHash(args);
-
-        try {
-
-            const executeResponse = await account.execute(
-                [transferCall],
-                undefined,
-                {
-                    maxFee: request.fee.FixedFeeData.FeeInWei,
-                    nonce: request.nonce
-                },
-            );
-
-            result = executeResponse.transaction_hash;
-
-            if (!result || !result.startsWith("0x")) {
-                throw new Error(`Withdrawal response didn't contain a correct transaction hash. Response: ${JSON.stringify(executeResponse)}`);
-            }
-
-            return result;
-        }
-        catch (error) {
-            const nonceInfo = ParseNonces(error?.message);
-
-            if (nonceInfo && nonceInfo.providedNonce < nonceInfo.expectedNonce) {
-                return calcualtedTxHash;
-            }
-
-            throw error;
-        }
-    }
 
     public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
         try {
@@ -306,44 +119,219 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async SimulateTransaction(request: StarknetPublishTransactionRequest): Promise<string> {
+    public async GetTransaction(request: GetTransactionRequest): Promise<TransactionResponse> {
 
-        const privateKey = await new PrivateKeyRepository().getAsync(request.fromAddress);
+        const transaction = await this.GetTransactionByHashAsync(request.network, request.transactionHash);
+
+        if (!transaction) {
+            throw new TransactionNotComfirmedException(`Transaction ${request.transactionHash} not found`);
+        }
+
+        return transaction;
+    }
+
+    public async GetBatchTransaction(request: GetBatchTransactionRequest): Promise<TransactionResponse> {
+        let transaction: TransactionResponse = null;
+
+        for (const transactionId of request.TransactionHashes) {
+            transaction = await this.GetTransactionByHashAsync(request.network, transactionId);
+        }
+
+        if (!transaction) {
+            throw new TransactionNotComfirmedException("Transaction not confirmed");
+        }
+
+        return transaction;
+    }
+
+    private async GetTransactionByHashAsync(network: DetailedNetworkDto, transactionHash: string): Promise<TransactionResponse> {
+
+        const provider = new RpcProvider({ nodeUrl: network.nodes[0].url });
+
+        const statusResponse = await provider.getTransactionStatus(transactionHash);
+
+        const { finality_status, execution_status } = statusResponse;
+
+        const transactionStatus = validateTransactionStatus(finality_status, execution_status);
+
+        if (transactionStatus === TransactionStatus.Failed) {
+            throw new TransactionFailedException(`Transaction ${transactionHash} failed with status: ${execution_status}`);
+        }
+
+        const transactionReceiptResponse = await provider.getTransactionReceipt(transactionHash);
+
+        const confrimedTransaction = transactionReceiptResponse.value as SuccessfulTransactionReceiptResponse
+
+        if (!confrimedTransaction) {
+            return null;
+        }
+
+        const blockData = await provider.getBlockWithTxHashes(confrimedTransaction.block_number);
+
+        const feeAmount = confrimedTransaction.actual_fee.amount;
+
+        let transactionModel: TransactionResponse = {
+            transactionHash: transactionHash,
+            decimals: network.nativeToken.decimals,
+            feeDecimals: network.nativeToken.decimals,
+            confirmations: transactionStatus === TransactionStatus.Initiated ? 0 : 1,
+            status: transactionStatus,
+            feeAsset: network.nativeToken.symbol,
+            feeAmount: Number(feeAmount).toString(),
+            timestamp: new Date(blockData.timestamp * 1000),
+            networkName: network.name
+        };
+
+        return transactionModel;
+    }
+
+    public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
+
+        const provider = new RpcProvider({
+            nodeUrl: request.network.nodes[0].url,
+        });
+
+        const lastBlockNumber = await provider.getBlockNumber();
+
+        const blockData = await provider.getBlockWithTxHashes(lastBlockNumber);
+
+        const isConfirmed = "block_hash" in blockData;
+        if (isConfirmed) {
+            return {
+                blockNumber: lastBlockNumber,
+                blockHash: blockData.block_hash,
+            };
+        }
+        else {
+            throw new Error("Block doesn't confirmed")
+        }
+    }
+
+    public async GetEvents(request: EventRequest): Promise<HTLCBlockEventResponse> {
 
         const provider = new RpcProvider({
             nodeUrl: request.network.nodes[0].url
         });
 
-        const account = new Account(provider, request.fromAddress, privateKey, '1');
+        return TrackBlockEventsAsync(
+            request.network,
+            provider,
+            request.walletAddresses,
+            request.fromBlock,
+            request.toBlock,
+        );
+    }
 
-        var transferCall: Call = JSON.parse(request.callData);
+    public async GetNextNonce(request: NextNonceRequest): Promise<string> {
+        const provider = new RpcProvider({ nodeUrl: request.network.nodes[0].url });
 
-        const compiledCallData = transaction.getExecuteCalldata([transferCall], await account.getCairoVersion());
+        const formattedAddress = formatAddress(request.address);
+        const lockKey = buildLockKey(request.network.name, formattedAddress);
+        const nonceKey = buildCurrentNonceKey(request.network.name, formattedAddress);
 
-        const args: CalcV2InvokeTxHashArgs = {
-            senderAddress: request.fromAddress,
-            version: ETransactionVersion2.V1,
-            compiledCalldata: compiledCallData,
-            maxFee: request.fee.FixedFeeData.FeeInWei,
-            chainId: request.network.chainId as constants.StarknetChainId,
-            nonce: request.nonce
-        };
-
-        const calcualtedTxHash = await hash.calculateInvokeTransactionHash(args);
+        const lock = await this.lockFactory.acquire(
+            [lockKey],
+            TimeSpan.FromSeconds(25),
+            {
+                retryDelay: TimeSpan.FromSeconds(1),
+                retryCount: 20,
+            }
+        );
 
         try {
-            await account.simulateTransaction(
-                [
-                    {
-                        type: StarknetTransactionType.INVOKE,
-                        payload: [transferCall]
-                    }
-                ],
-                {
-                    nonce: request.nonce
-                });
+            let currentNonce = BigInt(-1);
 
-            return calcualtedTxHash;
+            const cached = await this.redis.get(nonceKey);
+            if (cached !== null) {
+                currentNonce = BigInt(cached);
+            }
+
+            const nonceHex = await provider.getNonceForAddress(formattedAddress, "pending");
+            let nonce = BigInt(nonceHex);
+
+            if (nonce <= currentNonce) {
+                nonce = currentNonce + BigInt(1);
+            }
+
+            await this.redis.set(nonceKey, nonce.toString(), "EX", TimeSpan.FromDays(7));
+
+            return nonce.toString();
+        } finally {
+            await lock.release().catch(() => { });
+        }
+    }
+
+    public async PublishTransaction(request: PublishTransactionRequest): Promise<string> {
+        let invocation : any = JSON.parse(request.signedRawData);
+        let signatureString = JSON.stringify(invocation.signature);
+
+        const signature = this.deserializeWithBigInt(signatureString) as WeierstrassSignatureType;
+
+        invocation.signature = signature;
+        const signerDetails: V3InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+        const a = JSON.stringify(invocation.calldata);
+
+        var data : Call = 
+        {
+            contractAddress: invocation.contractAddress,
+            entrypoint: invocation.entrypoint,
+            calldata: invocation.calldata
+        };
+
+        const calld = transaction.getExecuteCalldata([data], signerDetails.cairoVersion);
+
+        const accountInvocations: InvokeTransactionV3 = 
+        {
+            type: "INVOKE",
+            sender_address: request.fromAddress,
+            calldata: CallData.toHex(calld),
+            version: signerDetails.version,
+            signature: signatureToHexArray(invocation.signature),
+            nonce: toHex(signerDetails.nonce),
+            resource_bounds: resourceBoundsToHexString(signerDetails.resourceBounds),
+            tip: toHex(signerDetails.tip),
+            paymaster_data: [],
+            account_deployment_data: [],
+            fee_data_availability_mode: signerDetails.feeDataAvailabilityMode,
+            nonce_data_availability_mode: signerDetails.nonceDataAvailabilityMode
+        };
+
+        const nodeUrl = request.network.nodes[0].url;
+
+        const txHash = await sendInvocation(nodeUrl, accountInvocations);
+
+        return txHash;
+    }
+
+    public async SimulateTransaction(request: PublishTransactionRequest): Promise<void> {
+
+        const provider = new RpcProvider({
+            nodeUrl: request.network.nodes[0].url
+        });
+
+        let invocation: Invocation = this.deserializeWithBigInt(request.signedRawData);
+
+        const signature = invocation.signature as WeierstrassSignatureType;
+
+        invocation.signature = signature;
+        const signerDetails: InvocationsSignerDetails = JSON.parse(request.signerInvocationDetails);
+
+        const accountInvocations: AccountInvocations =
+            [
+                {
+                    type: StarknetTransactionType.INVOKE,
+                    contractAddress: invocation.contractAddress,
+                    entrypoint: invocation.entrypoint,
+                    nonce: request.nonce,
+                    signature: invocation.signature,
+                    ...stark.v3Details(signerDetails),
+                }
+            ];
+
+        try {
+            await provider.getSimulateTransaction(accountInvocations);
+
+            return;
         }
         catch (error) {
             const nonceInfo = ParseNonces(error?.message);
@@ -362,48 +350,50 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
         }
     }
 
-    public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<Fee> {
+    public async EstimateFee(feeRequest: EstimateFeeRequest): Promise<StarknetFeeModel> {
         try {
-            const privateKey = await new PrivateKeyRepository().getAsync(feeRequest.fromAddress);
 
             const provider = new RpcProvider({
                 nodeUrl: feeRequest.network.nodes[0].url
             });
 
-            const account = new Account(provider, feeRequest.fromAddress, privateKey, '1');
+            const account = new Account(provider, feeRequest.fromAddress, "0x0");
 
             var transferCall: Call = JSON.parse(feeRequest.callData);
 
-            let feeEstimateResponse = await account.estimateFee(transferCall);
+            var fees = await account.estimateFee([transferCall]);
 
-            if (!feeEstimateResponse?.suggestedMaxFee) {
-                throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(feeEstimateResponse)}`);
+            // const signature = JSON.parse(feeRequest.signature).signature;
+            // const r = uint256.uint256ToBN(signature.r);
+            // const recovery = signature.recovery;
+            // const s = uint256.uint256ToBN(signature.s);
+
+            // transferCall.signature = {r, s, recovery} as WeierstrassSignatureType;
+
+            // const feeEstimateResponse = await provider.getInvokeEstimateFee(
+            //     transferCall,
+            //     {
+            //         nonce: feeRequest.nonce
+            //     }
+            // );
+
+            if (!fees?.suggestedMaxFee) {
+                throw new Error(`Couldn't get fee estimation for the transfer. Response: ${JSON.stringify(fees)}`);
             };
 
             const feeInWei = BigNumber
-                .from(feeEstimateResponse.suggestedMaxFee)
+                .from(fees.suggestedMaxFee)
                 .mul(this.FEE_ESTIMATE_MULTIPLIER);
 
             const fixedfeeData: FixedFeeData = {
                 FeeInWei: feeInWei.toString(),
             };
 
-            let result: Fee =
+            const result: StarknetFeeModel =
             {
-                Asset: this.FeeSymbol,
+                Asset: feeRequest.network.nativeToken.symbol,
                 FixedFeeData: fixedfeeData,
-            }
-
-            const balanceResponse = await this.GetBalance({
-                    address: feeRequest.fromAddress,
-                    network: feeRequest.network,
-                asset: this.FeeSymbol
-            });
-
-            const amount = feeInWei.add(BigNumber.from(feeRequest.amount));
-
-            if (BigNumber.from(balanceResponse.amount).lt(amount)) {
-                throw new Error(`Insufficient balance for fee. Balance: ${balanceResponse.amount}, Fee: ${amount}`);
+                ResourceBounds: fees.resourceBounds
             }
 
             return result;
@@ -413,6 +403,43 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
                 throw new InvalidTimelockException("Invalid TimeLock error encountered");
             }
             throw error;
+        }
+    }
+
+    public async EnsureSufficientBalance(request: EnsureSufficientBalanceRequest): Promise<void> {
+
+        const nativeTokenAsset = request.network.nativeToken.symbol;
+
+        const nativeTokenBalance = await this.GetBalance({
+            address: request.address,
+            network: request.network,
+            asset: nativeTokenAsset
+        });
+
+        const nativeTokenAmount = BigNumber.from(nativeTokenBalance.amount.toString());
+        const amount = BigNumber.from(request.amount);
+        const feeAmount = BigNumber.from(request.feeAmount);
+
+        if (nativeTokenAsset === request.asset) {
+
+            if (nativeTokenAmount.lt(amount.add(feeAmount))) {
+                throw new Error(`Insufficient balance for fee. Balance: ${nativeTokenBalance.amount} asset ${nativeTokenAsset}, Fee: ${amount.add(feeAmount)}`);
+            }
+        }
+        else {
+            const tokenBalance = await this.GetBalance({
+                address: request.address,
+                network: request.network,
+                asset: request.asset
+            });
+
+            if (BigNumber.from(nativeTokenBalance.amount).lt(feeAmount)) {
+                throw new Error(`Insufficient balance for fee. Balance: ${nativeTokenBalance.amount} asset ${nativeTokenAsset}, Fee: ${feeAmount}`);
+            }
+
+            if (BigNumber.from(tokenBalance.amount).lt(amount)) {
+                throw new Error(`Insufficient balance for fee. Balance: ${tokenBalance.amount} asset ${request.asset}, Fee: ${amount}`);
+            }
         }
     }
 
@@ -488,11 +515,77 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
             const ercContract = new Contract(tokenAbi, token.contract, provider);
             var response: BigInt = await ercContract.allowance(request.ownerAddress, spenderAddress);
 
-            return Number(utils.formatUnits(response.toString(), token.decimals))
+            return Number(response.toString())
         }
         catch (error) {
             throw error;
         }
+    }
+
+    public async ComposeRawTransaction(request: ComposeRawTransactionRequest): Promise<ComposeRawTransactionResponse> {
+
+        const provider = new RpcProvider({
+            nodeUrl: request.network.nodes[0].url
+        });
+
+        const chainId = await provider.getChainId();
+
+        const signerDetails: InvocationsSignerDetails = {
+            ...stark.v3Details({ resourceBounds: request.resourceBounds, tip: 0 }),
+            walletAddress: request.address,
+            nonce: request.nonce,
+            version: "0x3",
+            chainId,
+            cairoVersion: '1',
+            skipValidate: true,
+        };
+
+        const parsedInvocation: Invocation = JSON.parse(request.callData);
+
+        let transferCall: Call =
+        {
+            contractAddress: parsedInvocation.contractAddress,
+            entrypoint: parsedInvocation.entrypoint,
+            calldata: parsedInvocation.calldata
+        };
+
+        const result: ComposeRawTransactionResponse =
+        {
+            signerInvocationDetails: JSON.stringify(signerDetails),
+            unsignedTxn: JSON.stringify(transferCall)
+        };
+
+        return result;
+    };
+
+    public async SignTransaction(request: SignTransactionRequest): Promise<string> {
+        const treasuryClient = new TreasuryClient(request.signerAgentUrl);
+
+        const response = await treasuryClient.signTransaction(request.networkType, request.signRequest);
+
+        return response.signedTxn;
+    }
+
+    private deserializeWithBigInt(json: string): any {
+        return JSON.parse(json, (_key, value) => {
+            // Detect if this value is a uint256-like object
+            if (
+            value &&
+            typeof value === "object" &&
+            "low" in value &&
+            "high" in value &&
+            Object.keys(value).length === 2
+            ) {
+            try {
+                // Convert back to bigint
+                return uint256.uint256ToBN(value);
+            } catch {
+                // If it's not a valid uint256, return as-is
+                return value;
+            }
+            }
+            return value;
+        });
     }
 }
 

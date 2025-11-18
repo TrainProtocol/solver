@@ -1,24 +1,19 @@
 ﻿using Temporalio.Extensions.Hosting;
-using Train.Solver.Blockchain.Common.Activities;
-using Train.Solver.Blockchain.Common.Worklows;
-using Train.Solver.Blockchain.Solana.Activities;
-using Train.Solver.Blockchain.Solana.Workflows;
-using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Workflow.Solana.Activities;
+using Train.Solver.Workflow.Solana.Workflows;
 
-namespace Train.Solver.Blockchain.Solana.Extensions;
+namespace Train.Solver.Workflow.Solana.Extensions;
 
 public static class TrainSolverBuilderExtensions
 {
     public static TrainSolverBuilder WithSolanaWorkflows(
         this TrainSolverBuilder builder)
     {
-        var temporalBuilder = builder.Services
-            .AddHostedTemporalWorker(nameof(NetworkType.Solana))
+        builder.Services
+            .AddHostedTemporalWorker(builder.Options.NetworkType)
             .AddWorkflow<SolanaTransactionProcessor>()
-            .AddWorkflow<EventListenerWorkflow>()
-            .AddTransientActivities<SolanaBlockchainActivities>()
-            .AddTransientActivities<UtilityActivities>();
+            .AddTransientActivities<SolanaBlockchainActivities>();
 
         return builder;
     }

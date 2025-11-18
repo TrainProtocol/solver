@@ -109,7 +109,7 @@ public class EVMBlockchainActivities(
     [Activity]
     public virtual Task<PrepareTransactionDto> BuildTransactionAsync(TransactionBuilderRequest request)
     {
-        PrepareTransactionDto result = request.Type switch
+        var result = request.Type switch
         {
             TransactionType.Transfer => EVMTransactionBuilder.BuildTransferTransaction(request.Network, request.PrepareArgs),
             TransactionType.Approve => EVMTransactionBuilder.BuildApproveTransaction(request.Network, request.PrepareArgs),
@@ -743,7 +743,6 @@ public class EVMBlockchainActivities(
 
         var transactionModel = new TransactionResponse
         {
-            Decimals = nativeCurrency.Decimals,
             NetworkName = network.Name,
             Status = TransactionStatus.Completed,
             TransactionHash = transactionResult.Data.TransactionHash,

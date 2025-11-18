@@ -2,6 +2,7 @@
 using Train.Solver.Data.Abstractions.Entities;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Common.Enums;
+using Train.Solver.Data.Abstractions.Models;
 
 namespace Train.Solver.Data.Npgsql;
 
@@ -9,8 +10,8 @@ public class EFWalletRepository(
     ISignerAgentRepository signerAgentRepository,
     SolverDbContext dbContext) : IWalletRepository
 {
-    public async Task<Wallet?> CreateAsync(string signerAgentName, NetworkType type, string address, string name)
-    {
+    public async Task<Wallet?> CreateAsync(string address, CreateWalletRequest request)
+    {        
         var walletExists = await dbContext.Wallets.AnyAsync(x => x.Address == address);
 
         if (walletExists)
@@ -18,14 +19,14 @@ public class EFWalletRepository(
             return null;
         }
 
-        var signerAgent = await signerAgentRepository.GetAsync(signerAgentName);
+        var signerAgent = await signerAgentRepository.GetAsync(request.SignerAgent);
 
         if (signerAgent == null)
         {
             throw new Exception("Signer agent not found");
         }
 
-        if (!signerAgent.SupportedTypes.Contains(type))
+        if (!signerAgent.SupportedTypes.Contains(request.NetworkType))
         {
             throw new Exception("Unsupported type");
         }
@@ -33,8 +34,8 @@ public class EFWalletRepository(
         var wallet = new Wallet
         {
             Address = address,
-            Name = name,
-            NetworkType = type,
+            Name = request.Name,
+            NetworkType = request.NetworkType,
             SignerAgentId = signerAgent.Id,
         };
 
@@ -61,7 +62,7 @@ public class EFWalletRepository(
         return wallet;
     }
 
-    public async Task<Wallet?> UpdateAsync(NetworkType type, string address, string name)
+    public async Task<Wallet?> UpdateAsync(NetworkType type, string address, UpdateWalletRequest request)
     {
         var wallet = await GetAsync(type, address);
 
@@ -71,7 +72,7 @@ public class EFWalletRepository(
             return null;
         }
 
-        wallet.Name = name;
+        wallet.Name = request.Name;
         await dbContext.SaveChangesAsync();
 
         return wallet;

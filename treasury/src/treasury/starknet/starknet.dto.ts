@@ -1,7 +1,5 @@
-import { BaseSignRequest, BaseSignResponse } from "src/app/dto/base.dto";
+import { BaseSignRequest, BaseSignResponse } from "../../app/dto/base.dto";
 
 export class StarknetSignRequest extends BaseSignRequest {
-}
-  
-export class StarknetSignResponse extends BaseSignResponse {
+    signerInvocationDetails: string;
 }

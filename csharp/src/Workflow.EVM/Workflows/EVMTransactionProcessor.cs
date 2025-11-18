@@ -126,8 +126,8 @@ public class EVMTransactionProcessor : ITransactionProcessor
 
         var confirmedTransaction = await GetTransactionReceiptAsync(request, context);
 
-        confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
-        confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
+        //confirmedTransaction.Asset = preparedTransaction.CallDataAsset;
+        //confirmedTransaction.Amount = preparedTransaction.CallDataAmount;
 
         return confirmedTransaction;
     }
@@ -192,7 +192,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                                 ToAddress = request.FromAddress,
                             }.ToJson(),
                             Type = TransactionType.Transfer,
-                            SwapId = request.SwapId,
                         }, new TransactionExecutionContext
                         {
                             Nonce = context.Nonce,
@@ -261,7 +260,6 @@ public class EVMTransactionProcessor : ITransactionProcessor
                 FromAddress = context.FromAddress,
                 SignerAgentUrl = context.SignerAgentUrl,
                 Network = context.Network,
-                SwapId = context.SwapId,
             },
             new()), new() { Id = TemporalHelper.BuildProcessorId(context.Network.Name, TransactionType.Approve, NewGuid()) });
 

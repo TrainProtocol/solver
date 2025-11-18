@@ -1,1 +1,1 @@
-export type Network = 'evm' | 'starknet' | 'solana' | 'fuel';
+export type Network = 'evm' | 'starknet' | 'solana' | 'fuel' | 'aztec' | 'solana';

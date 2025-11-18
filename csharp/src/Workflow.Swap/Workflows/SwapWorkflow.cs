@@ -165,7 +165,6 @@ public class SwapWorkflow : ISwapWorkflow
             Network = _destinationNetwork,
             FromAddress = _destinationWalletAddress!,
             SignerAgentUrl = _destinationWalletAgentUrl!,
-            SwapId = _swapId,
         });
 
         //_isLpLocked = true;
@@ -214,7 +213,6 @@ public class SwapWorkflow : ISwapWorkflow
                     Network = _sourceNetwork,
                     FromAddress = _sourceWalletAddress!,
                     SignerAgentUrl = _sourceWalletAgentUrl!,
-                    SwapId = _swapId
                 });
 
                 userLocked = await WaitConditionAsync(
@@ -251,7 +249,6 @@ public class SwapWorkflow : ISwapWorkflow
                     Network = _destinationNetwork,
                     FromAddress = _destinationWalletAddress!,
                     SignerAgentUrl = _sourceWalletAgentUrl!,
-                    SwapId = _swapId
                 });
 
                 tasks.Add(redeemInDestinationTask);
@@ -272,7 +269,6 @@ public class SwapWorkflow : ISwapWorkflow
                 Network = _sourceNetwork,
                 FromAddress = _sourceWalletAddress!,
                 SignerAgentUrl = _sourceWalletAgentUrl!,
-                SwapId = _swapId
             });
 
             tasks.Add(redeemInSourceTask);
@@ -311,7 +307,6 @@ public class SwapWorkflow : ISwapWorkflow
             Network = network,
             FromAddress = _destinationWalletAddress!,
             SignerAgentUrl = _destinationWalletAgentUrl!,
-            SwapId = _swapId!
         });
     }
 
@@ -353,7 +348,8 @@ public class SwapWorkflow : ISwapWorkflow
         return Task.CompletedTask;
     }
 
-    private async Task<TransactionResponse> ExecuteTransactionAsync(TransactionRequest transactionRequest)
+    private async Task<TransactionResponse> ExecuteTransactionAsync(
+        TransactionRequest transactionRequest)
     {
         var confirmedTransaction = await ExecuteChildTransactionProcessorWorkflowAsync(
             transactionRequest.Network.Type,
@@ -369,7 +365,7 @@ public class SwapWorkflow : ISwapWorkflow
 
         await ExecuteActivityAsync(
             (ISwapActivities x) =>
-                x.CreateSwapTransactionAsync(transactionRequest.SwapId, transactionRequest.Type, confirmedTransaction),
+                x.CreateSwapTransactionAsync(_swapId, transactionRequest.Type, confirmedTransaction),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 
         await ExecuteActivityAsync(
@@ -377,7 +373,9 @@ public class SwapWorkflow : ISwapWorkflow
                 confirmedTransaction.NetworkName,
                 confirmedTransaction.FeeAsset,
                 confirmedTransaction.FeeAmount.ToString(),
-                confirmedTransaction.Asset,
+                transactionRequest.Network.Name == _sourceNetwork!.Name 
+                    ? _htlcCommitMessage!.SourceAsset 
+                    : _htlcCommitMessage!.DestinationAsset,
                 transactionRequest.Type),
             DefaultActivityOptions(Constants.CoreTaskQueue));
 

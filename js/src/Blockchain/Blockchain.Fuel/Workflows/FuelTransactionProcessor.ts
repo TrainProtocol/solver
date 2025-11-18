@@ -35,12 +35,12 @@ export async function FuelTransactionProcessor(
     context: TransactionExecutionContext
 ): Promise<TransactionResponse> {
 
-     const nextNonce = await defaultActivities.GetNextNonce({
-            address: request.fromAddress,
-            network: request.network
-        });
+    const nextNonce = await defaultActivities.GetNextNonce({
+        address: request.fromAddress,
+        network: request.network
+    });
 
-    try {       
+    try {
 
         await defaultActivities.CheckCurrentNonce(
             {
@@ -65,19 +65,16 @@ export async function FuelTransactionProcessor(
             callDataAmount: Number(preparedTransaction.callDataAmount),
         });
 
-        const signedRawData = await defaultActivities.SignTransaction(
-            {
-                signerAgentUrl: request.signerAgentUrl,
-                networkType: NetworkType[request.network.type],
-                signRequest: {
-                    unsignedTxn: rawTx,
-                    address: request.fromAddress,
-                    nodeUrl: request.network.nodes[0].url,
-                }
+        const signedRawData = await defaultActivities.SignTransaction({
+            signerAgentUrl: request.signerAgentUrl,
+            networkType: NetworkType[request.network.type],
+            signRequest: {
+                unsignedTxn: rawTx,
+                address: request.fromAddress,
+                nodeUrl: request.network.nodes[0].url,
             }
-        );
+        });
 
-        // sign transaction
         const publishedTransaction = await nonRetryableActivities.PublishTransaction({
             network: request.network,
             signedRawData: signedRawData
@@ -89,28 +86,25 @@ export async function FuelTransactionProcessor(
         });
 
         transactionResponse.asset = preparedTransaction.callDataAsset;
-        transactionResponse.amount = preparedTransaction.callDataAmount.toString();
+        transactionResponse.amount = preparedTransaction.callDataAmount;
 
-        await defaultActivities.UpdateCurrentNonce(
-            {
-                address: request.fromAddress,
-                network: request.network,
-                currentNonce: nextNonce
-            }
-        )
+        await defaultActivities.UpdateCurrentNonce({
+            address: request.fromAddress,
+            network: request.network,
+            currentNonce: nextNonce
+        });
 
         return transactionResponse;
 
     }
     catch (error) {
 
-         await defaultActivities.UpdateCurrentNonce(
+        await defaultActivities.UpdateCurrentNonce(
             {
                 address: request.fromAddress,
                 network: request.network,
                 currentNonce: nextNonce
-            }
-        )
+            });
 
         if ((error instanceof ApplicationFailure && error.type === 'TransactionFailedException')) {
 

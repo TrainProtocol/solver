@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Train.Solver.AdminAPI.Models;
 using Train.Solver.Common.Enums;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Infrastructure.Extensions;
@@ -31,7 +31,7 @@ public static class TokenPriceEndpoints
         ITokenPriceRepository repository,
         CreateTokenPriceRequest request)
     {
-        var tokenPrice = await repository.CreateAsync(request.Symbol, request.ExternalId);
+        var tokenPrice = await repository.CreateAsync(request);
 
         return tokenPrice is null
            ? Results.BadRequest("Failed to create token price")

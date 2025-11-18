@@ -24,20 +24,18 @@ import { inject, injectable } from "tsyringe";
 import Redis from "ioredis";
 import Redlock from "redlock";
 import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
-import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
+import { SignTransactionRequest } from "./Models/FuelSignTransactionModel";
 import { TransactionFailedException } from "../../Blockchain.Abstraction/Exceptions/TransactionFailedException";
 import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
 import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { buildLockKey as buildLockKey, buildCurrentNonceKey, buildNextNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/TimeSpanConverter";
 
-
 @injectable()
 export class FuelBlockchainActivities implements IFuelBlockchainActivities {
     constructor(
         @inject("Redis") private redis: Redis,
-        @inject("Redlock") private lockFactory: Redlock,
-        // @inject("TreasuryClient") private treasuryClient: TreasuryClient
+        @inject("Redlock") private lockFactory: Redlock
     ) { }
 
 
@@ -296,7 +294,7 @@ export class FuelBlockchainActivities implements IFuelBlockchainActivities {
         }
     }
 
-    public async SignTransaction(request: FuelSignTransactionRequestModel): Promise<string> {
+    public async SignTransaction(request: SignTransactionRequest): Promise<string> {
 
         const treasuryClient = new TreasuryClient(request.signerAgentUrl);
 

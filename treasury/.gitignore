@@ -16,3 +16,7 @@ npm-debug.log
 
 # dist
 /dist
+
+# dotenv environment variables file
+.env
+.env.test

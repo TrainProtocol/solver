@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<AssemblyName>Train.Solver.Workflow.Solana</AssemblyName>
+		<RootNamespace>Train.Solver.Workflow.Solana</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Nethereum.Web3Lite" Version="4.29.0" />
+		<PackageReference Include="Solnet.Extensions" Version="6.1.0" />
+		<PackageReference Include="Flurl.Http" Version="4.0.2" />
+	</ItemGroup>
+	
+  <ItemGroup>
+	<ProjectReference Include="..\Infrastrucutre.Secret.Treasury\Infrastrucutre.Secret.Treasury.csproj" />
+	<ProjectReference Include="..\SmartNodeInvoker\SmartNodeInvoker.csproj" />
+	<ProjectReference Include="..\Workflow.Abstractions\Workflow.Abstractions.csproj" />
+	<ProjectReference Include="..\Workflow.Common\Workflow.Common.csproj" />
+	<ProjectReference Include="..\Data.Npgsql\Data.Npgsql.csproj" />
+	<ProjectReference Include="..\Infrastructure.Logging.OpenTelemetry\Infrastructure.Logging.OpenTelemetry.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,8 +1,7 @@
-﻿using Train.Solver.Blockchain.Solana.Extensions;
-using Train.Solver.Infrastructure.Extensions;
-using Train.Solver.Data.Npgsql.Extensions;
+﻿using Train.Solver.Infrastrucutre.Secret.Treasury.Extensions;
 using Train.Solver.Infrastructure.Logging.OpenTelemetry;
-using Train.Solver.Infrastructure.Secret.HashicorpKeyVault;
+using Train.Solver.Infrastructure.DependencyInjection;
+using Train.Solver.Workflow.Solana.Extensions;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(builder =>
@@ -16,10 +15,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         services
             .AddTrainSolver(hostContext.Configuration)
             .WithOpenTelemetryLogging("Solana Runner")
-            .WithNpgsqlRepositories()
-            .WithHashicorpKeyVault()
+            .WithTreasury()
             .WithSolanaWorkflows();
     })
     .Build();
-
-await host.RunAsync();
+ 
+await host.RunAsync(); 

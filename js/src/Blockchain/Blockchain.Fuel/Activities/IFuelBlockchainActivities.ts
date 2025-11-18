@@ -3,7 +3,7 @@ import { GetTransactionRequest } from "../../Blockchain.Abstraction/Models/Recei
 import { TransactionResponse } from "../../Blockchain.Abstraction/Models/ReceiptModels/TransactionResponse";
 import { FuelPublishTransactionRequest } from "../Models/FuelPublishTransactionRequest";
 import { FuelComposeTransactionRequest } from "../Models/FuelComposeTransactionRequest";
-import { FuelSignTransactionRequestModel } from "./Models/FuelSignTransactionModel";
+import { SignTransactionRequest } from "./Models/FuelSignTransactionModel";
 import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
 import { CurrentNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/CurrentNonceRequest";
 
@@ -15,7 +15,7 @@ export interface IFuelBlockchainActivities extends IBlockchainActivities {
 
     ComposeRawTransaction(request: FuelComposeTransactionRequest): Promise<string>;
 
-    SignTransaction(request: FuelSignTransactionRequestModel): Promise<string>;
+    SignTransaction(request: SignTransactionRequest): Promise<string>;
 
     GetNextNonce(request: NextNonceRequest): Promise<number>;
 

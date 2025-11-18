@@ -27,8 +27,7 @@ public class EFSwapRepository(
             sourceNetworkName,
             sourceAsset,
             destinationNetworkName,
-            destinationAsset,
-            null);
+            destinationAsset);
 
         if (route == null)
         {
@@ -57,7 +56,7 @@ public class EFSwapRepository(
     {
         return await GetBaseQuery()
             .OrderByDescending(x => x.CreatedDate)
-            .Skip((int)(page * size))
+            .Skip((int)((page - 1) * size))
             .Take((int)size)
             .ToListAsync();
     }

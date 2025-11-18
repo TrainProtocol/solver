@@ -17,7 +17,7 @@ on:
 
 env:
   DOCKER_IMAGE: trainprotocol/solver-starknet
-  NODE_VERSION: 20
+  NODE_VERSION: 22
 
 jobs:
   build-and-push:

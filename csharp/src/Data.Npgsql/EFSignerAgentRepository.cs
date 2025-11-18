@@ -7,15 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Train.Solver.Common.Enums;
 using Train.Solver.Data.Abstractions.Entities;
+using Train.Solver.Data.Abstractions.Models;
 using Train.Solver.Data.Abstractions.Repositories;
 
 namespace Train.Solver.Data.Npgsql;
 
 public class EFSignerAgentRepository(SolverDbContext dbContext) : ISignerAgentRepository
 {
-    public async Task<SignerAgent?> CreateAsync(string name, string url, NetworkType[] supportedTypes)
+    public async Task<SignerAgent?> CreateAsync(CreateSignerAgentRequest request)
     {
-        var signerAgentExists = await dbContext.SignerAgents.AnyAsync(x => x.Name == name);
+        var signerAgentExists = await dbContext.SignerAgents.AnyAsync(x => x.Name == request.Name);
 
         if (signerAgentExists)
         {
@@ -24,9 +25,9 @@ public class EFSignerAgentRepository(SolverDbContext dbContext) : ISignerAgentRe
 
         var signerAgent = new SignerAgent
         {
-            Name = name,
-            Url = url,
-            SupportedTypes = supportedTypes
+            Name = request.Name,
+            Url = request.Url,
+            SupportedTypes = request.SupportedTypes
         };
 
         dbContext.SignerAgents.Add(signerAgent);
