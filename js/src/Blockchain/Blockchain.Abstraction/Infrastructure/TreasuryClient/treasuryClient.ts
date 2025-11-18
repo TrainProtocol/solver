@@ -14,7 +14,7 @@ export class TreasuryClient {
   constructor(signerAgentUrl: string) {
     this.apiClient = axios.create({
       baseURL: `${signerAgentUrl}/api/treasury/`,
-      timeout: 60000
+      timeout: 600000
     });
   }
 
