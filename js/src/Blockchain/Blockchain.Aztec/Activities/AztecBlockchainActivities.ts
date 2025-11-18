@@ -18,7 +18,6 @@ import { TransactionFailedException } from "../../Blockchain.Abstraction/Excepti
 import { Tx, TxHash } from "@aztec/aztec.js/tx";
 import { mapAztecStatusToInternal } from "./Helper/AztecTransactionStatusMapper";
 import { AztecPublishTransactionRequest } from "../Models/AztecPublishTransactionRequest";
-import { TreasuryClient } from "../../Blockchain.Abstraction/Infrastructure/TreasuryClient/treasuryClient";
 import { AztecSignTransactionRequestModel } from "./Models/AztecSignTransactionModel";
 import { buildLockKey as buildLockKey, buildCurrentNonceKey, buildNextNonceKey } from "../../Blockchain.Abstraction/Infrastructure/RedisHelper/RedisHelper";
 import { NextNonceRequest } from "../../Blockchain.Abstraction/Models/NonceModels/NextNonceRequest";
@@ -30,10 +29,7 @@ import { TimeSpan } from "../../Blockchain.Abstraction/Infrastructure/RedisHelpe
 import { TransactionNotComfirmedException } from "../../Blockchain.Abstraction/Exceptions/TransactionNotComfirmedException";
 import { TrainContract } from "./Helper/Train";
 import { PrivateKeyService } from '../KeyVault/vault.service';
-
-// import { AztecSignRequest, AztecSignResponse } from "./aztec.dto";
 import { ContractFunctionInteraction, getContractInstanceFromInstantiationParams, toSendOptions } from '@aztec/aztec.js/contracts';
-// import { AztecConfigService } from './aztec.config';
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee';
 import { SponsoredFPCContract } from '@aztec/noir-contracts.js/SponsoredFPC';
 import { TestWallet } from '@aztec/test-wallet/server';
@@ -50,7 +46,6 @@ import { ContractArtifact, FunctionAbi, getAllFunctionAbis } from '@aztec/aztec.
 import { SchnorrAccountContract } from '@aztec/accounts/schnorr';
 import { getAccountContractAddress } from '@aztec/aztec.js/account';
 import { AztecFunctionInteractionModel } from "./Models/AztecFunctionInteractionModel";
-import { PrivateKeyConfigService } from "../KeyVault/vault.config";
 import { AztecConfigService } from "../KeyVault/aztec.config";
 
 @injectable()
@@ -140,10 +135,6 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
 
     public async signTransaction(request: AztecSignTransactionRequestModel): Promise<string> {
         try {
-
-            // const privateKeyService = new PrivateKeyService();
-            // privateKeyService.init(new PrivateKeyConfigService({ get: (key: string) => process.env[key] } as any));
-
             const privateKey = await this.privateKeyService.getAsync(request.solverAddress);
             const privateSalt = await this.privateKeyService.getAsync(request.solverAddress, "private_salt");
             const provider: AztecNode = createAztecNodeClient(request.nodeUrl);
