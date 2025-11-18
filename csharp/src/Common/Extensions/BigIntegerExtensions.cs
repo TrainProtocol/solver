@@ -95,7 +95,7 @@ public static class BigIntegerExtensions
     {
         var amountInDecimal = TokenUnitHelper.FromBaseUnits(amount, fromDecimals);
 
-        amountInDecimal *= rate;
+        amountInDecimal /= rate;
 
         return TokenUnitHelper.ToBaseUnits(amountInDecimal, toDecimals);
     }
