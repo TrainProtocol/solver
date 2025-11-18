@@ -51,6 +51,7 @@ import { SchnorrAccountContract } from '@aztec/accounts/schnorr';
 import { getAccountContractAddress } from '@aztec/aztec.js/account';
 import { AztecFunctionInteractionModel } from "./Models/AztecFunctionInteractionModel";
 import { PrivateKeyConfigService } from "../KeyVault/vault.config";
+import { AztecConfigService } from "../KeyVault/aztec.config";
 
 @injectable()
 export class AztecBlockchainActivities implements IAztecBlockchainActivities {
@@ -58,6 +59,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
         @inject("Redis") private redis: Redis,
         @inject("Redlock") private lockFactory: Redlock,
         @inject("PrivateKeyService") private privateKeyService: PrivateKeyService,
+        @inject("AztecConfigService") private aztecConfigService: AztecConfigService,
     ) { }
 
     public async BuildTransaction(request: TransactionBuilderRequest): Promise<PrepareTransactionResponse> {
@@ -153,7 +155,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
             const solverAddress = (await getAccountContractAddress(accountContract, Fr.fromString(privateKey), Fr.fromString(privateSalt))).toString();
 
             const store = await createStore(request.solverAddress, {
-                dataDirectory: "C:/Users/kosta/OneDrive/Desktop/aztecTr",
+                dataDirectory: this.aztecConfigService.storePath,
                 dataStoreMapSizeKb: 1e6,
             });
 
