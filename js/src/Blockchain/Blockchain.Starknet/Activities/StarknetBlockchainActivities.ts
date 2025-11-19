@@ -363,6 +363,9 @@ export class StarknetBlockchainActivities implements IStarknetBlockchainActiviti
 
             var fees = await account.estimateFee([transferCall]);
 
+            fees.l2_gas_price = fees.l2_gas_price * BigInt(4);
+            fees.l1_gas_price = fees.l1_gas_price * BigInt(4);
+
             // const signature = JSON.parse(feeRequest.signature).signature;
             // const r = uint256.uint256ToBN(signature.r);
             // const recovery = signature.recovery;
