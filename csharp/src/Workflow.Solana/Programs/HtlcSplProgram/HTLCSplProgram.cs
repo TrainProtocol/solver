@@ -1,27 +1,31 @@
 ﻿using System.Text;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
+using Train.Solver.Blockchain.Solana.Programs;
+using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
-namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
+namespace Train.Solver.Workflow.Solana.Programs.HTLCProgram;
 
-public static class HTLCProgram
+public static class HTLCSplProgram
 {
-    public static TransactionBuilder SetLockTransactionInstruction(
+    public static TransactionBuilder SetSplLockTransactionInstruction(
         this TransactionBuilder builder,
         PublicKey htlcProgramIdKey,
-        HTLCLockRequest htlcLockRequest)
+        HTLCSplLockRequest htlcLockRequest)
     {
-        var htlcPdaParams = GetHtlcPdaParams(htlcLockRequest.Id, htlcProgramIdKey);
+        var htlcPdaParams = GetSplHtlcPdaParams(htlcLockRequest.Id, htlcProgramIdKey);
 
-        var lockData = new HtlcInstructionDataBuilder().CreateLockData(htlcLockRequest);
-        var lockRewardData = new HtlcInstructionDataBuilder().CreateLockRewardData(htlcLockRequest);
+        var lockData = new HtlcSplInstructionDataBuilder().CreateSplLockData(htlcLockRequest);
+        var lockRewardData = new HtlcSplInstructionDataBuilder().CreateLockRewardData(htlcLockRequest);
 
         // Add Lock instruction
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.CreateLockAccountKeys(htlcLockRequest, htlcPdaParams),
+            Keys = HtlcSplInstructionKeyProvider.CreateSplLockAccountKeys(htlcLockRequest, htlcPdaParams),
             Data = lockData
 
         });
@@ -29,45 +33,45 @@ public static class HTLCProgram
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.CreateLockRewardAccountKeys(htlcLockRequest, htlcPdaParams),
+            Keys = HtlcSplInstructionKeyProvider.CreateLockRewardAccountKeys(htlcLockRequest, htlcPdaParams),
             Data = lockRewardData
         });
 
         return builder;
     }
 
-    public static TransactionBuilder SetRedeemTransactionInstruction(
+    public static TransactionBuilder SetSplRedeemTransactionInstruction(
         this TransactionBuilder builder,
         PublicKey htlcProgramIdKey,
-        HTLCRedeemRequest redeemRequest)
+        HTLCSplRedeemRequest redeemRequest)
     {
-        var pdaParams = GetHtlcPdaParams(redeemRequest.Id, htlcProgramIdKey);
+        var pdaParams = GetSplHtlcPdaParams(redeemRequest.Id, htlcProgramIdKey);
 
-        var redeemData = new HtlcInstructionDataBuilder().CreateRedeemData(redeemRequest, pdaParams);
+        var redeemData = new HtlcSplInstructionDataBuilder().CreateRedeemData(redeemRequest, pdaParams);
 
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.CreateRedeemAccountKeys(redeemRequest, pdaParams),
+            Keys = HtlcSplInstructionKeyProvider.CreateRedeemAccountKeys(redeemRequest, pdaParams),
             Data = redeemData
         });
 
         return builder;
     }
-
-    public static TransactionBuilder SetRefundTransactionInstruction(
+    
+    public static TransactionBuilder SetSplRefundTransactionInstruction(
         this TransactionBuilder builder,
         PublicKey htlcProgramIdKey,
-        HTLCRefundRequest htlcRefundRequest)
+        HtlcSplRefundRequest htlcRefundRequest)
     {
-        var pdaParams = GetHtlcPdaParams(htlcRefundRequest.Id, htlcProgramIdKey);
+        var pdaParams = GetSplHtlcPdaParams(htlcRefundRequest.Id, htlcProgramIdKey);
 
-        var refundData = new HtlcInstructionDataBuilder().CreateRefundData(htlcRefundRequest, pdaParams);
+        var refundData = new HtlcSplInstructionDataBuilder().CreateSplRefundData(htlcRefundRequest, pdaParams);
 
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.SetRefundAccountKeys(htlcRefundRequest, pdaParams),
+            Keys = HtlcSplInstructionKeyProvider.SetSplRefundAccountKeys(htlcRefundRequest, pdaParams),
             Data = refundData
         });
 
@@ -77,11 +81,11 @@ public static class HTLCProgram
     public static TransactionBuilder SetAddLockSigInstruction(
         this TransactionBuilder builder,
         PublicKey htlcProgramIdKey,
-        HTLCAddlocksigRequest htlcAddlocksigRequest)
+        HtlcAddlocksigRequest htlcAddlocksigRequest)
     {
-        var pdaParams = GetHtlcPdaParams(htlcAddlocksigRequest.AddLockSigMessageRequest.Id, htlcProgramIdKey);
+        var pdaParams = GetSplHtlcPdaParams(htlcAddlocksigRequest.AddLockSigMessageRequest.Id, htlcProgramIdKey);
         var message = Ed25519Program.CreateAddLockSigMessage(htlcAddlocksigRequest.AddLockSigMessageRequest);
-        var addLockSigData = new HtlcInstructionDataBuilder().CreateAddLockSigData(htlcAddlocksigRequest, pdaParams);
+        var addLockSigData = new HtlcSplInstructionDataBuilder().CreateAddLockSigData(htlcAddlocksigRequest, pdaParams);
 
         builder.CreateEd25519Instruction(
             htlcAddlocksigRequest.AddLockSigMessageRequest.SignerPublicKey,
@@ -91,7 +95,7 @@ public static class HTLCProgram
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.CreateAddLockSigAccountKeys(htlcAddlocksigRequest, pdaParams),
+            Keys = HtlcSplInstructionKeyProvider.CreateAddLockSigAccountKeys(htlcAddlocksigRequest, pdaParams),
             Data = addLockSigData
         });
 
@@ -103,21 +107,21 @@ public static class HTLCProgram
         PublicKey htlcProgramIdKey,
         byte[] id)
     {
-        var pdaParams = GetHtlcPdaParams(id, htlcProgramIdKey);
+        var pdaParams = GetSplHtlcPdaParams(id, htlcProgramIdKey);
 
-        var getDetailsData = new HtlcInstructionDataBuilder().CreateGetDetailsData(pdaParams, id);
+        var getDetailsData = new HtlcSplInstructionDataBuilder().CreateGetDetailsData(pdaParams, id);
 
         builder.AddInstruction(new()
         {
             ProgramId = htlcProgramIdKey,
-            Keys = HtlcInstructionKeyProvider.CreateGetDetailsAccountKeys(pdaParams.HtlcPublicKey),
+            Keys = HtlcSplInstructionKeyProvider.CreateGetDetailsAccountKeys(pdaParams.HtlcPublicKey),
             Data = getDetailsData
         });
 
         return builder;
     }
 
-    private static HTLCPdaResponse GetHtlcPdaParams(
+    private static HTLCSplPdaResponse GetSplHtlcPdaParams(
         byte[] Id,
         PublicKey htlcProgramIdKey)
     {

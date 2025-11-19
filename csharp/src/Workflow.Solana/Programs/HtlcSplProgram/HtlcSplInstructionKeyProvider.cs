@@ -3,14 +3,17 @@ using Solnet.Rpc.Models;
 using Solnet.Wallet;
 using Train.Solver.Blockchain.Solana.Helpers;
 using Train.Solver.Blockchain.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram.Models;
+using Train.Solver.Workflow.Solana.Programs.HtlcSplProgram.Models;
 
 namespace Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 
-public static class HtlcInstructionKeyProvider
+public static class HtlcSplInstructionKeyProvider
 {
-    public static List<AccountMeta> CreateLockAccountKeys(
-        HTLCLockRequest htlcLockRequest,
-        HTLCPdaResponse htlcPdaResponse)
+    public static List<AccountMeta> CreateSplLockAccountKeys(
+        HTLCSplLockRequest htlcLockRequest,
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -27,7 +30,22 @@ public static class HtlcInstructionKeyProvider
         return keys;
     }
 
-    public static IList<AccountMeta> CreateLockRewardAccountKeys(HTLCLockRequest htlcLockRequest, HTLCPdaResponse htlcPdaResponse)
+    public static List<AccountMeta> CreateSolLockAccountKeys(
+        HTLCSolLockRequest htlcLockRequest,
+        HtlcSolPdaResponse htlcPdaResponse)
+    {
+        var keys = new List<AccountMeta>()
+        {
+            AccountMeta.Writable(publicKey: htlcLockRequest.SignerPublicKey, isSigner: true),
+            AccountMeta.Writable(publicKey: htlcPdaResponse.HtlcPublicKey, isSigner: false),
+            AccountMeta.ReadOnly(publicKey: SystemProgram.ProgramIdKey, isSigner: false),
+            AccountMeta.ReadOnly(publicKey: SysVars.RentKey, isSigner: false)
+        };
+
+        return keys;
+    }
+
+    public static IList<AccountMeta> CreateLockRewardAccountKeys(HTLCSplLockRequest htlcLockRequest, HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -44,9 +62,22 @@ public static class HtlcInstructionKeyProvider
         return keys;
     }
 
-    public static List<AccountMeta> SetRefundAccountKeys(
-        HTLCRefundRequest refundRequest,
-        HTLCPdaResponse htlcPdaResponse)
+    public static IList<AccountMeta> CreateSolLockRewardAccountKeys(HTLCSolLockRequest htlcLockRequest, HtlcSolPdaResponse htlcPdaResponse)
+    {
+        var keys = new List<AccountMeta>()
+        {
+            AccountMeta.Writable(publicKey: htlcLockRequest.SignerPublicKey, isSigner: true),
+            AccountMeta.Writable(publicKey: htlcPdaResponse.HtlcPublicKey, isSigner: false),
+            AccountMeta.ReadOnly(publicKey: SystemProgram.ProgramIdKey, isSigner: false),
+            AccountMeta.ReadOnly(publicKey: SysVars.RentKey, isSigner: false)
+        };
+
+        return keys;
+    }
+
+    public static List<AccountMeta> SetSplRefundAccountKeys(
+        HtlcSplRefundRequest refundRequest,
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -65,8 +96,8 @@ public static class HtlcInstructionKeyProvider
     }
 
     public static List<AccountMeta> CreateRedeemAccountKeys(
-       HTLCRedeemRequest htlcRedeemRequest,
-       HTLCPdaResponse htlcPdaResponse)
+       HTLCSplRedeemRequest htlcRedeemRequest,
+       HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>()
         {
@@ -99,8 +130,8 @@ public static class HtlcInstructionKeyProvider
     }
 
     public static List<AccountMeta> CreateAddLockSigAccountKeys(
-        HTLCAddlocksigRequest hTLCAddlocksigRequest,
-        HTLCPdaResponse htlcPdaResponse)
+        HtlcAddlocksigRequest hTLCAddlocksigRequest,
+        HTLCSplPdaResponse htlcPdaResponse)
     {
         var keys = new List<AccountMeta>
         {

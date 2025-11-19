@@ -2,6 +2,9 @@ import { AztecSignTransactionRequest } from "../../../Blockchain.Abstraction/Inf
 
 export interface AztecSignTransactionRequestModel {
     networkType: string;
-    signRequest: AztecSignTransactionRequest;
-    signerAgentUrl: string;
+    tokenContract: string;
+    contractAddress: string;
+    solverAddress: string;
+    nodeUrl: string;
+    unsignedTxn: string;
 }

@@ -5,9 +5,10 @@ using Solnet.Wallet;
 using System.Numerics;
 using Train.Solver.Blockchain.Solana.Extensions;
 using Train.Solver.Blockchain.Solana.Models;
-using Train.Solver.Blockchain.Solana.Programs.HTLCProgram;
 using Train.Solver.Infrastructure.Abstractions.Models;
 using Train.Solver.Workflow.Abstractions.Models;
+using Train.Solver.Workflow.Solana.Programs.HTLCProgram;
+using Train.Solver.Workflow.Solana.Programs.HtlcSolProgram;
 
 namespace Train.Solver.Blockchain.Solana.Helpers;
 
@@ -34,9 +35,11 @@ public static class EventDecoder
         {
             var htlcTokenContractAddress = network.HTLCTokenContractAddress;
 
+            var htlcNativeContractAddress = network.HTLCNativeContractAddress;
+
             var trackedBlockEvents = blockResponseResult.Result.Transactions
                 .Where(transaction => transaction.Transaction.Message.Instructions
-                    .Any(instruction => instruction.ProgramId == htlcTokenContractAddress))
+                    .Any(instruction => instruction.ProgramId == htlcTokenContractAddress || instruction.ProgramId == htlcNativeContractAddress))
                 .ToList();
 
             foreach (var transaction in trackedBlockEvents)
@@ -47,11 +50,15 @@ public static class EventDecoder
                 var isLockEvent = transaction.Meta.LogMessages
                     .Any(x => x.Contains(SolanaConstants.HtlcConstants.addLockEventPrefixPattern));
 
+                var contractAddress = transaction.Transaction.Message.Instructions.Any(x => x.ProgramId == htlcTokenContractAddress) ?
+                    htlcTokenContractAddress :
+                    htlcNativeContractAddress;
+
                 var accountForSimulation = solverAccounts.First();
 
                 if (isCommitEvent)
                 {
-                    var prefixPattern = "Program return: " + htlcTokenContractAddress + " ";
+                    var prefixPattern = "Program return: " + contractAddress + " ";
 
                     var logResult = transaction.Meta.LogMessages.Where(s => s.StartsWith(prefixPattern))
                         .Select(s => s.Substring(prefixPattern.Length))
@@ -63,6 +70,7 @@ public static class EventDecoder
                     var commitEvent = await DeserializeCommitEventDataAsync(
                         rpcClient,
                         network,
+                        contractAddress,
                         id,
                         accountForSimulation);
 
@@ -106,7 +114,7 @@ public static class EventDecoder
 
                 if (isLockEvent)
                 {
-                    var prefixPattern = "Program return: " + htlcTokenContractAddress + " ";
+                    var prefixPattern = "Program return: " + contractAddress + " ";
 
                     var logResult = transaction.Meta.LogMessages.Where(s => s.StartsWith(prefixPattern))
                         .Select(s => s.Substring(prefixPattern.Length))
@@ -118,6 +126,7 @@ public static class EventDecoder
                     var addLockMessageResult = await DeserializeAddLockEventDataAsync(
                         rpcClient,
                         network,
+                        contractAddress,
                         id,
                         accountForSimulation);
 
@@ -139,6 +148,7 @@ public static class EventDecoder
     private static async Task<SolanaHTLCCommitEventModel> DeserializeCommitEventDataAsync(
         IRpcClient rpcClient,
         DetailedNetworkDto network,
+        string contractAddress,
         string commitId,
         string solverAccount)
     {
@@ -152,7 +162,7 @@ public static class EventDecoder
             .SetFeePayer(new PublicKey(solverAccount));
 
         builder.SetGetDetailsInstruction(
-            new PublicKey(network.HTLCTokenContractAddress),
+            new PublicKey(contractAddress),
             commitId.HexToByteArray());
 
         var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
@@ -191,6 +201,7 @@ public static class EventDecoder
     private static async Task<HTLCLockEventMessage?> DeserializeAddLockEventDataAsync(
         IRpcClient rpcClient,
         DetailedNetworkDto network,
+        string contractAddress,
         string commitId,
         string solverAccount)
     {
@@ -205,10 +216,8 @@ public static class EventDecoder
             var builder = new TransactionBuilder()
                 .SetFeePayer(new PublicKey(solverAccount));
 
-            var htlcContractAddress = network.HTLCTokenContractAddress;
-
             builder.SetGetDetailsInstruction(
-                new PublicKey(htlcContractAddress),
+                new PublicKey(contractAddress),
                 commitId.HexToByteArray());
 
             var latestBlockHashResponse = await rpcClient.GetLatestBlockHashAsync();
