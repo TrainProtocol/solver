@@ -57,8 +57,19 @@ export async function TrackBlockEventsAsync(
             }
 
             const logEvent = rawEvents.find(x => x.transaction_hash === parsed.transaction_hash);
+            const destinationNetwork = BigIntToAscii(data.dstChain);
 
-            const dstAddress = hexToUtf8(logEvent.data[8], logEvent.data[9]);
+            let dstAddress: string;
+
+            if(destinationNetwork == "SOLANA_MAINNET" || destinationNetwork == "SOLANA_DEVNET")
+            {
+                dstAddress = hexToUtf8(logEvent.data[8], logEvent.data[9]);
+            }
+            else
+            {
+                dstAddress = ensureHexPrefix(logEvent.data[8]);
+            }
+            
             const commitId = ensureHexLength(toHex(data.Id), 32);
 
             const commitMsg: HTLCCommitEventMessage = {
@@ -70,7 +81,7 @@ export async function TrackBlockEventsAsync(
                 senderAddress: formatAddress(toHex(data.sender)),
                 sourceAsset: BigIntToAscii(data.srcAsset),
                 destinationAddress: dstAddress,
-                destinationNetwork: BigIntToAscii(data.dstChain),
+                destinationNetwork: destinationNetwork,
                 destinationAsset: BigIntToAscii(data.dstAsset),
                 timeLock: Number(data.timelock)
             };
