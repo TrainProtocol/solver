@@ -99,10 +99,13 @@ public class QuoteService(
         }
 
         var rateProvider = rateProviderResolver.Resolve(route.RateProvider.Name);
+
         var swapRate = await rateProvider.GetRateAsync(route.ToDto());
+
         var amount = request.Amount;
         var (TotalFee, TotalServiceFee, TotalExpenseFee) = await CalculateTotalFeeAsync(route, amount);
         var actualAmountToSwap = amount - TotalFee;
+
         var receiveAmount = actualAmountToSwap.ConvertTokenAmount(            
             route.SourceToken.Decimals,
             route.DestinationToken.Decimals,

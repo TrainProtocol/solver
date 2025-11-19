@@ -95,6 +95,19 @@ public static class BigIntegerExtensions
     {
         var amountInDecimal = TokenUnitHelper.FromBaseUnits(amount, fromDecimals);
 
+        amountInDecimal *= rate;
+
+        return TokenUnitHelper.ToBaseUnits(amountInDecimal, toDecimals);
+    }
+
+    public static BigInteger ConvertSendAmount(
+        this BigInteger amount,
+        int fromDecimals,
+        int toDecimals,
+        decimal rate)
+    {
+        var amountInDecimal = TokenUnitHelper.FromBaseUnits(amount, fromDecimals);
+
         amountInDecimal /= rate;
 
         return TokenUnitHelper.ToBaseUnits(amountInDecimal, toDecimals);
