@@ -160,10 +160,3 @@ export default async function TrackBlockEventsAsync(
     throw error;
   }
 }
-
-function ensureHexLength(hex: string, bytes: number): string {
-  // Remove 0x prefix if present
-  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
-  // Pad to desired byte length (bytes → hex chars = bytes * 2)
-  return "0x" + cleanHex.padStart(bytes * 2, "0");
-}
