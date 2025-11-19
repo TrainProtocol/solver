@@ -2,7 +2,7 @@ import { CallData, hash, num, Provider, events } from "starknet";
 import trainAbi from '../ABIs/Train.json';
 import { formatAddress } from "../StarknetBlockchainActivities";
 import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } from "../../../Blockchain.Abstraction/Models/EventModels/HTLCBlockEventResposne";
-import { BigIntToAscii, ensureHexPrefix, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
+import { BigIntToAscii, ensureHexLength, ensureHexPrefix, toHex } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { TokenCommittedEvent, TokenLockedEvent } from "../../Models/EventModels";
 
@@ -58,11 +58,12 @@ export async function TrackBlockEventsAsync(
 
             const logEvent = rawEvents.find(x => x.transaction_hash === parsed.transaction_hash);
 
-           const dstAddress = ensureHexPrefix(logEvent.data[8]);
-
+            const dstAddress = ensureHexPrefix(logEvent.data[8]);
+            const commitId = ensureHexLength(toHex(data.Id), 32);
+            
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
-                commitId: toHex(data.Id),
+                commitId: commitId,
                 amount: Number(data.amount).toString(),
                 receiverAddress: receiverAddress,
                 sourceNetwork: network.name,
@@ -79,10 +80,13 @@ export async function TrackBlockEventsAsync(
         else if (eventName.endsWith("TokenLockAdded")) {
             const data = eventData as unknown as TokenLockedEvent;
 
+            const commitId = ensureHexLength(toHex(data.Id), 32);
+            const hashlock = ensureHexLength(toHex(data.hashlock), 32);
+
             const lockMsg: HTLCLockEventMessage = {
                 txId: parsed.transaction_hash,
-                commitId: toHex(data.Id),
-                hashLock: toHex(data.hashlock),
+                commitId: commitId,
+                hashLock: hashlock,
                 timeLock: Number(data.timelock),
             };
 
