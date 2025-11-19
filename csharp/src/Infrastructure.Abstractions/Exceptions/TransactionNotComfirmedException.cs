@@ -1,5 +1,8 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+﻿using Temporalio.Exceptions;
 
-public class TransactionNotComfirmedException(string message) : Exception(message)
+namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+
+public class TransactionNotComfirmedException(string message)
+    : ApplicationFailureException(message, errorType: nameof(TransactionNotComfirmedException))
 {
 }

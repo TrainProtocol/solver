@@ -1,5 +1,8 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+﻿using Temporalio.Exceptions;
 
-public class HTLCAlreadyExistsException(string message) : Exception(message)
+namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+
+public class HTLCAlreadyExistsException(string message)
+    : ApplicationFailureException(message, errorType: nameof(HTLCAlreadyExistsException))
 {
 }

@@ -82,10 +82,12 @@ public class SolanaTransactionProcessor
                 }),
                 TemporalHelper.DefaultActivityOptions(request.Network.Type));
         }
-        catch (ActivityFailureException ex)
+        catch (Exception ex)
         {
-            if (ex.InnerException is ApplicationFailureException appFailEx &&
-               (appFailEx.HasError<NonceMissMatchException>() || appFailEx.HasError<TransactionFailedRetriableException>()))
+            if (
+                ex.InnerException is ApplicationFailureException applicationFailure
+                    && (applicationFailure.Failure?.ApplicationFailureInfo.Type == nameof(NonceMissMatchException) 
+                    || applicationFailure.Failure?.ApplicationFailureInfo.Type == nameof(TransactionFailedRetriableException)))
             {
                 throw CreateContinueAsNewException((SolanaTransactionProcessor x) => x.RunAsync(request, context));
             }

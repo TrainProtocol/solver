@@ -95,7 +95,7 @@ public abstract class FeeEstimatorBase(ISmartNodeInvoker smartNodeInvoker) : IFe
                     if (e.RpcError.Data is not null && _alreadyClaimedError.Any(x =>
                             e.RpcError.Data.ToString().Contains(x, StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        throw new AlreadyClaimedExceptions("HTLC already claimed");
+                        throw new AlreadyClaimedException("HTLC already claimed");
                     }
 
                     if (e.RpcError.Message.Contains("transfer amount exceeds balance") ||
