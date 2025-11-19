@@ -79,44 +79,42 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
 
-     try {
-         const privateKey = await this.privateKeyService.getAsync(request.address);
-         const privateSalt = await this.privateKeyService.getAsync(request.address, "private_salt");
-         const provider: AztecNode = createAztecNodeClient(request.network.nodes[0].url);
-         const l1Contracts = await provider.getL1ContractAddresses();
+        try {
+            const privateKey = await this.privateKeyService.getAsync(request.address);
+            const privateSalt = await this.privateKeyService.getAsync(request.address, "private_salt");
+            const provider: AztecNode = createAztecNodeClient(request.network.nodes[0].url);
+            const l1Contracts = await provider.getL1ContractAddresses();
 
-         const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
+            const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
 
-         const accountContract = new SchnorrAccountContract(deriveSigningKey(Fr.fromString(privateKey)));
+            const store = await createStore(request.address, {
+                dataDirectory: this.aztecConfigService.storePath,
+                dataStoreMapSizeKb: 1e6,
+            });
 
-         const store = await createStore(request.address, {
-             dataDirectory: this.aztecConfigService.storePath,
-             dataStoreMapSizeKb: 1e6,
-         });
+            const token = request.network.tokens.find(t => t.symbol === request.asset);
 
-         const token = request.network.tokens.find(t => t.symbol === request.asset);
+            const pxe = await TestWallet.create(provider, fullConfig, { store });
 
-         const pxe = await TestWallet.create(provider, fullConfig, { store });
+            const userAccount = await pxe.createSchnorrAccount(
+                Fr.fromString(privateKey),
+                Fr.fromString(privateSalt),
+                deriveSigningKey(Fr.fromString(privateKey)),
+            );
 
-         const userAccount = await pxe.createSchnorrAccount(
-             Fr.fromString(privateKey),
-             Fr.fromString(privateSalt),
-             deriveSigningKey(Fr.fromString(privateKey)),
-         );
+            const tokenInstance = await provider.getContract(AztecAddress.fromString(token.contract));
+            await pxe.registerContract(tokenInstance, TokenContract.artifact)
 
-         const tokenInstance = await provider.getContract(AztecAddress.fromString(token.contract));
-         await pxe.registerContract(tokenInstance, TokenContract.artifact)
+            const tokenContract = await TokenContract.at(AztecAddress.fromString(token.contract), pxe);
 
-         const tokenContract = await TokenContract.at(AztecAddress.fromString(token.contract), pxe);
+            const amount = await tokenContract.methods.balance_of_private(userAccount.address).simulate({ from: userAccount.address });
 
-         const balanceResult = await tokenContract.methods.balance_of_private(AztecAddress.fromString(request.address)).simulate({ from: AztecAddress.fromString(request.address) });
-
-         return balanceResult;
-     }
-     catch (error) {
-         throw new Error(`Error while getting balance: ${error.message}`);
-     }
- }
+            return { amount: amount.toString() };
+        }
+        catch (error) {
+            throw new Error(`Error while getting balance: ${error.message}`);
+        }
+    }
 
     public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
 
@@ -199,7 +197,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                 SponsoredFPCContract.artifact,
             );
 
-            await pxe.createSchnorrAccount(
+            const solverAccount = await pxe.createSchnorrAccount(
                 Fr.fromString(privateKey),
                 Fr.fromString(privateSalt),
                 deriveSigningKey(Fr.fromString(privateKey)),
@@ -229,7 +227,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                         throw new Error("Unable to get function ABI");
                     }
 
-                    authWith.args.unshift(solverAddress);
+                    authWith.args.unshift(solverAccount.address);
 
                     const functionInteraction = new ContractFunctionInteraction(
                         pxe,
@@ -244,7 +242,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
                     };
 
                     const witness = await pxe.createAuthWit(
-                        AztecAddress.fromString(solverAddress),
+                        solverAccount.address,
                         intent,
                     );
 
@@ -278,7 +276,7 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
 
             var sendOptions = await toSendOptions(
                 {
-                    from: AztecAddress.fromString(request.solverAddress),
+                    from: solverAccount.address,
                     authWitnesses: [...authWitnesses],
                     fee: { paymentMethod: new SponsoredFeePaymentMethod(sponsoredFPCInstance.address) },
                 },
