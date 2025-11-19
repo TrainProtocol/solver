@@ -5,6 +5,7 @@ import { HTLCBlockEventResponse, HTLCCommitEventMessage, HTLCLockEventMessage } 
 import { DetailedNetworkDto } from "../../../Blockchain.Abstraction/Models/DetailedNetworkDto";
 import { FormatAddress } from "../FuelBlockchainActivities";
 import { TokenCommittedEvent, TokenLockedEvent } from "../Models/EventModels";
+import { ensureHexLength } from "../../../Blockchain.Abstraction/Extensions/StringExtensions";
 
 export default async function TrackBlockEventsAsync(
   network: DetailedNetworkDto,
