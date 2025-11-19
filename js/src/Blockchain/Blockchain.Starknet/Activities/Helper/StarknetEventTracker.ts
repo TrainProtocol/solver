@@ -58,9 +58,9 @@ export async function TrackBlockEventsAsync(
 
             const logEvent = rawEvents.find(x => x.transaction_hash === parsed.transaction_hash);
 
-            const dstAddress = ensureHexPrefix(logEvent.data[8]);
+            const dstAddress = hexToUtf8(logEvent.data[8], logEvent.data[9]);
             const commitId = ensureHexLength(toHex(data.Id), 32);
-            
+
             const commitMsg: HTLCCommitEventMessage = {
                 txId: parsed.transaction_hash,
                 commitId: commitId,
@@ -100,3 +100,20 @@ export async function TrackBlockEventsAsync(
 export type ContractEvent =
     | Partial<{ TokenCommitted: TokenCommittedEvent }>
     | Partial<{ TokenLockAdded: TokenLockedEvent }>;
+
+function hexToUtf8(item1: string, item2: string): string {
+    // Remove "0x" prefix if present
+    const clean1 = item1.startsWith("0x") ? item1.slice(2) : item1;
+    const clean2 = item2.startsWith("0x") ? item2.slice(2) : item2;
+
+    // Concatenate hex
+    const hex = clean1 + clean2;
+
+    // Convert hex → byte array
+    const bytes = new Uint8Array(
+        hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16))
+    );
+
+    // Decode as UTF-8
+    return new TextDecoder().decode(bytes);
+}
