@@ -160,7 +160,7 @@ public class EVMTransactionProcessor : ITransactionProcessor
                             typeof(InvalidTimelockException).Name,
                             typeof(HashlockAlreadySetException).Name,
                             typeof(HTLCAlreadyExistsException).Name,
-                            typeof(AlreadyClaimedExceptions).Name,
+                            typeof(AlreadyClaimedException).Name,
                         }
                     }
                 });
@@ -288,13 +288,15 @@ public class EVMTransactionProcessor : ITransactionProcessor
                         }
                     });
         }
-        catch (ActivityFailureException ex)
+        catch (Exception ex)
         {
-            if (ex.InnerException is ApplicationFailureException appFailEx && appFailEx.HasError<TransactionNotComfirmedException>())
+            if (ex.InnerException is ApplicationFailureException notComfirmedFailure
+                    && notComfirmedFailure.Failure?.ApplicationFailureInfo.Type == nameof(TransactionNotComfirmedException))
             {
                 throw CreateContinueAsNewException<EVMTransactionProcessor>((x) => x.RunAsync(request, context));
             }
-            else if (ex.InnerException is ApplicationFailureException appEx && appEx.HasError<TransactionFailedException>())
+            else if (ex.InnerException is ApplicationFailureException txFailedFailure
+                    && txFailedFailure.Failure?.ApplicationFailureInfo.Type == nameof(TransactionFailedException))
             {
                 throw new ApplicationFailureException("Transaction failed");
             }

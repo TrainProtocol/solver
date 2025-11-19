@@ -1,5 +1,8 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+﻿using Temporalio.Exceptions;
 
-public class InvalidTimelockException(string message): Exception(message)
+namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+
+public class InvalidTimelockException(string message) 
+    : ApplicationFailureException(message, errorType: nameof(InvalidTimelockException))
 {
 }

@@ -1,5 +1,9 @@
-﻿namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+﻿using Temporalio.Exceptions;
 
-public class TransactionFailedRetriableException(string message) : Exception(message)
+namespace Train.Solver.Infrastructure.Abstractions.Exceptions;
+
+public class TransactionFailedRetriableException(string message) 
+    : ApplicationFailureException(message, errorType: nameof(TransactionFailedRetriableException))
+
 {
 }
