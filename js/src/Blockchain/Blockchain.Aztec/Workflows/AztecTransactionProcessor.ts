@@ -58,6 +58,15 @@ export async function AztecTransactionProcessor(
 
         const token = request.network.tokens.find(t => t.symbol === preparedTransaction.asset);
 
+         const balanceResult = await defaultActivities.GetBalance({
+            address: request.fromAddress,
+            asset: preparedTransaction.callDataAsset,
+            network: request.network,
+        });
+
+        console.log(`Balance for ${request.fromAddress} on asset ${preparedTransaction.callDataAsset} is ${balanceResult.amount}`);
+
+
         const signedRawData = await defaultActivities.signTransaction(
             {
                 networkType: NetworkType[request.network.type],

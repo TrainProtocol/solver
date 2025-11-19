@@ -78,8 +78,45 @@ export class AztecBlockchainActivities implements IAztecBlockchainActivities {
     }
 
     public async GetBalance(request: BalanceRequest): Promise<BalanceResponse> {
-        return { amount: "1000000000000" };
-    }
+
+     try {
+         const privateKey = await this.privateKeyService.getAsync(request.address);
+         const privateSalt = await this.privateKeyService.getAsync(request.address, "private_salt");
+         const provider: AztecNode = createAztecNodeClient(request.network.nodes[0].url);
+         const l1Contracts = await provider.getL1ContractAddresses();
+
+         const fullConfig = { ...getPXEConfig(), l1Contracts, proverEnabled: true };
+
+         const accountContract = new SchnorrAccountContract(deriveSigningKey(Fr.fromString(privateKey)));
+
+         const store = await createStore(request.address, {
+             dataDirectory: this.aztecConfigService.storePath,
+             dataStoreMapSizeKb: 1e6,
+         });
+
+         const token = request.network.tokens.find(t => t.symbol === request.asset);
+
+         const pxe = await TestWallet.create(provider, fullConfig, { store });
+
+         const userAccount = await pxe.createSchnorrAccount(
+             Fr.fromString(privateKey),
+             Fr.fromString(privateSalt),
+             deriveSigningKey(Fr.fromString(privateKey)),
+         );
+
+         const tokenInstance = await provider.getContract(AztecAddress.fromString(token.contract));
+         await pxe.registerContract(tokenInstance, TokenContract.artifact)
+
+         const tokenContract = await TokenContract.at(AztecAddress.fromString(token.contract), pxe);
+
+         const balanceResult = await tokenContract.methods.balance_of_private(AztecAddress.fromString(request.address)).simulate({ from: AztecAddress.fromString(request.address) });
+
+         return balanceResult;
+     }
+     catch (error) {
+         throw new Error(`Error while getting balance: ${error.message}`);
+     }
+ }
 
     public async GetLastConfirmedBlockNumber(request: BaseRequest): Promise<BlockNumberResponse> {
 
