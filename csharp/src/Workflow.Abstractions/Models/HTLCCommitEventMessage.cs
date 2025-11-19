@@ -25,4 +25,6 @@ public class HTLCCommitEventMessage
     public required string DestinationAsset { get; set; } = null!;
 
     public required long TimeLock { get; set; }
+
+    public string? TokenContract {  get; set; }
 }

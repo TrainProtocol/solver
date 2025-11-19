@@ -220,37 +220,34 @@ public class EVMBlockchainActivities(
 
             var (eventType, typedEvent) = decodedEvent.Value;
 
-            if (eventType == typeof(EtherTokenCommittedEvent) ||
-                decodedEvent.Value.eventType == typeof(ERC20TokenCommitedEvent))
+            if (eventType == typeof(EtherTokenCommittedEvent))
             {
-                var commitedEvent = (EtherTokenCommittedEvent)typedEvent;
+                var etherEvent = (EtherTokenCommittedEvent)typedEvent;
 
-                var wallet = request.WalletAddresses.Where(x =>
-                    FormatAddress(x) == FormatAddress(commitedEvent.Receiver)).FirstOrDefault();
+                var wallet = request.WalletAddresses
+                    .FirstOrDefault(x => FormatAddress(x) == FormatAddress(etherEvent.Receiver));
 
                 if (wallet == null)
                 {
                     continue;
                 }
 
-                var commitId = commitedEvent.Id.ToHex(prefix: true);
-
-                var message = new HTLCCommitEventMessage
+                // ERC20 special handling
+                if (etherEvent is ERC20TokenCommitedEvent ercEvent)
                 {
-                    TxId = log.TransactionHash,
-                    CommitId = commitId,
-                    Amount = commitedEvent.Amount,
-                    SourceAsset = commitedEvent.SourceAsset,
-                    SenderAddress = commitedEvent.Sender,
-                    SourceNetwork = request.Network.Name,
-                    DestinationAddress = commitedEvent.DestinationAddress,
-                    DestinationNetwork = commitedEvent.DestinationChain,
-                    DestinationAsset = commitedEvent.DestinationAsset,
-                    TimeLock = (long)commitedEvent.Timelock,
-                    ReceiverAddress = FormatAddress(wallet),
-                };
+                    if (!request.Network.Tokens.Any(x => x.Contract == ercEvent.TokenContract))
+                    {
+                        continue;
+                    }
 
-                result.HTLCCommitEventMessages.Add(message);
+                    result.HTLCCommitEventMessages.Add(
+                        MapCommitEvent(ercEvent, wallet, log.TransactionHash, request.Network.Name, ercEvent.TokenContract));
+                }
+                else
+                {
+                    result.HTLCCommitEventMessages.Add(
+                        MapCommitEvent(etherEvent, wallet, log.TransactionHash, request.Network.Name));
+                }
             }
             else if (eventType == typeof(EtherTokenLockAddedEvent))
             {
@@ -754,5 +751,29 @@ public class EVMBlockchainActivities(
         };
 
         return transactionModel;
+    }
+
+    private HTLCCommitEventMessage MapCommitEvent(
+        EtherTokenCommittedEvent evevnt,
+        string wallet,
+        string txId,
+        string networkName,
+        string? tokenContract = null)
+    {
+        return new HTLCCommitEventMessage
+        {
+            TxId = txId,
+            CommitId = evevnt.Id.ToHex(prefix: true),
+            Amount = evevnt.Amount,
+            SourceAsset = evevnt.SourceAsset,
+            SenderAddress = evevnt.Sender,
+            SourceNetwork = networkName,
+            DestinationAddress = evevnt.DestinationAddress,
+            DestinationNetwork = evevnt.DestinationChain,
+            DestinationAsset = evevnt.DestinationAsset,
+            TimeLock = (long)evevnt.Timelock,
+            ReceiverAddress = FormatAddress(wallet),
+            TokenContract = tokenContract
+        };
     }
 }
