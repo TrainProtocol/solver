@@ -302,6 +302,7 @@ public class SwapWorkflow : ISwapWorkflow
             {
                 CommitId = _htlcCommitMessage!.CommitId,
                 Asset = _htlcCommitMessage.DestinationAsset,
+                DestinationAddress = _destinationWalletAddress
             }.ToJson(),
             Type = TransactionType.HTLCRefund,
             Network = network,
