@@ -16,6 +16,8 @@ public class EthereumEIP1559FeeEstimator(ISmartNodeInvoker smartNodeInvoker) : F
 
     public virtual int HighPriorityBlockCount => 5;
 
+    private const string MinMaxPriorityFeePerGas = "1";
+
     public override BigInteger CalculateFee(Block block, Transaction transaction, EVMTransactionReceipt receipt)
     {
         return receipt.GasUsed * (block.BaseFeePerGas + transaction.MaxPriorityFeePerGas.Value);
@@ -66,15 +68,14 @@ public class EthereumEIP1559FeeEstimator(ISmartNodeInvoker smartNodeInvoker) : F
                 suggestedFees.BaseFee.Value.CompoundInterestRate(MaximumBaseFeeIncreasePerBlock, blockCount);
 
             // Node returns 0 but transfer service throws exception in case of 0
-            suggestedFees.MaxPriorityFeePerGas += 1;
-            suggestedFees.MaxPriorityFeePerGas =
-                suggestedFees.MaxPriorityFeePerGas.Value.PercentageIncrease(feePercentageIncrease);
+            var maxPriorityFeePerGas = BigInteger.Parse(MinMaxPriorityFeePerGas);
+            maxPriorityFeePerGas += (await web3.GetMaxPriorityFeePerGasAsync()).PercentageIncrease(feePercentageIncrease);
 
             return new Fee(
                 feeCurrency.Symbol,
                 feeCurrency.Decimals,
                 new EIP1559Data(
-                    suggestedFees.MaxPriorityFeePerGas.Value,
+                    maxPriorityFeePerGas,
                     increasedBaseFee,
                     gasLimit));
         }
