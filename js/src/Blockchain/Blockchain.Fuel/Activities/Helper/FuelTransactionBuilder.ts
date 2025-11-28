@@ -77,7 +77,7 @@ export async function createCommitCallData(network: DetailedNetworkDto, args: st
             hopAddresses,
             commitRequest.destinationChain.padEnd(64, ' '),
             commitRequest.destinationAsset.padEnd(64, ' '),
-            commitRequest.destinationAddress.padEnd(64, ' '),
+            RemoveHexPrefix(commitRequest.destinationAddress).padEnd(64, ' '),
             commitRequest.sourceAsset.padEnd(64, ' '),
             commitRequest.id,
             receiverAddress,
@@ -169,7 +169,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
             lockRequest.sourceAsset.padEnd(64, ' '),
             lockRequest.destinationNetwork.padEnd(64, ' '),
             lockRequest.destinationAsset.padEnd(64, ' '),
-            lockRequest.destinationAddress.padEnd(64, ' '),
+            RemoveHexPrefix(lockRequest.destinationAddress).padEnd(64, ' '),
         ).callParams({
             forward: [sendAmount, assetId.bits],
         })
@@ -178,7 +178,7 @@ export async function createLockCallData(network: DetailedNetworkDto, args: stri
         });
 
     const txRequest = await callConfig.getTransactionRequest();
-
+   
     return {
         data: JSON.stringify(txRequest),
         amount: sendAmount.toString(),
@@ -261,4 +261,8 @@ export async function createTransferCallData(network: DetailedNetworkDto, args: 
 
 function PadStringsTo64(input: string[]): string[] {
     return input.map(str => str.padEnd(64, ' '));
+}
+
+function RemoveHexPrefix(hex: string): string {
+  return hex.replace(/^0x/i, "");
 }
